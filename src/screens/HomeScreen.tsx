@@ -1,70 +1,113 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import WeeklyOverview from '../components/WeeklyOverview';
 
 interface QuickStatProps {
   title: string;
   value: string;
   color: string;
+  icon: string;
 }
 
-const QuickStat: React.FC<QuickStatProps> = ({ title, value, color }) => (
-  <View style={[styles.statCard, { borderLeftColor: color }]}>
-    <Text style={styles.statTitle}>{title}</Text>
-    <Text style={styles.statValue}>{value}</Text>
-  </View>
-);
+const QuickStat: React.FC<QuickStatProps> = ({ title, value, color, icon }) => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.statCard, { backgroundColor: colors.card, borderLeftColor: color }]}>
+      <View style={styles.statHeader}>
+        <Text style={styles.statIcon}>{icon}</Text>
+        <Text style={[styles.statTitle, { color: colors.textSecondary }]}>{title}</Text>
+      </View>
+      <Text style={[styles.statValue, { color: colors.text }]}>{value}</Text>
+    </View>
+  );
+};
 
 export default function HomeScreen({ navigation }: any) {
   const { user, logout } = useAuth();
+  const { colors, isDark, setTheme, theme } = useTheme();
+  const { width } = useWindowDimensions();
+  const isDesktop = width > 768;
+
+  const toggleTheme = () => {
+    if (theme === 'light') setTheme('dark');
+    else if (theme === 'dark') setTheme('auto');
+    else setTheme('light');
+  };
+
+  const getThemeIcon = () => {
+    if (theme === 'light') return '☀️';
+    if (theme === 'dark') return '🌙';
+    return '🔄';
+  };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.greeting}>Welcome back!</Text>
-        <Text style={styles.email}>{user?.email}</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.content, isDesktop && styles.contentDesktop]}>
+        <View style={[styles.header, { backgroundColor: colors.card }]}>
+          <View>
+            <Text style={[styles.greeting, { color: colors.text }]}>
+              Hallo, {user?.displayName || 'User'}!
+            </Text>
+            <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email}</Text>
+          </View>
+          <TouchableOpacity onPress={toggleTheme} style={styles.themeButton}>
+            <Text style={styles.themeIcon}>{getThemeIcon()}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <WeeklyOverview />
+
+        <View style={[styles.statsContainer, isDesktop && styles.statsGrid]}>
+          <QuickStat title="Push-ups heute" value="0" color="#FF6B6B" icon="💪" />
+          <QuickStat title="Wasser (ml)" value="0" color="#4ECDC4" icon="💧" />
+          <QuickStat title="Sport (min)" value="0" color="#95E1D3" icon="🏃" />
+          <QuickStat title="Mahlzeiten" value="0" color="#FFD93D" icon="🥗" />
+        </View>
+
+        <View style={[styles.actionsContainer, isDesktop && styles.actionsGrid]}>
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: '#FF6B6B' }]}
+            onPress={() => navigation.navigate('PushUps')}
+          >
+            <Text style={styles.actionIcon}>💪</Text>
+            <Text style={styles.actionButtonText}>Push-ups</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: '#4ECDC4' }]}
+            onPress={() => navigation.navigate('Water')}
+          >
+            <Text style={styles.actionIcon}>💧</Text>
+            <Text style={styles.actionButtonText}>Wasser</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: '#95E1D3' }]}
+            onPress={() => navigation.navigate('Sport')}
+          >
+            <Text style={styles.actionIcon}>🏃</Text>
+            <Text style={styles.actionButtonText}>Sport</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: '#FFD93D' }]}
+            onPress={() => navigation.navigate('Nutrition')}
+          >
+            <Text style={styles.actionIcon}>🥗</Text>
+            <Text style={styles.actionButtonText}>Ernährung</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.logoutButton, { borderColor: colors.border }]}
+          onPress={logout}
+        >
+          <Text style={[styles.logoutText, { color: colors.textSecondary }]}>Abmelden</Text>
+        </TouchableOpacity>
       </View>
-
-      <View style={styles.statsContainer}>
-        <QuickStat title="Today's Push-ups" value="0" color="#FF6B6B" />
-        <QuickStat title="Water (ml)" value="0" color="#4ECDC4" />
-        <QuickStat title="Sport (min)" value="0" color="#95E1D3" />
-        <QuickStat title="Meals Logged" value="0" color="#F9CA24" />
-      </View>
-
-      <View style={styles.actionsContainer}>
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: '#FF6B6B' }]}
-          onPress={() => navigation.navigate('PushUps')}
-        >
-          <Text style={styles.actionButtonText}>Log Push-ups</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: '#4ECDC4' }]}
-          onPress={() => navigation.navigate('Water')}
-        >
-          <Text style={styles.actionButtonText}>Log Water</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: '#95E1D3' }]}
-          onPress={() => navigation.navigate('Sport')}
-        >
-          <Text style={styles.actionButtonText}>Log Sport</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, { backgroundColor: '#F9CA24' }]}
-          onPress={() => navigation.navigate('Nutrition')}
-        >
-          <Text style={styles.actionButtonText}>Log Nutrition</Text>
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-        <Text style={styles.logoutText}>Logout</Text>
-      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -72,67 +115,118 @@ export default function HomeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+  },
+  content: {
+    padding: 20,
+  },
+  contentDesktop: {
+    maxWidth: 1200,
+    alignSelf: 'center',
+    width: '100%',
   },
   header: {
-    padding: 20,
-    backgroundColor: 'white',
+    padding: 24,
+    borderRadius: 16,
     marginBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   greeting: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 28,
+    fontWeight: '800',
   },
   email: {
     fontSize: 14,
-    color: '#666',
-    marginTop: 5,
+    marginTop: 4,
+  },
+  themeButton: {
+    padding: 12,
+    borderRadius: 12,
+  },
+  themeIcon: {
+    fontSize: 28,
   },
   statsContainer: {
-    padding: 20,
-    gap: 15,
+    gap: 12,
+    marginBottom: 20,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   statCard: {
-    backgroundColor: 'white',
     padding: 20,
-    borderRadius: 12,
+    borderRadius: 16,
     borderLeftWidth: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+    flex: 1,
+    minWidth: 280,
+  },
+  statHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  statIcon: {
+    fontSize: 24,
+    marginRight: 8,
   },
   statTitle: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 5,
+    fontWeight: '600',
   },
   statValue: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 32,
+    fontWeight: '800',
   },
   actionsContainer: {
-    padding: 20,
-    gap: 15,
+    gap: 12,
+    marginBottom: 20,
+  },
+  actionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
   actionButton: {
-    padding: 20,
-    borderRadius: 12,
+    padding: 24,
+    borderRadius: 16,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 5,
+    flex: 1,
+    minWidth: 280,
+  },
+  actionIcon: {
+    fontSize: 40,
+    marginBottom: 8,
   },
   actionButtonText: {
     color: 'white',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   logoutButton: {
-    margin: 20,
-    padding: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    marginTop: 20,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
     alignItems: 'center',
   },
   logoutText: {
-    color: '#666',
     fontSize: 16,
+    fontWeight: '600',
   },
 });
