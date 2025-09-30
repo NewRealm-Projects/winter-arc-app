@@ -46,17 +46,6 @@ export default function HomeScreen({ navigation }: any) {
     }
   };
 
-  const toggleTheme = () => {
-    if (theme === 'light') setTheme('dark');
-    else if (theme === 'dark') setTheme('auto');
-    else setTheme('light');
-  };
-
-  const getThemeIcon = () => {
-    if (theme === 'light') return '☀️';
-    if (theme === 'dark') return '🌙';
-    return '🔄';
-  };
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -68,17 +57,12 @@ export default function HomeScreen({ navigation }: any) {
             </Text>
             <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email}</Text>
           </View>
-          <View style={styles.headerButtons}>
-            <TouchableOpacity onPress={toggleTheme} style={styles.themeButton}>
-              <Text style={styles.themeIcon}>{getThemeIcon()}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Settings')}
-              style={styles.settingsButton}
-            >
-              <Text style={styles.settingsIcon}>⚙️</Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Settings')}
+            style={styles.settingsButton}
+          >
+            <Text style={styles.settingsIcon}>⚙️</Text>
+          </TouchableOpacity>
         </View>
 
         <WeeklyOverview />
@@ -123,13 +107,6 @@ export default function HomeScreen({ navigation }: any) {
             <Text style={styles.actionButtonText}>Ernährung</Text>
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity
-          style={[styles.logoutButton, { borderColor: colors.border }]}
-          onPress={logout}
-        >
-          <Text style={[styles.logoutText, { color: colors.textSecondary }]}>Abmelden</Text>
-        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -167,17 +144,6 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 14,
     marginTop: 4,
-  },
-  headerButtons: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  themeButton: {
-    padding: 12,
-    borderRadius: 12,
-  },
-  themeIcon: {
-    fontSize: 28,
   },
   settingsButton: {
     padding: 12,
@@ -251,16 +217,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: '700',
-  },
-  logoutButton: {
-    marginTop: 20,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    alignItems: 'center',
-  },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

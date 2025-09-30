@@ -96,10 +96,36 @@ export default function WeeklyOverview() {
   }, []);
 
   const loadWeekData = async () => {
-    if (!user) return;
+    if (!user) {
+      // Show empty week when no user
+      const today = new Date();
+      const weekDays: DayProgress[] = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        weekDays.push({
+          date,
+          pushups: false,
+          sport: false,
+          nutrition: false,
+          water: false,
+          completion: 0,
+        });
+      }
+      setWeekData(weekDays);
+      return;
+    }
 
     const today = new Date();
     const weekDays: DayProgress[] = [];
+
+    // Fetch all data once
+    const [sportData, pushupData, nutritionData, waterData] = await Promise.all([
+      getSportEntries(user.uid),
+      getPushUpEntries(user.uid),
+      getNutritionEntries(user.uid),
+      getWaterEntries(user.uid),
+    ]);
 
     for (let i = 6; i >= 0; i--) {
       const date = new Date(today);
@@ -108,14 +134,6 @@ export default function WeeklyOverview() {
 
       const nextDay = new Date(date);
       nextDay.setDate(nextDay.getDate() + 1);
-
-      // Fetch all data for the day
-      const [sportData, pushupData, nutritionData, waterData] = await Promise.all([
-        getSportEntries(user.uid),
-        getPushUpEntries(user.uid),
-        getNutritionEntries(user.uid),
-        getWaterEntries(user.uid),
-      ]);
 
       const hasSport = sportData.some(e => {
         const entryDate = new Date(e.date);
