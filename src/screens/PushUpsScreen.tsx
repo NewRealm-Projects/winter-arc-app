@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert, ScrollView } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { addPushUpEntry, getPushUpEntries } from '../services/database';
 import { PushUpEntry } from '../types';
 
-export default function PushUpsScreen() {
+export default function PushUpsScreen({ navigation }: any) {
   const [count, setCount] = useState('');
   const [notes, setNotes] = useState('');
   const [entries, setEntries] = useState<PushUpEntry[]>([]);
   const { user } = useAuth();
+  const { colors } = useTheme();
 
   useEffect(() => {
     loadEntries();
@@ -23,7 +25,7 @@ export default function PushUpsScreen() {
 
   const handleSubmit = async () => {
     if (!count || isNaN(Number(count))) {
-      Alert.alert('Error', 'Please enter a valid number');
+      Alert.alert('Fehler', 'Bitte gib eine gültige Zahl ein');
       return;
     }
 
@@ -35,86 +37,98 @@ export default function PushUpsScreen() {
       });
       setCount('');
       setNotes('');
-      Alert.alert('Success', 'Push-ups logged!');
+      Alert.alert('Erfolg', 'Push-ups gespeichert!');
       loadEntries();
+      // Close modal after success
+      setTimeout(() => navigation.goBack(), 1000);
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      Alert.alert('Fehler', error.message);
+      console.error('Error saving push-ups:', error);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.label}>Number of Push-ups</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.form, { backgroundColor: colors.card }]}>
+        <Text style={[styles.label, { color: colors.text }]}>Anzahl Push-ups</Text>
         <TextInput
-          style={styles.input}
-          placeholder="e.g., 20"
+          style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+          placeholder="z.B. 20"
+          placeholderTextColor={colors.textSecondary}
           value={count}
           onChangeText={setCount}
           keyboardType="number-pad"
         />
 
-        <Text style={styles.label}>Notes (optional)</Text>
+        <Text style={[styles.label, { color: colors.text }]}>Notizen (optional)</Text>
         <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="How did it feel?"
+          style={[styles.input, styles.textArea, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+          placeholder="Wie war es?"
+          placeholderTextColor={colors.textSecondary}
           value={notes}
           onChangeText={setNotes}
           multiline
         />
 
         <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Log Push-ups</Text>
+          <Text style={styles.buttonText}>Speichern</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.listContainer}>
-        <Text style={styles.historyTitle}>Recent Entries</Text>
+        <Text style={[styles.historyTitle, { color: colors.text }]}>Letzte Einträge</Text>
         <FlatList
           data={entries}
+          scrollEnabled={false}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={styles.entryCard}>
+            <View style={[styles.entryCard, { backgroundColor: colors.card }]}>
               <View style={styles.entryHeader}>
                 <Text style={styles.entryCount}>{item.count} push-ups</Text>
-                <Text style={styles.entryDate}>
-                  {new Date(item.date).toLocaleDateString()}
+                <Text style={[styles.entryDate, { color: colors.textSecondary }]}>
+                  {new Date(item.date).toLocaleDateString('de-DE')}
                 </Text>
               </View>
-              {item.notes && <Text style={styles.entryNotes}>{item.notes}</Text>}
+              {item.notes && <Text style={[styles.entryNotes, { color: colors.textSecondary }]}>{item.notes}</Text>}
             </View>
           )}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>No entries yet. Start logging!</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              Noch keine Einträge. Leg los!
+            </Text>
           }
         />
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   form: {
-    backgroundColor: 'white',
     padding: 20,
     marginBottom: 20,
+    borderRadius: 16,
+    margin: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333',
   },
   input: {
-    backgroundColor: '#f5f5f5',
     padding: 15,
     borderRadius: 8,
     marginBottom: 15,
     fontSize: 16,
+    borderWidth: 1,
   },
   textArea: {
     height: 80,
@@ -133,20 +147,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   listContainer: {
-    flex: 1,
     padding: 20,
+    paddingTop: 0,
   },
   historyTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#333',
   },
   entryCard: {
-    backgroundColor: 'white',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   entryHeader: {
     flexDirection: 'row',
@@ -160,16 +177,13 @@ const styles = StyleSheet.create({
   },
   entryDate: {
     fontSize: 14,
-    color: '#666',
   },
   entryNotes: {
     fontSize: 14,
-    color: '#666',
     marginTop: 8,
   },
   emptyText: {
     textAlign: 'center',
-    color: '#999',
     fontSize: 16,
     marginTop: 20,
   },
