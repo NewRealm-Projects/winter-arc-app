@@ -1,9 +1,9 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
-import { ThemeProvider } from './src/contexts/ThemeContext';
+import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import PushUpsScreen from './src/screens/PushUpsScreen';
@@ -19,13 +19,25 @@ const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 function Navigation() {
   const { user, loading } = useAuth();
+  const { isDark, colors } = useTheme();
 
   if (loading) {
     return null;
   }
 
+  const navigationTheme = {
+    ...isDark ? DarkTheme : DefaultTheme,
+    colors: {
+      ...isDark ? DarkTheme.colors : DefaultTheme.colors,
+      background: colors.background,
+      card: colors.card,
+      text: colors.text,
+      border: colors.border,
+    },
+  };
+
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       {!user ? (
         <Stack.Navigator>
           <Stack.Screen
@@ -35,36 +47,62 @@ function Navigation() {
           />
         </Stack.Navigator>
       ) : (
-        <Stack.Navigator>
+        <Stack.Navigator
+          screenOptions={{
+            headerStyle: {
+              backgroundColor: colors.card,
+            },
+            headerTintColor: colors.text,
+            headerTitleStyle: {
+              fontWeight: '600',
+            },
+            presentation: 'modal',
+          }}
+        >
           <Stack.Screen
             name="Home"
             component={HomeScreen}
-            options={{ title: 'Winter Arc' }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name="PushUps"
             component={PushUpsScreen}
-            options={{ title: 'Push-ups Tracker' }}
+            options={{
+              title: 'Push-ups',
+              presentation: 'modal',
+            }}
           />
           <Stack.Screen
             name="Water"
             component={WaterScreen}
-            options={{ title: 'Water Tracker' }}
+            options={{
+              title: 'Wasser',
+              presentation: 'modal',
+            }}
           />
           <Stack.Screen
             name="Sport"
             component={SportScreen}
-            options={{ title: 'Sport Tracker' }}
+            options={{
+              title: 'Sport',
+              presentation: 'modal',
+            }}
           />
           <Stack.Screen
             name="Nutrition"
             component={NutritionScreen}
-            options={{ title: 'Nutrition Tracker' }}
+            options={{
+              title: 'Ernährung',
+              presentation: 'modal',
+            }}
           />
           <Stack.Screen
             name="Settings"
             component={SettingsScreen}
-            options={{ title: 'Einstellungen' }}
+            options={{
+              title: 'Einstellungen',
+              presentation: 'modal',
+            }}
           />
         </Stack.Navigator>
       )}
@@ -72,14 +110,20 @@ function Navigation() {
   );
 }
 
+function ThemedNavigation() {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <Navigation />
+      </AuthProvider>
+    </ThemeProvider>
+  );
+}
+
 export default function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <ThemeProvider>
-        <AuthProvider>
-          <Navigation />
-        </AuthProvider>
-      </ThemeProvider>
+      <ThemedNavigation />
     </GoogleOAuthProvider>
   );
 }

@@ -93,7 +93,7 @@ export default function WeeklyOverview() {
 
   useEffect(() => {
     loadWeekData();
-  }, []);
+  }, [user]);
 
   const loadWeekData = async () => {
     if (!user) {
