@@ -1,7 +1,9 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
+import { ThemeProvider } from './src/contexts/ThemeContext';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import PushUpsScreen from './src/screens/PushUpsScreen';
@@ -10,6 +12,9 @@ import SportScreen from './src/screens/SportScreen';
 import NutritionScreen from './src/screens/NutritionScreen';
 
 const Stack = createStackNavigator();
+
+// Replace with your actual Google Client ID
+const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 function Navigation() {
   const { user, loading } = useAuth();
@@ -63,8 +68,12 @@ function Navigation() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Navigation />
-    </AuthProvider>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <ThemeProvider>
+        <AuthProvider>
+          <Navigation />
+        </AuthProvider>
+      </ThemeProvider>
+    </GoogleOAuthProvider>
   );
 }

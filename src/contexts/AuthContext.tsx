@@ -1,18 +1,18 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
+  signInWithCredential,
+  GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
   User as FirebaseUser
 } from 'firebase/auth';
-import { auth } from '../services/firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../services/firebase';
 
 interface AuthContextType {
   user: FirebaseUser | null;
   loading: boolean;
-  signUp: (email: string, password: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -23,20 +23,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
+
+      // Create user document if first time sign in
+      if (user) {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (!userDoc.exists()) {
+          await setDoc(doc(db, 'users', user.uid), {
+            name: user.displayName || 'User',
+            email: user.email,
+            createdAt: new Date(),
+            apps: ['pushups', 'sport', 'nutrition', 'water'],
+          });
+        }
+      }
+
       setLoading(false);
     });
 
     return unsubscribe;
   }, []);
 
-  const signUp = async (email: string, password: string) => {
-    await createUserWithEmailAndPassword(auth, email, password);
-  };
-
-  const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+  const signInWithGoogle = async (credential: string) => {
+    const googleCredential = GoogleAuthProvider.credential(credential);
+    await signInWithCredential(auth, googleCredential);
   };
 
   const logout = async () => {
@@ -44,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signUp, signIn, logout }}>
+    <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );
