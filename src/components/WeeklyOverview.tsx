@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import {
@@ -18,11 +18,11 @@ interface DayProgress {
   completion: number;
 }
 
-const ProgressRing: React.FC<{ progress: number; day: string; colors: any }> = ({ progress, day, colors }) => {
-  const size = 70;
-  const strokeWidth = 6;
-  const radius = (size - strokeWidth) / 2;
-  const center = size / 2;
+type ViewMode = 'week' | 'month';
+
+const ProgressRing: React.FC<{ progress: number; day: string; colors: any; small?: boolean }> = ({ progress, day, colors, small = false }) => {
+  const size = small ? 40 : 70;
+  const strokeWidth = small ? 4 : 6;
 
   const getColor = () => {
     if (progress === 100) return '#00D084';
@@ -32,11 +32,8 @@ const ProgressRing: React.FC<{ progress: number; day: string; colors: any }> = (
     return colors.border;
   };
 
-  const circumference = 2 * Math.PI * radius;
-  const progressOffset = circumference - (progress / 100) * circumference;
-
   return (
-    <View style={styles.ringContainer}>
+    <View style={[styles.ringContainer, small && styles.ringContainerSmall]}>
       <View style={{ width: size, height: size, position: 'relative' }}>
         {/* Background Ring */}
         <View
@@ -49,7 +46,7 @@ const ProgressRing: React.FC<{ progress: number; day: string; colors: any }> = (
             borderColor: colors.border,
           }}
         />
-        {/* Progress Ring using conic gradient simulation */}
+        {/* Progress Ring */}
         <View
           style={{
             position: 'absolute',
@@ -76,12 +73,12 @@ const ProgressRing: React.FC<{ progress: number; day: string; colors: any }> = (
             alignItems: 'center',
           }}
         >
-          <Text style={[styles.ringPercentage, { color: colors.text }]}>
+          <Text style={[styles.ringPercentage, { color: colors.text, fontSize: small ? 10 : 14 }]}>
             {Math.round(progress)}%
           </Text>
         </View>
       </View>
-      <Text style={[styles.dayLabel, { color: colors.textSecondary }]}>{day}</Text>
+      <Text style={[styles.dayLabel, { color: colors.textSecondary, fontSize: small ? 10 : 12 }]}>{day}</Text>
     </View>
   );
 };
@@ -89,21 +86,24 @@ const ProgressRing: React.FC<{ progress: number; day: string; colors: any }> = (
 export default function WeeklyOverview() {
   const { user } = useAuth();
   const { colors } = useTheme();
-  const [weekData, setWeekData] = useState<DayProgress[]>([]);
+  const [data, setData] = useState<DayProgress[]>([]);
+  const [viewMode, setViewMode] = useState<ViewMode>('week');
 
   useEffect(() => {
-    loadWeekData();
-  }, [user]);
+    loadData();
+  }, [user, viewMode]);
 
-  const loadWeekData = async () => {
+  const loadData = async () => {
     if (!user) {
-      // Show empty week when no user
+      // Show empty data when no user
       const today = new Date();
-      const weekDays: DayProgress[] = [];
-      for (let i = 6; i >= 0; i--) {
+      const days: DayProgress[] = [];
+      const daysToShow = viewMode === 'week' ? 7 : 30;
+
+      for (let i = daysToShow - 1; i >= 0; i--) {
         const date = new Date(today);
         date.setDate(date.getDate() - i);
-        weekDays.push({
+        days.push({
           date,
           pushups: false,
           sport: false,
@@ -112,12 +112,13 @@ export default function WeeklyOverview() {
           completion: 0,
         });
       }
-      setWeekData(weekDays);
+      setData(days);
       return;
     }
 
     const today = new Date();
-    const weekDays: DayProgress[] = [];
+    const days: DayProgress[] = [];
+    const daysToShow = viewMode === 'week' ? 7 : 30;
 
     // Fetch all data once
     const [sportData, pushupData, nutritionData, waterData] = await Promise.all([
@@ -127,7 +128,7 @@ export default function WeeklyOverview() {
       getWaterEntries(user.uid),
     ]);
 
-    for (let i = 6; i >= 0; i--) {
+    for (let i = daysToShow - 1; i >= 0; i--) {
       const date = new Date(today);
       date.setDate(date.getDate() - i);
       date.setHours(0, 0, 0, 0);
@@ -158,7 +159,7 @@ export default function WeeklyOverview() {
       const completed = [hasSport, hasPushups, hasNutrition, hasWater].filter(Boolean).length;
       const completion = (completed / 4) * 100;
 
-      weekDays.push({
+      days.push({
         date,
         pushups: hasPushups,
         sport: hasSport,
@@ -168,24 +169,72 @@ export default function WeeklyOverview() {
       });
     }
 
-    setWeekData(weekDays);
+    setData(days);
   };
 
   const getDayName = (date: Date) => {
-    const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-    return days[date.getDay()];
+    if (viewMode === 'week') {
+      const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+      return days[date.getDay()];
+    } else {
+      return date.getDate().toString();
+    }
   };
+
+  const getWeekStats = () => {
+    const total = data.length;
+    const completed = data.filter(d => d.completion === 100).length;
+    const avgCompletion = data.reduce((sum, d) => sum + d.completion, 0) / total;
+    return { total, completed, avgCompletion };
+  };
+
+  const stats = getWeekStats();
 
   return (
     <View style={[styles.container, { backgroundColor: colors.card }]}>
-      <Text style={[styles.title, { color: colors.text }]}>Wochenübersicht</Text>
-      <View style={styles.ringsContainer}>
-        {weekData.map((day, index) => (
+      <View style={styles.header}>
+        <View>
+          <Text style={[styles.title, { color: colors.text }]}>
+            {viewMode === 'week' ? 'Wochenübersicht' : 'Monatsübersicht'}
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            {stats.completed} von {stats.total} Tagen perfekt · ⌀ {Math.round(stats.avgCompletion)}%
+          </Text>
+        </View>
+        <View style={styles.toggleContainer}>
+          <TouchableOpacity
+            style={[
+              styles.toggleButton,
+              { backgroundColor: viewMode === 'week' ? colors.primary : colors.background },
+            ]}
+            onPress={() => setViewMode('week')}
+          >
+            <Text style={[styles.toggleText, { color: viewMode === 'week' ? 'white' : colors.text }]}>
+              Woche
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.toggleButton,
+              { backgroundColor: viewMode === 'month' ? colors.primary : colors.background },
+            ]}
+            onPress={() => setViewMode('month')}
+          >
+            <Text style={[styles.toggleText, { color: viewMode === 'month' ? 'white' : colors.text }]}>
+              Monat
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={[styles.ringsContainer, viewMode === 'month' && styles.ringsContainerMonth]}>
+        {data.map((day, index) => (
           <ProgressRing
             key={index}
             progress={day.completion}
             day={getDayName(day.date)}
             colors={colors}
+            small={viewMode === 'month'}
           />
         ))}
       </View>
@@ -204,27 +253,56 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   title: {
     fontSize: 20,
     fontWeight: '700',
-    marginBottom: 20,
+  },
+  subtitle: {
+    fontSize: 12,
+    marginTop: 4,
+  },
+  toggleContainer: {
+    flexDirection: 'row',
+    gap: 4,
+    backgroundColor: 'transparent',
+    borderRadius: 8,
+    padding: 2,
+  },
+  toggleButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+  },
+  toggleText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   ringsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
   },
+  ringsContainerMonth: {
+    gap: 8,
+  },
   ringContainer: {
     alignItems: 'center',
     marginBottom: 10,
   },
+  ringContainerSmall: {
+    marginBottom: 5,
+  },
   ringPercentage: {
-    fontSize: 14,
     fontWeight: '700',
   },
   dayLabel: {
-    fontSize: 12,
-    marginTop: 8,
+    marginTop: 4,
     fontWeight: '600',
   },
 });
