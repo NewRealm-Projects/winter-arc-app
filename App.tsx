@@ -10,6 +10,7 @@ import PushUpsScreen from './src/screens/PushUpsScreen';
 import WaterScreen from './src/screens/WaterScreen';
 import SportScreen from './src/screens/SportScreen';
 import NutritionScreen from './src/screens/NutritionScreen';
+import SettingsScreen from './src/screens/SettingsScreen';
 
 const Stack = createStackNavigator();
 
@@ -59,6 +60,11 @@ function Navigation() {
             name="Nutrition"
             component={NutritionScreen}
             options={{ title: 'Nutrition Tracker' }}
+          />
+          <Stack.Screen
+            name="Settings"
+            component={SettingsScreen}
+            options={{ title: 'Einstellungen' }}
           />
         </Stack.Navigator>
       )}

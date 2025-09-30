@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import WeeklyOverview from '../components/WeeklyOverview';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../services/firebase';
 
 interface QuickStatProps {
   title: string;
@@ -30,6 +32,19 @@ export default function HomeScreen({ navigation }: any) {
   const { colors, isDark, setTheme, theme } = useTheme();
   const { width } = useWindowDimensions();
   const isDesktop = width > 768;
+  const [nickname, setNickname] = useState('');
+
+  useEffect(() => {
+    loadNickname();
+  }, []);
+
+  const loadNickname = async () => {
+    if (!user) return;
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    if (userDoc.exists()) {
+      setNickname(userDoc.data().nickname || '');
+    }
+  };
 
   const toggleTheme = () => {
     if (theme === 'light') setTheme('dark');
@@ -49,13 +64,21 @@ export default function HomeScreen({ navigation }: any) {
         <View style={[styles.header, { backgroundColor: colors.card }]}>
           <View>
             <Text style={[styles.greeting, { color: colors.text }]}>
-              Hallo, {user?.displayName || 'User'}!
+              Hallo, {nickname || user?.displayName || 'User'}!
             </Text>
             <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email}</Text>
           </View>
-          <TouchableOpacity onPress={toggleTheme} style={styles.themeButton}>
-            <Text style={styles.themeIcon}>{getThemeIcon()}</Text>
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity onPress={toggleTheme} style={styles.themeButton}>
+              <Text style={styles.themeIcon}>{getThemeIcon()}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Settings')}
+              style={styles.settingsButton}
+            >
+              <Text style={styles.settingsIcon}>⚙️</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <WeeklyOverview />
@@ -145,11 +168,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
   },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   themeButton: {
     padding: 12,
     borderRadius: 12,
   },
   themeIcon: {
+    fontSize: 28,
+  },
+  settingsButton: {
+    padding: 12,
+    borderRadius: 12,
+  },
+  settingsIcon: {
     fontSize: 28,
   },
   statsContainer: {
