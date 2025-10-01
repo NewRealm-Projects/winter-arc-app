@@ -3,6 +3,9 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensio
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import WeeklyOverview from '../components/WeeklyOverview';
+import GlassCard from '../components/GlassCard';
+import GlassButton from '../components/GlassButton';
+import AnimatedGradient from '../components/AnimatedGradient';
 import {
   addPushUpEntry,
   addWaterEntry,
@@ -133,33 +136,34 @@ export default function HomeScreen({ navigation }: any) {
   const proteinGoal = userData?.weight ? Math.round(userData.weight * 2) : 150;
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.content, isDesktop && styles.contentDesktop]}>
-        {/* Header */}
-        <View style={[styles.header, { backgroundColor: colors.card }]}>
-          <View>
-            <Text style={[styles.greeting, { color: colors.text }]}>
-              Hallo, {userData?.nickname || user?.displayName || 'User'}!
-            </Text>
-            <Text style={[styles.date, { color: colors.textSecondary }]}>
-              {new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </Text>
-          </View>
-          <View style={styles.headerButtons}>
-            <TouchableOpacity onPress={() => navigation.navigate('Leaderboard')} style={styles.headerButton}>
-              <Text style={styles.headerIcon}>🏆</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.headerButton}>
-              <Text style={styles.headerIcon}>⚙️</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+    <AnimatedGradient>
+      <ScrollView style={styles.container}>
+        <View style={[styles.content, isDesktop && styles.contentDesktop]}>
+          {/* Header */}
+          <GlassCard style={styles.header}>
+            <View>
+              <Text style={[styles.greeting, { color: colors.text }]}>
+                Hallo, {userData?.nickname || user?.displayName || 'User'}!
+              </Text>
+              <Text style={[styles.date, { color: colors.textSecondary }]}>
+                {new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </Text>
+            </View>
+            <View style={styles.headerButtons}>
+              <TouchableOpacity onPress={() => navigation.navigate('Leaderboard')} style={styles.headerButton}>
+                <Text style={styles.headerIcon}>🏆</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.headerButton}>
+                <Text style={styles.headerIcon}>⚙️</Text>
+              </TouchableOpacity>
+            </View>
+          </GlassCard>
 
         {/* Weekly Overview */}
         <WeeklyOverview />
 
         {/* Push-ups Card */}
-        <View style={[styles.trackingCard, { backgroundColor: colors.card }]}>
+        <GlassCard style={styles.trackingCard}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardEmoji}>💪</Text>
             <View style={styles.cardTitleContainer}>
@@ -171,13 +175,14 @@ export default function HomeScreen({ navigation }: any) {
           </View>
           <View style={styles.quickAddButtons}>
             {[10, 20, 30, 50].map(count => (
-              <TouchableOpacity
+              <GlassButton
                 key={count}
-                style={[styles.quickButton, { backgroundColor: '#FF6B6B' }]}
+                title={`+${count}`}
+                color="#FF6B6B"
                 onPress={() => handleQuickAddPushUps(count)}
-              >
-                <Text style={styles.quickButtonText}>+{count}</Text>
-              </TouchableOpacity>
+                style={styles.quickButton}
+                textStyle={styles.quickButtonText}
+              />
             ))}
           </View>
           {recentPushUps.length > 0 && (
@@ -192,10 +197,10 @@ export default function HomeScreen({ navigation }: any) {
               ))}
             </View>
           )}
-        </View>
+        </GlassCard>
 
         {/* Water Card */}
-        <View style={[styles.trackingCard, { backgroundColor: colors.card }]}>
+        <GlassCard style={styles.trackingCard}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardEmoji}>💧</Text>
             <View style={styles.cardTitleContainer}>
@@ -207,13 +212,14 @@ export default function HomeScreen({ navigation }: any) {
           </View>
           <View style={styles.quickAddButtons}>
             {[250, 500, 750, 1000].map(amount => (
-              <TouchableOpacity
+              <GlassButton
                 key={amount}
-                style={[styles.quickButton, { backgroundColor: '#4ECDC4' }]}
+                title={`${amount}ml`}
+                color="#4ECDC4"
                 onPress={() => handleQuickAddWater(amount)}
-              >
-                <Text style={styles.quickButtonText}>{amount}ml</Text>
-              </TouchableOpacity>
+                style={styles.quickButton}
+                textStyle={styles.quickButtonText}
+              />
             ))}
           </View>
           {recentWater.length > 0 && (
@@ -228,10 +234,10 @@ export default function HomeScreen({ navigation }: any) {
               ))}
             </View>
           )}
-        </View>
+        </GlassCard>
 
         {/* Sport Card */}
-        <View style={[styles.trackingCard, { backgroundColor: colors.card }]}>
+        <GlassCard style={styles.trackingCard}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardEmoji}>🏃</Text>
             <View style={styles.cardTitleContainer}>
@@ -241,22 +247,18 @@ export default function HomeScreen({ navigation }: any) {
               </Text>
             </View>
           </View>
-          <TouchableOpacity
-            style={[
-              styles.sportButton,
-              { backgroundColor: todaySport ? '#00D084' : '#95E1D3' }
-            ]}
+          <GlassButton
+            title={todaySport ? '✓ Erledigt' : 'Abhaken'}
+            color={todaySport ? '#00D084' : '#95E1D3'}
             onPress={handleToggleSport}
             disabled={todaySport}
-          >
-            <Text style={styles.sportButtonText}>
-              {todaySport ? '✓ Erledigt' : 'Abhaken'}
-            </Text>
-          </TouchableOpacity>
-        </View>
+            style={styles.sportButton}
+            textStyle={styles.sportButtonText}
+          />
+        </GlassCard>
 
         {/* Protein Card */}
-        <View style={[styles.trackingCard, { backgroundColor: colors.card }]}>
+        <GlassCard style={styles.trackingCard}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardEmoji}>🥩</Text>
             <View style={styles.cardTitleContainer}>
@@ -268,13 +270,14 @@ export default function HomeScreen({ navigation }: any) {
           </View>
           <View style={styles.quickAddButtons}>
             {[20, 30, 40, 50].map(grams => (
-              <TouchableOpacity
+              <GlassButton
                 key={grams}
-                style={[styles.quickButton, { backgroundColor: '#F9CA24' }]}
+                title={`${grams}g`}
+                color="#F9CA24"
                 onPress={() => handleQuickAddProtein(grams)}
-              >
-                <Text style={styles.quickButtonText}>{grams}g</Text>
-              </TouchableOpacity>
+                style={styles.quickButton}
+                textStyle={styles.quickButtonText}
+              />
             ))}
           </View>
           {recentProtein.length > 0 && (
@@ -289,18 +292,19 @@ export default function HomeScreen({ navigation }: any) {
               ))}
             </View>
           )}
-        </View>
+        </GlassCard>
 
         {/* Weight Tracker Button */}
-        <TouchableOpacity
-          style={[styles.weightButton, { backgroundColor: '#A29BFE' }]}
+        <GlassButton
+          title="⚖️  Gewicht tracken"
+          color="#A29BFE"
           onPress={() => navigation.navigate('WeightTracker')}
-        >
-          <Text style={styles.weightButtonIcon}>⚖️</Text>
-          <Text style={styles.weightButtonText}>Gewicht tracken</Text>
-        </TouchableOpacity>
+          style={styles.weightButton}
+          textStyle={styles.weightButtonText}
+        />
       </View>
     </ScrollView>
+    </AnimatedGradient>
   );
 }
 
@@ -317,17 +321,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   header: {
-    padding: 24,
-    borderRadius: 16,
-    marginBottom: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    marginBottom: 20,
   },
   greeting: {
     fontSize: 28,
@@ -349,14 +346,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   trackingCard: {
-    padding: 20,
-    borderRadius: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -385,34 +375,15 @@ const styles = StyleSheet.create({
   },
   quickButton: {
     flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
   },
   quickButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 14,
   },
   sportButton: {
-    padding: 18,
-    borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+    width: '100%',
   },
   sportButtonText: {
-    color: 'white',
     fontSize: 18,
-    fontWeight: '700',
   },
   recentEntries: {
     marginTop: 12,
@@ -432,25 +403,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   weightButton: {
-    padding: 20,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 12,
-    elevation: 5,
-  },
-  weightButtonIcon: {
-    fontSize: 32,
-    marginRight: 12,
   },
   weightButtonText: {
-    color: 'white',
     fontSize: 20,
-    fontWeight: '700',
   },
 });

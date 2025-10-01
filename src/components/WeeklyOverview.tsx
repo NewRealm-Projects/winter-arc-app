@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import GlassCard from './GlassCard';
 import {
   getSportEntries,
   getPushUpEntries,
@@ -191,7 +192,7 @@ export default function WeeklyOverview() {
   const stats = getWeekStats();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.card }]}>
+    <GlassCard style={styles.container}>
       <View style={styles.header}>
         <View>
           <Text style={[styles.title, { color: colors.text }]}>
@@ -238,20 +239,13 @@ export default function WeeklyOverview() {
           />
         ))}
       </View>
-    </View>
+    </GlassCard>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    borderRadius: 16,
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
   },
   header: {
     flexDirection: 'row',
