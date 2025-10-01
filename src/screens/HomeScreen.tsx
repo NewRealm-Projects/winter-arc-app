@@ -16,7 +16,28 @@ import {
   getWaterEntries,
   getSportEntries,
   getProteinEntries,
+  getGroupMembers,
 } from '../services/database';
+
+interface GroupMemberSummary {
+  id: string;
+  label: string;
+  pushUps: number;
+  water: number;
+  protein: number;
+  sport: boolean;
+  score: number;
+}
+
+interface GroupSummary {
+  members: GroupMemberSummary[];
+  totals: {
+    pushUps: number;
+    water: number;
+    protein: number;
+    sport: number;
+  };
+}
 
 export default function HomeScreen({ navigation }: any) {
   const { user, userData } = useAuth();
@@ -28,18 +49,33 @@ export default function HomeScreen({ navigation }: any) {
   const [todayWater, setTodayWater] = useState(0);
   const [todayProtein, setTodayProtein] = useState(0);
   const [todaySport, setTodaySport] = useState(false);
+  const [groupSummary, setGroupSummary] = useState<GroupSummary | null>(null);
+  const [groupLoading, setGroupLoading] = useState(false);
 
   useEffect(() => {
-    loadAllData();
+    loadPersonalStats();
   }, [user]);
 
-  const loadAllData = async () => {
+  useEffect(() => {
+    if (user && userData?.groupCode) {
+      loadGroupSummary();
+    } else {
+      setGroupSummary(null);
+    }
+  }, [user, userData?.groupCode]);
+
+  const loadPersonalStats = async () => {
     if (!user) return;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const isToday = (value: Date | string) => {
+      const date = new Date(value);
+      return date >= today && date < tomorrow;
+    };
 
     const [pushUps, water, sport, protein] = await Promise.all([
       getPushUpEntries(user.uid),
@@ -48,22 +84,91 @@ export default function HomeScreen({ navigation }: any) {
       getProteinEntries(user.uid),
     ]);
 
-    const isToday = (dateValue: Date | string) => {
-      const date = new Date(dateValue);
-      return date >= today && date < tomorrow;
-    };
-
     setTodayPushUps(pushUps.filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.count, 0));
     setTodayWater(water.filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.amount, 0));
     setTodayProtein(protein.filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.grams, 0));
     setTodaySport(!!sport.find(entry => isToday(entry.date)));
   };
 
+  const loadGroupSummary = async () => {
+    if (!user || !userData?.groupCode) return;
+
+    setGroupLoading(true);
+    try {
+      const members = await getGroupMembers(userData.groupCode);
+      if (!members.length) {
+        setGroupSummary(null);
+        return;
+      }
+
+      const memberIds = members.map(member => member.id);
+
+      const [pushData, waterData, proteinData, sportData] = await Promise.all([
+        Promise.all(memberIds.map(id => getPushUpEntries(id))),
+        Promise.all(memberIds.map(id => getWaterEntries(id))),
+        Promise.all(memberIds.map(id => getProteinEntries(id))),
+        Promise.all(memberIds.map(id => getSportEntries(id))),
+      ]);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const isToday = (value: Date | string) => {
+        const date = new Date(value);
+        return date >= today && date < tomorrow;
+      };
+
+      const memberSummaries: GroupMemberSummary[] = members.map((member, index) => {
+        const pushTotal = pushData[index].filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.count, 0);
+        const waterTotal = waterData[index].filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.amount, 0);
+        const proteinTotal = proteinData[index].filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.grams, 0);
+        const sportDone = sportData[index].some(entry => isToday(entry.date));
+
+        const score = pushTotal + Math.floor(waterTotal / 1000) + Math.floor(proteinTotal / 10) + (sportDone ? 10 : 0);
+
+        return {
+          id: member.id,
+          label: member.nickname || member.name || 'Mitglied',
+          pushUps: pushTotal,
+          water: waterTotal,
+          protein: proteinTotal,
+          sport: sportDone,
+          score,
+        };
+      });
+
+      const totals = memberSummaries.reduce(
+        (acc, item) => ({
+          pushUps: acc.pushUps + item.pushUps,
+          water: acc.water + item.water,
+          protein: acc.protein + item.protein,
+          sport: acc.sport + (item.sport ? 1 : 0),
+        }),
+        { pushUps: 0, water: 0, protein: 0, sport: 0 }
+      );
+
+      const leaderboard = [...memberSummaries].sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        if (b.pushUps !== a.pushUps) return b.pushUps - a.pushUps;
+        return b.water - a.water;
+      });
+
+      setGroupSummary({ members: leaderboard, totals });
+    } catch (error) {
+      console.error('Error loading group summary:', error);
+      setGroupSummary(null);
+    } finally {
+      setGroupLoading(false);
+    }
+  };
+
   const handleQuickAddPushUps = async (count: number) => {
     try {
       await addPushUpEntry(user!.uid, { count, date: new Date() });
-      Alert.alert('?', `${count} Push-ups geloggt!`, [{ text: 'OK' }], { cancelable: false });
-      loadAllData();
+      Alert.alert('✅', `${count} Push-ups geloggt!`, [{ text: 'OK' }], { cancelable: false });
+      loadPersonalStats();
+      loadGroupSummary();
     } catch (error) {
       console.error('Error adding push-ups:', error);
       Alert.alert('Fehler', 'Konnte nicht speichern');
@@ -73,8 +178,9 @@ export default function HomeScreen({ navigation }: any) {
   const handleQuickAddWater = async (amount: number) => {
     try {
       await addWaterEntry(user!.uid, { amount, date: new Date() });
-      Alert.alert('?', `${amount}ml Wasser geloggt!`, [{ text: 'OK' }], { cancelable: false });
-      loadAllData();
+      Alert.alert('✅', `${amount}ml Wasser geloggt!`, [{ text: 'OK' }], { cancelable: false });
+      loadPersonalStats();
+      loadGroupSummary();
     } catch (error) {
       console.error('Error adding water:', error);
       Alert.alert('Fehler', 'Konnte nicht speichern');
@@ -84,8 +190,9 @@ export default function HomeScreen({ navigation }: any) {
   const handleQuickAddProtein = async (grams: number) => {
     try {
       await addProteinEntry(user!.uid, { grams, date: new Date() });
-      Alert.alert('?', `${grams}g Protein geloggt!`, [{ text: 'OK' }], { cancelable: false });
-      loadAllData();
+      Alert.alert('✅', `${grams}g Protein geloggt!`, [{ text: 'OK' }], { cancelable: false });
+      loadPersonalStats();
+      loadGroupSummary();
     } catch (error) {
       console.error('Error adding protein:', error);
       Alert.alert('Fehler', 'Konnte nicht speichern');
@@ -99,8 +206,9 @@ export default function HomeScreen({ navigation }: any) {
     }
     try {
       await addSportEntry(user!.uid);
-      Alert.alert('?', 'Sport abgehakt!', [{ text: 'OK' }], { cancelable: false });
-      loadAllData();
+      Alert.alert('✅', 'Sport abgehakt!', [{ text: 'OK' }], { cancelable: false });
+      loadPersonalStats();
+      loadGroupSummary();
     } catch (error) {
       console.error('Error adding sport:', error);
       Alert.alert('Fehler', 'Konnte nicht speichern');
@@ -111,6 +219,72 @@ export default function HomeScreen({ navigation }: any) {
 
   const handleOpenHistory = (type: 'pushups' | 'water' | 'protein' | 'sport') => {
     navigation.navigate('History', { type });
+  };
+
+  const renderGroupCard = () => {
+    if (!userData?.groupCode) {
+      return null;
+    }
+
+    if (groupLoading) {
+      return (
+        <GlassCard style={styles.groupCard}>
+          <Text style={[styles.groupTitle, { color: colors.text }]}>Team heute</Text>
+          <Text style={{ color: colors.textSecondary }}>Laden...</Text>
+        </GlassCard>
+      );
+    }
+
+    if (!groupSummary) {
+      return (
+        <GlassCard style={styles.groupCard}>
+          <Text style={[styles.groupTitle, { color: colors.text }]}>Team heute</Text>
+          <Text style={{ color: colors.textSecondary }}>Noch keine Gruppendaten.</Text>
+        </GlassCard>
+      );
+    }
+
+    const { totals, members } = groupSummary;
+    return (
+      <GlassCard style={styles.groupCard}>
+        <View style={styles.groupHeader}>
+          <Text style={[styles.groupTitle, { color: colors.text }]}>Team heute</Text>
+          <Text style={[styles.groupSubtitle, { color: colors.textSecondary }]}>Mitglieder: {members.length}</Text>
+        </View>
+        <View style={styles.groupTotalsRow}>
+          <View style={styles.groupTotalBox}>
+            <Text style={[styles.groupTotalLabel, { color: colors.textSecondary }]}>Push-ups</Text>
+            <Text style={[styles.groupTotalValue, { color: '#FF6B6B' }]}>{totals.pushUps}</Text>
+          </View>
+          <View style={styles.groupTotalBox}>
+            <Text style={[styles.groupTotalLabel, { color: colors.textSecondary }]}>Wasser</Text>
+            <Text style={[styles.groupTotalValue, { color: '#45AAF2' }]}>{Math.round(totals.water / 1000)}L</Text>
+          </View>
+          <View style={styles.groupTotalBox}>
+            <Text style={[styles.groupTotalLabel, { color: colors.textSecondary }]}>Protein</Text>
+            <Text style={[styles.groupTotalValue, { color: '#FFB347' }]}>{totals.protein}g</Text>
+          </View>
+          <View style={styles.groupTotalBox}>
+            <Text style={[styles.groupTotalLabel, { color: colors.textSecondary }]}>Sport</Text>
+            <Text style={[styles.groupTotalValue, { color: '#00D084' }]}>{totals.sport}/{members.length}</Text>
+          </View>
+        </View>
+        <View style={styles.groupLeaderboard}>
+          {members.slice(0, 3).map((member, index) => (
+            <View
+              key={member.id}
+              style={[styles.groupLeaderboardRow, { borderBottomColor: colors.border }]}
+            >
+              <Text style={[styles.groupLeaderboardRank, { color: colors.text }]}>{index + 1}.</Text>
+              <View style={styles.groupLeaderboardInfo}>
+                <Text style={[styles.groupLeaderboardName, { color: colors.text }]}>{member.label}</Text>
+                <Text style={[styles.groupLeaderboardStats, { color: colors.textSecondary }]}>S: {member.score} · PU {member.pushUps} · W {Math.round(member.water / 1000)}L · P {member.protein}g</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </GlassCard>
+    );
   };
 
   return (
@@ -126,20 +300,22 @@ export default function HomeScreen({ navigation }: any) {
             </View>
             <View style={styles.headerButtons}>
               <TouchableOpacity onPress={() => navigation.navigate('Leaderboard')} style={styles.headerButton}>
-                <Text style={[styles.headerIcon, { color: colors.text }]}>??</Text>
+                <Text style={styles.headerIcon}>🏅</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.headerButton}>
-                <Text style={[styles.headerIcon, { color: colors.text }]}>??</Text>
+                <Text style={styles.headerIcon}>⚙️</Text>
               </TouchableOpacity>
             </View>
           </GlassCard>
+
+          {renderGroupCard()}
 
           <WeeklyOverview />
           <WeightGraph onPress={() => navigation.navigate('WeightTracker')} />
 
           <GlassCard style={styles.trackingCard}>
             <View style={styles.cardHeader}>
-              <Text style={styles.cardEmoji}>??</Text>
+              <Text style={styles.cardEmoji}>💪</Text>
               <View style={styles.cardTitleContainer}>
                 <Text style={[styles.cardTitle, { color: colors.text }]}>Push-ups</Text>
                 <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Heute: {todayPushUps}</Text>
@@ -168,7 +344,7 @@ export default function HomeScreen({ navigation }: any) {
 
           <GlassCard style={styles.trackingCard}>
             <View style={styles.cardHeader}>
-              <Text style={styles.cardEmoji}>??</Text>
+              <Text style={styles.cardEmoji}>💧</Text>
               <View style={styles.cardTitleContainer}>
                 <Text style={[styles.cardTitle, { color: colors.text }]}>Wasser</Text>
                 <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Heute: {todayWater} ml</Text>
@@ -197,7 +373,7 @@ export default function HomeScreen({ navigation }: any) {
 
           <GlassCard style={styles.trackingCard}>
             <View style={styles.cardHeader}>
-              <Text style={styles.cardEmoji}>??</Text>
+              <Text style={styles.cardEmoji}>🍗</Text>
               <View style={styles.cardTitleContainer}>
                 <Text style={[styles.cardTitle, { color: colors.text }]}>Protein</Text>
                 <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Heute: {todayProtein} g · Ziel: {proteinGoal} g</Text>
@@ -226,16 +402,16 @@ export default function HomeScreen({ navigation }: any) {
 
           <GlassCard style={styles.trackingCard}>
             <View style={styles.cardHeader}>
-              <Text style={styles.cardEmoji}>?????</Text>
+              <Text style={styles.cardEmoji}>🏃‍♂️</Text>
               <View style={styles.cardTitleContainer}>
                 <Text style={[styles.cardTitle, { color: colors.text }]}>Sport</Text>
                 <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-                  Heute: {todaySport ? 'Erledigt ?' : 'Noch offen'}
+                  Heute: {todaySport ? 'Erledigt ✓' : 'Noch offen'}
                 </Text>
               </View>
             </View>
             <GlassButton
-              title={todaySport ? '? Erledigt' : 'Abhaken'}
+              title={todaySport ? '✓ Erledigt' : 'Abhaken'}
               color={todaySport ? '#00D084' : '#95E1D3'}
               onPress={handleToggleSport}
               disabled={todaySport}
@@ -273,7 +449,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
   },
   greeting: {
     fontSize: 28,
@@ -290,12 +465,76 @@ const styles = StyleSheet.create({
   headerButton: {
     padding: 12,
     borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.05)',
   },
   headerIcon: {
     fontSize: 28,
   },
+  groupCard: {
+    marginTop: 12,
+    gap: 12,
+  },
+  groupHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  groupTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  groupSubtitle: {
+    fontSize: 12,
+  },
+  groupTotalsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  groupTotalBox: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  groupTotalLabel: {
+    fontSize: 12,
+    marginBottom: 6,
+    fontWeight: '600',
+  },
+  groupTotalValue: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  groupLeaderboard: {
+    gap: 8,
+  },
+  groupLeaderboardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+  },
+  groupLeaderboardRank: {
+    fontSize: 16,
+    fontWeight: '700',
+    width: 24,
+    textAlign: 'center',
+  },
+  groupLeaderboardInfo: {
+    flex: 1,
+  },
+  groupLeaderboardName: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  groupLeaderboardStats: {
+    fontSize: 12,
+    marginTop: 2,
+  },
   trackingCard: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -340,6 +579,6 @@ const styles = StyleSheet.create({
   },
   historyButtonText: {
     fontSize: 16,
+    fontWeight: '600',
   },
 });
-

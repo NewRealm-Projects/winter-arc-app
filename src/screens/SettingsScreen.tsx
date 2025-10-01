@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Switch, Alert, Platform, Linking } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -71,13 +71,13 @@ export default function SettingsScreen() {
 
   const ensureNotificationsAllowed = async () => {
     if (!notificationsSupported) {
-      Alert.alert('Nicht verfügbar', 'Benachrichtigungen werden im Web derzeit nicht unterstützt.');
+      Alert.alert('Nicht verfügbar', 'Benachrichtigungen werden im Web nicht unterstützt.');
       return false;
     }
 
     const granted = await requestPermissions();
     if (!granted) {
-      Alert.alert('Benachrichtigungen', 'Bitte erlaube Benachrichtigungen in den Einstellungen.');
+      Alert.alert('Benachrichtigungen', 'Bitte erlaube Benachrichtigungen in den Systemeinstellungen.');
       return false;
     }
     return true;
@@ -143,7 +143,7 @@ export default function SettingsScreen() {
     if (!user) return;
     Alert.alert(
       'Konto löschen',
-      'Möchtest du dein Konto und alle Daten dauerhaft löschen?',
+      'Möchtest du dein Konto und alle Daten dauerhaft entfernen?',
       [
         { text: 'Abbrechen', style: 'cancel' },
         {
@@ -153,22 +153,23 @@ export default function SettingsScreen() {
             try {
               setDeleting(true);
               await deleteUserData(user.uid);
+              await cancelAllNotifications();
               if (auth?.currentUser) {
                 try {
                   await deleteUser(auth.currentUser);
                 } catch (error: any) {
                   if (error.code === 'auth/requires-recent-login') {
-                    Alert.alert('Hinweis', 'Bitte melde dich erneut an, bevor du dein Konto löschst.');
+                    Alert.alert('Hinweis', 'Bitte melde dich erneut an, bevor du dein Konto löschen kannst.');
                   } else {
                     console.error('Error deleting auth user:', error);
-                    Alert.alert('Fehler', 'Konnte den Nutzer nicht löschen.');
+                    Alert.alert('Fehler', 'Konto konnte nicht entfernt werden.');
                   }
                 }
               }
               await logout();
             } catch (error) {
               console.error('Error deleting account:', error);
-              Alert.alert('Fehler', 'Konnte Konto nicht löschen.');
+              Alert.alert('Fehler', 'Konto konnte nicht entfernt werden.');
             } finally {
               setDeleting(false);
             }
@@ -180,7 +181,7 @@ export default function SettingsScreen() {
 
   const openAppClip = async () => {
     if (!APP_CLIP_URL) {
-      Alert.alert('Nicht verfügbar', 'App Clip URL ist nicht konfiguriert.');
+      Alert.alert('Nicht verfügbar', 'Keine App-Clip-URL hinterlegt.');
       return;
     }
     try {
@@ -213,7 +214,7 @@ export default function SettingsScreen() {
               value={nickname}
               onChangeText={setNickname}
             />
-            <Text style={[styles.label, { color: colors.textSecondary }]}>Gruppen-Code</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Gruppencode</Text>
             <TextInput
               style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.background }]}
               placeholder="z.B. winter-warriors"
@@ -235,7 +236,7 @@ export default function SettingsScreen() {
           )}
           <View style={styles.settingRow}>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>?? Wasser-Erinnerung</Text>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>💧 Wasser-Erinnerung</Text>
               <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>Täglich um 10:00 Uhr</Text>
             </View>
             <Switch
@@ -248,7 +249,7 @@ export default function SettingsScreen() {
           </View>
           <View style={styles.settingRow}>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>?? Workout-Erinnerung</Text>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>💪 Workout-Erinnerung</Text>
               <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>Täglich um 18:00 Uhr</Text>
             </View>
             <Switch
@@ -401,6 +402,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-
-
-

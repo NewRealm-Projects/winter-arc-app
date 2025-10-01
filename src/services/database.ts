@@ -33,6 +33,31 @@ const MAX_WEIGHT_KG = 500;
 const MAX_BODY_FAT_PCT = 50;
 const MIN_BODY_FAT_PCT = 3;
 
+export interface GroupMemberSummary {
+  id: string;
+  nickname?: string;
+  name?: string;
+}
+
+export const getGroupMembers = async (groupCode: string): Promise<GroupMemberSummary[]> => {
+  if (!groupCode) {
+    return [];
+  }
+
+  const snapshot = await getDocs(
+    query(collection(ensureDb(), 'users'), where('groupCode', '==', groupCode))
+  );
+
+  return snapshot.docs.map((docSnap) => {
+    const data = docSnap.data() as { nickname?: string; name?: string };
+    return {
+      id: docSnap.id,
+      nickname: data?.nickname,
+      name: data?.name,
+    };
+  });
+};
+
 // ============================================================================
 // SPORT ENTRIES
 // ============================================================================

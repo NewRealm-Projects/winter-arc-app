@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import GlassCard from './GlassCard';
@@ -21,65 +22,86 @@ interface DayProgress {
 
 type ViewMode = 'week' | 'month';
 
-const ProgressRing: React.FC<{ progress: number; day: string; colors: any; small?: boolean }> = ({ progress, day, colors, small = false }) => {
-  const size = small ? 40 : 70;
-  const strokeWidth = small ? 4 : 6;
+type Segment = {
+  color: string;
+  active: boolean;
+};
 
-  const getColor = () => {
-    if (progress === 100) return '#00D084';
-    if (progress >= 75) return '#4ECDC4';
-    if (progress >= 50) return '#FFD93D';
-    if (progress >= 25) return '#FF6B6B';
-    return colors.border;
-  };
+const SEGMENT_CONFIG: Segment[] = [
+  { color: '#FF6B6B', active: false },
+  { color: '#45AAF2', active: false },
+  { color: '#FFB347', active: false },
+  { color: '#00D084', active: false },
+];
+
+const getStartOfWeek = (reference: Date) => {
+  const date = new Date(reference);
+  const day = date.getDay();
+  const diff = day === 0 ? -6 : 1 - day; // Monday start
+  date.setDate(date.getDate() + diff);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const getStartOfMonth = (reference: Date) => {
+  const date = new Date(reference.getFullYear(), reference.getMonth(), 1);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const formatDayLabel = (date: Date, mode: ViewMode) => {
+  if (mode === 'week') {
+    const labels = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+    return labels[(date.getDay() + 6) % 7];
+  }
+  return String(date.getDate());
+};
+
+const ProgressRing: React.FC<{ day: DayProgress; mode: ViewMode; colors: any }> = ({ day, mode, colors }) => {
+  const segments = [
+    { color: '#FF6B6B', active: day.pushups },
+    { color: '#45AAF2', active: day.water },
+    { color: '#FFB347', active: day.protein },
+    { color: '#00D084', active: day.sport },
+  ];
+
+  const size = mode === 'month' ? 46 : 72;
+  const strokeWidth = mode === 'month' ? 8 : 10;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const segmentLength = circumference / segments.length;
 
   return (
-    <View style={[styles.ringContainer, small && styles.ringContainerSmall]}>
-      <View style={{ width: size, height: size, position: 'relative' }}>
-        {/* Background Ring */}
-        <View
-          style={{
-            position: 'absolute',
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            borderWidth: strokeWidth,
-            borderColor: colors.border,
-          }}
+    <View style={[styles.ringContainer, mode === 'month' && styles.ringContainerSmall]}>
+      <Svg width={size} height={size}>
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={colors.border}
+          strokeWidth={strokeWidth}
+          fill="transparent"
         />
-        {/* Progress Ring */}
-        <View
-          style={{
-            position: 'absolute',
-            width: size,
-            height: size,
-            borderRadius: size / 2,
-            borderWidth: strokeWidth,
-            borderColor: getColor(),
-            borderTopColor: progress >= 25 ? getColor() : colors.border,
-            borderRightColor: progress >= 50 ? getColor() : colors.border,
-            borderBottomColor: progress >= 75 ? getColor() : colors.border,
-            borderLeftColor: progress >= 100 ? getColor() : colors.border,
-            transform: [{ rotate: '-90deg' }],
-          }}
-        />
-        <View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          <Text style={[styles.ringPercentage, { color: colors.text, fontSize: small ? 10 : 14 }]}>
-            {Math.round(progress)}%
-          </Text>
-        </View>
+        {segments.map((segment, index) => (
+          <Circle
+            key={`segment-${index}`}
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={segment.active ? segment.color : colors.border}
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${segmentLength} ${circumference}`}
+            strokeDashoffset={circumference - segmentLength * (index + 1)}
+            strokeLinecap="round"
+            fill="transparent"
+            transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          />
+        ))}
+      </Svg>
+      <View style={styles.ringCenter}>
+        <Text style={[styles.ringValue, { color: colors.text }]}>{Math.round(day.completion)}%</Text>
+        <Text style={[styles.dayLabel, { color: colors.textSecondary }]}>{formatDayLabel(day.date, mode)}</Text>
       </View>
-      <Text style={[styles.dayLabel, { color: colors.textSecondary, fontSize: small ? 10 : 12 }]}>{day}</Text>
     </View>
   );
 };
@@ -95,65 +117,61 @@ export default function WeeklyOverview() {
   }, [user, viewMode]);
 
   const loadData = async () => {
-    if (!user) {
-      // Show empty data when no user
-      const today = new Date();
-      const days: DayProgress[] = [];
-      const daysToShow = viewMode === 'week' ? 7 : 30;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-      for (let i = daysToShow - 1; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        days.push({
+    const startDate = viewMode === 'week' ? getStartOfWeek(today) : getStartOfMonth(today);
+    const daysToShow = viewMode === 'week' ? 7 : today.getDate();
+
+    if (!user) {
+      const fallback: DayProgress[] = Array.from({ length: daysToShow }, (_, index) => {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + index);
+        return {
           date,
           pushups: false,
           sport: false,
           protein: false,
           water: false,
           completion: 0,
-        });
-      }
-      setData(days);
+        };
+      });
+      setData(fallback);
       return;
     }
 
-    const today = new Date();
-    const days: DayProgress[] = [];
-    const daysToShow = viewMode === 'week' ? 7 : 30;
-
-    // Fetch all data once
-    const [sportData, pushupData, proteinData, waterData] = await Promise.all([
+    const [sportData, pushData, proteinData, waterData] = await Promise.all([
       getSportEntries(user.uid),
       getPushUpEntries(user.uid),
       getProteinEntries(user.uid),
       getWaterEntries(user.uid),
     ]);
 
-    for (let i = daysToShow - 1; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
+    const days: DayProgress[] = [];
+    for (let i = 0; i < daysToShow; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
       date.setHours(0, 0, 0, 0);
-
       const nextDay = new Date(date);
-      nextDay.setDate(nextDay.getDate() + 1);
+      nextDay.setDate(date.getDate() + 1);
 
-      const hasSport = sportData.some(e => {
-        const entryDate = new Date(e.date);
+      const hasSport = sportData.some(entry => {
+        const entryDate = new Date(entry.date);
         return entryDate >= date && entryDate < nextDay;
       });
 
-      const hasPushups = pushupData.some(e => {
-        const entryDate = new Date(e.date);
+      const hasPushups = pushData.some(entry => {
+        const entryDate = new Date(entry.date);
         return entryDate >= date && entryDate < nextDay;
       });
 
-      const hasProtein = proteinData.some(e => {
-        const entryDate = new Date(e.date);
+      const hasProtein = proteinData.some(entry => {
+        const entryDate = new Date(entry.date);
         return entryDate >= date && entryDate < nextDay;
       });
 
-      const hasWater = waterData.some(e => {
-        const entryDate = new Date(e.date);
+      const hasWater = waterData.some(entry => {
+        const entryDate = new Date(entry.date);
         return entryDate >= date && entryDate < nextDay;
       });
 
@@ -173,33 +191,25 @@ export default function WeeklyOverview() {
     setData(days);
   };
 
-  const getDayName = (date: Date) => {
-    if (viewMode === 'week') {
-      const days = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-      return days[date.getDay()];
-    } else {
-      return date.getDate().toString();
+  const getStats = () => {
+    if (!data.length) {
+      return { total: 0, completed: 0, avgCompletion: 0 };
     }
-  };
-
-  const getWeekStats = () => {
     const total = data.length;
-    const completed = data.filter(d => d.completion === 100).length;
-    const avgCompletion = data.reduce((sum, d) => sum + d.completion, 0) / total;
+    const completed = data.filter(day => day.completion === 100).length;
+    const avgCompletion = data.reduce((sum, day) => sum + day.completion, 0) / total;
     return { total, completed, avgCompletion };
   };
 
-  const stats = getWeekStats();
+  const stats = getStats();
 
   return (
     <GlassCard style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={[styles.title, { color: colors.text }]}>
-            {viewMode === 'week' ? 'Wochenübersicht' : 'Monatsübersicht'}
-          </Text>
+          <Text style={[styles.title, { color: colors.text }]}>Wochenübersicht</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {stats.completed} von {stats.total} Tagen perfekt · ⌀ {Math.round(stats.avgCompletion)}%
+            {stats.completed} von {stats.total} Tagen perfekt · {Math.round(stats.avgCompletion)}%
           </Text>
         </View>
         <View style={styles.toggleContainer}>
@@ -210,9 +220,7 @@ export default function WeeklyOverview() {
             ]}
             onPress={() => setViewMode('week')}
           >
-            <Text style={[styles.toggleText, { color: viewMode === 'week' ? 'white' : colors.text }]}>
-              Woche
-            </Text>
+            <Text style={[styles.toggleText, { color: viewMode === 'week' ? 'white' : colors.text }]}>Woche</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
@@ -221,22 +229,14 @@ export default function WeeklyOverview() {
             ]}
             onPress={() => setViewMode('month')}
           >
-            <Text style={[styles.toggleText, { color: viewMode === 'month' ? 'white' : colors.text }]}>
-              Monat
-            </Text>
+            <Text style={[styles.toggleText, { color: viewMode === 'month' ? 'white' : colors.text }]}>Monat</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={[styles.ringsContainer, viewMode === 'month' && styles.ringsContainerMonth]}>
         {data.map((day, index) => (
-          <ProgressRing
-            key={index}
-            progress={day.completion}
-            day={getDayName(day.date)}
-            colors={colors}
-            small={viewMode === 'month'}
-          />
+          <ProgressRing key={index} day={day} mode={viewMode} colors={colors} />
         ))}
       </View>
     </GlassCard>
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   toggleContainer: {
     flexDirection: 'row',
-    gap: 4,
+    gap: 8,
     backgroundColor: 'transparent',
     borderRadius: 8,
     padding: 2,
@@ -281,22 +281,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     flexWrap: 'wrap',
+    gap: 16,
   },
   ringsContainerMonth: {
-    gap: 8,
+    justifyContent: 'flex-start',
   },
   ringContainer: {
     alignItems: 'center',
-    marginBottom: 10,
   },
   ringContainerSmall: {
-    marginBottom: 5,
+    marginVertical: 4,
   },
-  ringPercentage: {
+  ringCenter: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  ringValue: {
+    fontSize: 12,
     fontWeight: '700',
   },
   dayLabel: {
-    marginTop: 4,
-    fontWeight: '600',
+    fontSize: 10,
+    marginTop: 2,
   },
 });
