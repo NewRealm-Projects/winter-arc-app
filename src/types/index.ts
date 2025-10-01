@@ -3,12 +3,14 @@ export interface User {
   email: string;
   displayName?: string;
   createdAt: Date;
+  nickname?: string;
+  age?: number;
+  gender?: 'male' | 'female' | 'other';
   weight?: number; // in kg
   height?: number; // in cm
   bodyFat?: number; // body fat percentage
   onboardingCompleted?: boolean;
   groupCode?: string; // group identifier (e.g., "boys")
-  nickname?: string;
 }
 
 export interface SportEntry {

@@ -6,15 +6,27 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
 
 export default function OnboardingScreen({ navigation }: any) {
+  const [nickname, setNickname] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | 'other'>('male');
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
   const [groupCode, setGroupCode] = useState('');
-  const [nickname, setNickname] = useState('');
   const { user, refreshUserData } = useAuth();
   const { colors } = useTheme();
 
   const handleSubmit = async () => {
+    if (!nickname.trim()) {
+      Alert.alert('Fehler', 'Bitte gib einen Spitznamen ein');
+      return;
+    }
+
+    if (!age || isNaN(Number(age)) || Number(age) < 10 || Number(age) > 120) {
+      Alert.alert('Fehler', 'Bitte gib ein gültiges Alter ein (10-120)');
+      return;
+    }
+
     if (!weight || !height || isNaN(Number(weight)) || isNaN(Number(height))) {
       Alert.alert('Fehler', 'Bitte gib Gewicht und Größe ein');
       return;
@@ -28,6 +40,7 @@ export default function OnboardingScreen({ navigation }: any) {
     const weightNum = Number(weight);
     const heightNum = Number(height);
     const bodyFatNum = bodyFat ? Number(bodyFat) : undefined;
+    const ageNum = Number(age);
 
     if (weightNum < 30 || weightNum > 300) {
       Alert.alert('Fehler', 'Gewicht muss zwischen 30 und 300 kg sein');
@@ -41,11 +54,13 @@ export default function OnboardingScreen({ navigation }: any) {
 
     try {
       await updateDoc(doc(db, 'users', user!.uid), {
+        nickname: nickname.trim(),
+        age: ageNum,
+        gender: gender,
         weight: weightNum,
         height: heightNum,
         bodyFat: bodyFatNum,
         groupCode: groupCode.toLowerCase().trim() || undefined,
-        nickname: nickname.trim() || user?.displayName || 'User',
         onboardingCompleted: true,
       });
       await refreshUserData();
@@ -68,7 +83,7 @@ export default function OnboardingScreen({ navigation }: any) {
         </Text>
 
         <View style={styles.form}>
-          <Text style={[styles.label, { color: colors.text }]}>Nickname</Text>
+          <Text style={[styles.label, { color: colors.text }]}>Spitzname</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
             placeholder="z.B. Max"
@@ -76,6 +91,62 @@ export default function OnboardingScreen({ navigation }: any) {
             value={nickname}
             onChangeText={setNickname}
           />
+
+          <Text style={[styles.label, { color: colors.text }]}>Alter</Text>
+          <TextInput
+            style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+            placeholder="z.B. 25"
+            placeholderTextColor={colors.textSecondary}
+            value={age}
+            onChangeText={setAge}
+            keyboardType="number-pad"
+          />
+
+          <Text style={[styles.label, { color: colors.text }]}>Geschlecht</Text>
+          <View style={styles.genderContainer}>
+            <TouchableOpacity
+              style={[
+                styles.genderButton,
+                {
+                  backgroundColor: gender === 'male' ? '#4ECDC4' : colors.background,
+                  borderColor: colors.border
+                }
+              ]}
+              onPress={() => setGender('male')}
+            >
+              <Text style={[styles.genderText, { color: gender === 'male' ? 'white' : colors.text }]}>
+                Männlich
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.genderButton,
+                {
+                  backgroundColor: gender === 'female' ? '#4ECDC4' : colors.background,
+                  borderColor: colors.border
+                }
+              ]}
+              onPress={() => setGender('female')}
+            >
+              <Text style={[styles.genderText, { color: gender === 'female' ? 'white' : colors.text }]}>
+                Weiblich
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.genderButton,
+                {
+                  backgroundColor: gender === 'other' ? '#4ECDC4' : colors.background,
+                  borderColor: colors.border
+                }
+              ]}
+              onPress={() => setGender('other')}
+            >
+              <Text style={[styles.genderText, { color: gender === 'other' ? 'white' : colors.text }]}>
+                Divers
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           <Text style={[styles.label, { color: colors.text }]}>Gruppen-Code (optional)</Text>
           <TextInput
@@ -202,6 +273,22 @@ const styles = StyleSheet.create({
     marginTop: -10,
     marginBottom: 15,
     fontStyle: 'italic',
+  },
+  genderContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 15,
+  },
+  genderButton: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  genderText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   button: {
     backgroundColor: '#4ECDC4',

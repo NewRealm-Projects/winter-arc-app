@@ -10,11 +10,13 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
 
 interface UserData {
+  nickname?: string;
+  age?: number;
+  gender?: 'male' | 'female' | 'other';
   weight?: number;
   height?: number;
   bodyFat?: number;
   onboardingCompleted?: boolean;
-  nickname?: string;
   groupCode?: string;
 }
 
