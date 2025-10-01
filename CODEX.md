@@ -1,4 +1,4 @@
-﻿# CODEX.md
+# CODEX.md
 
 **Codex CLI Configuration & Development Guidelines**
 
@@ -8,7 +8,7 @@ This file provides comprehensive guidance for Codex CLI (OpenAI) when working wi
 **Last Updated:** 2025-10-01
 **Project:** Winter Arc Fitness Tracker
 
-## ðŸ”„ Meta-Requirement: Documentation Updates
+## 🔄 Meta-Requirement: Documentation Updates
 
 **CRITICAL: Whenever the user provides new requirements, feature requests, or identifies issues:**
 
@@ -19,14 +19,14 @@ This file provides comprehensive guidance for Codex CLI (OpenAI) when working wi
 
 This ensures all future development sessions have complete context and requirements.
 
-## âœ… CRITICAL: Implementation Verification Requirement
+## ✅ CRITICAL: Implementation Verification Requirement
 
 **MANDATORY: After implementing ANY feature or fix, you MUST verify it actually works:**
 
 1. **Never assume implementation = working functionality**
-   - Code that compiles â‰  code that works correctly
-   - Database writes â‰  UI updates
-   - Function exists â‰  function is called
+   - Code that compiles ≠ code that works correctly
+   - Database writes ≠ UI updates
+   - Function exists ≠ function is called
 
 2. **Verification Steps (REQUIRED for EVERY implementation):**
    - [ ] Run the app and manually test the feature
@@ -69,7 +69,7 @@ The app tracks:
 - **Backend**: Firebase (Authentication + Firestore)
 - **Auth**: Google OAuth (Sign in with Google)
 - **Navigation**: React Navigation (Stack Navigator with modals)
-- **Deployment**: GitHub Actions â†’ GitHub Pages
+- **Deployment**: GitHub Actions → GitHub Pages
 - **State Management**: React Context (AuthContext, ThemeContext)
 - **Security**:
   - Socket.dev (Dependency scanning)
@@ -135,38 +135,38 @@ firebase emulators:start                # Test locally
 
 ```
 src/
-â”œâ”€â”€ components/          # Reusable UI components
-â”‚   â”œâ”€â”€ AnimatedGradient.tsx   # Gradient background wrapper
-â”‚   â”œâ”€â”€ GlassButton.tsx        # Glass-styled buttons
-â”‚   â”œâ”€â”€ GlassCard.tsx          # Glass-styled card container
-â”‚   â”œâ”€â”€ WeeklyOverview.tsx     # Week/month progress rings
-â”‚   â””â”€â”€ WeightGraph.tsx        # Interactive weight graph with dual lines
-â”œâ”€â”€ contexts/            # React contexts
-â”‚   â”œâ”€â”€ AuthContext.tsx        # User authentication & data
-â”‚   â””â”€â”€ ThemeContext.tsx       # Dark/light/auto theme
-â”œâ”€â”€ screens/             # Screen components
-â”‚   â”œâ”€â”€ LoginScreen.tsx        # Google OAuth login
-â”‚   â”œâ”€â”€ OnboardingScreen.tsx   # First-time user setup
-â”‚   â”œâ”€â”€ HomeScreen.tsx         # Main dashboard with inline logging
-â”‚   â”œâ”€â”€ WeightTrackerScreen.tsx   # 30-day weight graph view
-â”‚   â”œâ”€â”€ LeaderboardScreen.tsx     # Group rankings
-â”‚   â”œâ”€â”€ SettingsScreen.tsx        # Profile & app settings
-â”‚   â”œâ”€â”€ PushUpsScreen.tsx         # (DEPRECATED - unused)
-â”‚   â”œâ”€â”€ WaterScreen.tsx           # (DEPRECATED - unused)
-â”‚   â”œâ”€â”€ SportScreen.tsx           # (DEPRECATED - unused)
-â”‚   â”œâ”€â”€ ProteinScreen.tsx         # (DEPRECATED - unused)
-â”‚   â””â”€â”€ NutritionScreen.tsx       # (DEPRECATED - unused)
-â”œâ”€â”€ services/            # External services
-â”‚   â”œâ”€â”€ firebase.ts            # Firebase initialization + App Check
-â”‚   â”œâ”€â”€ database.ts            # Firestore CRUD operations
-â”‚   â””â”€â”€ notifications.ts       # Push notifications
-â””â”€â”€ types/               # TypeScript type definitions
-    â””â”€â”€ index.ts               # All type definitions
+├── components/          # Reusable UI components
+│   ├── AnimatedGradient.tsx   # Gradient background wrapper
+│   ├── GlassButton.tsx        # Glass-styled buttons
+│   ├── GlassCard.tsx          # Glass-styled card container
+│   ├── WeeklyOverview.tsx     # Week/month progress rings
+│   └── WeightGraph.tsx        # Interactive weight graph with dual lines
+├── contexts/            # React contexts
+│   ├── AuthContext.tsx        # User authentication & data
+│   └── ThemeContext.tsx       # Dark/light/auto theme
+├── screens/             # Screen components
+│   ├── LoginScreen.tsx        # Google OAuth login
+│   ├── OnboardingScreen.tsx   # First-time user setup
+│   ├── HomeScreen.tsx         # Main dashboard with inline logging
+│   ├── WeightTrackerScreen.tsx   # 30-day weight graph view
+│   ├── LeaderboardScreen.tsx     # Group rankings
+│   ├── SettingsScreen.tsx        # Profile & app settings
+│   ├── PushUpsScreen.tsx         # (DEPRECATED - unused)
+│   ├── WaterScreen.tsx           # (DEPRECATED - unused)
+│   ├── SportScreen.tsx           # (DEPRECATED - unused)
+│   ├── ProteinScreen.tsx         # (DEPRECATED - unused)
+│   └── NutritionScreen.tsx       # (DEPRECATED - unused)
+├── services/            # External services
+│   ├── firebase.ts            # Firebase initialization + App Check
+│   ├── database.ts            # Firestore CRUD operations
+│   └── notifications.ts       # Push notifications
+└── types/               # TypeScript type definitions
+    └── index.ts               # All type definitions
 
 .github/
-â””â”€â”€ workflows/
-    â”œâ”€â”€ deploy.yml             # Web deployment to GitHub Pages
-    â””â”€â”€ socket-security.yml    # Socket.dev security scanning
+└── workflows/
+    ├── deploy.yml             # Web deployment to GitHub Pages
+    └── socket-security.yml    # Socket.dev security scanning
 
 firestore.rules              # Firebase Security Rules
 SECURITY_SETUP.md           # Security configuration guide
@@ -206,7 +206,7 @@ The app automatically deploys to GitHub Pages on every push to `main` branch.
 - `SOCKET_SECURITY_API_KEY` (optional - for Socket.dev scanning)
 
 **Enable GitHub Pages:**
-1. Go to repository Settings â†’ Pages
+1. Go to repository Settings → Pages
 2. Set Source to "gh-pages" branch
 3. Save
 
@@ -254,14 +254,14 @@ All entries are stored in Firestore with user ID association:
 
 ## Key Features
 
-### ðŸ  HomeScreen
+### 🏠 HomeScreen
 - Greeting with nickname
 - Weekly/Monthly overview with progress rings (0-100% per day)
 - Quick stats showing today's progress
 - Quick-add buttons for all tracking categories
-- Navigation to Leaderboard (ðŸ†) and Settings (âš™ï¸)
+- Navigation to Leaderboard (🏆) and Settings (⚙️)
 
-### ðŸ“Š Logging System - **CRITICAL REQUIREMENTS**
+### 📊 Logging System - **CRITICAL REQUIREMENTS**
 
 **IMPORTANT: The logging system must follow these strict requirements:**
 
@@ -301,7 +301,7 @@ All entries are stored in Firestore with user ID association:
    - Delete: Confirm dialog, then remove from database
    - Update display immediately after edit/delete
 
-### ðŸ“ˆ Weight Tracker - **CRITICAL REQUIREMENTS**
+### 📈 Weight Tracker - **CRITICAL REQUIREMENTS**
 
 **IMPORTANT: Weight tracking must be a prominent, interactive graph on HomeScreen, NOT just a button.**
 
@@ -324,7 +324,7 @@ All entries are stored in Firestore with user ID association:
      - Graph displays last known body fat value for continuity
    - If user logs weight WITH body fat:
      - Both weight and body fat are written to database
-   - Example: User logs 80kg without body fat â†’ Graph shows 80kg + previous body fat % (e.g., 18%)
+   - Example: User logs 80kg without body fat → Graph shows 80kg + previous body fat % (e.g., 18%)
 
 4. **Quick-Add Weight on HomeScreen**
    - Inline input field or quick button to log today's weight
@@ -337,19 +337,19 @@ All entries are stored in Firestore with user ID association:
    - Shows trends (weight change per week)
    - List of all weight entries with edit/delete options
 
-### ðŸ† Leaderboard
+### 🏆 Leaderboard
 - Compare with friends using group codes
 - Week/Month toggle for time periods
-- Ranking with medals (ðŸ¥‡ðŸ¥ˆðŸ¥‰) for top 3
+- Ranking with medals (🥇🥈🥉) for top 3
 - Point system:
-  - Sport days Ã— 10 points
-  - Push-ups Ã— 1 point
-  - Protein Ã· 10 points
-  - Water Ã· 1000 points
+  - Sport days × 10 points
+  - Push-ups × 1 point
+  - Protein ÷ 10 points
+  - Water ÷ 1000 points
 - Highlights current user
 - Shows detailed stats per member
 
-### ðŸŒ“ Theme Support
+### 🌓 Theme Support
 - Light/Dark/Auto modes
 - All screens fully themed
 - Navigation headers use theme colors
@@ -360,7 +360,7 @@ All entries are stored in Firestore with user ID association:
   - Protein: #F9CA24 (yellow)
   - Weight: #A29BFE (purple)
 
-### âš™ï¸ Settings
+### ⚙️ Settings
 - Profile management (nickname, group code)
 - Theme toggle
 - Push notification settings (Water @ 10:00, Workout @ 18:00)
@@ -370,14 +370,14 @@ All entries are stored in Firestore with user ID association:
 
 ```
 Stack Navigator (with modal presentation)
-â”œâ”€â”€ Login (no header)
-â”œâ”€â”€ Onboarding (no header, one-time)
-â””â”€â”€ Main Flow
-    â”œâ”€â”€ Home (no header) - Main dashboard with ALL inline logging
-    â””â”€â”€ Modals (all use presentation: 'modal')
-        â”œâ”€â”€ WeightTracker - 30-day detailed graph view
-        â”œâ”€â”€ Leaderboard - Group rankings
-        â””â”€â”€ Settings - Profile & app settings
+├── Login (no header)
+├── Onboarding (no header, one-time)
+└── Main Flow
+    ├── Home (no header) - Main dashboard with ALL inline logging
+    └── Modals (all use presentation: 'modal')
+        ├── WeightTracker - 30-day detailed graph view
+        ├── Leaderboard - Group rankings
+        └── Settings - Profile & app settings
 ```
 
 **IMPORTANT:** Push-ups, Water, Sport, and Protein NO LONGER have separate screens. All logging is done inline on HomeScreen with quick-add buttons and inline edit/delete.
@@ -411,7 +411,7 @@ box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
 ```
 
 #### Color Palette
-- **Background Gradients**: Animated gradients (e.g., #667eea â†’ #764ba2, #4ECDC4 â†’ #556270)
+- **Background Gradients**: Animated gradients (e.g., #667eea → #764ba2, #4ECDC4 → #556270)
 - **Glass Overlays**: rgba(255, 255, 255, 0.05-0.2) for light mode, rgba(0, 0, 0, 0.1-0.3) for dark
 - **Text**: High contrast white/black with opacity variations
 - **Accent Colors**:
@@ -493,8 +493,8 @@ animation: shimmer 2s infinite;
 ```tsx
 // On tap: expand circular overlay from tap point
 - Origin: Touch/click position
-- Expand: 0 â†’ 100% in 0.6s
-- Fade: opacity 0.3 â†’ 0
+- Expand: 0 → 100% in 0.6s
+- Fade: opacity 0.3 → 0
 ```
 
 ### Accessibility Considerations
@@ -540,22 +540,22 @@ animation: gradientShift 15s ease infinite;
 
 #### Theme-Specific Gradients
 - **Light Mode**: Bright, colorful gradients (pastel to vibrant)
-- **Dark Mode**: Deep, moody gradients (dark purple â†’ dark blue)
+- **Dark Mode**: Deep, moody gradients (dark purple → dark blue)
 
 ### Implementation Notes
 
 1. **React Native Limitations**:
-   - `backdrop-filter` not supported â†’ Use fallback solid colors with high opacity
+   - `backdrop-filter` not supported → Use fallback solid colors with high opacity
    - Can use `BlurView` from `expo-blur` for native blur effect
    - Web version gets full glassmorphism
 
 2. **Component Library Structure**:
    ```
    components/
-   â”œâ”€â”€ GlassCard.tsx          # Reusable glass card wrapper
-   â”œâ”€â”€ GlassButton.tsx        # Glass-styled buttons
-   â”œâ”€â”€ FloatingElement.tsx    # Animated floating container
-   â””â”€â”€ ShimmerLoader.tsx      # Glass skeleton loader
+   ├── GlassCard.tsx          # Reusable glass card wrapper
+   ├── GlassButton.tsx        # Glass-styled buttons
+   ├── FloatingElement.tsx    # Animated floating container
+   └── ShimmerLoader.tsx      # Glass skeleton loader
    ```
 
 3. **CSS Variables for Theming**:
@@ -573,7 +573,7 @@ animation: gradientShift 15s ease infinite;
 - **Windows Fluent Design**: Acrylic materials, depth layers
 - **Glassmorphism.com**: Reference for blur intensities and overlays
 
-## ðŸ”’ Security
+## 🔒 Security
 
 ### Socket.dev - Dependency Scanning
 
@@ -641,7 +641,7 @@ firebase emulators:start --only firestore
 **Setup Steps:**
 
 1. **Enable Firebase App Check:**
-   - Go to Firebase Console â†’ App Check
+   - Go to Firebase Console → App Check
    - Click "Get started"
    - Register your web app
 
@@ -659,11 +659,11 @@ firebase emulators:start --only firestore
    ```
 
 4. **Add to GitHub Secrets:**
-   - Go to GitHub repo â†’ Settings â†’ Secrets and variables â†’ Actions
+   - Go to GitHub repo → Settings → Secrets and variables → Actions
    - Add secret: `EXPO_PUBLIC_RECAPTCHA_SITE_KEY`
 
 5. **Enforce App Check (Optional):**
-   - Firebase Console â†’ App Check
+   - Firebase Console → App Check
    - Click on your app
    - Enable "Enforce" for Firestore
 
@@ -698,22 +698,22 @@ firebase emulators:start --only firestore
 ### TypeScript Guidelines
 
 ```typescript
-// âœ… GOOD: Strong typing
+// ✅ GOOD: Strong typing
 interface UserData {
   nickname: string;
   age: number;
   weight?: number;
 }
 
-// âŒ BAD: Using 'any'
+// ❌ BAD: Using 'any'
 const user: any = {};
 
-// âœ… GOOD: Explicit return types
+// ✅ GOOD: Explicit return types
 const calculateBMI = (weight: number, height: number): number => {
   return weight / ((height / 100) ** 2);
 };
 
-// âœ… GOOD: Null checks
+// ✅ GOOD: Null checks
 if (user?.weight) {
   console.log(user.weight);
 }
@@ -773,7 +773,7 @@ const styles = StyleSheet.create({
 ### Error Handling
 
 ```typescript
-// âœ… GOOD: Comprehensive error handling
+// ✅ GOOD: Comprehensive error handling
 try {
   await addPushUpEntry(userId, count);
   Alert.alert('Erfolg', 'Eintrag gespeichert');
@@ -787,7 +787,7 @@ try {
   setLoading(false);
 }
 
-// âŒ BAD: Silent failures
+// ❌ BAD: Silent failures
 try {
   await addPushUpEntry(userId, count);
 } catch (error) {
@@ -798,17 +798,17 @@ try {
 ### Performance Optimization
 
 ```typescript
-// âœ… GOOD: Memoization
+// ✅ GOOD: Memoization
 const expensiveCalculation = useMemo(() => {
   return data.reduce((sum, item) => sum + item.value, 0);
 }, [data]);
 
-// âœ… GOOD: Callback memoization
+// ✅ GOOD: Callback memoization
 const handlePress = useCallback(() => {
   onPress(id);
 }, [id, onPress]);
 
-// âœ… GOOD: Lazy loading
+// ✅ GOOD: Lazy loading
 const HeavyComponent = lazy(() => import('./HeavyComponent'));
 ```
 
@@ -870,7 +870,7 @@ type ThemeMode = 'light' | 'dark' | 'auto';
 1. Call `loadAllData()` after add/edit/delete operations
    ```typescript
    await addPushUpEntry(userId, count);
-   await loadAllData(); // â† Critical!
+   await loadAllData(); // ← Critical!
    ```
 2. Verify state updates trigger re-renders
 3. Check userId matches in queries
@@ -959,8 +959,8 @@ npx expo-cli export --public-url . --dev false
 npx source-map-explorer dist/**/*.js
 
 # Optimize imports (use specific imports, not entire libraries)
-import { format } from 'date-fns'; // âœ… Good
-import * as dateFns from 'date-fns'; // âŒ Bad
+import { format } from 'date-fns'; // ✅ Good
+import * as dateFns from 'date-fns'; // ❌ Bad
 ```
 
 ## Testing Checklist
@@ -1035,6 +1035,8 @@ import * as dateFns from 'date-fns'; // âŒ Bad
 ## Development Workflow
 
 ### Feature Development Process
+
+**Branching Policy:** Every new feature must start from a dedicated branch (e.g., `feature/<summary>`). Do not develop or commit feature work directly on `main`.
 
 1. **Planning Phase**
    - [ ] Review requirements in this CODEX.md
@@ -1381,13 +1383,13 @@ signOut: () => Promise<void>;   // Sign out current user
 - ?? Hardened weight graph rendering for single data points and refined loading skeleton typings
 
 ### Version 2.0.0 (2025-10-01)
-- âœ¨ Restructured CODEX.md for professional setup
-- âœ¨ Added comprehensive coding standards
-- âœ¨ Added detailed troubleshooting guide
-- âœ¨ Added development workflow process
-- âœ¨ Added API reference documentation
-- âœ¨ Added future enhancements roadmap
-- âœ¨ Added resources and references section
+- ✨ Restructured CODEX.md for professional setup
+- ✨ Added comprehensive coding standards
+- ✨ Added detailed troubleshooting guide
+- ✨ Added development workflow process
+- ✨ Added API reference documentation
+- ✨ Added future enhancements roadmap
+- ✨ Added resources and references section
 
 ### Version 1.x.x (Previous)
 - Initial setup and basic documentation
