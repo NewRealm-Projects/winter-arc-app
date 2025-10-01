@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ViewStyle, Platform, View } from 'react-native';
+import { StyleSheet, ViewStyle, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../contexts/ThemeContext';
@@ -27,28 +27,33 @@ export default function GlassCard({ children, style, blurIntensity = 100 }: Glas
 
   // Use liquid-glass-react on web for true liquid glass effect
   if (Platform.OS === 'web' && LiquidGlass) {
+    // Convert ViewStyle to web CSS
+    const webStyle = {
+      ...style,
+      marginBottom: style?.marginBottom !== undefined ? style.marginBottom : 12,
+    };
+
     return (
-      <View style={[styles.webContainer, style]}>
-        <LiquidGlass
-          displacementScale={70}
-          blurAmount={0.08}
-          saturation={isDark ? 120 : 140}
-          aberrationIntensity={2}
-          elasticity={0.2}
-          cornerRadius={24}
-          overLight={!isDark}
-          style={{
-            padding: '20px',
-            background: isDark ? 'rgba(28, 28, 30, 0.85)' : 'rgba(245, 247, 250, 0.9)',
-            border: isDark
-              ? '1.5px solid rgba(255, 255, 255, 0.18)'
-              : '1.5px solid rgba(150, 170, 190, 0.25)',
-            boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.6)' : '0 8px 32px rgba(0, 0, 0, 0.15)',
-          }}
-        >
-          {children}
-        </LiquidGlass>
-      </View>
+      <LiquidGlass
+        displacementScale={70}
+        blurAmount={0.08}
+        saturation={isDark ? 120 : 140}
+        aberrationIntensity={2}
+        elasticity={0.2}
+        cornerRadius={24}
+        overLight={!isDark}
+        padding="20px"
+        style={{
+          ...webStyle,
+          background: isDark ? 'rgba(28, 28, 30, 0.85)' : 'rgba(245, 247, 250, 0.9)',
+          border: isDark
+            ? '1.5px solid rgba(255, 255, 255, 0.18)'
+            : '1.5px solid rgba(150, 170, 190, 0.25)',
+          boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.6)' : '0 8px 32px rgba(0, 0, 0, 0.15)',
+        }}
+      >
+        {children}
+      </LiquidGlass>
     );
   }
 
@@ -83,9 +88,6 @@ export default function GlassCard({ children, style, blurIntensity = 100 }: Glas
 }
 
 const styles = StyleSheet.create({
-  webContainer: {
-    marginBottom: 12,
-  },
   blurContainer: {
     borderRadius: 24,
     overflow: 'hidden',

@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh issue:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(npm run web:*)",
+      "Bash(timeout:*)",
+      "Bash(npm run build:web:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: implement liquid glass design improvements\n\n- Change background from blue (#667eea) to white (#FFFFFF) for cleaner look\n- Increase blur intensity for better glassmorphism effect:\n  - GlassCard: 40 → 80\n  - GlassButton: 30 → 60\n- Optimize card transparency (0.18/0.12 → 0.75/0.65)\n- Adjust border transparency for subtler effect (0.25 → 0.5)\n- Update ThemeContext colors for consistency\n\nCloses #11\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(cat:*)",
+      "WebFetch(domain:docs.expo.dev)",
+      "WebSearch",
+      "Bash(git commit:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(git reset:*)",
+      "Bash(npm install:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -7,7 +7,6 @@ import {
   TextStyle,
   Animated,
   Platform,
-  View,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -73,56 +72,60 @@ export default function GlassButton({
 
   // Use liquid-glass-react on web
   if (Platform.OS === 'web' && LiquidGlass) {
+    // Convert ViewStyle to web CSS
+    const webStyle = {
+      ...style,
+      marginBottom: style?.marginBottom !== undefined ? style.marginBottom : 12,
+      width: style?.flex === 1 ? '100%' : style?.width || 'auto',
+    };
+
     return (
-      <View
-        style={[{ marginBottom: 12 }, style]}
+      <button
+        onClick={disabled ? undefined : onPress}
+        disabled={disabled}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        style={{
+          border: 'none',
+          background: 'transparent',
+          padding: 0,
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.4 : 1,
+          transform: isHovered && !disabled ? 'scale(0.98)' : 'scale(1)',
+          transition: 'transform 0.2s ease',
+          ...webStyle,
+        }}
       >
-        <button
-          onClick={disabled ? undefined : onPress}
-          disabled={disabled}
+        <LiquidGlass
+          displacementScale={isHovered ? 80 : 64}
+          blurAmount={0.06}
+          saturation={150}
+          aberrationIntensity={2.5}
+          elasticity={0.35}
+          cornerRadius={16}
+          overLight={!isDark}
+          padding="16px 24px"
           style={{
-            border: 'none',
-            background: 'transparent',
-            padding: 0,
-            cursor: disabled ? 'not-allowed' : 'pointer',
-            opacity: disabled ? 0.4 : 1,
-            transform: isHovered && !disabled ? 'scale(0.98)' : 'scale(1)',
-            transition: 'transform 0.2s ease',
+            background: isDark ? hexToRgba(color, 0.4) : hexToRgba(color, 0.85),
+            border: `1.5px solid ${isDark ? hexToRgba(color, 0.5) : hexToRgba(color, 0.6)}`,
+            boxShadow: `0 4px 16px ${isDark ? 'rgba(0, 0, 0, 0.5)' : hexToRgba(color, 0.3)}`,
+            textAlign: 'center',
             width: '100%',
           }}
         >
-          <LiquidGlass
-            displacementScale={isHovered ? 80 : 64}
-            blurAmount={0.06}
-            saturation={150}
-            aberrationIntensity={2.5}
-            elasticity={0.35}
-            cornerRadius={16}
-            overLight={!isDark}
+          <span
             style={{
-              padding: '16px 24px',
-              background: isDark ? hexToRgba(color, 0.4) : hexToRgba(color, 0.85),
-              border: `1.5px solid ${isDark ? hexToRgba(color, 0.5) : hexToRgba(color, 0.6)}`,
-              boxShadow: `0 4px 16px ${isDark ? 'rgba(0, 0, 0, 0.5)' : hexToRgba(color, 0.3)}`,
-              textAlign: 'center',
+              color: isDark ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+              fontSize: textStyle?.fontSize || '17px',
+              fontWeight: '700',
+              letterSpacing: '-0.4px',
+              textShadow: `0 1px 3px ${isDark ? 'rgba(0, 0, 0, 0.3)' : hexToRgba(color, 0.4)}`,
             }}
           >
-            <span
-              style={{
-                color: isDark ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.98)',
-                fontSize: '17px',
-                fontWeight: '700',
-                letterSpacing: '-0.4px',
-                textShadow: `0 1px 3px ${isDark ? 'rgba(0, 0, 0, 0.3)' : hexToRgba(color, 0.4)}`,
-              }}
-            >
-              {title}
-            </span>
-          </LiquidGlass>
-        </button>
-      </View>
+            {title}
+          </span>
+        </LiquidGlass>
+      </button>
     );
   }
 
