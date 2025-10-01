@@ -1,6 +1,16 @@
+
 # Winter Arc
 
 A cross-platform fitness tracking app for tracking your winter fitness journey.
+
+---
+
+## 📚 Dokumentationsstrategie
+
+- Es gibt nur zwei zentrale Doku-Dateien: `README.md` (Projektüberblick, Einstieg) und `CLAUDE.md` (Entwicklung, Wissen, Fixes, Lessons Learned).
+- Alle neuen Erfahrungen, Fixes und Erkenntnisse werden in `CLAUDE.md` **integriert, verdichtet und sinnvoll zusammengeführt** – niemals einfach nur angehängt.
+- Keine weiteren `.md`-Dateien im Projekt.
+
 
 ## Features
 
@@ -51,6 +61,7 @@ To deploy manually:
 ```bash
 npm run build:web
 ```
+
 
 ## License
 

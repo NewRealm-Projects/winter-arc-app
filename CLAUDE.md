@@ -1,4 +1,5 @@
-# Winter Arc – Development Guidelines (Clean Version)
+
+# Winter Arc – Development Guidelines & Knowledge Memory
 
 **Version:** 2.3
 **Last Updated:** 2025-10-01
@@ -6,11 +7,20 @@
 
 ---
 
-## 📑 Meta Rules (Read First)
 
-1. **Check FIXES.md first** – never re-solve known bugs.
-2. **Document everything** – new requirements go in CLAUDE.md, fixes in FIXES.md.
-3. **Always verify implementation** – don’t mark features “done” until manually tested.
+## 📑 Meta Rules & Documentation Policy
+
+**Wichtig:**
+- Es gibt nur noch zwei zentrale Doku-Dateien: `CLAUDE.md` (Entwicklung, Wissen, Fixes, Lessons Learned) und `README.md` (Projektüberblick, Einstieg).
+- Alle neuen Erfahrungen, Fixes und Erkenntnisse werden in `CLAUDE.md` **integriert, verdichtet und sinnvoll zusammengeführt** – niemals einfach nur angehängt.
+- Die Memory-Sektion wird regelmäßig in die Hauptstruktur eingearbeitet und komprimiert.
+- Keine weitere `.md`-Datei außer `README.md` und `CLAUDE.md`.
+
+**Vorgehen:**
+1. Vor jeder Problemlösung: `CLAUDE.md` durchsuchen (Memory beachten!)
+2. Neue Erkenntnisse/Fixes immer so einarbeiten, dass sie bestehendes Wissen verbessern oder ersetzen
+3. Redundanzen vermeiden, Wissen verschmelzen
+4. Nach jeder Änderung: README und CLAUDE.md aktuell halten
 
 ---
 
@@ -51,185 +61,209 @@ npm run web        # Web
 npm run android    # Android
 npm run ios        # iOS (macOS)
 
-# Build / Deploy
-npm run build:web
-npm run deploy
 
-# Quality
-npm test
-npm run lint
-npm run type-check
+# 🧠 Memory: Lessons Learned & Fixes (kompakt)
+
+**Web Deployment:**
+- Fonts/Icons müssen explizit in `assetBundlePatterns` (app.json) gebündelt werden, sonst 404 auf GitHub Pages.
+- Nach dem Expo-Export müssen Asset-Pfade ggf. per Script (`post-export.cjs`) angepasst werden, damit sie auf Subdomains funktionieren.
+
+**Notifications:**
+- `expo-notifications` gibt auf Web eine Warnung aus, wenn native Handler gesetzt werden. Lösung: Platform-Check vor Handler-Setzen.
+
+**Build:**
+- Web-Build kann durch nicht-web-kompatiblen Code (z.B. Notifications) fehlschlagen. Immer Platform-Checks nutzen.
+
+**Firebase:**
+- Bisher keine kritischen Fixes nötig, läuft stabil.
+
+**UI/UX:**
+- Weight Graph und Entries werden manchmal nicht angezeigt, wenn Daten fehlen oder nach Logging nicht neu geladen werden. Lösung: Nach jeder Mutation `loadAllData()` aufrufen.
+
+**Allgemein:**
+- Fixes und Erfahrungen werden regelmäßig in diese Memory-Sektion übernommen, verdichtet und in die Hauptstruktur integriert.
+
+**Lösung:**
+1. **app.json** erweitern:
+   ```json
+   {
+     "expo": {
+       "assetBundlePatterns": [
+         "assets/**/*",
+         "node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/*.ttf"
+       ]
+     }
+   }
+   ```
+
+2. **scripts/post-export.cjs** erweitern:
+   ```javascript
+   // In index.html patching
+   { pattern: /"\/node_modules/g, replacement: `"${prefix}/node_modules` }
+
+   // In JS bundle patching
+   { pattern: /"\/node_modules/g, replacement: `"${prefix}/node_modules` }
+   ```
+
+**Dateien geändert:**
+- `app.json` - Line 10-13
+- `scripts/post-export.cjs` - Lines 62, 73
+
+**Verifizierung:**
+- `npm run build:web` zeigt alle 20 Icon-Fonts im Asset-Output
+- Keine 404-Fehler in der Browser-Console
+- Icons werden korrekt angezeigt
+
+**Gefixt am:** 2025-10-01
+**Commit:** `fix: resolve vector icons 404 and web notification warnings`
+
+---
+
+## Icon/Font Loading Issues
+
+### ✅ Siehe "Vector Icons 404-Fehler" oben
+
+---
+
+## Notification Issues
+
+### ✅ expo-notifications Warning auf Web
+
+**Problem:**
+```
+[expo-notifications] Listening to push token changes is not yet fully supported on web.
+Adding a listener will have no effect.
 ```
 
-### Environment Checklist
+**Symptome:**
+- Warnung in Browser-Console beim App-Start
+- Keine funktionale Auswirkung, aber nervige Console-Spam
+- Tritt nur auf Web auf (nicht iOS/Android)
 
-* Node.js 18+
-* Firebase project + credentials in `.env`
-* Google OAuth configured
-* GitHub repo + secrets set up
+**Root Cause:**
+- `Notifications.setNotificationHandler()` wird auf Web ausgeführt
+- Web unterstützt keine nativen Push-Notifications
+- Fehlende Platform-Check in `src/services/notifications.ts`
 
----
+**Lösung:**
+`src/services/notifications.ts` anpassen:
 
-## 📂 Project Structure
+```typescript
+import { Platform } from 'react-native';
 
+// Configure notification behavior (only on native platforms)
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 ```
-src/
-├── components/   # UI
-│   ├── AnimatedGradient.tsx
-│   ├── GlassButton.tsx
-│   ├── GlassCard.tsx
-│   ├── WeeklyOverview.tsx
-│   └── WeightGraph.tsx
-├── contexts/     # Auth + Theme
-├── screens/      # Login, Onboarding, Home, Weight, Leaderboard, Settings
-├── services/     # firebase.ts, database.ts, notifications.ts
-└── types/
-```
 
-**Deprecated Screens:** PushUps, Water, Sport, Protein, Nutrition → all replaced by inline logging.
+**Dateien geändert:**
+- `src/services/notifications.ts` - Lines 4-15
+
+**Verifizierung:**
+- Keine Warnung in Browser-Console
+- Notifications funktionieren weiterhin auf Native
+
+**Gefixt am:** 2025-10-01
+**Commit:** `fix: resolve vector icons 404 and web notification warnings`
 
 ---
 
-## 🔑 Key Requirements
+## Build Issues
 
-### Logging System
+### ✅ Expo Web Build mit Notification-Fehlern
 
-* Quick-add modals (not full screens)
-* One-tap logging + auto-close
-* Inline display of last 3–5 entries
-* Edit/Delete with instant UI update
+**Problem:** Build schlägt fehl oder zeigt Warnungen wegen Notification-Code auf Web
 
-### Weight Tracker
-
-* Inline mini-graph (7–14 days)
-* Dual line: weight (purple) + body fat (gold)
-* Detailed 30-day modal with BMI + trends
-* Last known body fat persists if not updated
-
-### Leaderboard
-
-* Group ranking via groupCode
-* Points: Sport×10, Push-ups×1, Protein÷10, Water÷1000
-* Medals for 🥇🥈🥉
-
-### Design
-
-* Apple-inspired **Liquid Glass** (blur + gradient)
-* Glass layers: Background, Cards, Modals, Buttons
-* Consistent iOS typography + spacing grid
+**Lösung:** Siehe "expo-notifications Warning auf Web" oben
 
 ---
 
-## 🔒 Security
+### ✅ Asset Pfad-Probleme nach Expo Export
 
-* **Socket.dev** scans dependencies via GitHub Actions
-* **Firebase Rules**:
+**Problem:** Assets (Bilder, Fonts) werden mit absoluten Pfaden gebundelt, funktionieren nicht auf Subdomains
 
-  * Auth required
-  * Users only see their own data
-  * Validation: Push-ups 1–1000, Water 1–5000ml, Protein 1–500g, Weight 1–500kg, Body fat 3–50%
-* **App Check (Web)** with reCAPTCHA v3
-* Best Practices: rotate keys, 2FA, no `.env` commits
+**Lösung:**
+- `post-export.cjs` Script nutzen
+- Environment Variable `EXPO_PUBLIC_URL` setzen
+- Siehe `scripts/post-export.cjs` für Implementierung
 
----
-
-## 🧑‍💻 Coding Standards
-
-* TypeScript strict typing
-* Components: PascalCase
-* Variables/functions: camelCase
-* Constants: UPPER_SNAKE_CASE
-* Errors must be handled (no empty catch)
-* Memoize expensive operations
-* Use React.memo for glass components
+**Gefixt am:** Bereits vor 2025-10-01 (initial setup)
 
 ---
 
-## 🛠️ Troubleshooting (Quick Reference)
+## Firebase Issues
 
-* **Entries not showing:** Call `loadAllData()` after writes
-* **Weight graph empty:** need ≥1 datapoint, check filters
-* **Theme not applied:** verify ThemeProvider wraps Navigation
-* **WeeklyOverview blank:** check date aggregation logic
-* **Build fails:** clear cache + run `npm run type-check`
-* **Deployment fails:** verify GitHub secrets + homepage in package.json
+### 🔄 Häufige Firebase-Fehler
+
+**Noch keine dokumentierten Fixes** - Firebase läuft aktuell stabil
 
 ---
 
-## ✅ Testing Checklist
+## UI/UX Issues
 
-* [ ] Quick-add logging works for all categories
-* [ ] Entries update instantly on HomeScreen
-* [ ] Weight graph shows 14 days + opens 30-day modal
-* [ ] Leaderboard ranks correctly with medals
-* [ ] Theme toggles light/dark/auto
-* [ ] Firebase rules block invalid/foreign access
-* [ ] App Check active (web)
+### 🔄 Weight Graph nicht sichtbar
+
+**Status:** Bereits in CODEX.md dokumentiert
+**Siehe:** CODEX.md - "Issue: Weight graph not showing" (Line ~900)
 
 ---
 
-## 🚀 Development Workflow
+### 🔄 Entries nicht sofort sichtbar nach Logging
 
-1. **Branching**: `feature/<name>`
-2. **Implement**: strong typing, handle errors, follow standards
-3. **Test**: manual edge cases, dark mode, multiple devices
-4. **Document**: update CLAUDE.md + add JSDoc
-5. **Deploy**: push, check Actions, run `npm run build:web`
+**Status:** Bereits in CODEX.md dokumentiert
+**Siehe:** CODEX.md - "Issue: Entries not displaying after logging" (Line ~863)
 
-### Commit Format
+**Quick Fix:** `loadAllData()` nach jeder Mutation aufrufen
 
-```
-feat(tracking): add inline edit for push-ups
-fix(auth): block HomeScreen before onboarding
-refactor(theme): centralize color constants
+---
+
+## 📝 Template für neue Fixes
+
+Wenn du ein neues Problem löst, füge es hier mit folgendem Format hinzu:
+
+```markdown
+### ✅ [Problem Titel]
+
+**Problem:**
+[Kurze Beschreibung + Fehlermeldung]
+
+**Symptome:**
+- [Was der User sieht/erlebt]
+- [Console-Ausgaben]
+
+**Root Cause:**
+[Warum tritt das Problem auf?]
+
+**Lösung:**
+[Code-Änderungen mit Beispielen]
+
+**Dateien geändert:**
+- [Dateiname] - Line X-Y
+
+**Verifizierung:**
+[Wie testet man, dass es funktioniert?]
+
+**Gefixt am:** YYYY-MM-DD
+**Commit:** [Commit Message/Hash]
 ```
 
 ---
 
-## 🔮 Roadmap
+## 🗂️ Archiv (Ältere Fixes)
 
-### Priority 1
-
-* Habit streaks
-* Custom goals
-* Photo logging
-* Export data (CSV/JSON)
-* Weekly reports via email
-
-### Priority 2
-
-* Social features (likes/comments)
-* Challenges & badges
-* Meal tracking
-
-### Priority 3
-
-* AI coach
-* Wearable sync
-* Nutrition DB
-* Voice logging
+*Keine älteren Fixes vorhanden - Dies ist die erste Version von FIXES.md*
 
 ---
 
-## 📜 Changelog
-
-### 2.3 (2025-10-01)
-
-* Cleaned + restructured CLAUDE.md
-* Updated design system to iOS Liquid Glass
-* Hardened weight graph rendering
-
-### 2.0 (2025-10-01)
-
-* Full restructure of documentation
-* Added standards, workflow, API ref
-
-### 1.x
-
-* Initial setup, Firebase + core features
-* Glassmorphism baseline
-
----
-
-**Maintained by:** Winter Arc Dev Team
-**Questions:** open GitHub issue
+**Letzte Aktualisierung:** 2025-10-01
+**Version:** 1.0.0
+**Maintainer:** Development Team
