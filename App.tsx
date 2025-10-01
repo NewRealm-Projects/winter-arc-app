@@ -5,12 +5,14 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
 import ErrorBoundary from './src/components/ErrorBoundary';
+import MissingFirebaseConfig from './src/components/MissingFirebaseConfig';
 import LoginScreen from './src/screens/LoginScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import WeightTrackerScreen from './src/screens/WeightTrackerScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import { isFirebaseConfigured, missingFirebaseEnvVars } from './src/services/firebase';
 
 const Stack = createStackNavigator();
 
@@ -115,6 +117,14 @@ function ThemedNavigation() {
 }
 
 export default function App() {
+  if (!isFirebaseConfigured) {
+    return (
+      <ErrorBoundary>
+        <MissingFirebaseConfig missingKeys={missingFirebaseEnvVars} />
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
@@ -123,3 +133,12 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+
+
+
+
+
+
+
+
+

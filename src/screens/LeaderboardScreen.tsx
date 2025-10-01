@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { db, isFirebaseConfigured } from '../services/firebase';
 import {
   getSportEntries,
   getPushUpEntries,
@@ -38,10 +38,16 @@ export default function LeaderboardScreen() {
       return;
     }
 
+    if (!isFirebaseConfigured || !db) {
+      setLoading(false);
+      Alert.alert('Konfiguration', 'Firebase ist nicht konfiguriert. Bitte setze die erforderlichen Umgebungsvariablen.');
+      return;
+    }
+
     try {
       // Get all users with the same group code
       const usersQuery = query(
-        collection(db, 'users'),
+        collection(db!, 'users'),
         where('groupCode', '==', userData.groupCode)
       );
       const usersSnapshot = await getDocs(usersQuery);
@@ -354,3 +360,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 });
+
+
+
+

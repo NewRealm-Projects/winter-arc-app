@@ -1,10 +1,10 @@
-# CLAUDE.md
+# CODEX.md
 
-**Claude Code Configuration & Development Guidelines**
+**Codex CLI Configuration & Development Guidelines**
 
-This file provides comprehensive guidance for Claude Code (claude.ai/code) when working with the Winter Arc fitness tracking application. It ensures consistent development practices, maintains code quality, and serves as the single source of truth for project requirements.
+This file provides comprehensive guidance for Codex CLI (OpenAI) when working with the Winter Arc fitness tracking application. It ensures consistent development practices, maintains code quality, and serves as the single source of truth for project requirements.
 
-**Version:** 2.0
+**Version:** 2.1
 **Last Updated:** 2025-10-01
 **Project:** Winter Arc Fitness Tracker
 
@@ -12,7 +12,7 @@ This file provides comprehensive guidance for Claude Code (claude.ai/code) when 
 
 **CRITICAL: Whenever the user provides new requirements, feature requests, or identifies issues:**
 
-1. **First, update this CLAUDE.md file** with the new requirements in the appropriate section
+1. **First, update this CODEX.md file** with the new requirements in the appropriate section
 2. **Document the requirement clearly** with context, constraints, and expected behavior
 3. **Then implement** the changes in the codebase
 4. **Keep this file synchronized** with the actual implementation
@@ -1037,7 +1037,7 @@ import * as dateFns from 'date-fns'; // ❌ Bad
 ### Feature Development Process
 
 1. **Planning Phase**
-   - [ ] Review requirements in this CLAUDE.md
+   - [ ] Review requirements in this CODEX.md
    - [ ] Break down feature into tasks
    - [ ] Identify affected components/files
    - [ ] Consider security implications
@@ -1060,7 +1060,7 @@ import * as dateFns from 'date-fns'; // ❌ Bad
    - [ ] Test offline behavior
 
 4. **Documentation Phase**
-   - [ ] Update this CLAUDE.md with new features/requirements
+   - [ ] Update this CODEX.md with new features/requirements
    - [ ] Add JSDoc comments for complex functions
    - [ ] Update README.md if user-facing changes
    - [ ] Document any new environment variables
@@ -1375,8 +1375,13 @@ signOut: () => Promise<void>;   // Sign out current user
 
 ## Changelog
 
+### Version 2.1.0 (2025-10-01)
+- ?? Converted project documentation from Claude Code to Codex CLI
+- ??? Updated Expo notification scheduling to use current APIs and avoid web build failures
+- ?? Hardened weight graph rendering for single data points and refined loading skeleton typings
+
 ### Version 2.0.0 (2025-10-01)
-- ✨ Restructured CLAUDE.md for professional setup
+- ✨ Restructured CODEX.md for professional setup
 - ✨ Added comprehensive coding standards
 - ✨ Added detailed troubleshooting guide
 - ✨ Added development workflow process
@@ -1396,3 +1401,12 @@ signOut: () => Promise<void>;   // Sign out current user
 **Last Updated:** 2025-10-01
 **Maintained By:** Development Team
 **Questions?** Check the resources section or open an issue on GitHub
+
+
+
+
+
+
+
+
+

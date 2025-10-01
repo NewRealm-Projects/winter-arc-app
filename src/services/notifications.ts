@@ -7,6 +7,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -29,17 +31,27 @@ export async function scheduleDailyReminder(hour: number, minute: number, title:
     return null;
   }
 
+  const trigger: Notifications.DailyTriggerInput = {
+    type: Notifications.SchedulableTriggerInputTypes.DAILY,
+    hour,
+    minute,
+  };
+
+  if (Platform.OS === 'android') {
+    trigger.channelId = 'default';
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'Default',
+      importance: Notifications.AndroidImportance.DEFAULT,
+    });
+  }
+
   return await Notifications.scheduleNotificationAsync({
     content: {
       title,
       body,
       sound: true,
     },
-    trigger: {
-      hour,
-      minute,
-      repeats: true,
-    },
+    trigger,
   });
 }
 
@@ -68,3 +80,7 @@ export async function cancelAllNotifications() {
 export async function getScheduledNotifications() {
   return await Notifications.getAllScheduledNotificationsAsync();
 }
+
+
+
+

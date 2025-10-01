@@ -12,6 +12,15 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import { db } from './firebase';
+
+const ensureDb = () => {
+  if (!db) {
+    throw new Error('Firebase is not configured. Please set the required environment variables.');
+  }
+  return db;
+};
+
+
 import { SportEntry, PushUpEntry, ProteinEntry, WaterEntry, WeightEntry } from '../types';
 
 /**
@@ -39,7 +48,7 @@ export const addSportEntry = async (userId: string): Promise<string> => {
     throw new Error('User ID is required');
   }
 
-  const docRef = await addDoc(collection(db, 'sportEntries'), {
+  const docRef = await addDoc(collection(ensureDb(), 'sportEntries'), {
     userId,
     date: Timestamp.fromDate(new Date()),
     completed: true,
@@ -58,7 +67,7 @@ export const getSportEntries = async (userId: string): Promise<SportEntry[]> => 
   }
 
   const q = query(
-    collection(db, 'sportEntries'),
+    collection(ensureDb(), 'sportEntries'),
     where('userId', '==', userId),
     orderBy('date', 'desc')
   );
@@ -94,7 +103,7 @@ export const addPushUpEntry = async (
     throw new Error(`Push-up count must be between 1 and ${MAX_PUSH_UPS}`);
   }
 
-  const docRef = await addDoc(collection(db, 'pushUpEntries'), {
+  const docRef = await addDoc(collection(ensureDb(), 'pushUpEntries'), {
     ...data,
     userId,
     date: Timestamp.fromDate(data.date),
@@ -113,7 +122,7 @@ export const getPushUpEntries = async (userId: string): Promise<PushUpEntry[]> =
   }
 
   const q = query(
-    collection(db, 'pushUpEntries'),
+    collection(ensureDb(), 'pushUpEntries'),
     where('userId', '==', userId),
     orderBy('date', 'desc')
   );
@@ -141,7 +150,7 @@ export const updatePushUpEntry = async (entryId: string, count: number): Promise
     throw new Error(`Push-up count must be between 1 and ${MAX_PUSH_UPS}`);
   }
 
-  await updateDoc(doc(db, 'pushUpEntries', entryId), { count });
+  await updateDoc(doc(ensureDb(), 'pushUpEntries', entryId), { count });
 };
 
 // ============================================================================
@@ -167,7 +176,7 @@ export const addProteinEntry = async (
     throw new Error(`Protein amount must be between 1 and ${MAX_PROTEIN_G}g`);
   }
 
-  const docRef = await addDoc(collection(db, 'proteinEntries'), {
+  const docRef = await addDoc(collection(ensureDb(), 'proteinEntries'), {
     ...data,
     userId,
     date: Timestamp.fromDate(data.date),
@@ -186,7 +195,7 @@ export const getProteinEntries = async (userId: string): Promise<ProteinEntry[]>
   }
 
   const q = query(
-    collection(db, 'proteinEntries'),
+    collection(ensureDb(), 'proteinEntries'),
     where('userId', '==', userId),
     orderBy('date', 'desc')
   );
@@ -214,7 +223,7 @@ export const updateProteinEntry = async (entryId: string, grams: number): Promis
     throw new Error(`Protein amount must be between 1 and ${MAX_PROTEIN_G}g`);
   }
 
-  await updateDoc(doc(db, 'proteinEntries', entryId), { grams });
+  await updateDoc(doc(ensureDb(), 'proteinEntries', entryId), { grams });
 };
 
 // ============================================================================
@@ -240,7 +249,7 @@ export const addWaterEntry = async (
     throw new Error(`Water amount must be between 1 and ${MAX_WATER_ML}ml`);
   }
 
-  const docRef = await addDoc(collection(db, 'waterEntries'), {
+  const docRef = await addDoc(collection(ensureDb(), 'waterEntries'), {
     ...data,
     userId,
     date: Timestamp.fromDate(data.date),
@@ -259,7 +268,7 @@ export const getWaterEntries = async (userId: string): Promise<WaterEntry[]> => 
   }
 
   const q = query(
-    collection(db, 'waterEntries'),
+    collection(ensureDb(), 'waterEntries'),
     where('userId', '==', userId),
     orderBy('date', 'desc')
   );
@@ -287,7 +296,7 @@ export const updateWaterEntry = async (entryId: string, amount: number): Promise
     throw new Error(`Water amount must be between 1 and ${MAX_WATER_ML}ml`);
   }
 
-  await updateDoc(doc(db, 'waterEntries', entryId), { amount });
+  await updateDoc(doc(ensureDb(), 'waterEntries', entryId), { amount });
 };
 
 // ============================================================================
@@ -319,7 +328,7 @@ export const addWeightEntry = async (
     }
   }
 
-  const docRef = await addDoc(collection(db, 'weightEntries'), {
+  const docRef = await addDoc(collection(ensureDb(), 'weightEntries'), {
     ...data,
     userId,
     date: Timestamp.fromDate(data.date),
@@ -338,7 +347,7 @@ export const getWeightEntries = async (userId: string): Promise<WeightEntry[]> =
   }
 
   const q = query(
-    collection(db, 'weightEntries'),
+    collection(ensureDb(), 'weightEntries'),
     where('userId', '==', userId),
     orderBy('date', 'desc'),
     limit(30)
@@ -378,7 +387,7 @@ export const updateWeightEntry = async (
     }
   }
 
-  await updateDoc(doc(db, 'weightEntries', entryId), data);
+  await updateDoc(doc(ensureDb(), 'weightEntries', entryId), data);
 };
 
 // ============================================================================
@@ -396,7 +405,7 @@ export const deleteEntry = async (collectionName: string, entryId: string): Prom
     throw new Error('Collection name and entry ID are required');
   }
 
-  await deleteDoc(doc(db, collectionName, entryId));
+  await deleteDoc(doc(ensureDb(), collectionName, entryId));
 };
 
 // ============================================================================
@@ -431,3 +440,5 @@ export const getNutritionEntries = getProteinEntries;
  * @deprecated Use addProteinEntry instead
  */
 export const addNutritionEntry = addProteinEntry;
+
+

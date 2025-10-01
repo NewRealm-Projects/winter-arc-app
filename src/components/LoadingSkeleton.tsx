@@ -2,9 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, ViewStyle } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 
+type SkeletonDimension = number | `${number}%` | 'auto';
+
 interface LoadingSkeletonProps {
-  width?: number | string;
-  height?: number;
+  width?: SkeletonDimension;
+  height?: SkeletonDimension;
   borderRadius?: number;
   style?: ViewStyle;
 }
@@ -182,3 +184,12 @@ const styles = StyleSheet.create({
 });
 
 export default LoadingSkeleton;
+
+
+
+
+
+
+
+
+

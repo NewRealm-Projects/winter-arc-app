@@ -7,7 +7,7 @@ import {
   User as FirebaseUser
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../services/firebase';
+import { auth, db, isFirebaseConfigured } from '../services/firebase';
 
 interface UserData {
   nickname?: string;
@@ -37,7 +37,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   const loadUserData = async (uid: string) => {
-    const userDoc = await getDoc(doc(db, 'users', uid));
+    if (!db) {
+      return;
+    }
+    const userDoc = await getDoc(doc(db!, 'users', uid));
     if (userDoc.exists()) {
       setUserData(userDoc.data() as UserData);
     }
@@ -50,21 +53,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
+    if (!auth || !db) {
+      // Running in a configuration without Firebase (e.g., missing env vars)
+      setLoading(false);
+      return;
+    }
 
-      // Create user document if first time sign in
-      if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+
+      if (currentUser) {
+        const userDoc = await getDoc(doc(db!, 'users', currentUser.uid));
         if (!userDoc.exists()) {
-          await setDoc(doc(db, 'users', user.uid), {
-            name: user.displayName || 'User',
-            email: user.email,
+          await setDoc(doc(db!, 'users', currentUser.uid), {
+            name: currentUser.displayName || 'User',
+            email: currentUser.email,
             createdAt: new Date(),
             apps: ['pushups', 'sport', 'nutrition', 'water'],
           });
         }
-        await loadUserData(user.uid);
+        await loadUserData(currentUser.uid);
       } else {
         setUserData(null);
       }
@@ -76,11 +84,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signInWithGoogle = async (credential: string) => {
+    if (!auth) {
+      throw new Error('Firebase authentication is not configured. Please provide Firebase environment variables.');
+    }
     const googleCredential = GoogleAuthProvider.credential(credential);
     await signInWithCredential(auth, googleCredential);
   };
 
   const logout = async () => {
+    if (!auth) {
+      return;
+    }
     await signOut(auth);
   };
 
@@ -98,3 +112,8 @@ export const useAuth = () => {
   }
   return context;
 };
+
+
+
+
+

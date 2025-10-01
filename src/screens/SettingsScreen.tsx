@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Switch
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { db, isFirebaseConfigured } from '../services/firebase';
 import {
   requestPermissions,
   scheduleWaterReminder,
@@ -28,8 +28,13 @@ export default function SettingsScreen() {
   const loadSettings = async () => {
     if (!user) return;
 
+    if (!isFirebaseConfigured || !db) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const userDoc = await getDoc(doc(db, 'users', user.uid));
+      const userDoc = await getDoc(doc(db!, 'users', user.uid));
       if (userDoc.exists()) {
         const data = userDoc.data();
         setNickname(data.nickname || '');
@@ -47,8 +52,13 @@ export default function SettingsScreen() {
   const saveProfile = async () => {
     if (!user) return;
 
+    if (!isFirebaseConfigured || !db) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      await updateDoc(doc(db, 'users', user.uid), {
+      await updateDoc(doc(db!, 'users', user.uid), {
         nickname: nickname.trim(),
         groupCode: groupCode.toLowerCase().trim() || null,
       });
@@ -60,6 +70,11 @@ export default function SettingsScreen() {
   };
 
   const toggleWaterReminder = async (value: boolean) => {
+    if (!isFirebaseConfigured || !db) {
+      Alert.alert('Konfiguration', 'Firebase ist nicht konfiguriert. Bitte setze die erforderlichen Umgebungsvariablen.');
+      return;
+    }
+
     const granted = await requestPermissions();
     if (!granted) {
       Alert.alert('Benachrichtigungen', 'Bitte erlaube Benachrichtigungen in den Einstellungen');
@@ -77,12 +92,17 @@ export default function SettingsScreen() {
       }
     }
 
-    await updateDoc(doc(db, 'users', user!.uid), {
+    await updateDoc(doc(db!, 'users', user!.uid), {
       waterReminder: value,
     });
   };
 
   const toggleWorkoutReminder = async (value: boolean) => {
+    if (!isFirebaseConfigured || !db) {
+      Alert.alert('Konfiguration', 'Firebase ist nicht konfiguriert. Bitte setze die erforderlichen Umgebungsvariablen.');
+      return;
+    }
+
     const granted = await requestPermissions();
     if (!granted) {
       Alert.alert('Benachrichtigungen', 'Bitte erlaube Benachrichtigungen in den Einstellungen');
@@ -100,7 +120,7 @@ export default function SettingsScreen() {
       }
     }
 
-    await updateDoc(doc(db, 'users', user!.uid), {
+    await updateDoc(doc(db!, 'users', user!.uid), {
       workoutReminder: value,
     });
   };
@@ -342,3 +362,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+
+
+
+

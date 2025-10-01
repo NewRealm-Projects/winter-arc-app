@@ -64,9 +64,16 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
   const maxBodyFat = hasBodyFat ? Math.max(...bodyFats) : 0;
   const bodyFatRange = maxBodyFat - minBodyFat || 1;
 
+  const getXPosition = (index: number) => {
+    if (entries.length <= 1) {
+      return GRAPH_WIDTH / 2;
+    }
+    return (index / (entries.length - 1)) * GRAPH_WIDTH;
+  };
+
   // Calculate points for weight line
   const weightPoints = entries.map((entry, index) => {
-    const x = (index / (entries.length - 1)) * GRAPH_WIDTH;
+    const x = getXPosition(index);
     const y = GRAPH_HEIGHT - ((entry.weight - minWeight) / weightRange) * GRAPH_HEIGHT;
     return { x, y, weight: entry.weight, bodyFat: entry.bodyFat };
   });
@@ -74,7 +81,7 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
   // Calculate points for body fat line (with last known value logic)
   let lastKnownBodyFat = entries.find(e => e.bodyFat !== undefined)?.bodyFat;
   const bodyFatPoints = hasBodyFat ? entries.map((entry, index) => {
-    const x = (index / (entries.length - 1)) * GRAPH_WIDTH;
+    const x = getXPosition(index);
     const bodyFat = entry.bodyFat !== undefined ? entry.bodyFat : lastKnownBodyFat;
     if (entry.bodyFat !== undefined) lastKnownBodyFat = entry.bodyFat;
     const y = GRAPH_HEIGHT - ((bodyFat! - minBodyFat) / bodyFatRange) * GRAPH_HEIGHT;
@@ -309,3 +316,6 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 });
+
+
+

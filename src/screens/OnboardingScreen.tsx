@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { db, isFirebaseConfigured } from '../services/firebase';
 
 export default function OnboardingScreen({ navigation }: any) {
   const [nickname, setNickname] = useState('');
@@ -52,8 +52,13 @@ export default function OnboardingScreen({ navigation }: any) {
       return;
     }
 
+    if (!isFirebaseConfigured || !db) {
+      Alert.alert('Konfiguration', 'Firebase ist nicht konfiguriert. Bitte setze die Umgebungsvariablen.');
+      return;
+    }
+
     try {
-      await updateDoc(doc(db, 'users', user!.uid), {
+      await updateDoc(doc(db!, 'users', user!.uid), {
         nickname: nickname.trim(),
         age: ageNum,
         gender: gender,
@@ -303,3 +308,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+
+

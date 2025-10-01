@@ -6,10 +6,10 @@
 ## ✅ Meta-Requirement: Dokumentation
 
 **Status:** ERFÜLLT
-**Datei:** CLAUDE.md (Zeile 5-14)
+**Datei:** CODEX.md (Zeile 5-14)
 
-- ✅ Meta-Requirement am Anfang der CLAUDE.md hinzugefügt
-- ✅ Anweisung: Alle neuen Anforderungen müssen in CLAUDE.md übernommen werden
+- ✅ Meta-Requirement am Anfang der CODEX.md hinzugefügt
+- ✅ Anweisung: Alle neuen Anforderungen müssen in CODEX.md übernommen werden
 
 ## ✅ Logging System - Quick-Add & Display
 
@@ -91,14 +91,14 @@
 ## ✅ Glassmorphism Design
 
 **Status:** ERFÜLLT
-**Dateien:** GlassCard.tsx, GlassButton.tsx, AnimatedGradient.tsx, CLAUDE.md (Zeile 246-424)
+**Dateien:** GlassCard.tsx, GlassButton.tsx, AnimatedGradient.tsx, CODEX.md (Zeile 246-424)
 
 - ✅ GlassCard Komponente: Semi-transparent mit rgba colors
 - ✅ GlassButton Komponente: Category-colored buttons
 - ✅ AnimatedGradient: Gradient background
 - ✅ Alle Cards nutzen Glassmorphism (HomeScreen, WeeklyOverview)
 - ✅ Theme-aware (Light/Dark mode)
-- ✅ Dokumentation vollständig in CLAUDE.md
+- ✅ Dokumentation vollständig in CODEX.md
 
 ## 📋 Zusammenfassung
 
@@ -123,7 +123,7 @@
 **Aktualisierte Dateien:**
 - ✅ HomeScreen.tsx - Inline logging, edit/delete, WeightGraph integration
 - ✅ database.ts - Update functions für alle Entries
-- ✅ CLAUDE.md - Vollständige Dokumentation aller Requirements
+- ✅ CODEX.md - Vollständige Dokumentation aller Requirements
 
 ### Offene Punkte:
 **KEINE** - Alle Anforderungen sind implementiert.
@@ -139,3 +139,4 @@
 ---
 
 **Hinweis:** Alle Anforderungen aus dem User-Request vom 2025-10-01 sind vollständig implementiert und dokumentiert.
+
