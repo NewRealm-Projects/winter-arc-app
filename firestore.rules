@@ -1,0 +1,168 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidTimestamp(timestamp) {
+      return timestamp is timestamp;
+    }
+
+    function rateLimit(maxRequests) {
+      // Rate limiting: Allow max X requests per minute per user
+      // This is a simplified version - for production use Firebase Extensions rate limiting
+      return request.time > resource.data.lastRequest + duration.value(60, 's')
+             || resource.data.requestCount < maxRequests;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Read: Only owner can read their own profile
+      allow read: if isOwner(userId);
+
+      // Create: Only during user creation (onboarding)
+      allow create: if isOwner(userId)
+                    && request.resource.data.keys().hasAll(['nickname', 'age', 'gender', 'weight', 'height', 'onboardingCompleted'])
+                    && request.resource.data.age >= 10
+                    && request.resource.data.age <= 120
+                    && request.resource.data.weight > 0
+                    && request.resource.data.height > 0;
+
+      // Update: Only owner can update their profile
+      allow update: if isOwner(userId)
+                    && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['uid'])); // Cannot change uid
+    }
+
+    // Sport Entries
+    match /sportEntries/{entryId} {
+      // Read: Only owner can read their entries
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Create: Only owner, with valid data
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.completed == true
+                    && isValidTimestamp(request.resource.data.date);
+
+      // Delete: Only owner can delete their entries
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Push-up Entries
+    match /pushUpEntries/{entryId} {
+      // Read: Only owner can read their entries
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Create: Only owner, with valid data
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.count is int
+                    && request.resource.data.count > 0
+                    && request.resource.data.count <= 1000 // Max 1000 push-ups per entry
+                    && isValidTimestamp(request.resource.data.date);
+
+      // Update: Only owner can update their entries
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.count is int
+                    && request.resource.data.count > 0
+                    && request.resource.data.count <= 1000;
+
+      // Delete: Only owner can delete their entries
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Water Entries
+    match /waterEntries/{entryId} {
+      // Read: Only owner can read their entries
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Create: Only owner, with valid data
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.amount is int
+                    && request.resource.data.amount > 0
+                    && request.resource.data.amount <= 5000 // Max 5L per entry
+                    && isValidTimestamp(request.resource.data.date);
+
+      // Update: Only owner can update their entries
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.amount is int
+                    && request.resource.data.amount > 0
+                    && request.resource.data.amount <= 5000;
+
+      // Delete: Only owner can delete their entries
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Protein Entries
+    match /proteinEntries/{entryId} {
+      // Read: Only owner can read their entries
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Create: Only owner, with valid data
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.grams is int
+                    && request.resource.data.grams > 0
+                    && request.resource.data.grams <= 500 // Max 500g per entry
+                    && isValidTimestamp(request.resource.data.date);
+
+      // Update: Only owner can update their entries
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.grams is int
+                    && request.resource.data.grams > 0
+                    && request.resource.data.grams <= 500;
+
+      // Delete: Only owner can delete their entries
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Weight Entries
+    match /weightEntries/{entryId} {
+      // Read: Only owner can read their entries
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Create: Only owner, with valid data
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.weight is number
+                    && request.resource.data.weight > 0
+                    && request.resource.data.weight <= 500 // Max 500kg
+                    && (!request.resource.data.keys().hasAny(['bodyFat'])
+                        || (request.resource.data.bodyFat >= 3 && request.resource.data.bodyFat <= 50))
+                    && isValidTimestamp(request.resource.data.date);
+
+      // Update: Only owner can update their entries
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.weight is number
+                    && request.resource.data.weight > 0
+                    && request.resource.data.weight <= 500
+                    && (!request.resource.data.keys().hasAny(['bodyFat'])
+                        || (request.resource.data.bodyFat >= 3 && request.resource.data.bodyFat <= 50));
+
+      // Delete: Only owner can delete their entries
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

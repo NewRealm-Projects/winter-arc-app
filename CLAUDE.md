@@ -13,6 +13,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This ensures all future development sessions have complete context and requirements.
 
+## ✅ CRITICAL: Implementation Verification Requirement
+
+**MANDATORY: After implementing ANY feature or fix, you MUST verify it actually works:**
+
+1. **Never assume implementation = working functionality**
+   - Code that compiles ≠ code that works correctly
+   - Database writes ≠ UI updates
+   - Function exists ≠ function is called
+
+2. **Verification Steps (REQUIRED for EVERY implementation):**
+   - [ ] Run the app and manually test the feature
+   - [ ] Verify UI updates immediately after actions (logging, editing, deleting)
+   - [ ] Check that data persists and displays correctly after refresh
+   - [ ] Test edge cases (empty state, multiple entries, etc.)
+   - [ ] Verify graphs/visualizations render with actual data
+   - [ ] Confirm modals/screens open, close, and navigate correctly
+
+3. **Known Problem Areas (CHECK THESE EVERY TIME):**
+   - **Logging not updating**: Check if `loadAllData()` or equivalent is called after database writes
+   - **Graphs not showing**: Verify data fetching, check console for errors, ensure minimum data points exist
+   - **Empty displays**: Confirm state updates trigger re-renders, check query filters (dates, userId)
+   - **WeeklyOverview empty**: Verify data aggregation logic and date range calculations
+
+4. **Before Marking Task Complete:**
+   - Test the feature yourself using the development server
+   - Document any blockers or issues discovered during testing
+   - Do NOT mark feature as "done" if it doesn't work as expected
+
+**WHY THIS MATTERS:** Many prompts have been wasted fixing features that were "implemented" but never actually verified to work. This wastes user time and tokens.
+
 ## Project Overview
 
 Winter Arc is a cross-platform fitness tracking application built with Expo/React Native. It runs on:
@@ -35,6 +65,10 @@ The app tracks:
 - **Navigation**: React Navigation (Stack Navigator with modals)
 - **Deployment**: GitHub Actions → GitHub Pages
 - **State Management**: React Context (AuthContext, ThemeContext)
+- **Security**:
+  - Socket.dev (Dependency scanning)
+  - Firebase Security Rules (Access control)
+  - Firebase App Check (Bot protection - Web only)
 
 ## Development Commands
 
@@ -473,6 +507,126 @@ animation: gradientShift 15s ease infinite;
 - **Apple iOS Design**: Frosted glass panels, translucent overlays
 - **Windows Fluent Design**: Acrylic materials, depth layers
 - **Glassmorphism.com**: Reference for blur intensities and overlays
+
+## 🔒 Security
+
+### Socket.dev - Dependency Scanning
+
+**Purpose:** Scans all npm dependencies for security vulnerabilities and supply chain attacks.
+
+**Integration:** GitHub Actions workflow (`.github/workflows/socket-security.yml`)
+- Runs on every push to main
+- Runs on every pull request
+- Runs weekly (every Monday at 9 AM)
+- Fails build if high or critical vulnerabilities found
+
+**Setup:**
+1. Create Socket.dev account at https://socket.dev
+2. Get API key from Socket.dev dashboard
+3. Add GitHub Secret: `SOCKET_SECURITY_API_KEY`
+4. Workflow will automatically scan on push/PR
+
+**Reports:** Security reports are uploaded as artifacts in GitHub Actions
+
+### Firebase Security Rules
+
+**Location:** `firestore.rules`
+
+**Key Security Features:**
+1. **Authentication Required:** All read/write operations require authenticated user
+2. **Owner-Only Access:** Users can only access their own data
+3. **Data Validation:**
+   - Push-ups: 1-1000 per entry
+   - Water: 1-5000ml per entry
+   - Protein: 1-500g per entry
+   - Weight: 1-500kg, Body fat: 3-50%
+   - Age: 10-120 years
+4. **No UID Tampering:** Users cannot change their own userId
+5. **Timestamp Validation:** All dates must be valid timestamps
+
+**Deployment:**
+```bash
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# Login to Firebase
+firebase login
+
+# Initialize Firestore (first time only)
+firebase init firestore
+
+# Deploy security rules
+firebase deploy --only firestore:rules
+```
+
+**Testing Rules:**
+```bash
+firebase emulators:start --only firestore
+```
+
+### Firebase App Check - Bot Protection (Web Only)
+
+**Purpose:** Protects Firebase resources from abuse (bots, scrapers)
+
+**How it works:**
+- Uses reCAPTCHA v3 for invisible bot detection on web
+- Validates requests come from legitimate app instances
+- Works automatically in background (no user interaction required)
+
+**Setup Steps:**
+
+1. **Enable Firebase App Check:**
+   - Go to Firebase Console → App Check
+   - Click "Get started"
+   - Register your web app
+
+2. **Get reCAPTCHA v3 Site Key:**
+   - Go to https://www.google.com/recaptcha/admin
+   - Click "+" to add new site
+   - Select reCAPTCHA v3
+   - Add your domain (e.g., `yourname.github.io`)
+   - Copy the Site Key
+
+3. **Add to Environment:**
+   ```bash
+   # Add to .env file
+   EXPO_PUBLIC_RECAPTCHA_SITE_KEY=your_recaptcha_v3_site_key
+   ```
+
+4. **Add to GitHub Secrets:**
+   - Go to GitHub repo → Settings → Secrets and variables → Actions
+   - Add secret: `EXPO_PUBLIC_RECAPTCHA_SITE_KEY`
+
+5. **Enforce App Check (Optional):**
+   - Firebase Console → App Check
+   - Click on your app
+   - Enable "Enforce" for Firestore
+
+**Note:** Currently implemented for web only. For iOS/Android, would need:
+- iOS: DeviceCheck or App Attest
+- Android: Play Integrity API
+
+### Rate Limiting
+
+**Current Implementation:** Firebase Security Rules with basic rate limit helpers
+
+**For Production:** Consider Firebase Extensions:
+- **Firestore Rate Limiting Extension**
+  ```bash
+  firebase ext:install firestore-counter
+  ```
+
+**Alternative:** Use Cloud Functions with rate limiting middleware
+
+### Security Best Practices
+
+1. **Never commit `.env` file** - Add to `.gitignore`
+2. **Rotate API keys regularly** - Every 90 days recommended
+3. **Monitor Firebase usage** - Set budget alerts in Firebase Console
+4. **Review Security Rules** - Audit quarterly
+5. **Keep dependencies updated** - Socket.dev will alert you
+6. **Use HTTPS only** - Firebase enforces this automatically
+7. **Enable 2FA** - For Firebase Console and GitHub accounts
 
 ## Common Issues & Solutions
 

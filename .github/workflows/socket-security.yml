@@ -1,0 +1,37 @@
+name: Socket Security Scan
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    # Run weekly security scan every Monday at 9 AM
+    - cron: '0 9 * * 1'
+
+jobs:
+  socket-security:
+    name: Socket Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Socket Security
+        uses: SocketDev/socket-security-action@v1
+        with:
+          # Fail build if high or critical vulnerabilities found
+          severity: high
+          # Optional: Create detailed report
+          report_path: socket-security-report.json
+        env:
+          SOCKET_SECURITY_API_KEY: ${{ secrets.SOCKET_SECURITY_API_KEY }}
+
+      - name: Upload Security Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: socket-security-report
+          path: socket-security-report.json
+          retention-days: 30
