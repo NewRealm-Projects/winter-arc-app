@@ -11,6 +11,7 @@
     "deploy": "npm run build:web"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.0.2",
     "@firebase/app-check": "^0.11.0",
     "@react-navigation/bottom-tabs": "^7.4.7",
     "@react-navigation/native": "^7.1.17",

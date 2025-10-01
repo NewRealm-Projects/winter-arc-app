@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { getWeightEntries } from '../services/database';
 import { WeightEntry } from '../types';
 import GlassCard from './GlassCard';
 
-const { width } = Dimensions.get('window');
-const MIN_GRAPH_WIDTH = 260;
-const GRAPH_WIDTH = Math.max(width - 80, MIN_GRAPH_WIDTH); // Account for card padding
 const GRAPH_HEIGHT = 120;
 const POINT_RADIUS = 4;
 const MAX_AXIS_TICKS = 6;
@@ -23,6 +21,8 @@ interface WeightGraphProps {
 export default function WeightGraph({ onPress }: WeightGraphProps) {
   const { user } = useAuth();
   const { colors } = useTheme();
+  const { width } = useWindowDimensions();
+  const graphWidth = Math.max(width - 80, 260);
   const [entries, setEntries] = useState<WeightEntry[]>([]);
 
   useEffect(() => {
@@ -33,37 +33,32 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
     if (!user) return;
 
     const data = await getWeightEntries(user.uid);
-    // Get last 14 days for mini graph
     const fourteenDaysAgo = new Date();
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-    const recentData = data.filter(e => new Date(e.date) >= fourteenDaysAgo);
-    setEntries(recentData.reverse()); // Oldest first for graph
+    const recentData = data.filter(entry => new Date(entry.date) >= fourteenDaysAgo);
+    setEntries(recentData.reverse());
   };
 
-  if (entries.length === 0) {
+  if (!entries.length) {
     return (
       <GlassCard style={styles.container}>
-        <TouchableOpacity onPress={onPress} style={styles.emptyContainer}>
-          <Text style={styles.cardEmoji}>⚖️</Text>
-          <View>
+        <TouchableOpacity onPress={onPress} style={styles.emptyContainer} activeOpacity={0.8}>
+          <MaterialCommunityIcons name="scale-bathroom" size={36} color={colors.textSecondary} />
+          <View style={styles.emptyCopy}>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Gewicht</Text>
-            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-              Tippen um Gewicht zu tracken
-            </Text>
+            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Tippen, um Gewicht zu erfassen</Text>
           </View>
         </TouchableOpacity>
       </GlassCard>
     );
   }
 
-  // Calculate min/max for weight
-  const weights = entries.map(e => e.weight);
+  const weights = entries.map(entry => entry.weight);
   const minWeight = Math.min(...weights);
   const maxWeight = Math.max(...weights);
   const weightRange = maxWeight - minWeight || 1;
 
-  // Calculate min/max for body fat (if available)
-  const bodyFats = entries.filter(e => e.bodyFat !== undefined).map(e => e.bodyFat!);
+  const bodyFats = entries.filter(entry => entry.bodyFat !== undefined).map(entry => entry.bodyFat!);
   const hasBodyFat = bodyFats.length > 0;
   const minBodyFat = hasBodyFat ? Math.min(...bodyFats) : 0;
   const maxBodyFat = hasBodyFat ? Math.max(...bodyFats) : 0;
@@ -73,27 +68,29 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
 
   const getXPosition = (index: number) => {
     if (entries.length <= 1) {
-      return GRAPH_WIDTH / 2;
+      return graphWidth / 2;
     }
-    return (index / (entries.length - 1)) * GRAPH_WIDTH;
+    return (index / (entries.length - 1)) * graphWidth;
   };
 
-  // Calculate points for weight line
   const weightPoints = entries.map((entry, index) => {
     const x = getXPosition(index);
     const y = GRAPH_HEIGHT - ((entry.weight - minWeight) / weightRange) * GRAPH_HEIGHT;
     return { x, y, weight: entry.weight, bodyFat: entry.bodyFat };
   });
 
-  // Calculate points for body fat line (with last known value logic)
-  let lastKnownBodyFat = entries.find(e => e.bodyFat !== undefined)?.bodyFat;
-  const bodyFatPoints = hasBodyFat ? entries.map((entry, index) => {
-    const x = getXPosition(index);
-    const bodyFat = entry.bodyFat !== undefined ? entry.bodyFat : lastKnownBodyFat;
-    if (entry.bodyFat !== undefined) lastKnownBodyFat = entry.bodyFat;
-    const y = GRAPH_HEIGHT - ((bodyFat! - minBodyFat) / bodyFatRange) * GRAPH_HEIGHT;
-    return { x, y, bodyFat };
-  }) : [];
+  let lastKnownBodyFat = entries.find(entry => entry.bodyFat !== undefined)?.bodyFat;
+  const bodyFatPoints = hasBodyFat
+    ? entries.map((entry, index) => {
+        const x = getXPosition(index);
+        const bodyFat = entry.bodyFat !== undefined ? entry.bodyFat : lastKnownBodyFat;
+        if (entry.bodyFat !== undefined) {
+          lastKnownBodyFat = entry.bodyFat;
+        }
+        const y = GRAPH_HEIGHT - ((bodyFat! - minBodyFat) / bodyFatRange) * GRAPH_HEIGHT;
+        return { x, y, bodyFat };
+      })
+    : [];
 
   const currentWeight = entries[entries.length - 1].weight;
   const currentBodyFat = lastKnownBodyFat;
@@ -104,38 +101,34 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
       <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.cardEmoji}>⚖️</Text>
+            <MaterialCommunityIcons name="scale-bathroom" size={28} color="#A29BFE" />
             <View>
               <Text style={[styles.cardTitle, { color: colors.text }]}>Gewicht</Text>
               <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
-                {currentWeight.toFixed(1)}kg
+                {currentWeight.toFixed(1)} kg
                 {weightChange !== 0 && (
                   <Text style={{ color: weightChange < 0 ? '#00D084' : '#FF6B6B' }}>
-                    {' '}({weightChange > 0 ? '+' : ''}{weightChange.toFixed(1)}kg)
+                    {' '}({weightChange > 0 ? '+' : ''}{weightChange.toFixed(1)} kg)
                   </Text>
                 )}
               </Text>
             </View>
           </View>
-          {currentBodyFat && (
+          {currentBodyFat !== undefined && currentBodyFat !== null && (
             <View style={styles.bodyFatBadge}>
               <Text style={[styles.bodyFatText, { color: colors.text }]}>
-                {currentBodyFat.toFixed(1)}% KFA
+                {currentBodyFat.toFixed(1)} % KFA
               </Text>
             </View>
           )}
         </View>
 
-        {/* Graph */}
         <View style={[styles.graphContainer, { height: GRAPH_HEIGHT + 20 }]}>
-          <View style={styles.graph}>
-            {/* Weight Line */}
+          <View style={[styles.graph, { width: graphWidth }]}>
             {weightPoints.map((point, index) => {
               if (index === 0) return null;
               const prevPoint = weightPoints[index - 1];
-              const length = Math.sqrt(
-                Math.pow(point.x - prevPoint.x, 2) + Math.pow(point.y - prevPoint.y, 2)
-              );
+              const length = Math.hypot(point.x - prevPoint.x, point.y - prevPoint.y);
               const angle = Math.atan2(point.y - prevPoint.y, point.x - prevPoint.x) * (180 / Math.PI);
               return (
                 <View
@@ -154,13 +147,10 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
               );
             })}
 
-            {/* Body Fat Line (if available) */}
             {hasBodyFat && bodyFatPoints.map((point, index) => {
               if (index === 0) return null;
               const prevPoint = bodyFatPoints[index - 1];
-              const length = Math.sqrt(
-                Math.pow(point.x - prevPoint.x, 2) + Math.pow(point.y - prevPoint.y, 2)
-              );
+              const length = Math.hypot(point.x - prevPoint.x, point.y - prevPoint.y);
               const angle = Math.atan2(point.y - prevPoint.y, point.x - prevPoint.x) * (180 / Math.PI);
               return (
                 <View
@@ -173,14 +163,13 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
                       left: prevPoint.x,
                       top: prevPoint.y,
                       transform: [{ rotate: `${angle}deg` }],
-                      opacity: 0.7,
+                      opacity: 0.65,
                     },
                   ]}
                 />
               );
             })}
 
-            {/* Weight Points */}
             {weightPoints.map((point, index) => (
               <View
                 key={`weight-point-${index}`}
@@ -195,7 +184,6 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
               />
             ))}
 
-            {/* Body Fat Points (if available) */}
             {hasBodyFat && bodyFatPoints.map((point, index) => (
               <View
                 key={`bodyfat-point-${index}`}
@@ -205,7 +193,7 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
                     backgroundColor: '#F9CA24',
                     left: point.x - POINT_RADIUS,
                     top: point.y - POINT_RADIUS,
-                    opacity: 0.7,
+                    opacity: 0.65,
                   },
                 ]}
               />
@@ -213,23 +201,15 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
           </View>
         </View>
 
-        <View style={[styles.axisContainer, { width: GRAPH_WIDTH }]}>{
-          entries.map((entry, index) => {
+        <View style={[styles.axisContainer, { width: graphWidth }]}>
+          {entries.map((entry, index) => {
             const x = getXPosition(index);
             const showLabel = index === 0 || index === entries.length - 1 || index % axisLabelInterval === 0;
             return (
-              <View
-                key={`axis-${entry.id ?? index}`}
-                style={[
-                  styles.axisTick,
-                  {
-                    left: x - AXIS_LABEL_WIDTH / 2,
-                  },
-                ]}
-              >
+              <View key={`axis-${entry.id ?? index}`} style={[styles.axisTick, { left: x - AXIS_LABEL_WIDTH / 2 }] }>
                 <View style={[styles.axisLine, { backgroundColor: colors.border }]} />
                 {showLabel && (
-                  <Text style={[styles.axisLabelText, { color: colors.textSecondary }]}>
+                  <Text style={[styles.axisLabelText, { color: colors.textSecondary }]}> 
                     {formatDateLabel(new Date(entry.date))}
                   </Text>
                 )}
@@ -238,7 +218,6 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
           })}
         </View>
 
-        {/* Legend */}
         <View style={styles.legend}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: '#A29BFE' }]} />
@@ -252,9 +231,7 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
           )}
         </View>
 
-        <Text style={[styles.hint, { color: colors.textSecondary }]}>
-          Tippen für Details (30 Tage)
-        </Text>
+        <Text style={[styles.hint, { color: colors.textSecondary }]}>Tippen für Details (30 Tage)</Text>
       </TouchableOpacity>
     </GlassCard>
   );
@@ -267,6 +244,10 @@ const styles = StyleSheet.create({
   emptyContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
+  },
+  emptyCopy: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',
@@ -277,10 +258,7 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  cardEmoji: {
-    fontSize: 32,
-    marginRight: 12,
+    gap: 12,
   },
   cardTitle: {
     fontSize: 20,
@@ -306,7 +284,6 @@ const styles = StyleSheet.create({
   },
   graph: {
     position: 'relative',
-    width: GRAPH_WIDTH,
     height: GRAPH_HEIGHT,
     overflow: 'hidden',
     borderRadius: 12,
@@ -322,7 +299,7 @@ const styles = StyleSheet.create({
     height: POINT_RADIUS * 2,
     borderRadius: POINT_RADIUS,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: '#ffffff',
   },
   axisContainer: {
     position: 'relative',
@@ -371,6 +348,3 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
 });
-
-
-

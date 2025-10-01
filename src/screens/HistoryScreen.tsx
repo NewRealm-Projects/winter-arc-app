@@ -183,13 +183,13 @@ export default function HistoryScreen() {
     <AnimatedGradient>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <GlassCard>
-          <View style={styles.header}> 
+          <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text }]}>{config.title}</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Alle Einträge in chronologischer Reihenfolge</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Alle Einträge chronologisch</Text>
           </View>
 
           {loading ? (
-            <Text style={{ color: colors.textSecondary }}>Lädt...</Text>
+            <Text style={{ color: colors.textSecondary }}>Lädt…</Text>
           ) : entries.length === 0 ? (
             <Text style={{ color: colors.textSecondary }}>Noch keine Einträge vorhanden.</Text>
           ) : (
@@ -197,7 +197,7 @@ export default function HistoryScreen() {
               const date = new Date(entry.date);
               const isEditing = editing?.id === entry.id;
               return (
-                <View key={entry.id} style={[styles.row, { borderBottomColor: colors.border }]}> 
+                <View key={entry.id} style={[styles.row, { borderBottomColor: colors.border }]}>
                   <View style={styles.rowInfo}>
                     <Text style={[styles.rowDate, { color: colors.text }]}>
                       {date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
@@ -311,4 +311,3 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
-

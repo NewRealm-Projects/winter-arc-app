@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,7 +8,7 @@ import {
   getSportEntries,
   getPushUpEntries,
   getProteinEntries,
-  getWaterEntries
+  getWaterEntries,
 } from '../services/database';
 
 interface DayProgress {
@@ -22,22 +22,12 @@ interface DayProgress {
 
 type ViewMode = 'week' | 'month';
 
-type Segment = {
-  color: string;
-  active: boolean;
-};
-
-const SEGMENT_CONFIG: Segment[] = [
-  { color: '#FF6B6B', active: false },
-  { color: '#45AAF2', active: false },
-  { color: '#FFB347', active: false },
-  { color: '#00D084', active: false },
-];
+const SEGMENT_COLORS = ['#FF6B6B', '#45AAF2', '#FFB347', '#00D084'];
 
 const getStartOfWeek = (reference: Date) => {
   const date = new Date(reference);
   const day = date.getDay();
-  const diff = day === 0 ? -6 : 1 - day; // Monday start
+  const diff = day === 0 ? -6 : 1 - day;
   date.setDate(date.getDate() + diff);
   date.setHours(0, 0, 0, 0);
   return date;
@@ -49,22 +39,18 @@ const getStartOfMonth = (reference: Date) => {
   return date;
 };
 
+const getDaysInMonth = (reference: Date) => new Date(reference.getFullYear(), reference.getMonth() + 1, 0).getDate();
+
 const formatDayLabel = (date: Date, mode: ViewMode) => {
   if (mode === 'week') {
     const labels = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
     return labels[(date.getDay() + 6) % 7];
   }
-  return String(date.getDate());
+  return date.getDate().toString();
 };
 
 const ProgressRing: React.FC<{ day: DayProgress; mode: ViewMode; colors: any }> = ({ day, mode, colors }) => {
-  const segments = [
-    { color: '#FF6B6B', active: day.pushups },
-    { color: '#45AAF2', active: day.water },
-    { color: '#FFB347', active: day.protein },
-    { color: '#00D084', active: day.sport },
-  ];
-
+  const segments = [day.pushups, day.water, day.protein, day.sport];
   const size = mode === 'month' ? 46 : 72;
   const strokeWidth = mode === 'month' ? 8 : 10;
   const radius = (size - strokeWidth) / 2;
@@ -74,21 +60,14 @@ const ProgressRing: React.FC<{ day: DayProgress; mode: ViewMode; colors: any }> 
   return (
     <View style={[styles.ringContainer, mode === 'month' && styles.ringContainerSmall]}>
       <Svg width={size} height={size}>
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          stroke={colors.border}
-          strokeWidth={strokeWidth}
-          fill="transparent"
-        />
-        {segments.map((segment, index) => (
+        <Circle cx={size / 2} cy={size / 2} r={radius} stroke={colors.border} strokeWidth={strokeWidth} fill="transparent" />
+        {segments.map((active, index) => (
           <Circle
             key={`segment-${index}`}
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={segment.active ? segment.color : colors.border}
+            stroke={active ? SEGMENT_COLORS[index] : colors.border}
             strokeWidth={strokeWidth}
             strokeDasharray={`${segmentLength} ${circumference}`}
             strokeDashoffset={circumference - segmentLength * (index + 1)}
@@ -121,10 +100,10 @@ export default function WeeklyOverview() {
     today.setHours(0, 0, 0, 0);
 
     const startDate = viewMode === 'week' ? getStartOfWeek(today) : getStartOfMonth(today);
-    const daysToShow = viewMode === 'week' ? 7 : today.getDate();
+    const totalDays = viewMode === 'week' ? 7 : getDaysInMonth(today);
 
     if (!user) {
-      const fallback: DayProgress[] = Array.from({ length: daysToShow }, (_, index) => {
+      const fallback: DayProgress[] = Array.from({ length: totalDays }, (_, index) => {
         const date = new Date(startDate);
         date.setDate(startDate.getDate() + index);
         return {
@@ -148,32 +127,24 @@ export default function WeeklyOverview() {
     ]);
 
     const days: DayProgress[] = [];
-    for (let i = 0; i < daysToShow; i++) {
+    for (let i = 0; i < totalDays; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
       date.setHours(0, 0, 0, 0);
+
       const nextDay = new Date(date);
       nextDay.setDate(date.getDate() + 1);
 
-      const hasSport = sportData.some(entry => {
-        const entryDate = new Date(entry.date);
-        return entryDate >= date && entryDate < nextDay;
-      });
+      const fallsIntoDay = (entries: { date: Date | string }[]) =>
+        entries.some(entry => {
+          const entryDate = new Date(entry.date);
+          return entryDate >= date && entryDate < nextDay;
+        });
 
-      const hasPushups = pushData.some(entry => {
-        const entryDate = new Date(entry.date);
-        return entryDate >= date && entryDate < nextDay;
-      });
-
-      const hasProtein = proteinData.some(entry => {
-        const entryDate = new Date(entry.date);
-        return entryDate >= date && entryDate < nextDay;
-      });
-
-      const hasWater = waterData.some(entry => {
-        const entryDate = new Date(entry.date);
-        return entryDate >= date && entryDate < nextDay;
-      });
+      const hasSport = fallsIntoDay(sportData);
+      const hasPushups = fallsIntoDay(pushData);
+      const hasProtein = fallsIntoDay(proteinData);
+      const hasWater = fallsIntoDay(waterData);
 
       const completed = [hasSport, hasPushups, hasProtein, hasWater].filter(Boolean).length;
       const completion = (completed / 4) * 100;
@@ -236,7 +207,7 @@ export default function WeeklyOverview() {
 
       <View style={[styles.ringsContainer, viewMode === 'month' && styles.ringsContainerMonth]}>
         {data.map((day, index) => (
-          <ProgressRing key={index} day={day} mode={viewMode} colors={colors} />
+          <ProgressRing key={`${day.date.toISOString()}-${index}`} day={day} mode={viewMode} colors={colors} />
         ))}
       </View>
     </GlassCard>
@@ -264,7 +235,6 @@ const styles = StyleSheet.create({
   toggleContainer: {
     flexDirection: 'row',
     gap: 8,
-    backgroundColor: 'transparent',
     borderRadius: 8,
     padding: 2,
   },
@@ -279,7 +249,6 @@ const styles = StyleSheet.create({
   },
   ringsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     flexWrap: 'wrap',
     gap: 16,
   },

@@ -1,4 +1,4 @@
-import React from 'react';
+Ôªøimport React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 
 interface MissingFirebaseConfigProps {
@@ -9,7 +9,7 @@ const DOCS_URL = 'https://firebase.google.com/docs/web/setup';
 
 const MissingFirebaseConfig: React.FC<MissingFirebaseConfigProps> = ({ missingKeys }) => {
   const handleOpenDocs = () => {
-    Linking.openURL(DOCS_URL).catch((error) => {
+    Linking.openURL(DOCS_URL).catch(error => {
       console.warn('Unable to open docs link', error);
     });
   };
@@ -17,35 +17,39 @@ const MissingFirebaseConfig: React.FC<MissingFirebaseConfigProps> = ({ missingKe
   return (
     <View style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.emoji}>??</Text>
+        <Text style={styles.emoji}>‚ö†Ô∏è</Text>
         <Text style={styles.title}>Firebase-Konfiguration erforderlich</Text>
         <Text style={styles.description}>
-          Winter Arc benˆtigt g¸ltige Firebase-Umgebungsvariablen. Ohne diese Konfiguration funktionieren Anmeldung und
+          Winter Arc ben√∂tigt g√ºltige Firebase-Umgebungsvariablen. Ohne diese Konfiguration funktionieren Anmeldung und
           Datenspeicherung nicht.
         </Text>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Fehlende Variablen</Text>
           {missingKeys.length > 0 ? (
-            missingKeys.map((key) => (
+            missingKeys.map(key => (
               <Text key={key} style={styles.listItem}>
                 - {key}
               </Text>
             ))
           ) : (
-            <Text style={styles.listItem}>Alle Pflichtvariablen vorhanden ñ pr¸fe ihre Werte.</Text>
+            <Text style={styles.listItem}>Alle Pflichtvariablen vorhanden ‚Äì pr√ºfe ihre Werte.</Text>
           )}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Schnellstart</Text>
-          <Text style={styles.listItem}>1. Kopiere <Text style={styles.code}>.env.example</Text> nach <Text style={styles.code}>.env</Text></Text>
+          <Text style={styles.listItem}>
+            1. Kopiere <Text style={styles.code}>.env.example</Text> nach <Text style={styles.code}>.env</Text>
+          </Text>
           <Text style={styles.listItem}>2. Trage die Daten deines Firebase-Projekts ein</Text>
-          <Text style={styles.listItem}>3. Starte den Dev-Server erneut (<Text style={styles.code}>npm start</Text>)</Text>
+          <Text style={styles.listItem}>
+            3. Starte den Dev-Server erneut (<Text style={styles.code}>npm start</Text>)
+          </Text>
         </View>
 
         <TouchableOpacity style={styles.button} onPress={handleOpenDocs}>
-          <Text style={styles.buttonText}>Firebase-Anleitung ˆffnen</Text>
+          <Text style={styles.buttonText}>Firebase-Anleitung √∂ffnen</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -68,42 +72,38 @@ const styles = StyleSheet.create({
     padding: 32,
     borderWidth: 1,
     borderColor: 'rgba(148, 163, 184, 0.4)',
+    gap: 20,
   },
   emoji: {
     fontSize: 52,
     textAlign: 'center',
-    marginBottom: 16,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
     color: '#f8fafc',
     textAlign: 'center',
-    marginBottom: 12,
   },
   description: {
     fontSize: 16,
     color: 'rgba(226, 232, 240, 0.85)',
     lineHeight: 24,
     textAlign: 'center',
-    marginBottom: 24,
   },
   section: {
     backgroundColor: 'rgba(30, 41, 59, 0.6)',
     borderRadius: 16,
     padding: 16,
-    marginBottom: 16,
+    gap: 6,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#e2e8f0',
-    marginBottom: 8,
   },
   listItem: {
     fontSize: 14,
     color: '#cbd5f5',
-    marginBottom: 6,
   },
   code: {
     fontFamily: 'monospace',
@@ -128,4 +128,3 @@ const styles = StyleSheet.create({
 });
 
 export default MissingFirebaseConfig;
-
