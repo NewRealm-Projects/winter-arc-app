@@ -57,12 +57,20 @@ export default function HomeScreen({ navigation }: any) {
             </Text>
             <Text style={[styles.email, { color: colors.textSecondary }]}>{user?.email}</Text>
           </View>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Settings')}
-            style={styles.settingsButton}
-          >
-            <Text style={styles.settingsIcon}>⚙️</Text>
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Leaderboard')}
+              style={styles.headerButton}
+            >
+              <Text style={styles.headerIcon}>🏆</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Settings')}
+              style={styles.headerButton}
+            >
+              <Text style={styles.headerIcon}>⚙️</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <WeeklyOverview />
@@ -70,8 +78,8 @@ export default function HomeScreen({ navigation }: any) {
         <View style={[styles.statsContainer, isDesktop && styles.statsGrid]}>
           <QuickStat title="Push-ups heute" value="0" color="#FF6B6B" icon="💪" />
           <QuickStat title="Wasser (ml)" value="0" color="#4ECDC4" icon="💧" />
-          <QuickStat title="Sport (min)" value="0" color="#95E1D3" icon="🏃" />
-          <QuickStat title="Mahlzeiten" value="0" color="#FFD93D" icon="🥗" />
+          <QuickStat title="Sport" value="0" color="#95E1D3" icon="🏃" />
+          <QuickStat title="Protein (g)" value="0" color="#F9CA24" icon="🥩" />
         </View>
 
         <View style={[styles.actionsContainer, isDesktop && styles.actionsGrid]}>
@@ -100,11 +108,19 @@ export default function HomeScreen({ navigation }: any) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#FFD93D' }]}
-            onPress={() => navigation.navigate('Nutrition')}
+            style={[styles.actionButton, { backgroundColor: '#F9CA24' }]}
+            onPress={() => navigation.navigate('Protein')}
           >
-            <Text style={styles.actionIcon}>🥗</Text>
-            <Text style={styles.actionButtonText}>Ernährung</Text>
+            <Text style={styles.actionIcon}>🥩</Text>
+            <Text style={styles.actionButtonText}>Protein</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: '#A29BFE' }]}
+            onPress={() => navigation.navigate('WeightTracker')}
+          >
+            <Text style={styles.actionIcon}>⚖️</Text>
+            <Text style={styles.actionButtonText}>Gewicht</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -145,11 +161,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
   },
-  settingsButton: {
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  headerButton: {
     padding: 12,
     borderRadius: 12,
   },
-  settingsIcon: {
+  headerIcon: {
     fontSize: 28,
   },
   statsContainer: {

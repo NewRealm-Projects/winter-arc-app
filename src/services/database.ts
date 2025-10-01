@@ -7,23 +7,24 @@ import {
   orderBy,
   Timestamp,
   deleteDoc,
-  doc
+  doc,
+  limit
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { SportEntry, PushUpEntry, NutritionEntry, WaterEntry } from '../types';
+import { SportEntry, PushUpEntry, ProteinEntry, WaterEntry, WeightEntry } from '../types';
 
-// Sport Entries
-export const addSportEntry = async (userId: string, data: Omit<SportEntry, 'id' | 'userId'>) => {
+// Sport Entries (Simple checkbox)
+export const addSportEntry = async (userId: string) => {
   const docRef = await addDoc(collection(db, 'sportEntries'), {
-    ...data,
     userId,
-    date: Timestamp.fromDate(data.date),
+    date: Timestamp.fromDate(new Date()),
+    completed: true,
   });
   return docRef.id;
 };
 
-export const getSportEntries = async (userId: string, startDate?: Date, endDate?: Date) => {
-  let q = query(
+export const getSportEntries = async (userId: string) => {
+  const q = query(
     collection(db, 'sportEntries'),
     where('userId', '==', userId),
     orderBy('date', 'desc')
@@ -62,9 +63,9 @@ export const getPushUpEntries = async (userId: string) => {
   })) as PushUpEntry[];
 };
 
-// Nutrition Entries
-export const addNutritionEntry = async (userId: string, data: Omit<NutritionEntry, 'id' | 'userId'>) => {
-  const docRef = await addDoc(collection(db, 'nutritionEntries'), {
+// Protein Entries
+export const addProteinEntry = async (userId: string, data: Omit<ProteinEntry, 'id' | 'userId'>) => {
+  const docRef = await addDoc(collection(db, 'proteinEntries'), {
     ...data,
     userId,
     date: Timestamp.fromDate(data.date),
@@ -72,9 +73,9 @@ export const addNutritionEntry = async (userId: string, data: Omit<NutritionEntr
   return docRef.id;
 };
 
-export const getNutritionEntries = async (userId: string) => {
+export const getProteinEntries = async (userId: string) => {
   const q = query(
-    collection(db, 'nutritionEntries'),
+    collection(db, 'proteinEntries'),
     where('userId', '==', userId),
     orderBy('date', 'desc')
   );
@@ -84,7 +85,7 @@ export const getNutritionEntries = async (userId: string) => {
     id: doc.id,
     ...doc.data(),
     date: doc.data().date.toDate(),
-  })) as NutritionEntry[];
+  })) as ProteinEntry[];
 };
 
 // Water Entries
@@ -111,6 +112,36 @@ export const getWaterEntries = async (userId: string) => {
     date: doc.data().date.toDate(),
   })) as WaterEntry[];
 };
+
+// Weight Entries
+export const addWeightEntry = async (userId: string, data: Omit<WeightEntry, 'id' | 'userId'>) => {
+  const docRef = await addDoc(collection(db, 'weightEntries'), {
+    ...data,
+    userId,
+    date: Timestamp.fromDate(data.date),
+  });
+  return docRef.id;
+};
+
+export const getWeightEntries = async (userId: string) => {
+  const q = query(
+    collection(db, 'weightEntries'),
+    where('userId', '==', userId),
+    orderBy('date', 'desc'),
+    limit(30)
+  );
+
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+    date: doc.data().date.toDate(),
+  })) as WeightEntry[];
+};
+
+// Backward compatibility - keep old function names but map to new ones
+export const getNutritionEntries = getProteinEntries;
+export const addNutritionEntry = addProteinEntry;
 
 // Delete Entry
 export const deleteEntry = async (collectionName: string, entryId: string) => {

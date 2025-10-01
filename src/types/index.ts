@@ -3,15 +3,19 @@ export interface User {
   email: string;
   displayName?: string;
   createdAt: Date;
+  weight?: number; // in kg
+  height?: number; // in cm
+  bodyFat?: number; // body fat percentage
+  onboardingCompleted?: boolean;
+  groupCode?: string; // group identifier (e.g., "boys")
+  nickname?: string;
 }
 
 export interface SportEntry {
   id: string;
   userId: string;
-  type: string; // e.g., "Running", "Cycling", "Gym"
-  duration: number; // in minutes
   date: Date;
-  notes?: string;
+  completed: boolean; // Simple checkbox - did you work out today?
 }
 
 export interface PushUpEntry {
@@ -22,12 +26,10 @@ export interface PushUpEntry {
   notes?: string;
 }
 
-export interface NutritionEntry {
+export interface ProteinEntry {
   id: string;
   userId: string;
-  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
-  description: string;
-  calories?: number;
+  grams: number; // protein in grams
   date: Date;
   notes?: string;
 }
@@ -39,10 +41,18 @@ export interface WaterEntry {
   date: Date;
 }
 
+export interface WeightEntry {
+  id: string;
+  userId: string;
+  weight: number; // in kg
+  bodyFat?: number; // body fat percentage (optional)
+  date: Date;
+}
+
 export interface DailyStats {
   date: Date;
-  sportMinutes: number;
+  sportCompleted: boolean;
   pushUps: number;
   waterAmount: number;
-  mealsLogged: number;
+  proteinGrams: number;
 }

@@ -5,11 +5,14 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
 import LoginScreen from './src/screens/LoginScreen';
+import OnboardingScreen from './src/screens/OnboardingScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import PushUpsScreen from './src/screens/PushUpsScreen';
 import WaterScreen from './src/screens/WaterScreen';
 import SportScreen from './src/screens/SportScreen';
-import NutritionScreen from './src/screens/NutritionScreen';
+import ProteinScreen from './src/screens/ProteinScreen';
+import WeightTrackerScreen from './src/screens/WeightTrackerScreen';
+import LeaderboardScreen from './src/screens/LeaderboardScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 
 const Stack = createStackNavigator();
@@ -18,12 +21,14 @@ const Stack = createStackNavigator();
 const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 function Navigation() {
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const { isDark, colors } = useTheme();
 
   if (loading) {
     return null;
   }
+
+  const needsOnboarding = user && !userData?.onboardingCompleted;
 
   const navigationTheme = {
     ...isDark ? DarkTheme : DefaultTheme,
@@ -43,6 +48,14 @@ function Navigation() {
           <Stack.Screen
             name="Login"
             component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      ) : needsOnboarding ? (
+        <Stack.Navigator>
+          <Stack.Screen
+            name="Onboarding"
+            component={OnboardingScreen}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>
@@ -89,10 +102,26 @@ function Navigation() {
             }}
           />
           <Stack.Screen
-            name="Nutrition"
-            component={NutritionScreen}
+            name="Protein"
+            component={ProteinScreen}
             options={{
-              title: 'Ernährung',
+              title: 'Protein',
+              presentation: 'modal',
+            }}
+          />
+          <Stack.Screen
+            name="WeightTracker"
+            component={WeightTrackerScreen}
+            options={{
+              title: 'Gewicht',
+              presentation: 'modal',
+            }}
+          />
+          <Stack.Screen
+            name="Leaderboard"
+            component={LeaderboardScreen}
+            options={{
+              title: 'Rangliste',
               presentation: 'modal',
             }}
           />

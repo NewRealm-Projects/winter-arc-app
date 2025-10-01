@@ -9,18 +9,43 @@ import {
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebase';
 
+interface UserData {
+  weight?: number;
+  height?: number;
+  bodyFat?: number;
+  onboardingCompleted?: boolean;
+  nickname?: string;
+  groupCode?: string;
+}
+
 interface AuthContextType {
   user: FirebaseUser | null;
+  userData: UserData | null;
   loading: boolean;
   signInWithGoogle: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUserData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const loadUserData = async (uid: string) => {
+    const userDoc = await getDoc(doc(db, 'users', uid));
+    if (userDoc.exists()) {
+      setUserData(userDoc.data() as UserData);
+    }
+  };
+
+  const refreshUserData = async () => {
+    if (user) {
+      await loadUserData(user.uid);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -37,6 +62,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             apps: ['pushups', 'sport', 'nutrition', 'water'],
           });
         }
+        await loadUserData(user.uid);
+      } else {
+        setUserData(null);
       }
 
       setLoading(false);
@@ -55,7 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, userData, loading, signInWithGoogle, logout, refreshUserData }}>
       {children}
     </AuthContext.Provider>
   );

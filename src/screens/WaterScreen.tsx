@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert, ScrollView } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { addWaterEntry, getWaterEntries } from '../services/database';
 import { WaterEntry } from '../types';
 
 const QUICK_AMOUNTS = [250, 500, 750, 1000];
 
-export default function WaterScreen() {
+export default function WaterScreen({ navigation }: any) {
   const [entries, setEntries] = useState<WaterEntry[]>([]);
   const [todayTotal, setTodayTotal] = useState(0);
   const { user } = useAuth();
+  const { colors } = useTheme();
 
   useEffect(() => {
     loadEntries();
@@ -35,23 +37,25 @@ export default function WaterScreen() {
         amount,
         date: new Date(),
       });
-      Alert.alert('Success', `${amount}ml logged!`);
+      Alert.alert('Erfolg', `${amount}ml gespeichert!`);
       loadEntries();
+      setTimeout(() => navigation.goBack(), 1000);
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      Alert.alert('Fehler', error.message);
+      console.error('Error saving water:', error);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.totalCard}>
-        <Text style={styles.totalLabel}>Today's Total</Text>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.totalCard, { backgroundColor: '#4ECDC4' }]}>
+        <Text style={styles.totalLabel}>Heute getrunken</Text>
         <Text style={styles.totalValue}>{todayTotal} ml</Text>
-        <Text style={styles.totalGoal}>Goal: 2000 ml</Text>
+        <Text style={styles.totalGoal}>Ziel: 2000 ml</Text>
       </View>
 
-      <View style={styles.quickButtons}>
-        <Text style={styles.sectionTitle}>Quick Add</Text>
+      <View style={[styles.quickButtons, { backgroundColor: colors.card }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>Schnell hinzufügen</Text>
         <View style={styles.buttonRow}>
           {QUICK_AMOUNTS.map((amount) => (
             <TouchableOpacity
@@ -66,36 +70,44 @@ export default function WaterScreen() {
       </View>
 
       <View style={styles.listContainer}>
-        <Text style={styles.historyTitle}>Recent Entries</Text>
+        <Text style={[styles.historyTitle, { color: colors.text }]}>Letzte Einträge</Text>
         <FlatList
           data={entries}
+          scrollEnabled={false}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={styles.entryCard}>
+            <View style={[styles.entryCard, { backgroundColor: colors.card }]}>
               <Text style={styles.entryAmount}>{item.amount} ml</Text>
-              <Text style={styles.entryDate}>
-                {new Date(item.date).toLocaleString()}
+              <Text style={[styles.entryDate, { color: colors.textSecondary }]}>
+                {new Date(item.date).toLocaleString('de-DE')}
               </Text>
             </View>
           )}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>No entries yet. Start hydrating!</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              Noch keine Einträge. Bleib hydriert!
+            </Text>
           }
         />
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   totalCard: {
-    backgroundColor: '#4ECDC4',
     padding: 30,
     alignItems: 'center',
+    margin: 20,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   totalLabel: {
     fontSize: 18,
@@ -113,26 +125,31 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   quickButtons: {
-    backgroundColor: 'white',
     padding: 20,
-    marginTop: 20,
+    margin: 20,
+    marginTop: 0,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 15,
-    color: '#333',
   },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    gap: 10,
   },
   quickButton: {
     backgroundColor: '#4ECDC4',
     padding: 15,
     borderRadius: 8,
     flex: 1,
-    marginHorizontal: 5,
     alignItems: 'center',
   },
   quickButtonText: {
@@ -141,23 +158,26 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   listContainer: {
-    flex: 1,
     padding: 20,
+    paddingTop: 0,
   },
   historyTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#333',
   },
   entryCard: {
-    backgroundColor: 'white',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   entryAmount: {
     fontSize: 18,
@@ -166,11 +186,9 @@ const styles = StyleSheet.create({
   },
   entryDate: {
     fontSize: 14,
-    color: '#666',
   },
   emptyText: {
     textAlign: 'center',
-    color: '#999',
     fontSize: 16,
     marginTop: 20,
   },

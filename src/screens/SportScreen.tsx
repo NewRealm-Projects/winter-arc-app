@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert, ScrollView } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import { addSportEntry, getSportEntries } from '../services/database';
 import { SportEntry } from '../types';
 
-const SPORT_TYPES = ['Running', 'Cycling', 'Gym', 'Swimming', 'Walking', 'Other'];
-
-export default function SportScreen() {
-  const [selectedType, setSelectedType] = useState('Running');
-  const [duration, setDuration] = useState('');
-  const [notes, setNotes] = useState('');
+export default function SportScreen({ navigation }: any) {
   const [entries, setEntries] = useState<SportEntry[]>([]);
+  const [todayCompleted, setTodayCompleted] = useState(false);
   const { user } = useAuth();
+  const { colors } = useTheme();
 
   useEffect(() => {
     loadEntries();
@@ -21,216 +19,162 @@ export default function SportScreen() {
     if (user) {
       const data = await getSportEntries(user.uid);
       setEntries(data);
+
+      const today = new Date().setHours(0, 0, 0, 0);
+      const hasToday = data.some(
+        entry => new Date(entry.date).setHours(0, 0, 0, 0) === today
+      );
+      setTodayCompleted(hasToday);
     }
   };
 
-  const handleSubmit = async () => {
-    if (!duration || isNaN(Number(duration))) {
-      Alert.alert('Error', 'Please enter a valid duration');
-      return;
-    }
-
+  const handleToggle = async () => {
     try {
-      await addSportEntry(user!.uid, {
-        type: selectedType,
-        duration: Number(duration),
-        date: new Date(),
-        notes: notes || undefined,
-      });
-      setDuration('');
-      setNotes('');
-      Alert.alert('Success', 'Sport activity logged!');
-      loadEntries();
+      if (!todayCompleted) {
+        await addSportEntry(user!.uid);
+        Alert.alert('Erfolg', 'Sport abgehakt!');
+        loadEntries();
+        setTimeout(() => navigation.goBack(), 1000);
+      } else {
+        Alert.alert('Info', 'Du hast heute bereits Sport gemacht!');
+      }
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      Alert.alert('Fehler', error.message);
+      console.error('Error saving sport:', error);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.form}>
-        <Text style={styles.label}>Sport Type</Text>
-        <View style={styles.typeGrid}>
-          {SPORT_TYPES.map((type) => (
-            <TouchableOpacity
-              key={type}
-              style={[
-                styles.typeButton,
-                selectedType === type && styles.typeButtonActive,
-              ]}
-              onPress={() => setSelectedType(type)}
-            >
-              <Text
-                style={[
-                  styles.typeButtonText,
-                  selectedType === type && styles.typeButtonTextActive,
-                ]}
-              >
-                {type}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+      <View style={[styles.mainCard, { backgroundColor: colors.card }]}>
+        <Text style={[styles.title, { color: colors.text }]}>Sport gemacht?</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          Hake ab wenn du heute trainiert hast
+        </Text>
 
-        <Text style={styles.label}>Duration (minutes)</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g., 30"
-          value={duration}
-          onChangeText={setDuration}
-          keyboardType="number-pad"
-        />
-
-        <Text style={styles.label}>Notes (optional)</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="How was your workout?"
-          value={notes}
-          onChangeText={setNotes}
-          multiline
-        />
-
-        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-          <Text style={styles.buttonText}>Log Activity</Text>
+        <TouchableOpacity
+          style={[
+            styles.checkButton,
+            { backgroundColor: todayCompleted ? '#00D084' : '#95E1D3' }
+          ]}
+          onPress={handleToggle}
+          disabled={todayCompleted}
+        >
+          <Text style={styles.checkIcon}>
+            {todayCompleted ? '✓' : '○'}
+          </Text>
+          <Text style={styles.checkButtonText}>
+            {todayCompleted ? 'Heute erledigt!' : 'Abhaken'}
+          </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.listContainer}>
-        <Text style={styles.historyTitle}>Recent Activities</Text>
+        <Text style={[styles.historyTitle, { color: colors.text }]}>Verlauf</Text>
         <FlatList
           data={entries}
+          scrollEnabled={false}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <View style={styles.entryCard}>
-              <View style={styles.entryHeader}>
-                <Text style={styles.entryType}>{item.type}</Text>
-                <Text style={styles.entryDuration}>{item.duration} min</Text>
-              </View>
-              <Text style={styles.entryDate}>
-                {new Date(item.date).toLocaleDateString()}
+            <View style={[styles.entryCard, { backgroundColor: colors.card }]}>
+              <Text style={styles.checkMark}>✓</Text>
+              <Text style={[styles.entryDate, { color: colors.text }]}>
+                {new Date(item.date).toLocaleDateString('de-DE', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
               </Text>
-              {item.notes && <Text style={styles.entryNotes}>{item.notes}</Text>}
             </View>
           )}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>No activities yet. Get moving!</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              Noch keine Einträge. Leg los!
+            </Text>
           }
         />
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
-  form: {
-    backgroundColor: 'white',
-    padding: 20,
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 8,
-    marginTop: 15,
-    color: '#333',
-  },
-  typeGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 10,
-  },
-  typeButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 20,
-    backgroundColor: '#f5f5f5',
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  typeButtonActive: {
-    backgroundColor: '#95E1D3',
-    borderColor: '#95E1D3',
-  },
-  typeButtonText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  typeButtonTextActive: {
-    color: 'white',
-    fontWeight: '600',
-  },
-  input: {
-    backgroundColor: '#f5f5f5',
-    padding: 15,
-    borderRadius: 8,
-    marginBottom: 15,
-    fontSize: 16,
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  button: {
-    backgroundColor: '#95E1D3',
-    padding: 15,
-    borderRadius: 8,
+  mainCard: {
+    padding: 30,
+    margin: 20,
+    borderRadius: 16,
     alignItems: 'center',
-    marginTop: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  buttonText: {
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  checkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    borderRadius: 12,
+    gap: 12,
+    minWidth: 200,
+    justifyContent: 'center',
+  },
+  checkIcon: {
+    fontSize: 32,
     color: 'white',
-    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  checkButtonText: {
+    color: 'white',
+    fontSize: 20,
     fontWeight: '600',
   },
   listContainer: {
-    flex: 1,
     padding: 20,
+    paddingTop: 0,
   },
   historyTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
-    color: '#333',
   },
   entryCard: {
-    backgroundColor: 'white',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 10,
-  },
-  entryHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 5,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  entryType: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#95E1D3',
-  },
-  entryDuration: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+  checkMark: {
+    fontSize: 24,
+    color: '#00D084',
+    fontWeight: 'bold',
   },
   entryDate: {
-    fontSize: 14,
-    color: '#666',
-  },
-  entryNotes: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 8,
+    fontSize: 16,
   },
   emptyText: {
     textAlign: 'center',
-    color: '#999',
     fontSize: 16,
     marginTop: 20,
   },

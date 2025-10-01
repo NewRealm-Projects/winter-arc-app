@@ -13,9 +13,10 @@ import {
 } from '../services/notifications';
 
 export default function SettingsScreen() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUserData } = useAuth();
   const { colors, theme, setTheme } = useTheme();
   const [nickname, setNickname] = useState('');
+  const [groupCode, setGroupCode] = useState('');
   const [waterReminder, setWaterReminder] = useState(false);
   const [workoutReminder, setWorkoutReminder] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -32,6 +33,7 @@ export default function SettingsScreen() {
       if (userDoc.exists()) {
         const data = userDoc.data();
         setNickname(data.nickname || '');
+        setGroupCode(data.groupCode || '');
         setWaterReminder(data.waterReminder || false);
         setWorkoutReminder(data.workoutReminder || false);
       }
@@ -42,14 +44,16 @@ export default function SettingsScreen() {
     }
   };
 
-  const saveNickname = async () => {
+  const saveProfile = async () => {
     if (!user) return;
 
     try {
       await updateDoc(doc(db, 'users', user.uid), {
         nickname: nickname.trim(),
+        groupCode: groupCode.toLowerCase().trim() || null,
       });
-      Alert.alert('Erfolg', 'Spitzname gespeichert!');
+      await refreshUserData();
+      Alert.alert('Erfolg', 'Profil gespeichert!');
     } catch (error: any) {
       Alert.alert('Fehler', error.message);
     }
@@ -142,13 +146,29 @@ export default function SettingsScreen() {
               value={nickname}
               onChangeText={setNickname}
             />
-            <TouchableOpacity
-              style={[styles.saveButton, { backgroundColor: colors.primary }]}
-              onPress={saveNickname}
-            >
-              <Text style={styles.saveButtonText}>Speichern</Text>
-            </TouchableOpacity>
           </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Gruppen-Code</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
+              placeholder="z.B. boys"
+              placeholderTextColor={colors.textSecondary}
+              value={groupCode}
+              onChangeText={setGroupCode}
+              autoCapitalize="none"
+            />
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>
+              Mit dem gleichen Code kannst du dich mit Freunden vergleichen
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.saveButton, { backgroundColor: colors.primary }]}
+            onPress={saveProfile}
+          >
+            <Text style={styles.saveButtonText}>Profil speichern</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Appearance Section */}
@@ -278,6 +298,12 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  hint: {
+    fontSize: 12,
+    marginTop: -8,
+    marginBottom: 12,
+    fontStyle: 'italic',
   },
   settingRow: {
     flexDirection: 'row',

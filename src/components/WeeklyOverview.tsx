@@ -5,7 +5,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import {
   getSportEntries,
   getPushUpEntries,
-  getNutritionEntries,
+  getProteinEntries,
   getWaterEntries
 } from '../services/database';
 
@@ -13,7 +13,7 @@ interface DayProgress {
   date: Date;
   pushups: boolean;
   sport: boolean;
-  nutrition: boolean;
+  protein: boolean;
   water: boolean;
   completion: number;
 }
@@ -107,7 +107,7 @@ export default function WeeklyOverview() {
           date,
           pushups: false,
           sport: false,
-          nutrition: false,
+          protein: false,
           water: false,
           completion: 0,
         });
@@ -121,10 +121,10 @@ export default function WeeklyOverview() {
     const daysToShow = viewMode === 'week' ? 7 : 30;
 
     // Fetch all data once
-    const [sportData, pushupData, nutritionData, waterData] = await Promise.all([
+    const [sportData, pushupData, proteinData, waterData] = await Promise.all([
       getSportEntries(user.uid),
       getPushUpEntries(user.uid),
-      getNutritionEntries(user.uid),
+      getProteinEntries(user.uid),
       getWaterEntries(user.uid),
     ]);
 
@@ -146,7 +146,7 @@ export default function WeeklyOverview() {
         return entryDate >= date && entryDate < nextDay;
       });
 
-      const hasNutrition = nutritionData.some(e => {
+      const hasProtein = proteinData.some(e => {
         const entryDate = new Date(e.date);
         return entryDate >= date && entryDate < nextDay;
       });
@@ -156,14 +156,14 @@ export default function WeeklyOverview() {
         return entryDate >= date && entryDate < nextDay;
       });
 
-      const completed = [hasSport, hasPushups, hasNutrition, hasWater].filter(Boolean).length;
+      const completed = [hasSport, hasPushups, hasProtein, hasWater].filter(Boolean).length;
       const completion = (completed / 4) * 100;
 
       days.push({
         date,
         pushups: hasPushups,
         sport: hasSport,
-        nutrition: hasNutrition,
+        protein: hasProtein,
         water: hasWater,
         completion,
       });
