@@ -15,7 +15,17 @@
       "Bash(git commit:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(git reset:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx playwright install:*)",
+      "Bash(npm run test:visual:*)",
+      "Bash(http-server:*)",
+      "Bash(npx http-server:*)",
+      "Bash(npm run preview:screenshot:*)",
+      "Bash(npm run build:preview:*)",
+      "Bash(node:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": [],
     "ask": []

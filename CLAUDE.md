@@ -1,7 +1,7 @@
 
 # Winter Arc – Development Guidelines & Knowledge Memory
 
-**Version:** 2.3
+**Version:** 2.4
 **Last Updated:** 2025-10-01
 **Project:** Winter Arc Fitness Tracker
 
@@ -61,6 +61,63 @@ npm run web        # Web
 npm run android    # Android
 npm run ios        # iOS (macOS)
 
+# Build & Deploy
+npm run build:web  # Production build for GitHub Pages
+npm run deploy     # Build + ready for deployment
+
+# Visual Testing (Playwright)
+npm run build:preview      # Build for local preview
+npm run preview            # Build + serve on localhost:8080
+npm run preview:screenshot # Take visual screenshots (Desktop/Tablet/Mobile)
+npm run test:visual        # Run visual regression tests
+npm run test:visual:ui     # Interactive visual test UI
+npm run test:visual:update # Update visual snapshots
+```
+
+---
+
+## 🖼️ Visual Testing Workflow
+
+**Setup:** Playwright + Chromium für automatisierte Screenshots und visuelle Regression Tests.
+
+### Schnellstart
+
+**Vor dem Pushen - App visuell testen:**
+
+```bash
+# 1. Build für Preview erstellen
+npm run build:preview
+
+# 2. Screenshots nehmen (startet automatisch Server)
+npm run preview:screenshot
+
+# 3. Screenshots prüfen in preview-screenshots/
+# - desktop.png (1920x1080)
+# - tablet.png (768x1024)
+# - mobile.png (375x667)
+```
+
+### Dateien & Struktur
+
+- **playwright.config.ts** - Visual tests für Dev-Server
+- **playwright.preview.config.ts** - Visual tests für Production Build
+- **tests/visual/** - Visual regression tests
+- **tests/preview/** - Preview screenshot tests
+- **preview-screenshots/** - Output-Ordner für Screenshots
+
+### Wie es funktioniert
+
+1. **build:preview** - Baut App + kopiert nach `preview/winter-arc-app/` (matcht Production-Pfade)
+2. **preview:screenshot** - Startet http-server + nimmt Screenshots mit Playwright
+3. Screenshots zeigen echte Production-Build-Ansicht (inkl. liquid-glass-react Effekte)
+
+### Wichtig
+
+- Preview-Build nutzt `/winter-arc-app` Basispfad (wie GitHub Pages)
+- Screenshots werden NICHT committet (in .gitignore)
+- Vor größeren UI-Änderungen immer Screenshots vergleichen
+
+---
 
 # 🧠 Memory: Lessons Learned & Fixes (kompakt)
 
