@@ -67,6 +67,7 @@ npm run ios        # iOS (macOS)
 **Web Deployment:**
 - Fonts/Icons müssen explizit in `assetBundlePatterns` (app.json) gebündelt werden, sonst 404 auf GitHub Pages.
 - Nach dem Expo-Export müssen Asset-Pfade ggf. per Script (`post-export.cjs`) angepasst werden, damit sie auf Subdomains funktionieren.
+- **Wichtig:** Für GitHub Pages Subdirectories muss `experiments.baseUrl` in app.json gesetzt werden (z.B. `"/winter-arc-app"`), damit Assets zur Laufzeit mit korrektem Prefix geladen werden.
 
 **Notifications:**
 - `expo-notifications` gibt auf Web eine Warnung aus, wenn native Handler gesetzt werden. Lösung: Platform-Check vor Handler-Setzen.
