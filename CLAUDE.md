@@ -80,12 +80,14 @@ npm run ios        # iOS (macOS)
 
 **UI/UX:**
 - Weight Graph und Entries werden manchmal nicht angezeigt, wenn Daten fehlen oder nach Logging nicht neu geladen werden. Lösung: Nach jeder Mutation `loadAllData()` aufrufen.
-- **Liquid Glass Design v2 (2025-10-01):** Komplettes Redesign basierend auf echtem Glassmorphismus:
-  - **Hintergrund:** Subtiler Gradient (Light: #e8f0f8 → #f5f8fa, Dark: #1a1a2e → #0f1729) statt Solid für bessere Sichtbarkeit
-  - **GlassCard:** Blur 100, dickere Borders (1.5px), getönte Hintergründe (rgba(245, 247, 250, 0.9)), stärkere Schatten
-  - **GlassButton:** Blur 80, viel stärkere Farbtönung (0.85/0.75 für visibility), farbige Borders und Schatten
-  - **Problem gelöst:** Cards im Light Mode sind jetzt deutlich sichtbar durch getönte Backgrounds und stärkere Kontraste
-  - Dateien: `AnimatedGradient.tsx`, `GlassCard.tsx`, `GlassButton.tsx`
+- **Liquid Glass Design v3 mit liquid-glass-react (2025-10-01):** Echtes Liquid Glass mit Platform-Wrapper:
+  - **Package:** `liquid-glass-react@1.1.1` installiert (Canvas-basiert, nur Web-kompatibel)
+  - **Platform-Strategie:** Web nutzt echtes LiquidGlass, Native nutzt BlurView Fallback
+  - **Hintergrund:** Subtiler Gradient (Light: #e8f0f8 → #f5f8fa, Dark: #1a1a2e → #0f1729)
+  - **Web (LiquidGlass):** displacement=70, blur=0.08, saturation=140, elasticity=0.2, interactive mouse tracking
+  - **Native (BlurView):** Blur 100/80, getönte Hintergründe, stärkere Schatten für Glassmorphism
+  - **Button-Effekt:** Hover-Elastizität auf Web, animierte Scale auf Native
+  - Dateien: `GlassCard.tsx`, `GlassButton.tsx`, `AnimatedGradient.tsx`, `package.json`
 
 **Allgemein:**
 - Fixes und Erfahrungen werden regelmäßig in diese Memory-Sektion übernommen, verdichtet und in die Hauptstruktur integriert.
