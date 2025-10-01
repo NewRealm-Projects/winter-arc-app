@@ -33,10 +33,38 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
     if (!user) return;
 
     const data = await getWeightEntries(user.uid);
-    const fourteenDaysAgo = new Date();
-    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-    const recentData = data.filter(entry => new Date(entry.date) >= fourteenDaysAgo);
-    setEntries(recentData.reverse());
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    thirtyDaysAgo.setHours(0, 0, 0, 0);
+
+    // Fill all 30 days, marking missing days
+    const allDays: (WeightEntry & { isMissing?: boolean })[] = [];
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(thirtyDaysAgo);
+      date.setDate(thirtyDaysAgo.getDate() + i);
+      date.setHours(0, 0, 0, 0);
+
+      const existingEntry = data.find(entry => {
+        const entryDate = new Date(entry.date);
+        entryDate.setHours(0, 0, 0, 0);
+        return entryDate.getTime() === date.getTime();
+      });
+
+      if (existingEntry) {
+        allDays.push(existingEntry);
+      } else {
+        // Mark missing days
+        allDays.push({
+          id: `missing-${i}`,
+          userId: user.uid,
+          weight: allDays.length > 0 ? allDays[allDays.length - 1].weight : 0,
+          date: date.toISOString(),
+          isMissing: true
+        });
+      }
+    }
+
+    setEntries(allDays);
   };
 
   if (!entries.length) {
@@ -128,6 +156,9 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
             {weightPoints.map((point, index) => {
               if (index === 0) return null;
               const prevPoint = weightPoints[index - 1];
+              const currentEntry = entries[index];
+              const prevEntry = entries[index - 1];
+              const isMissingSegment = currentEntry.isMissing || prevEntry.isMissing;
               const length = Math.hypot(point.x - prevPoint.x, point.y - prevPoint.y);
               const angle = Math.atan2(point.y - prevPoint.y, point.x - prevPoint.x) * (180 / Math.PI);
               return (
@@ -136,11 +167,12 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
                   style={[
                     styles.line,
                     {
-                      backgroundColor: '#A29BFE',
+                      backgroundColor: isMissingSegment ? '#999' : '#A29BFE',
                       width: length,
                       left: prevPoint.x,
                       top: prevPoint.y,
                       transform: [{ rotate: `${angle}deg` }],
+                      opacity: isMissingSegment ? 0.3 : 1,
                     },
                   ]}
                 />
@@ -170,19 +202,24 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
               );
             })}
 
-            {weightPoints.map((point, index) => (
-              <View
-                key={`weight-point-${index}`}
-                style={[
-                  styles.point,
-                  {
-                    backgroundColor: '#A29BFE',
-                    left: point.x - POINT_RADIUS,
-                    top: point.y - POINT_RADIUS,
-                  },
-                ]}
-              />
-            ))}
+            {weightPoints.map((point, index) => {
+              const entry = entries[index];
+              const isMissing = entry.isMissing;
+              return (
+                <View
+                  key={`weight-point-${index}`}
+                  style={[
+                    styles.point,
+                    {
+                      backgroundColor: isMissing ? '#999' : '#A29BFE',
+                      left: point.x - POINT_RADIUS,
+                      top: point.y - POINT_RADIUS,
+                      opacity: isMissing ? 0.3 : 1,
+                    },
+                  ]}
+                />
+              );
+            })}
 
             {hasBodyFat && bodyFatPoints.map((point, index) => (
               <View

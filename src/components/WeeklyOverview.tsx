@@ -210,6 +210,25 @@ export default function WeeklyOverview() {
           <ProgressRing key={`${day.date.toISOString()}-${index}`} day={day} mode={viewMode} colors={colors} />
         ))}
       </View>
+
+      <View style={styles.legend}>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: SEGMENT_COLORS[0] }]} />
+          <Text style={[styles.legendText, { color: colors.textSecondary }]}>Push-ups</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: SEGMENT_COLORS[1] }]} />
+          <Text style={[styles.legendText, { color: colors.textSecondary }]}>Wasser</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: SEGMENT_COLORS[2] }]} />
+          <Text style={[styles.legendText, { color: colors.textSecondary }]}>Protein</Text>
+        </View>
+        <View style={styles.legendItem}>
+          <View style={[styles.legendDot, { backgroundColor: SEGMENT_COLORS[3] }]} />
+          <Text style={[styles.legendText, { color: colors.textSecondary }]}>Sport</Text>
+        </View>
+      </View>
     </GlassCard>
   );
 }
@@ -277,5 +296,29 @@ const styles = StyleSheet.create({
   dayLabel: {
     fontSize: 10,
     marginTop: 2,
+  },
+  legend: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  legendText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
 });
