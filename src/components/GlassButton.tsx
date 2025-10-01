@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
-import { Pressable, Text, StyleSheet, ViewStyle, TextStyle, Animated } from 'react-native';
+import {
+  Pressable,
+  Text,
+  StyleSheet,
+  ViewStyle,
+  TextStyle,
+  Animated,
+  Platform,
+} from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../contexts/ThemeContext';
@@ -24,7 +32,6 @@ export default function GlassButton({
   const { isDark } = useTheme();
   const [scaleAnim] = useState(new Animated.Value(1));
 
-  // Convert hex to rgba with transparency
   const hexToRgba = (hex: string, alpha: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
@@ -34,8 +41,8 @@ export default function GlassButton({
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.96,
-      friction: 7,
+      toValue: 0.95,
+      friction: 5,
       tension: 40,
       useNativeDriver: true,
     }).start();
@@ -44,13 +51,16 @@ export default function GlassButton({
   const handlePressOut = () => {
     Animated.spring(scaleAnim, {
       toValue: 1,
-      friction: 7,
+      friction: 5,
       tension: 40,
       useNativeDriver: true,
     }).start();
   };
 
-  const gradientColors: [string, string] = [hexToRgba(color, 0.25), hexToRgba(color, 0.15)];
+  // Stronger color gradient for better visibility
+  const gradientColors: [string, string] = isDark
+    ? [hexToRgba(color, 0.4), hexToRgba(color, 0.3)]
+    : [hexToRgba(color, 0.85), hexToRgba(color, 0.75)];
 
   return (
     <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, style]}>
@@ -62,12 +72,13 @@ export default function GlassButton({
         style={disabled && styles.disabled}
       >
         <BlurView
-          intensity={60}
+          intensity={80}
           tint={isDark ? 'dark' : 'light'}
           style={[
             styles.blurContainer,
             {
-              borderColor: hexToRgba(color, 0.4),
+              borderColor: isDark ? hexToRgba(color, 0.5) : hexToRgba(color, 0.6),
+              shadowColor: isDark ? 'rgba(0, 0, 0, 0.5)' : hexToRgba(color, 0.3),
             },
           ]}
         >
@@ -81,7 +92,8 @@ export default function GlassButton({
               style={[
                 styles.buttonText,
                 {
-                  color: isDark ? 'rgba(255, 255, 255, 0.92)' : 'rgba(255, 255, 255, 0.95)',
+                  color: isDark ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+                  textShadowColor: isDark ? 'rgba(0, 0, 0, 0.3)' : hexToRgba(color, 0.4),
                 },
                 textStyle,
               ]}
@@ -97,9 +109,22 @@ export default function GlassButton({
 
 const styles = StyleSheet.create({
   blurContainer: {
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
-    borderWidth: 0.5,
+    borderWidth: 1.5,
+    ...Platform.select({
+      ios: {
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+      web: {
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)',
+      },
+    }),
   },
   gradientButton: {
     paddingVertical: 16,
@@ -109,11 +134,10 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 17,
-    fontWeight: '600',
-    letterSpacing: -0.41,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
+    fontWeight: '700',
+    letterSpacing: -0.4,
     textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadowRadius: 3,
   },
   disabled: {
     opacity: 0.4,

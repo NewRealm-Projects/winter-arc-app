@@ -10,12 +10,13 @@ interface GlassCardProps {
   blurIntensity?: number;
 }
 
-export default function GlassCard({ children, style, blurIntensity = 80 }: GlassCardProps) {
+export default function GlassCard({ children, style, blurIntensity = 100 }: GlassCardProps) {
   const { isDark } = useTheme();
 
+  // Glassmorphism requires semi-transparent background with stronger tint for visibility
   const gradientColors: [string, string] = isDark
-    ? ['rgba(28, 28, 30, 0.72)', 'rgba(28, 28, 30, 0.65)']
-    : ['rgba(255, 255, 255, 0.75)', 'rgba(255, 255, 255, 0.65)'];
+    ? ['rgba(28, 28, 30, 0.85)', 'rgba(28, 28, 30, 0.75)']
+    : ['rgba(245, 247, 250, 0.9)', 'rgba(235, 240, 245, 0.85)'];
 
   return (
     <BlurView
@@ -24,7 +25,8 @@ export default function GlassCard({ children, style, blurIntensity = 80 }: Glass
       style={[
         styles.blurContainer,
         {
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.5)',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(150, 170, 190, 0.25)',
+          shadowColor: isDark ? 'rgba(0, 0, 0, 0.6)' : 'rgba(0, 0, 0, 0.15)',
         },
         style,
       ]}
@@ -33,15 +35,7 @@ export default function GlassCard({ children, style, blurIntensity = 80 }: Glass
         colors={gradientColors}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={[
-          styles.gradientContent,
-          {
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 8 },
-            shadowOpacity: isDark ? 0.4 : 0.12,
-            shadowRadius: 24,
-          },
-        ]}
+        style={styles.gradientContent}
       >
         {children}
       </LinearGradient>
@@ -51,19 +45,24 @@ export default function GlassCard({ children, style, blurIntensity = 80 }: Glass
 
 const styles = StyleSheet.create({
   blurContainer: {
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
-    borderWidth: 0.5,
+    borderWidth: 1.5,
+    ...Platform.select({
+      ios: {
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 1,
+        shadowRadius: 16,
+      },
+      android: {
+        elevation: 12,
+      },
+      web: {
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+      },
+    }),
   },
   gradientContent: {
     padding: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
   },
 });
