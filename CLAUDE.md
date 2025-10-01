@@ -1,12 +1,21 @@
-# CODEX.md
+# CLAUDE.md
 
-**Codex CLI Configuration & Development Guidelines**
+**Claude Code AI Configuration & Development Guidelines**
 
-This file provides comprehensive guidance for Codex CLI (OpenAI) when working with the Winter Arc fitness tracking application. It ensures consistent development practices, maintains code quality, and serves as the single source of truth for project requirements.
+This file provides comprehensive guidance for Claude Code AI when working with the Winter Arc fitness tracking application. It ensures consistent development practices, maintains code quality, and serves as the single source of truth for project requirements.
 
-**Version:** 2.2
+**Version:** 2.3
 **Last Updated:** 2025-10-01
 **Project:** Winter Arc Fitness Tracker
+
+## 📚 Essential Documentation
+
+**Before working on this project, familiarize yourself with:**
+
+1. **[FIXES.md](./FIXES.md)** - Already solved problems (check FIRST before debugging!)
+2. **[IMPROVEMENTS.md](./IMPROVEMENTS.md)** - Missing features & improvement roadmap
+3. **[REQUIREMENTS_STATUS.md](./REQUIREMENTS_STATUS.md)** - Current implementation status
+4. **This file (CLAUDE.md)** - Complete development guidelines
 
 ## 🚨 CRITICAL: Check FIXES.md First!
 
@@ -26,7 +35,7 @@ This file provides comprehensive guidance for Codex CLI (OpenAI) when working wi
 **CRITICAL: Whenever the user provides new requirements, feature requests, or identifies issues:**
 
 1. **Check FIXES.md first** to see if the issue was already solved
-2. **Update this CODEX.md file** with new requirements in the appropriate section
+2. **Update this CLAUDE.md file** with new requirements in the appropriate section
 3. **Document the requirement clearly** with context, constraints, and expected behavior
 4. **Then implement** the changes in the codebase
 5. **After solving bugs/issues**, document them in FIXES.md with the solution

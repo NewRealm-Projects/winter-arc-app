@@ -6,10 +6,10 @@
 ## ✅ Meta-Requirement: Dokumentation
 
 **Status:** ERFÜLLT
-**Datei:** CODEX.md (Zeile 5-14)
+**Datei:** CLAUDE.md (Zeile 5-14)
 
-- ✅ Meta-Requirement am Anfang der CODEX.md hinzugefügt
-- ✅ Anweisung: Alle neuen Anforderungen müssen in CODEX.md übernommen werden
+- ✅ Meta-Requirement am Anfang der CLAUDE.md hinzugefügt
+- ✅ Anweisung: Alle neuen Anforderungen müssen in CLAUDE.md übernommen werden
 
 ## ✅ Logging System - Quick-Add & Display
 
