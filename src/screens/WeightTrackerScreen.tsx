@@ -20,7 +20,11 @@ export default function WeightTrackerScreen({ navigation }: any) {
   const loadEntries = async () => {
     if (user) {
       const data = await getWeightEntries(user.uid);
-      setEntries(data);
+      // Filter last 30 days for monthly graph
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const recentData = data.filter(e => new Date(e.date) >= thirtyDaysAgo);
+      setEntries(recentData);
     }
   };
 
@@ -110,7 +114,7 @@ export default function WeightTrackerScreen({ navigation }: any) {
 
       {entries.length >= 2 && (
         <View style={[styles.graphCard, { backgroundColor: colors.card }]}>
-          <Text style={[styles.graphTitle, { color: colors.text }]}>Gewichtsverlauf</Text>
+          <Text style={[styles.graphTitle, { color: colors.text }]}>Gewichtsverlauf (30 Tage)</Text>
           <View style={styles.graphContainer}>
             <View style={[styles.graph, { width: graphWidth, height: graphHeight, borderColor: colors.border }]}>
               {/* Y-axis labels */}

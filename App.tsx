@@ -7,10 +7,6 @@ import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
 import LoginScreen from './src/screens/LoginScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
 import HomeScreen from './src/screens/HomeScreen';
-import PushUpsScreen from './src/screens/PushUpsScreen';
-import WaterScreen from './src/screens/WaterScreen';
-import SportScreen from './src/screens/SportScreen';
-import ProteinScreen from './src/screens/ProteinScreen';
 import WeightTrackerScreen from './src/screens/WeightTrackerScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
@@ -78,42 +74,10 @@ function Navigation() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="PushUps"
-            component={PushUpsScreen}
-            options={{
-              title: 'Push-ups',
-              presentation: 'modal',
-            }}
-          />
-          <Stack.Screen
-            name="Water"
-            component={WaterScreen}
-            options={{
-              title: 'Wasser',
-              presentation: 'modal',
-            }}
-          />
-          <Stack.Screen
-            name="Sport"
-            component={SportScreen}
-            options={{
-              title: 'Sport',
-              presentation: 'modal',
-            }}
-          />
-          <Stack.Screen
-            name="Protein"
-            component={ProteinScreen}
-            options={{
-              title: 'Protein',
-              presentation: 'modal',
-            }}
-          />
-          <Stack.Screen
             name="WeightTracker"
             component={WeightTrackerScreen}
             options={{
-              title: 'Gewicht',
+              title: 'Gewicht Tracker',
               presentation: 'modal',
             }}
           />
