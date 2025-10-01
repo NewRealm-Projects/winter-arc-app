@@ -7,9 +7,14 @@ import { WeightEntry } from '../types';
 import GlassCard from './GlassCard';
 
 const { width } = Dimensions.get('window');
-const GRAPH_WIDTH = width - 80; // Account for card padding
+const MIN_GRAPH_WIDTH = 260;
+const GRAPH_WIDTH = Math.max(width - 80, MIN_GRAPH_WIDTH); // Account for card padding
 const GRAPH_HEIGHT = 120;
 const POINT_RADIUS = 4;
+const MAX_AXIS_TICKS = 6;
+const AXIS_LABEL_WIDTH = 48;
+
+const formatDateLabel = (date: Date) => date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
 
 interface WeightGraphProps {
   onPress: () => void;
@@ -63,6 +68,8 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
   const minBodyFat = hasBodyFat ? Math.min(...bodyFats) : 0;
   const maxBodyFat = hasBodyFat ? Math.max(...bodyFats) : 0;
   const bodyFatRange = maxBodyFat - minBodyFat || 1;
+
+  const axisLabelInterval = Math.max(1, Math.ceil(entries.length / MAX_AXIS_TICKS));
 
   const getXPosition = (index: number) => {
     if (entries.length <= 1) {
@@ -206,6 +213,31 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
           </View>
         </View>
 
+        <View style={[styles.axisContainer, { width: GRAPH_WIDTH }]}>{
+          entries.map((entry, index) => {
+            const x = getXPosition(index);
+            const showLabel = index === 0 || index === entries.length - 1 || index % axisLabelInterval === 0;
+            return (
+              <View
+                key={`axis-${entry.id ?? index}`}
+                style={[
+                  styles.axisTick,
+                  {
+                    left: x - AXIS_LABEL_WIDTH / 2,
+                  },
+                ]}
+              >
+                <View style={[styles.axisLine, { backgroundColor: colors.border }]} />
+                {showLabel && (
+                  <Text style={[styles.axisLabelText, { color: colors.textSecondary }]}>
+                    {formatDateLabel(new Date(entry.date))}
+                  </Text>
+                )}
+              </View>
+            );
+          })}
+        </View>
+
         {/* Legend */}
         <View style={styles.legend}>
           <View style={styles.legendItem}>
@@ -276,6 +308,8 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: GRAPH_WIDTH,
     height: GRAPH_HEIGHT,
+    overflow: 'hidden',
+    borderRadius: 12,
   },
   line: {
     position: 'absolute',
@@ -289,6 +323,27 @@ const styles = StyleSheet.create({
     borderRadius: POINT_RADIUS,
     borderWidth: 2,
     borderColor: 'white',
+  },
+  axisContainer: {
+    position: 'relative',
+    height: 32,
+    marginTop: 8,
+  },
+  axisTick: {
+    position: 'absolute',
+    bottom: 0,
+    width: AXIS_LABEL_WIDTH,
+    alignItems: 'center',
+  },
+  axisLine: {
+    width: 2,
+    height: 10,
+    borderRadius: 1,
+  },
+  axisLabelText: {
+    fontSize: 10,
+    marginTop: 4,
+    textAlign: 'center',
   },
   legend: {
     flexDirection: 'row',
