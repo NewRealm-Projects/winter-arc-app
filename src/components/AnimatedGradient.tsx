@@ -12,7 +12,7 @@ export default function AnimatedGradient({ children }: { children: React.ReactNo
         style={[
           styles.gradient,
           {
-            backgroundColor: isDark ? '#1a1a2e' : '#667eea',
+            backgroundColor: isDark ? '#1a1a2e' : '#FFFFFF',
           },
         ]}
       />

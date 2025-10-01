@@ -10,12 +10,12 @@ interface GlassCardProps {
   blurIntensity?: number;
 }
 
-export default function GlassCard({ children, style, blurIntensity = 40 }: GlassCardProps) {
+export default function GlassCard({ children, style, blurIntensity = 80 }: GlassCardProps) {
   const { isDark } = useTheme();
 
   const gradientColors: [string, string] = isDark
     ? ['rgba(28, 28, 30, 0.72)', 'rgba(28, 28, 30, 0.65)']
-    : ['rgba(255, 255, 255, 0.18)', 'rgba(255, 255, 255, 0.12)'];
+    : ['rgba(255, 255, 255, 0.75)', 'rgba(255, 255, 255, 0.65)'];
 
   return (
     <BlurView
@@ -24,7 +24,7 @@ export default function GlassCard({ children, style, blurIntensity = 40 }: Glass
       style={[
         styles.blurContainer,
         {
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.25)',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.5)',
         },
         style,
       ]}

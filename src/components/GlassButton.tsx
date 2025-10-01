@@ -62,7 +62,7 @@ export default function GlassButton({
         style={disabled && styles.disabled}
       >
         <BlurView
-          intensity={30}
+          intensity={60}
           tint={isDark ? 'dark' : 'light'}
           style={[
             styles.blurContainer,

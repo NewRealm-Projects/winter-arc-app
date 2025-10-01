@@ -98,7 +98,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     : {
         // Legacy (light)
-        background: '#F5F5F5',
+        background: '#FFFFFF',
         card: '#FFFFFF',
         text: '#000000',
         textSecondary: '#666666',
@@ -131,8 +131,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         tertiaryLabel: 'rgba(0, 0, 0, 0.32)',
 
         // Gradient Backgrounds (Light)
-        gradientStart: 'rgba(99, 102, 241, 0.08)',
-        gradientEnd: 'rgba(168, 85, 247, 0.06)',
+        gradientStart: 'rgba(245, 245, 245, 0.5)',
+        gradientEnd: 'rgba(255, 255, 255, 0.3)',
       };
 
   return (

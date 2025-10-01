@@ -79,6 +79,7 @@ npm run ios        # iOS (macOS)
 
 **UI/UX:**
 - Weight Graph und Entries werden manchmal nicht angezeigt, wenn Daten fehlen oder nach Logging nicht neu geladen werden. Lösung: Nach jeder Mutation `loadAllData()` aufrufen.
+- **Liquid Glass Design (2025-10-01):** Hintergrund von Blau auf Weiß geändert für cleanen Look. Blur-Intensität erhöht (GlassCard: 40→80, GlassButton: 30→60) und Karten-Transparenz angepasst für besseren Glassmorphism-Effekt. Dateien: `AnimatedGradient.tsx`, `GlassCard.tsx`, `GlassButton.tsx`, `ThemeContext.tsx`.
 
 **Allgemein:**
 - Fixes und Erfahrungen werden regelmäßig in diese Memory-Sektion übernommen, verdichtet und in die Hauptstruktur integriert.
