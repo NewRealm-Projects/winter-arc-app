@@ -359,7 +359,7 @@ export default function HomeScreen({ navigation }: any) {
       <ScrollView style={styles.container}>
         <View style={[styles.content, isDesktop && styles.contentDesktop]}>
           <GlassCard style={styles.header}>
-            <View>
+            <View style={styles.headerLeft}>
               <Text style={[styles.greeting, { color: colors.text }]}>
                 Hallo, {userData?.nickname || user?.displayName || 'User'}!
               </Text>
@@ -537,6 +537,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  headerLeft: {
+    flex: 1,
+  },
   greeting: {
     fontSize: 28,
     fontWeight: '800',
@@ -548,6 +551,7 @@ const styles = StyleSheet.create({
   headerButtons: {
     flexDirection: 'row',
     gap: 8,
+    alignItems: 'center',
   },
   headerButton: {
     padding: 10,

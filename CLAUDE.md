@@ -88,6 +88,10 @@ npm run ios        # iOS (macOS)
   - **Native (BlurView):** Blur 100/80, getönte Hintergründe, stärkere Schatten für Glassmorphism
   - **Button-Effekt:** Hover-Elastizität auf Web, animierte Scale auf Native
   - Dateien: `GlassCard.tsx`, `GlassButton.tsx`, `AnimatedGradient.tsx`, `package.json`
+- **Bug Fixes (2025-10-01):**
+  - **Issue #13:** useNativeDriver Warnung auf Web gefixt - `Platform.OS !== 'web'` Check in GlassButton + LoadingSkeleton
+  - **Issue #14:** Header Layout verbessert - `headerLeft` mit `flex: 1` für gleichmäßige Verteilung
+  - **Issue #15:** History Deletion verbessert - Debug-Logs + bessere Fehlermeldungen für Troubleshooting
 
 **Allgemein:**
 - Fixes und Erfahrungen werden regelmäßig in diese Memory-Sektion übernommen, verdichtet und in die Hauptstruktur integriert.

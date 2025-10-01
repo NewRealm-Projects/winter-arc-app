@@ -58,7 +58,7 @@ export default function GlassButton({
       toValue: 0.95,
       friction: 5,
       tension: 40,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
     }).start();
   };
 
@@ -67,7 +67,7 @@ export default function GlassButton({
       toValue: 1,
       friction: 5,
       tension: 40,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
     }).start();
   };
 

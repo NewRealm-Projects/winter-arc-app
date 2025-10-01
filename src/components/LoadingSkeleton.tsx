@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, ViewStyle } from 'react-native';
+import { View, StyleSheet, Animated, ViewStyle, Platform } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 
 type SkeletonDimension = number | `${number}%` | 'auto';
@@ -25,7 +25,7 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
   borderRadius = 8,
   style,
 }) => {
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
   const shimmerAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -34,12 +34,12 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
         Animated.timing(shimmerAnimation, {
           toValue: 1,
           duration: 1500,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
         Animated.timing(shimmerAnimation, {
           toValue: 0,
           duration: 1500,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ])
     );
@@ -60,9 +60,7 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
         style={[
           styles.shimmer,
           {
-            backgroundColor: isDark
-              ? 'rgba(255, 255, 255, 0.1)'
-              : 'rgba(0, 0, 0, 0.1)',
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
             opacity,
             borderRadius,
           },
@@ -184,12 +182,3 @@ const styles = StyleSheet.create({
 });
 
 export default LoadingSkeleton;
-
-
-
-
-
-
-
-
-

@@ -1,5 +1,14 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  TextInput,
+  Platform,
+} from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import GlassCard from '../components/GlassCard';
 import AnimatedGradient from '../components/AnimatedGradient';
@@ -133,26 +142,29 @@ export default function HistoryScreen() {
   };
 
   const handleDelete = (entryId: string) => {
-    Alert.alert(
-      'Eintrag löschen',
-      'Möchtest du diesen Eintrag wirklich löschen?',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Löschen',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteEntry(collectionForType(type), entryId);
-              loadEntries();
-            } catch (error) {
-              console.error('Error deleting entry:', error);
-              Alert.alert('Fehler', 'Konnte nicht löschen');
-            }
-          },
+    const collectionName = collectionForType(type);
+    console.log('Attempting to delete entry:', { entryId, collectionName });
+
+    Alert.alert('Eintrag löschen', 'Möchtest du diesen Eintrag wirklich löschen?', [
+      { text: 'Abbrechen', style: 'cancel' },
+      {
+        text: 'Löschen',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            console.log('Deleting entry from collection:', collectionName);
+            await deleteEntry(collectionName, entryId);
+            console.log('Entry deleted successfully');
+            Alert.alert('Erfolg', 'Eintrag wurde gelöscht');
+            await loadEntries();
+          } catch (error: unknown) {
+            console.error('Error deleting entry:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Unbekannter Fehler';
+            Alert.alert('Fehler beim Löschen', errorMessage);
+          }
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const handleSave = async () => {
@@ -185,7 +197,9 @@ export default function HistoryScreen() {
         <GlassCard>
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text }]}>{config.title}</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Alle Einträge chronologisch</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+              Alle Einträge chronologisch
+            </Text>
           </View>
 
           {loading ? (
@@ -200,13 +214,17 @@ export default function HistoryScreen() {
                 <View key={entry.id} style={[styles.row, { borderBottomColor: colors.border }]}>
                   <View style={styles.rowInfo}>
                     <Text style={[styles.rowDate, { color: colors.text }]}>
-                      {date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      {date.toLocaleDateString('de-DE', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                      })}
                     </Text>
                     {isEditing && editable ? (
                       <TextInput
                         style={[styles.input, { color: colors.text, borderColor: colors.border }]}
                         value={editing.value}
-                        onChangeText={(value) => setEditing({ id: entry.id, value })}
+                        onChangeText={value => setEditing({ id: entry.id, value })}
                         keyboardType={Platform.select({ ios: 'number-pad', default: 'numeric' })}
                         autoFocus
                       />
@@ -223,7 +241,10 @@ export default function HistoryScreen() {
                         <TouchableOpacity style={styles.actionButton} onPress={handleSave}>
                           <Text style={[styles.actionText, { color: '#00D084' }]}>Speichern</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.actionButton} onPress={() => setEditing(null)}>
+                        <TouchableOpacity
+                          style={styles.actionButton}
+                          onPress={() => setEditing(null)}
+                        >
                           <Text style={[styles.actionText, { color: '#FF6B6B' }]}>Abbrechen</Text>
                         </TouchableOpacity>
                       </>
@@ -232,12 +253,19 @@ export default function HistoryScreen() {
                         {editable && (
                           <TouchableOpacity
                             style={styles.actionButton}
-                            onPress={() => setEditing({ id: entry.id, value: initialValueForEdit(entry, type) })}
+                            onPress={() =>
+                              setEditing({ id: entry.id, value: initialValueForEdit(entry, type) })
+                            }
                           >
-                            <Text style={[styles.actionText, { color: colors.text }]}>Bearbeiten</Text>
+                            <Text style={[styles.actionText, { color: colors.text }]}>
+                              Bearbeiten
+                            </Text>
                           </TouchableOpacity>
                         )}
-                        <TouchableOpacity style={styles.actionButton} onPress={() => handleDelete(entry.id)}>
+                        <TouchableOpacity
+                          style={styles.actionButton}
+                          onPress={() => handleDelete(entry.id)}
+                        >
                           <Text style={[styles.actionText, { color: '#FF6B6B' }]}>Löschen</Text>
                         </TouchableOpacity>
                       </>
