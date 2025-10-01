@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions, Alert } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -200,7 +200,7 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={styles.cardEmoji}>??</Text>
               <View style={styles.cardTitleContainer}>
                 <Text style={[styles.cardTitle, { color: colors.text }]}>Protein</Text>
-                <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Heute: {todayProtein} g � Ziel: {proteinGoal} g</Text>
+                <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Heute: {todayProtein} g · Ziel: {proteinGoal} g</Text>
               </View>
             </View>
             <View style={styles.quickAddButtons}>
@@ -342,3 +342,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+

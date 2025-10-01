@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+ï»¿import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, TextInput, Platform } from 'react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import GlassCard from '../components/GlassCard';
@@ -134,12 +134,12 @@ export default function HistoryScreen() {
 
   const handleDelete = (entryId: string) => {
     Alert.alert(
-      'Eintrag löschen',
-      'Möchtest du diesen Eintrag wirklich löschen?',
+      'Eintrag lÃ¶schen',
+      'MÃ¶chtest du diesen Eintrag wirklich lÃ¶schen?',
       [
         { text: 'Abbrechen', style: 'cancel' },
         {
-          text: 'Löschen',
+          text: 'LÃ¶schen',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -147,7 +147,7 @@ export default function HistoryScreen() {
               loadEntries();
             } catch (error) {
               console.error('Error deleting entry:', error);
-              Alert.alert('Fehler', 'Konnte nicht löschen');
+              Alert.alert('Fehler', 'Konnte nicht lÃ¶schen');
             }
           },
         },
@@ -159,7 +159,7 @@ export default function HistoryScreen() {
     if (!editing) return;
     const numericValue = Number(editing.value);
     if (!Number.isFinite(numericValue) || numericValue <= 0) {
-      Alert.alert('Fehler', 'Bitte gib einen gültigen Wert ein');
+      Alert.alert('Fehler', 'Bitte gib einen gÃ¼ltigen Wert ein');
       return;
     }
 
@@ -185,13 +185,13 @@ export default function HistoryScreen() {
         <GlassCard>
           <View style={styles.header}> 
             <Text style={[styles.title, { color: colors.text }]}>{config.title}</Text>
-            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Alle Einträge in chronologischer Reihenfolge</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Alle EintrÃ¤ge in chronologischer Reihenfolge</Text>
           </View>
 
           {loading ? (
-            <Text style={{ color: colors.textSecondary }}>Lädt...</Text>
+            <Text style={{ color: colors.textSecondary }}>LÃ¤dt...</Text>
           ) : entries.length === 0 ? (
-            <Text style={{ color: colors.textSecondary }}>Noch keine Einträge vorhanden.</Text>
+            <Text style={{ color: colors.textSecondary }}>Noch keine EintrÃ¤ge vorhanden.</Text>
           ) : (
             entries.map(entry => {
               const date = new Date(entry.date);
@@ -238,7 +238,7 @@ export default function HistoryScreen() {
                           </TouchableOpacity>
                         )}
                         <TouchableOpacity style={styles.actionButton} onPress={() => handleDelete(entry.id)}>
-                          <Text style={[styles.actionText, { color: '#FF6B6B' }]}>Löschen</Text>
+                          <Text style={[styles.actionText, { color: '#FF6B6B' }]}>LÃ¶schen</Text>
                         </TouchableOpacity>
                       </>
                     )}
@@ -311,3 +311,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+

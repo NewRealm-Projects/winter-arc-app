@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -142,6 +142,7 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+
 
 
 

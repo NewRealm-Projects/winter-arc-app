@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Switch, Alert, Platform, Linking } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
@@ -71,7 +71,7 @@ export default function SettingsScreen() {
 
   const ensureNotificationsAllowed = async () => {
     if (!notificationsSupported) {
-      Alert.alert('Nicht verfügbar', 'Benachrichtigungen werden im Web derzeit nicht unterstützt.');
+      Alert.alert('Nicht verfÃ¼gbar', 'Benachrichtigungen werden im Web derzeit nicht unterstÃ¼tzt.');
       return false;
     }
 
@@ -142,12 +142,12 @@ export default function SettingsScreen() {
   const handleDeleteAccount = () => {
     if (!user) return;
     Alert.alert(
-      'Konto löschen',
-      'Möchtest du dein Konto und alle Daten dauerhaft löschen?',
+      'Konto lÃ¶schen',
+      'MÃ¶chtest du dein Konto und alle Daten dauerhaft lÃ¶schen?',
       [
         { text: 'Abbrechen', style: 'cancel' },
         {
-          text: 'Konto löschen',
+          text: 'Konto lÃ¶schen',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -158,17 +158,17 @@ export default function SettingsScreen() {
                   await deleteUser(auth.currentUser);
                 } catch (error: any) {
                   if (error.code === 'auth/requires-recent-login') {
-                    Alert.alert('Hinweis', 'Bitte melde dich erneut an, bevor du dein Konto löschst.');
+                    Alert.alert('Hinweis', 'Bitte melde dich erneut an, bevor du dein Konto lÃ¶schst.');
                   } else {
                     console.error('Error deleting auth user:', error);
-                    Alert.alert('Fehler', 'Konnte den Nutzer nicht löschen.');
+                    Alert.alert('Fehler', 'Konnte den Nutzer nicht lÃ¶schen.');
                   }
                 }
               }
               await logout();
             } catch (error) {
               console.error('Error deleting account:', error);
-              Alert.alert('Fehler', 'Konnte Konto nicht löschen.');
+              Alert.alert('Fehler', 'Konnte Konto nicht lÃ¶schen.');
             } finally {
               setDeleting(false);
             }
@@ -180,21 +180,21 @@ export default function SettingsScreen() {
 
   const openAppClip = async () => {
     if (!APP_CLIP_URL) {
-      Alert.alert('Nicht verfügbar', 'App Clip URL ist nicht konfiguriert.');
+      Alert.alert('Nicht verfÃ¼gbar', 'App Clip URL ist nicht konfiguriert.');
       return;
     }
     try {
       await Linking.openURL(APP_CLIP_URL);
     } catch (error) {
       console.error('Error opening App Clip URL:', error);
-      Alert.alert('Fehler', 'App Clip konnte nicht geöffnet werden.');
+      Alert.alert('Fehler', 'App Clip konnte nicht geÃ¶ffnet werden.');
     }
   };
 
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}> 
-        <Text style={{ color: colors.text }}>Lädt...</Text>
+        <Text style={{ color: colors.text }}>LÃ¤dt...</Text>
       </View>
     );
   }
@@ -231,12 +231,12 @@ export default function SettingsScreen() {
         <View style={[styles.section, { backgroundColor: colors.card }]}> 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Benachrichtigungen</Text>
           {!notificationsSupported && (
-            <Text style={[styles.hint, { color: colors.textSecondary }]}>Benachrichtigungen werden im Web nicht unterstützt.</Text>
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>Benachrichtigungen werden im Web nicht unterstÃ¼tzt.</Text>
           )}
           <View style={styles.settingRow}>
             <View style={{ flex: 1 }}>
               <Text style={[styles.settingLabel, { color: colors.text }]}>?? Wasser-Erinnerung</Text>
-              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>Täglich um 10:00 Uhr</Text>
+              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>TÃ¤glich um 10:00 Uhr</Text>
             </View>
             <Switch
               value={waterReminder}
@@ -249,7 +249,7 @@ export default function SettingsScreen() {
           <View style={styles.settingRow}>
             <View style={{ flex: 1 }}>
               <Text style={[styles.settingLabel, { color: colors.text }]}>?? Workout-Erinnerung</Text>
-              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>Täglich um 18:00 Uhr</Text>
+              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>TÃ¤glich um 18:00 Uhr</Text>
             </View>
             <Switch
               value={workoutReminder}
@@ -286,7 +286,7 @@ export default function SettingsScreen() {
             onPress={handleDeleteAccount}
             disabled={deleting}
           >
-            <Text style={styles.deleteText}>{deleting ? 'Lösche Konto…' : 'Konto löschen'}</Text>
+            <Text style={styles.deleteText}>{deleting ? 'LÃ¶sche Kontoâ€¦' : 'Konto lÃ¶schen'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -401,5 +401,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
 
 

@@ -1,4 +1,4 @@
-import {
+﻿import {
   collection,
   addDoc,
   query,
@@ -458,5 +458,6 @@ export const getNutritionEntries = getProteinEntries;
  * @deprecated Use addProteinEntry instead
  */
 export const addNutritionEntry = addProteinEntry;
+
 
 
