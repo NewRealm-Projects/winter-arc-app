@@ -4,18 +4,33 @@
 
 This file provides comprehensive guidance for Codex CLI (OpenAI) when working with the Winter Arc fitness tracking application. It ensures consistent development practices, maintains code quality, and serves as the single source of truth for project requirements.
 
-**Version:** 2.1
+**Version:** 2.2
 **Last Updated:** 2025-10-01
 **Project:** Winter Arc Fitness Tracker
+
+## 🚨 CRITICAL: Check FIXES.md First!
+
+**BEFORE starting ANY debugging or problem-solving:**
+
+1. **Open and search FIXES.md** - All previously solved problems are documented there
+2. **Search for keywords** related to your current issue (404, fonts, notifications, etc.)
+3. **Apply documented solution** if the problem was already solved
+4. **Document new fixes** in FIXES.md after solving them
+
+**WHY THIS MATTERS:** Prevents circular debugging and wasted time re-solving the same problems.
+
+**See:** [FIXES.md](./FIXES.md) - Complete database of solved issues with solutions
 
 ## 🔄 Meta-Requirement: Documentation Updates
 
 **CRITICAL: Whenever the user provides new requirements, feature requests, or identifies issues:**
 
-1. **First, update this CODEX.md file** with the new requirements in the appropriate section
-2. **Document the requirement clearly** with context, constraints, and expected behavior
-3. **Then implement** the changes in the codebase
-4. **Keep this file synchronized** with the actual implementation
+1. **Check FIXES.md first** to see if the issue was already solved
+2. **Update this CODEX.md file** with new requirements in the appropriate section
+3. **Document the requirement clearly** with context, constraints, and expected behavior
+4. **Then implement** the changes in the codebase
+5. **After solving bugs/issues**, document them in FIXES.md with the solution
+6. **Keep both files synchronized** with the actual implementation
 
 This ensures all future development sessions have complete context and requirements.
 
@@ -836,6 +851,12 @@ type ThemeMode = 'light' | 'dark' | 'auto';
 ```
 
 ## Common Issues & Troubleshooting
+
+**⚠️ FIRST: Check [FIXES.md](./FIXES.md) for already solved problems before debugging!**
+
+Many common issues have been solved and documented. Save time by checking there first.
+
+---
 
 ### Database Issues
 
