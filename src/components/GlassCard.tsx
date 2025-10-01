@@ -10,57 +10,12 @@ interface GlassCardProps {
   blurIntensity?: number;
 }
 
-// Web-only import with conditional loading
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let LiquidGlass: any = null;
-if (Platform.OS === 'web') {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    LiquidGlass = require('liquid-glass-react').default;
-  } catch {
-    console.warn('liquid-glass-react not available, falling back to BlurView');
-  }
-}
-
-export default function GlassCard({ children, style, blurIntensity = 100 }: GlassCardProps) {
+export default function GlassCard({ children, style, blurIntensity = 80 }: GlassCardProps) {
   const { isDark } = useTheme();
 
-  // Use liquid-glass-react on web for true liquid glass effect
-  if (Platform.OS === 'web' && LiquidGlass) {
-    // Convert ViewStyle to web CSS
-    const webStyle = {
-      ...style,
-      marginBottom: style?.marginBottom !== undefined ? style.marginBottom : 12,
-    };
-
-    return (
-      <LiquidGlass
-        displacementScale={70}
-        blurAmount={0.08}
-        saturation={isDark ? 120 : 140}
-        aberrationIntensity={2}
-        elasticity={0.2}
-        cornerRadius={24}
-        overLight={!isDark}
-        padding="20px"
-        style={{
-          ...webStyle,
-          background: isDark ? 'rgba(28, 28, 30, 0.85)' : 'rgba(245, 247, 250, 0.9)',
-          border: isDark
-            ? '1.5px solid rgba(255, 255, 255, 0.18)'
-            : '1.5px solid rgba(150, 170, 190, 0.25)',
-          boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.6)' : '0 8px 32px rgba(0, 0, 0, 0.15)',
-        }}
-      >
-        {children}
-      </LiquidGlass>
-    );
-  }
-
-  // Native fallback: BlurView with glassmorphism
   const gradientColors: [string, string] = isDark
-    ? ['rgba(28, 28, 30, 0.85)', 'rgba(28, 28, 30, 0.75)']
-    : ['rgba(245, 247, 250, 0.9)', 'rgba(235, 240, 245, 0.85)'];
+    ? ['rgba(28, 28, 30, 0.75)', 'rgba(28, 28, 30, 0.65)']
+    : ['rgba(255, 255, 255, 0.9)', 'rgba(245, 247, 250, 0.85)'];
 
   return (
     <BlurView
@@ -69,7 +24,7 @@ export default function GlassCard({ children, style, blurIntensity = 100 }: Glas
       style={[
         styles.blurContainer,
         {
-          borderColor: isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(150, 170, 190, 0.25)',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
           shadowColor: isDark ? 'rgba(0, 0, 0, 0.6)' : 'rgba(0, 0, 0, 0.15)',
         },
         style,
@@ -89,20 +44,21 @@ export default function GlassCard({ children, style, blurIntensity = 100 }: Glas
 
 const styles = StyleSheet.create({
   blurContainer: {
-    borderRadius: 24,
+    borderRadius: 20,
     overflow: 'hidden',
-    borderWidth: 1.5,
+    borderWidth: 1,
+    marginBottom: 12,
     ...Platform.select({
       ios: {
-        shadowOffset: { width: 0, height: 8 },
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 1,
-        shadowRadius: 16,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 12,
+        elevation: 8,
       },
       web: {
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.1)',
       },
     }),
   },

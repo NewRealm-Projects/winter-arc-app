@@ -21,18 +21,6 @@ interface GlassButtonProps {
   disabled?: boolean;
 }
 
-// Web-only import with conditional loading
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let LiquidGlass: any = null;
-if (Platform.OS === 'web') {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    LiquidGlass = require('liquid-glass-react').default;
-  } catch {
-    console.warn('liquid-glass-react not available, falling back to BlurView');
-  }
-}
-
 export default function GlassButton({
   onPress,
   title,
@@ -43,7 +31,6 @@ export default function GlassButton({
 }: GlassButtonProps) {
   const { isDark } = useTheme();
   const [scaleAnim] = useState(new Animated.Value(1));
-  const [isHovered, setIsHovered] = useState(false);
 
   const hexToRgba = (hex: string, alpha: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -70,69 +57,9 @@ export default function GlassButton({
     }).start();
   };
 
-  // Use liquid-glass-react on web
-  if (Platform.OS === 'web' && LiquidGlass) {
-    // Convert ViewStyle to web CSS
-    const webStyle = {
-      ...style,
-      marginBottom: style?.marginBottom !== undefined ? style.marginBottom : 12,
-      width: style?.flex === 1 ? '100%' : style?.width || 'auto',
-    };
-
-    return (
-      <button
-        onClick={disabled ? undefined : onPress}
-        disabled={disabled}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        style={{
-          border: 'none',
-          background: 'transparent',
-          padding: 0,
-          cursor: disabled ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.4 : 1,
-          transform: isHovered && !disabled ? 'scale(0.98)' : 'scale(1)',
-          transition: 'transform 0.2s ease',
-          ...webStyle,
-        }}
-      >
-        <LiquidGlass
-          displacementScale={isHovered ? 80 : 64}
-          blurAmount={0.06}
-          saturation={150}
-          aberrationIntensity={2.5}
-          elasticity={0.35}
-          cornerRadius={16}
-          overLight={!isDark}
-          padding="16px 24px"
-          style={{
-            background: isDark ? hexToRgba(color, 0.4) : hexToRgba(color, 0.85),
-            border: `1.5px solid ${isDark ? hexToRgba(color, 0.5) : hexToRgba(color, 0.6)}`,
-            boxShadow: `0 4px 16px ${isDark ? 'rgba(0, 0, 0, 0.5)' : hexToRgba(color, 0.3)}`,
-            textAlign: 'center',
-            width: '100%',
-          }}
-        >
-          <span
-            style={{
-              color: isDark ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.98)',
-              fontSize: textStyle?.fontSize || '17px',
-              fontWeight: '700',
-              letterSpacing: '-0.4px',
-              textShadow: `0 1px 3px ${isDark ? 'rgba(0, 0, 0, 0.3)' : hexToRgba(color, 0.4)}`,
-            }}
-          >
-            {title}
-          </span>
-        </LiquidGlass>
-      </button>
-    );
-  }
-
-  // Native fallback: BlurView with glassmorphism
   const gradientColors: [string, string] = isDark
-    ? [hexToRgba(color, 0.4), hexToRgba(color, 0.3)]
-    : [hexToRgba(color, 0.85), hexToRgba(color, 0.75)];
+    ? [hexToRgba(color, 0.3), hexToRgba(color, 0.25)]
+    : [hexToRgba(color, 0.7), hexToRgba(color, 0.6)];
 
   return (
     <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, style]}>
@@ -144,12 +71,12 @@ export default function GlassButton({
         style={disabled && styles.disabled}
       >
         <BlurView
-          intensity={80}
+          intensity={60}
           tint={isDark ? 'dark' : 'light'}
           style={[
             styles.blurContainer,
             {
-              borderColor: isDark ? hexToRgba(color, 0.5) : hexToRgba(color, 0.6),
+              borderColor: isDark ? hexToRgba(color, 0.4) : hexToRgba(color, 0.5),
               shadowColor: isDark ? 'rgba(0, 0, 0, 0.5)' : hexToRgba(color, 0.3),
             },
           ]}
