@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, useWindowDimensions, Alert, TextInput } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import WeeklyOverview from '../components/WeeklyOverview';
+import WeightGraph from '../components/WeightGraph';
 import GlassCard from '../components/GlassCard';
 import GlassButton from '../components/GlassButton';
 import AnimatedGradient from '../components/AnimatedGradient';
@@ -14,7 +15,11 @@ import {
   getPushUpEntries,
   getWaterEntries,
   getSportEntries,
-  getProteinEntries
+  getProteinEntries,
+  deleteEntry,
+  updatePushUpEntry,
+  updateWaterEntry,
+  updateProteinEntry
 } from '../services/database';
 import { PushUpEntry, WaterEntry, SportEntry, ProteinEntry } from '../types';
 
@@ -34,6 +39,9 @@ export default function HomeScreen({ navigation }: any) {
   const [recentPushUps, setRecentPushUps] = useState<PushUpEntry[]>([]);
   const [recentWater, setRecentWater] = useState<WaterEntry[]>([]);
   const [recentProtein, setRecentProtein] = useState<ProteinEntry[]>([]);
+
+  // Edit states
+  const [editingEntry, setEditingEntry] = useState<{type: string; id: string; value: number} | null>(null);
 
   useEffect(() => {
     loadAllData();
@@ -133,6 +141,61 @@ export default function HomeScreen({ navigation }: any) {
     }
   };
 
+  const handleDeleteEntry = async (type: string, id: string, collectionName: string) => {
+    Alert.alert(
+      'Eintrag löschen',
+      'Möchtest du diesen Eintrag wirklich löschen?',
+      [
+        { text: 'Abbrechen', style: 'cancel' },
+        {
+          text: 'Löschen',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteEntry(collectionName, id);
+              Alert.alert('✅', 'Eintrag gelöscht!', [{ text: 'OK' }], { cancelable: false });
+              loadAllData();
+            } catch (error) {
+              console.error('Error deleting entry:', error);
+              Alert.alert('Fehler', 'Konnte nicht löschen');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleEditEntry = (type: string, id: string, currentValue: number) => {
+    setEditingEntry({ type, id, value: currentValue });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingEntry) return;
+
+    try {
+      const { type, id, value } = editingEntry;
+
+      if (type === 'pushups') {
+        await updatePushUpEntry(id, value);
+      } else if (type === 'water') {
+        await updateWaterEntry(id, value);
+      } else if (type === 'protein') {
+        await updateProteinEntry(id, value);
+      }
+
+      Alert.alert('✅', 'Eintrag aktualisiert!', [{ text: 'OK' }], { cancelable: false });
+      setEditingEntry(null);
+      loadAllData();
+    } catch (error) {
+      console.error('Error updating entry:', error);
+      Alert.alert('Fehler', 'Konnte nicht speichern');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEntry(null);
+  };
+
   const proteinGoal = userData?.weight ? Math.round(userData.weight * 2) : 150;
 
   return (
@@ -192,7 +255,32 @@ export default function HomeScreen({ navigation }: any) {
                   <Text style={[styles.entryText, { color: colors.textSecondary }]}>
                     {new Date(entry.date).toLocaleDateString('de-DE')}
                   </Text>
-                  <Text style={[styles.entryValue, { color: colors.text }]}>{entry.count}</Text>
+                  {editingEntry?.id === entry.id ? (
+                    <View style={styles.editContainer}>
+                      <TextInput
+                        style={[styles.editInput, { color: colors.text, borderColor: colors.border }]}
+                        value={editingEntry.value.toString()}
+                        onChangeText={(text) => setEditingEntry({ ...editingEntry, value: parseInt(text) || 0 })}
+                        keyboardType="numeric"
+                      />
+                      <TouchableOpacity onPress={handleSaveEdit} style={styles.iconButton}>
+                        <Text style={styles.saveIcon}>✓</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={handleCancelEdit} style={styles.iconButton}>
+                        <Text style={styles.cancelIcon}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.entryActions}>
+                      <Text style={[styles.entryValue, { color: colors.text }]}>{entry.count}</Text>
+                      <TouchableOpacity onPress={() => handleEditEntry('pushups', entry.id, entry.count)} style={styles.iconButton}>
+                        <Text style={styles.editIcon}>✎</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => handleDeleteEntry('pushups', entry.id, 'pushUpEntries')} style={styles.iconButton}>
+                        <Text style={styles.deleteIcon}>🗑</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               ))}
             </View>
@@ -229,7 +317,32 @@ export default function HomeScreen({ navigation }: any) {
                   <Text style={[styles.entryText, { color: colors.textSecondary }]}>
                     {new Date(entry.date).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}
                   </Text>
-                  <Text style={[styles.entryValue, { color: colors.text }]}>{entry.amount}ml</Text>
+                  {editingEntry?.id === entry.id ? (
+                    <View style={styles.editContainer}>
+                      <TextInput
+                        style={[styles.editInput, { color: colors.text, borderColor: colors.border }]}
+                        value={editingEntry.value.toString()}
+                        onChangeText={(text) => setEditingEntry({ ...editingEntry, value: parseInt(text) || 0 })}
+                        keyboardType="numeric"
+                      />
+                      <TouchableOpacity onPress={handleSaveEdit} style={styles.iconButton}>
+                        <Text style={styles.saveIcon}>✓</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={handleCancelEdit} style={styles.iconButton}>
+                        <Text style={styles.cancelIcon}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.entryActions}>
+                      <Text style={[styles.entryValue, { color: colors.text }]}>{entry.amount}ml</Text>
+                      <TouchableOpacity onPress={() => handleEditEntry('water', entry.id, entry.amount)} style={styles.iconButton}>
+                        <Text style={styles.editIcon}>✎</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => handleDeleteEntry('water', entry.id, 'waterEntries')} style={styles.iconButton}>
+                        <Text style={styles.deleteIcon}>🗑</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               ))}
             </View>
@@ -287,21 +400,40 @@ export default function HomeScreen({ navigation }: any) {
                   <Text style={[styles.entryText, { color: colors.textSecondary }]}>
                     {new Date(entry.date).toLocaleDateString('de-DE')}
                   </Text>
-                  <Text style={[styles.entryValue, { color: colors.text }]}>{entry.grams}g</Text>
+                  {editingEntry?.id === entry.id ? (
+                    <View style={styles.editContainer}>
+                      <TextInput
+                        style={[styles.editInput, { color: colors.text, borderColor: colors.border }]}
+                        value={editingEntry.value.toString()}
+                        onChangeText={(text) => setEditingEntry({ ...editingEntry, value: parseInt(text) || 0 })}
+                        keyboardType="numeric"
+                      />
+                      <TouchableOpacity onPress={handleSaveEdit} style={styles.iconButton}>
+                        <Text style={styles.saveIcon}>✓</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={handleCancelEdit} style={styles.iconButton}>
+                        <Text style={styles.cancelIcon}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <View style={styles.entryActions}>
+                      <Text style={[styles.entryValue, { color: colors.text }]}>{entry.grams}g</Text>
+                      <TouchableOpacity onPress={() => handleEditEntry('protein', entry.id, entry.grams)} style={styles.iconButton}>
+                        <Text style={styles.editIcon}>✎</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => handleDeleteEntry('protein', entry.id, 'proteinEntries')} style={styles.iconButton}>
+                        <Text style={styles.deleteIcon}>🗑</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               ))}
             </View>
           )}
         </GlassCard>
 
-        {/* Weight Tracker Button */}
-        <GlassButton
-          title="⚖️  Gewicht tracken"
-          color="#A29BFE"
-          onPress={() => navigation.navigate('WeightTracker')}
-          style={styles.weightButton}
-          textStyle={styles.weightButtonText}
-        />
+        {/* Weight Tracker Graph */}
+        <WeightGraph onPress={() => navigation.navigate('WeightTracker')} />
       </View>
     </ScrollView>
     </AnimatedGradient>
@@ -392,6 +524,7 @@ const styles = StyleSheet.create({
   entryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
   },
@@ -401,11 +534,46 @@ const styles = StyleSheet.create({
   entryValue: {
     fontSize: 14,
     fontWeight: '600',
+    marginRight: 8,
   },
-  weightButton: {
-    marginBottom: 20,
+  entryActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  weightButtonText: {
-    fontSize: 20,
+  editContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  editInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    fontSize: 14,
+    fontWeight: '600',
+    minWidth: 60,
+    textAlign: 'center',
+  },
+  iconButton: {
+    padding: 4,
+  },
+  editIcon: {
+    fontSize: 16,
+    opacity: 0.6,
+  },
+  deleteIcon: {
+    fontSize: 16,
+  },
+  saveIcon: {
+    fontSize: 18,
+    color: '#00D084',
+    fontWeight: 'bold',
+  },
+  cancelIcon: {
+    fontSize: 18,
+    color: '#FF6B6B',
+    fontWeight: 'bold',
   },
 });

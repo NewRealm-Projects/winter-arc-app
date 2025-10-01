@@ -8,7 +8,8 @@ import {
   Timestamp,
   deleteDoc,
   doc,
-  limit
+  limit,
+  updateDoc
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { SportEntry, PushUpEntry, ProteinEntry, WaterEntry, WeightEntry } from '../types';
@@ -146,4 +147,24 @@ export const addNutritionEntry = addProteinEntry;
 // Delete Entry
 export const deleteEntry = async (collectionName: string, entryId: string) => {
   await deleteDoc(doc(db, collectionName, entryId));
+};
+
+// Update Push-up Entry
+export const updatePushUpEntry = async (entryId: string, count: number) => {
+  await updateDoc(doc(db, 'pushUpEntries', entryId), { count });
+};
+
+// Update Water Entry
+export const updateWaterEntry = async (entryId: string, amount: number) => {
+  await updateDoc(doc(db, 'waterEntries', entryId), { amount });
+};
+
+// Update Protein Entry
+export const updateProteinEntry = async (entryId: string, grams: number) => {
+  await updateDoc(doc(db, 'proteinEntries', entryId), { grams });
+};
+
+// Update Weight Entry
+export const updateWeightEntry = async (entryId: string, data: { weight?: number; bodyFat?: number }) => {
+  await updateDoc(doc(db, 'weightEntries', entryId), data);
 };

@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🔄 Meta-Requirement: Documentation Updates
+
+**CRITICAL: Whenever the user provides new requirements, feature requests, or identifies issues:**
+
+1. **First, update this CLAUDE.md file** with the new requirements in the appropriate section
+2. **Document the requirement clearly** with context, constraints, and expected behavior
+3. **Then implement** the changes in the codebase
+4. **Keep this file synchronized** with the actual implementation
+
+This ensures all future development sessions have complete context and requirements.
+
 ## Project Overview
 
 Winter Arc is a cross-platform fitness tracking application built with Expo/React Native. It runs on:
@@ -167,6 +178,11 @@ All entries are stored in Firestore with user ID association:
    - Recent entries should be visible on the HomeScreen
    - Each tracking category shows last 3-5 entries inline
    - No need to navigate to see recent data
+   - **CRITICAL**: Display must update immediately after logging (real-time)
+   - If entries are being saved to database but not showing on screen, check:
+     - loadAllData() is called after adding entry
+     - State updates are triggering re-renders
+     - Data fetching queries are correct
 
 4. **Combined View**
    - Logging buttons and logged data should be in the same component
@@ -177,13 +193,48 @@ All entries are stored in Firestore with user ID association:
    - Show brief success message
    - Return to HomeScreen automatically
 
-### 📈 Weight Tracker
-- **Monthly graph** showing weight progression
-- Graph displays last 30 days by default
-- Shows BMI calculation based on height
-- Shows body fat percentage if logged
-- Point-to-point line graph visualization
-- Quick-add for today's weight
+6. **Edit/Delete Functionality**
+   - Users must be able to correct/edit logged entries
+   - Each displayed entry should have edit and delete options
+   - Edit: Open inline form or modal to modify values
+   - Delete: Confirm dialog, then remove from database
+   - Update display immediately after edit/delete
+
+### 📈 Weight Tracker - **CRITICAL REQUIREMENTS**
+
+**IMPORTANT: Weight tracking must be a prominent, interactive graph on HomeScreen, NOT just a button.**
+
+1. **Graph Display on HomeScreen**
+   - Replace simple "Gewicht tracken" button with interactive mini-graph
+   - Show last 7-14 days of weight data as line graph
+   - Tapping graph opens detailed WeightTrackerScreen with 30-day view
+
+2. **Dual-Line Graph**
+   - **Primary Line (always visible)**: Weight in kg
+   - **Secondary Line (when available)**: Body fat percentage
+   - Both lines share same X-axis (dates), different Y-axes
+   - Lines should be color-coded: Weight = #A29BFE (purple), Body Fat = #F9CA24 (gold)
+
+3. **Body Fat Tracking Logic**
+   - Body fat is **optional** when logging weight
+   - If user logs weight WITHOUT updating body fat:
+     - Weight entry is created/updated in database
+     - Body fat value is NOT written to database (no duplicate entry)
+     - Graph displays last known body fat value for continuity
+   - If user logs weight WITH body fat:
+     - Both weight and body fat are written to database
+   - Example: User logs 80kg without body fat → Graph shows 80kg + previous body fat % (e.g., 18%)
+
+4. **Quick-Add Weight on HomeScreen**
+   - Inline input field or quick button to log today's weight
+   - Optional body fat input (collapsed by default)
+   - Auto-updates graph immediately after saving
+
+5. **Detailed View (WeightTrackerScreen)**
+   - Full 30-day graph with zoom/pan
+   - Shows BMI calculation
+   - Shows trends (weight change per week)
+   - List of all weight entries with edit/delete options
 
 ### 🏆 Leaderboard
 - Compare with friends using group codes
