@@ -12,7 +12,8 @@ const POINT_RADIUS = 4;
 const MAX_AXIS_TICKS = 6;
 const AXIS_LABEL_WIDTH = 48;
 
-const formatDateLabel = (date: Date) => date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+const formatDateLabel = (date: Date) =>
+  date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
 
 interface WeightGraphProps {
   onPress: () => void;
@@ -58,8 +59,8 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
           id: `missing-${i}`,
           userId: user.uid,
           weight: allDays.length > 0 ? allDays[allDays.length - 1].weight : 0,
-          date: date.toISOString(),
-          isMissing: true
+          date: date,
+          isMissing: true,
         });
       }
     }
@@ -74,7 +75,9 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
           <MaterialCommunityIcons name="scale-bathroom" size={36} color={colors.textSecondary} />
           <View style={styles.emptyCopy}>
             <Text style={[styles.cardTitle, { color: colors.text }]}>Gewicht</Text>
-            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Tippen, um Gewicht zu erfassen</Text>
+            <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+              Tippen, um Gewicht zu erfassen
+            </Text>
           </View>
         </TouchableOpacity>
       </GlassCard>
@@ -86,7 +89,9 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
   const maxWeight = Math.max(...weights);
   const weightRange = maxWeight - minWeight || 1;
 
-  const bodyFats = entries.filter(entry => entry.bodyFat !== undefined).map(entry => entry.bodyFat!);
+  const bodyFats = entries
+    .filter(entry => entry.bodyFat !== undefined)
+    .map(entry => entry.bodyFat!);
   const hasBodyFat = bodyFats.length > 0;
   const minBodyFat = hasBodyFat ? Math.min(...bodyFats) : 0;
   const maxBodyFat = hasBodyFat ? Math.max(...bodyFats) : 0;
@@ -129,14 +134,16 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
       <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <MaterialCommunityIcons name="scale-bathroom" size={28} color="#A29BFE" />
+            <MaterialCommunityIcons name="scale-bathroom" size={28} color={colors.weight} />
             <View>
               <Text style={[styles.cardTitle, { color: colors.text }]}>Gewicht</Text>
               <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
                 {currentWeight.toFixed(1)} kg
                 {weightChange !== 0 && (
                   <Text style={{ color: weightChange < 0 ? '#00D084' : '#FF6B6B' }}>
-                    {' '}({weightChange > 0 ? '+' : ''}{weightChange.toFixed(1)} kg)
+                    {' '}
+                    ({weightChange > 0 ? '+' : ''}
+                    {weightChange.toFixed(1)} kg)
                   </Text>
                 )}
               </Text>
@@ -160,14 +167,15 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
               const prevEntry = entries[index - 1];
               const isMissingSegment = currentEntry.isMissing || prevEntry.isMissing;
               const length = Math.hypot(point.x - prevPoint.x, point.y - prevPoint.y);
-              const angle = Math.atan2(point.y - prevPoint.y, point.x - prevPoint.x) * (180 / Math.PI);
+              const angle =
+                Math.atan2(point.y - prevPoint.y, point.x - prevPoint.x) * (180 / Math.PI);
               return (
                 <View
                   key={`weight-line-${index}`}
                   style={[
                     styles.line,
                     {
-                      backgroundColor: isMissingSegment ? '#999' : '#A29BFE',
+                      backgroundColor: isMissingSegment ? '#999' : colors.weight,
                       width: length,
                       left: prevPoint.x,
                       top: prevPoint.y,
@@ -179,28 +187,30 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
               );
             })}
 
-            {hasBodyFat && bodyFatPoints.map((point, index) => {
-              if (index === 0) return null;
-              const prevPoint = bodyFatPoints[index - 1];
-              const length = Math.hypot(point.x - prevPoint.x, point.y - prevPoint.y);
-              const angle = Math.atan2(point.y - prevPoint.y, point.x - prevPoint.x) * (180 / Math.PI);
-              return (
-                <View
-                  key={`bodyfat-line-${index}`}
-                  style={[
-                    styles.line,
-                    {
-                      backgroundColor: '#F9CA24',
-                      width: length,
-                      left: prevPoint.x,
-                      top: prevPoint.y,
-                      transform: [{ rotate: `${angle}deg` }],
-                      opacity: 0.65,
-                    },
-                  ]}
-                />
-              );
-            })}
+            {hasBodyFat &&
+              bodyFatPoints.map((point, index) => {
+                if (index === 0) return null;
+                const prevPoint = bodyFatPoints[index - 1];
+                const length = Math.hypot(point.x - prevPoint.x, point.y - prevPoint.y);
+                const angle =
+                  Math.atan2(point.y - prevPoint.y, point.x - prevPoint.x) * (180 / Math.PI);
+                return (
+                  <View
+                    key={`bodyfat-line-${index}`}
+                    style={[
+                      styles.line,
+                      {
+                        backgroundColor: '#F9CA24',
+                        width: length,
+                        left: prevPoint.x,
+                        top: prevPoint.y,
+                        transform: [{ rotate: `${angle}deg` }],
+                        opacity: 0.65,
+                      },
+                    ]}
+                  />
+                );
+              })}
 
             {weightPoints.map((point, index) => {
               const entry = entries[index];
@@ -211,7 +221,7 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
                   style={[
                     styles.point,
                     {
-                      backgroundColor: isMissing ? '#999' : '#A29BFE',
+                      backgroundColor: isMissing ? '#999' : colors.weight,
                       left: point.x - POINT_RADIUS,
                       top: point.y - POINT_RADIUS,
                       opacity: isMissing ? 0.3 : 1,
@@ -221,32 +231,37 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
               );
             })}
 
-            {hasBodyFat && bodyFatPoints.map((point, index) => (
-              <View
-                key={`bodyfat-point-${index}`}
-                style={[
-                  styles.point,
-                  {
-                    backgroundColor: '#F9CA24',
-                    left: point.x - POINT_RADIUS,
-                    top: point.y - POINT_RADIUS,
-                    opacity: 0.65,
-                  },
-                ]}
-              />
-            ))}
+            {hasBodyFat &&
+              bodyFatPoints.map((point, index) => (
+                <View
+                  key={`bodyfat-point-${index}`}
+                  style={[
+                    styles.point,
+                    {
+                      backgroundColor: '#F9CA24',
+                      left: point.x - POINT_RADIUS,
+                      top: point.y - POINT_RADIUS,
+                      opacity: 0.65,
+                    },
+                  ]}
+                />
+              ))}
           </View>
         </View>
 
         <View style={[styles.axisContainer, { width: graphWidth }]}>
           {entries.map((entry, index) => {
             const x = getXPosition(index);
-            const showLabel = index === 0 || index === entries.length - 1 || index % axisLabelInterval === 0;
+            const showLabel =
+              index === 0 || index === entries.length - 1 || index % axisLabelInterval === 0;
             return (
-              <View key={`axis-${entry.id ?? index}`} style={[styles.axisTick, { left: x - AXIS_LABEL_WIDTH / 2 }] }>
+              <View
+                key={`axis-${entry.id ?? index}`}
+                style={[styles.axisTick, { left: x - AXIS_LABEL_WIDTH / 2 }]}
+              >
                 <View style={[styles.axisLine, { backgroundColor: colors.border }]} />
                 {showLabel && (
-                  <Text style={[styles.axisLabelText, { color: colors.textSecondary }]}> 
+                  <Text style={[styles.axisLabelText, { color: colors.textSecondary }]}>
                     {formatDateLabel(new Date(entry.date))}
                   </Text>
                 )}
@@ -257,7 +272,7 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
 
         <View style={styles.legend}>
           <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: '#A29BFE' }]} />
+            <View style={[styles.legendDot, { backgroundColor: colors.weight }]} />
             <Text style={[styles.legendText, { color: colors.textSecondary }]}>Gewicht</Text>
           </View>
           {hasBodyFat && (
@@ -268,7 +283,9 @@ export default function WeightGraph({ onPress }: WeightGraphProps) {
           )}
         </View>
 
-        <Text style={[styles.hint, { color: colors.textSecondary }]}>Tippen für Details (30 Tage)</Text>
+        <Text style={[styles.hint, { color: colors.textSecondary }]}>
+          Tippen für Details (30 Tage)
+        </Text>
       </TouchableOpacity>
     </GlassCard>
   );

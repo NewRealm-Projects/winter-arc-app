@@ -40,8 +40,8 @@ const firebaseEnvVarMap: Record<keyof FirebaseConfig, string> = {
   appId: 'EXPO_PUBLIC_FIREBASE_APP_ID',
 };
 
-export const missingFirebaseConfigKeys = requiredKeys.filter((key) => !firebaseConfig[key]);
-export const missingFirebaseEnvVars = missingFirebaseConfigKeys.map((key) => firebaseEnvVarMap[key]);
+export const missingFirebaseConfigKeys = requiredKeys.filter(key => !firebaseConfig[key]);
+export const missingFirebaseEnvVars = missingFirebaseConfigKeys.map(key => firebaseEnvVarMap[key]);
 export const isFirebaseConfigured = missingFirebaseConfigKeys.length === 0;
 
 let app: FirebaseApp | null = null;
@@ -68,7 +68,6 @@ if (isFirebaseConfigured) {
   if (Platform.OS === 'web') {
     db = initializeFirestore(app, {
       experimentalForceLongPolling: true,
-      useFetchStreams: false,
     });
   } else {
     db = getFirestore(app);

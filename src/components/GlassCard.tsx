@@ -1,5 +1,7 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle, Platform } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../contexts/ThemeContext';
 
 interface GlassCardProps {
@@ -8,38 +10,60 @@ interface GlassCardProps {
   blurIntensity?: number;
 }
 
-export default function GlassCard({ children, style, blurIntensity = 10 }: GlassCardProps) {
-  const { colors, isDark } = useTheme();
+export default function GlassCard({ children, style, blurIntensity = 40 }: GlassCardProps) {
+  const { isDark } = useTheme();
+
+  const gradientColors: [string, string] = isDark
+    ? ['rgba(28, 28, 30, 0.72)', 'rgba(28, 28, 30, 0.65)']
+    : ['rgba(255, 255, 255, 0.18)', 'rgba(255, 255, 255, 0.12)'];
 
   return (
-    <View
+    <BlurView
+      intensity={blurIntensity}
+      tint={isDark ? 'dark' : 'light'}
       style={[
-        styles.glassCard,
+        styles.blurContainer,
         {
-          backgroundColor: isDark
-            ? 'rgba(28, 28, 30, 0.85)'
-            : 'rgba(255, 255, 255, 0.85)',
-          borderColor: isDark
-            ? 'rgba(255, 255, 255, 0.15)'
-            : 'rgba(255, 255, 255, 0.3)',
-          shadowColor: isDark ? '#000' : '#667eea',
+          borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.25)',
         },
         style,
       ]}
     >
-      {children}
-    </View>
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={[
+          styles.gradientContent,
+          {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: isDark ? 0.4 : 0.12,
+            shadowRadius: 24,
+          },
+        ]}
+      >
+        {children}
+      </LinearGradient>
+    </BlurView>
   );
 }
 
 const styles = StyleSheet.create({
-  glassCard: {
+  blurContainer: {
     borderRadius: 20,
-    borderWidth: 1,
+    overflow: 'hidden',
+    borderWidth: 0.5,
+  },
+  gradientContent: {
     padding: 20,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
   },
 });

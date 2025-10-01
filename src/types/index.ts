@@ -49,6 +49,7 @@ export interface WeightEntry {
   weight: number; // in kg
   bodyFat?: number; // body fat percentage (optional)
   date: Date;
+  isMissing?: boolean; // indicates if this is a placeholder for a missing day
 }
 
 export interface DailyStats {

@@ -10,13 +10,17 @@ const renderWithTheme = (component: React.ReactElement) => {
 
 describe('GlassButton', () => {
   it('renders correctly with title', () => {
-    const { getByText } = renderWithTheme(<GlassButton title="Test Button" onPress={() => {}} />);
+    const { getByText } = renderWithTheme(
+      <GlassButton title="Test Button" onPress={() => {}} color="#FF375F" />
+    );
     expect(getByText('Test Button')).toBeTruthy();
   });
 
   it('calls onPress when pressed', () => {
     const onPress = jest.fn();
-    const { getByText } = renderWithTheme(<GlassButton title="Click Me" onPress={onPress} />);
+    const { getByText } = renderWithTheme(
+      <GlassButton title="Click Me" onPress={onPress} color="#FF375F" />
+    );
 
     fireEvent.press(getByText('Click Me'));
     expect(onPress).toHaveBeenCalledTimes(1);

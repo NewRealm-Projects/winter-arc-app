@@ -417,185 +417,443 @@ Stack Navigator (with modal presentation)
 7. **Modal Over Pages**: Never navigate away from home for quick actions
 8. **Glassmorphism/Liquid Glass**: Modern, ethereal aesthetic with transparency and blur effects
 
-## Glassmorphism Design System
+## Apple Liquid Glass Design System
 
-### Core Visual Style
+### Design Philosophy
 
-The app uses a **Liquid Glass / Glassmorphism** design language for a modern, premium feel.
+Inspired by **Apple's Human Interface Guidelines** and iOS design language, this app uses **Liquid Glass** materials to create depth, hierarchy, and visual harmony. Every element feels tactile, responsive, and premium.
 
-#### Glass Effect Properties
-```css
-/* Standard Glass Card */
-background: rgba(255, 255, 255, 0.1);  /* Semi-transparent white */
-backdrop-filter: blur(10px);            /* Blur background */
--webkit-backdrop-filter: blur(10px);   /* Safari support */
-border: 1px solid rgba(255, 255, 255, 0.2);  /* Subtle border */
-border-radius: 16px;
-box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+**Core Principles:**
+- **Clarity**: Typography and icons are sharp despite translucency
+- **Depth**: Layered materials create spatial hierarchy
+- **Deference**: Content is king; design supports without overwhelming
+- **Vibrancy**: Colors saturate through blur without losing legibility
+
+### Material Hierarchy
+
+The design uses **4 distinct material layers**, each with specific blur and translucency:
+
+#### Layer 1: Base Material (Backgrounds)
+```tsx
+// Full-screen gradient backgrounds
+background: linear-gradient(180deg,
+  rgba(0, 122, 255, 0.15) 0%,    // iOS Blue tint
+  rgba(88, 86, 214, 0.12) 100%   // Purple fade
+);
 ```
 
-#### Color Palette
-- **Background Gradients**: Animated gradients (e.g., #667eea → #764ba2, #4ECDC4 → #556270)
-- **Glass Overlays**: rgba(255, 255, 255, 0.05-0.2) for light mode, rgba(0, 0, 0, 0.1-0.3) for dark
-- **Text**: High contrast white/black with opacity variations
-- **Accent Colors**:
-  - Push-ups: #FF6B6B (red/coral)
-  - Water: #4ECDC4 (cyan)
-  - Sport: #95E1D3 (mint)
-  - Protein: #F9CA24 (gold)
-  - Weight: #A29BFE (purple)
+#### Layer 2: Primary Glass (Content Cards)
+```tsx
+// Main tracking cards (Push-ups, Water, Sport, Protein)
+background: rgba(255, 255, 255, 0.18);
+border: 0.5px solid rgba(255, 255, 255, 0.25);
+blur: 40px;  // Native blur via expo-blur
+borderRadius: 20px;
+shadow: {
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 8 },
+  shadowOpacity: 0.12,
+  shadowRadius: 24,
+};
+```
 
-#### Visual Effects
-- **Backdrop Blur**: 10-20px for depth
-- **Hover States**:
-  - `brightness(1.1)`
-  - `transform: scale(1.02) translateY(-2px)`
-  - Smooth glow effect
-- **Transitions**: `0.3s cubic-bezier(0.4, 0, 0.2, 1)` for all interactions
-- **Floating Animations**: Subtle vertical movement for cards
-- **Micro-interactions**:
-  - Button ripples on tap
-  - Card tilt on hover (desktop)
-  - Smooth loading skeletons with shimmer
+#### Layer 3: Secondary Glass (Modals, Overlays)
+```tsx
+// Modal sheets, navigation bars
+background: rgba(255, 255, 255, 0.72);
+border: 0.5px solid rgba(255, 255, 255, 0.3);
+blur: 80px;  // Stronger blur for foreground elements
+borderRadius: 16px;
+shadow: {
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 16 },
+  shadowOpacity: 0.15,
+  shadowRadius: 32,
+};
+```
 
-### Component-Specific Glass Effects
+#### Layer 4: Interactive Glass (Buttons, Controls)
+```tsx
+// Buttons, quick-add controls
+background: rgba(category_color, 0.2);  // Tinted glass
+blur: 30px;
+borderRadius: 12px;
+border: 0.5px solid rgba(255, 255, 255, 0.4);
+// Pressed state:
+scale: 0.96;
+brightness: 1.15;
+```
+
+### Color System (iOS-Inspired)
+
+#### System Colors
+```typescript
+// Based on iOS SF Symbols color palette
+colors = {
+  // Primary colors with vibrancy
+  blue: '#007AFF',      // iOS System Blue
+  purple: '#5856D6',    // iOS Purple
+  pink: '#FF2D55',      // iOS Pink
+  green: '#34C759',     // iOS Green
+  orange: '#FF9500',    // iOS Orange
+  yellow: '#FFCC00',    // iOS Yellow
+
+  // Semantic category colors
+  pushups: '#FF375F',   // Vibrant Red (replaces #FF6B6B)
+  water: '#64D2FF',     // Bright Cyan (replaces #4ECDC4)
+  sport: '#30D158',     // iOS Green (replaces #95E1D3)
+  protein: '#FFD60A',   // Vivid Yellow (replaces #F9CA24)
+  weight: '#BF5AF2',    // iOS Purple (replaces #A29BFE)
+
+  // Neutral glass tints
+  glassLight: 'rgba(255, 255, 255, 0.18)',
+  glassMedium: 'rgba(255, 255, 255, 0.25)',
+  glassStrong: 'rgba(255, 255, 255, 0.72)',
+
+  glassDark: 'rgba(28, 28, 30, 0.68)',      // Dark mode primary
+  glassDarkMedium: 'rgba(28, 28, 30, 0.82)', // Dark mode modal
+
+  // Text hierarchy
+  label: 'rgba(0, 0, 0, 0.88)',           // Primary text
+  secondaryLabel: 'rgba(0, 0, 0, 0.56)',  // Secondary text
+  tertiaryLabel: 'rgba(0, 0, 0, 0.32)',   // Tertiary text
+
+  labelDark: 'rgba(255, 255, 255, 0.92)',
+  secondaryLabelDark: 'rgba(255, 255, 255, 0.64)',
+  tertiaryLabelDark: 'rgba(255, 255, 255, 0.40)',
+};
+```
+
+#### Gradient Backgrounds
+```typescript
+// Dynamic, subtle gradients (not overpowering)
+lightGradient = ['rgba(99, 102, 241, 0.08)', 'rgba(168, 85, 247, 0.06)'];
+darkGradient = ['rgba(17, 24, 39, 0.95)', 'rgba(31, 41, 55, 0.98)'];
+
+// Animated shift: 20s ease-in-out infinite
+```
+
+### Typography (SF Pro-Inspired)
+
+```typescript
+typography = {
+  largeTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    letterSpacing: 0.36,
+    lineHeight: 41,
+  },
+  title1: {
+    fontSize: 28,
+    fontWeight: '600',
+    letterSpacing: 0.36,
+    lineHeight: 34,
+  },
+  title2: {
+    fontSize: 22,
+    fontWeight: '600',
+    letterSpacing: 0.35,
+    lineHeight: 28,
+  },
+  title3: {
+    fontSize: 20,
+    fontWeight: '600',
+    letterSpacing: 0.38,
+    lineHeight: 24,
+  },
+  headline: {
+    fontSize: 17,
+    fontWeight: '600',
+    letterSpacing: -0.41,
+    lineHeight: 22,
+  },
+  body: {
+    fontSize: 17,
+    fontWeight: '400',
+    letterSpacing: -0.41,
+    lineHeight: 22,
+  },
+  callout: {
+    fontSize: 16,
+    fontWeight: '400',
+    letterSpacing: -0.31,
+    lineHeight: 21,
+  },
+  subheadline: {
+    fontSize: 15,
+    fontWeight: '400',
+    letterSpacing: -0.23,
+    lineHeight: 20,
+  },
+  footnote: {
+    fontSize: 13,
+    fontWeight: '400',
+    letterSpacing: -0.08,
+    lineHeight: 18,
+  },
+  caption1: {
+    fontSize: 12,
+    fontWeight: '400',
+    letterSpacing: 0,
+    lineHeight: 16,
+  },
+  caption2: {
+    fontSize: 11,
+    fontWeight: '400',
+    letterSpacing: 0.06,
+    lineHeight: 13,
+  },
+};
+```
+
+### Spacing System (iOS Grid)
+
+```typescript
+// Based on 8pt grid system (iOS standard)
+spacing = {
+  xxs: 2,   // Hairline spacing
+  xs: 4,    // Tight spacing
+  sm: 8,    // Standard tight
+  md: 12,   // Comfortable
+  lg: 16,   // Card padding
+  xl: 20,   // Section spacing
+  xxl: 24,  // Major sections
+  xxxl: 32, // Screen margins
+  huge: 48, // Large separations
+};
+
+// Corner radii (iOS-style)
+radius = {
+  xs: 8,    // Small elements
+  sm: 12,   // Buttons
+  md: 16,   // Cards
+  lg: 20,   // Major cards
+  xl: 24,   // Modals
+  full: 9999, // Pills
+};
+```
+
+### Blur Intensities (expo-blur)
+
+```tsx
+import { BlurView } from 'expo-blur';
+
+// Blur intensity mapping
+intensity = {
+  subtle: 10,      // Faint blur for backgrounds
+  light: 30,       // Buttons and light overlays
+  regular: 40,     // Standard cards
+  strong: 60,      // Navigation bars
+  prominent: 80,   // Modals and sheets
+  ultra: 100,      // Critical overlays
+};
+
+// Usage in component:
+<BlurView intensity={40} tint="light" style={styles.card}>
+  {/* Content */}
+</BlurView>
+```
+
+### Component Patterns
 
 #### GlassCard (Tracking Cards)
 ```tsx
-// Used for: Push-ups, Water, Sport, Protein cards
-- Background: rgba(255, 255, 255, 0.1) or rgba(28, 28, 30, 0.8) in dark
-- Blur: 10px backdrop-filter
-- Border: 1px solid rgba(255, 255, 255, 0.2)
-- Shadow: Soft, elevated shadow
-- Border-radius: 16px
-- Padding: 20px
+// Primary content cards with native blur
+<BlurView intensity={40} tint="light" style={{
+  borderRadius: 20,
+  overflow: 'hidden',
+  borderWidth: 0.5,
+  borderColor: 'rgba(255, 255, 255, 0.25)',
+}}>
+  <LinearGradient
+    colors={['rgba(255, 255, 255, 0.18)', 'rgba(255, 255, 255, 0.12)']}
+    style={{
+      padding: 20,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.12,
+      shadowRadius: 24,
+    }}
+  >
+    {/* Card content */}
+  </LinearGradient>
+</BlurView>
 ```
 
-#### GlassButton (Quick-Add Buttons)
+#### GlassButton (Quick Actions)
 ```tsx
-// Category-colored buttons with glass overlay
-- Semi-transparent category color
-- Blur: 8px
-- Hover: Brighter + slight scale
-- Active: Scale down + brightness boost
-- Ripple effect on tap
+// Category-colored interactive buttons
+<BlurView intensity={30} tint="light" style={{
+  borderRadius: 12,
+  overflow: 'hidden',
+  borderWidth: 0.5,
+  borderColor: 'rgba(255, 255, 255, 0.4)',
+}}>
+  <LinearGradient
+    colors={[
+      `rgba(${categoryColor}, 0.25)`,
+      `rgba(${categoryColor}, 0.15)`,
+    ]}
+    style={{ padding: 16 }}
+  >
+    <Text style={styles.buttonText}>{title}</Text>
+  </LinearGradient>
+</BlurView>
+
+// Pressed state (via Pressable):
+transform: [{ scale: 0.96 }]
+filter: brightness(1.15)
 ```
 
-#### GlassNavigation (Header)
+#### GlassModal (Overlays, Sheets)
 ```tsx
-// Sticky header with strong blur
-- Background: rgba(255, 255, 255, 0.7) / rgba(0, 0, 0, 0.7)
-- Blur: 20px (stronger for readability)
-- Frosted glass appearance
-- Subtle bottom border
+// Full-screen or bottom sheet modals
+<BlurView intensity={80} tint="light" style={{
+  flex: 1,
+  borderTopLeftRadius: 24,
+  borderTopRightRadius: 24,
+  overflow: 'hidden',
+}}>
+  <LinearGradient
+    colors={['rgba(255, 255, 255, 0.72)', 'rgba(255, 255, 255, 0.65)']}
+    style={styles.modalContent}
+  >
+    {/* Modal content */}
+  </LinearGradient>
+</BlurView>
 ```
 
-### Animations & Interactions
+### Animations & Micro-Interactions
 
-#### Floating Effect (Cards)
-```css
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-}
-/* Apply: animation: float 6s ease-in-out infinite; */
+#### Spring Animation (iOS Native Feel)
+```typescript
+// Use React Native Animated with spring physics
+Animated.spring(value, {
+  toValue: 1,
+  friction: 7,      // iOS-like bounce
+  tension: 40,
+  useNativeDriver: true,
+}).start();
 ```
 
-#### Shimmer Loading
-```css
-/* For skeleton screens */
-background: linear-gradient(
-  90deg,
-  rgba(255,255,255,0.0) 0%,
-  rgba(255,255,255,0.2) 50%,
-  rgba(255,255,255,0.0) 100%
-);
-animation: shimmer 2s infinite;
-```
-
-#### Button Ripple
+#### Interactive Scale (Buttons)
 ```tsx
-// On tap: expand circular overlay from tap point
-- Origin: Touch/click position
-- Expand: 0 → 100% in 0.6s
-- Fade: opacity 0.3 → 0
+// Press feedback (iOS-style scale down)
+<Pressable
+  onPressIn={() => scale.value = 0.96}
+  onPressOut={() => scale.value = 1}
+  style={[
+    styles.button,
+    { transform: [{ scale: scaleValue }] }
+  ]}
+>
 ```
 
-### Accessibility Considerations
-
-**Critical for Glass Design:**
-1. **Contrast Ratios**: Text must maintain WCAG AA (4.5:1) despite transparency
-   - Use higher opacity text: rgba(255, 255, 255, 0.95) not 0.7
-   - Add subtle text shadows for readability on complex backgrounds
-
-2. **Safari Fallbacks**:
-   ```css
-   @supports not (backdrop-filter: blur(10px)) {
-     background: rgba(255, 255, 255, 0.95);  /* Solid fallback */
-   }
-   ```
-
-3. **Performance**:
-   - Use `will-change: transform` for animated elements
-   - Limit backdrop-filter to visible cards only
-   - Optimize with `transform: translateZ(0)` for GPU acceleration
-
-4. **Touch Targets**: Minimum 44x44px tap areas (extra important with semi-transparent buttons)
-
-### Gradient Backgrounds
-
-#### Animated Background Gradient
-```css
-background: linear-gradient(
-  135deg,
-  #667eea 0%,
-  #764ba2 50%,
-  #f093fb 100%
-);
-background-size: 400% 400%;
-animation: gradientShift 15s ease infinite;
-
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+#### Fade Transitions
+```typescript
+// Smooth content transitions
+Animated.timing(opacity, {
+  toValue: 1,
+  duration: 300,
+  easing: Easing.bezier(0.25, 0.1, 0.25, 1), // iOS ease
+  useNativeDriver: true,
+}).start();
 ```
 
-#### Theme-Specific Gradients
-- **Light Mode**: Bright, colorful gradients (pastel to vibrant)
-- **Dark Mode**: Deep, moody gradients (dark purple → dark blue)
+#### Skeleton Shimmer (Loading States)
+```tsx
+// Animated shimmer for loading skeletons
+<LinearGradient
+  colors={[
+    'rgba(255, 255, 255, 0)',
+    'rgba(255, 255, 255, 0.3)',
+    'rgba(255, 255, 255, 0)',
+  ]}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 0 }}
+  style={[
+    styles.shimmer,
+    { transform: [{ translateX: shimmerValue }] }
+  ]}
+/>
+// Animate shimmerValue from -width to width, repeat
+```
 
-### Implementation Notes
+### Accessibility & Performance
 
-1. **React Native Limitations**:
-   - `backdrop-filter` not supported → Use fallback solid colors with high opacity
-   - Can use `BlurView` from `expo-blur` for native blur effect
-   - Web version gets full glassmorphism
+#### Contrast & Legibility
+- Minimum contrast ratio: **4.5:1** (WCAG AA)
+- Text shadows for readability: `textShadowColor: 'rgba(0,0,0,0.1)'`
+- Vibrancy layer for text on glass: increases saturation by 20%
 
-2. **Component Library Structure**:
-   ```
-   components/
-   ├── GlassCard.tsx          # Reusable glass card wrapper
-   ├── GlassButton.tsx        # Glass-styled buttons
-   ├── FloatingElement.tsx    # Animated floating container
-   └── ShimmerLoader.tsx      # Glass skeleton loader
-   ```
+#### Reduced Motion Support
+```typescript
+import { AccessibilityInfo } from 'react-native';
 
-3. **CSS Variables for Theming**:
-   ```css
-   :root {
-     --glass-bg-light: rgba(255, 255, 255, 0.1);
-     --glass-bg-dark: rgba(28, 28, 30, 0.8);
-     --glass-border: rgba(255, 255, 255, 0.2);
-     --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-   }
-   ```
+const [reduceMotion, setReduceMotion] = useState(false);
 
-### Inspiration References
-- **Apple iOS Design**: Frosted glass panels, translucent overlays
-- **Windows Fluent Design**: Acrylic materials, depth layers
-- **Glassmorphism.com**: Reference for blur intensities and overlays
+useEffect(() => {
+  AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
+}, []);
+
+// Disable animations if reduceMotion is true
+```
+
+#### Performance Optimization
+- **Native Blur**: Use `expo-blur` (GPU-accelerated)
+- **Memoization**: Wrap glass components in `React.memo`
+- **Avoid Over-Blur**: Limit blur to visible viewport
+- **Hardware Acceleration**: `shouldRasterizeIOS: true` for complex glass
+
+#### Dark Mode Support
+```typescript
+// Automatic dark mode detection
+import { useColorScheme } from 'react-native';
+
+const colorScheme = useColorScheme();
+const isDark = colorScheme === 'dark';
+
+const glassBackground = isDark
+  ? 'rgba(28, 28, 30, 0.68)'   // Dark glass
+  : 'rgba(255, 255, 255, 0.18)'; // Light glass
+```
+
+### Touch Targets & Spacing
+
+Following Apple HIG:
+- **Minimum touch target**: 44×44 pt
+- **Comfortable spacing**: 12-16pt between interactive elements
+- **Card padding**: 20pt for breathing room
+- **Screen margins**: 16-20pt from edges
+
+### Implementation Architecture
+
+```
+src/
+├── components/
+│   ├── glass/
+│   │   ├── GlassCard.tsx          # Primary content cards
+│   │   ├── GlassButton.tsx        # Interactive buttons
+│   │   ├── GlassModal.tsx         # Modal overlays
+│   │   ├── GlassNavBar.tsx        # Navigation header
+│   │   └── GlassBackground.tsx    # Animated gradient bg
+│   └── feedback/
+│       ├── ShimmerLoader.tsx      # Loading skeleton
+│       └── SpringButton.tsx       # iOS spring animation wrapper
+├── theme/
+│   ├── colors.ts                  # iOS color system
+│   ├── typography.ts              # SF Pro-inspired scale
+│   ├── spacing.ts                 # 8pt grid
+│   └── shadows.ts                 # Elevation system
+└── contexts/
+    └── ThemeContext.tsx           # Dark/light mode provider
+```
+
+### Inspiration & References
+- **Apple Human Interface Guidelines**: Translucency, vibrancy, depth
+- **iOS Control Center**: Multi-layer glass panels
+- **macOS Big Sur**: Frosted glass materials
+- **SF Symbols**: Color vibrancy and saturation
 
 ## 🔒 Security
 

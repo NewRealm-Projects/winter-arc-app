@@ -22,8 +22,6 @@ interface DayProgress {
 
 type ViewMode = 'week' | 'month';
 
-const SEGMENT_COLORS = ['#FF6B6B', '#45AAF2', '#FFB347', '#00D084'];
-
 const getStartOfWeek = (reference: Date) => {
   const date = new Date(reference);
   const day = date.getDay();
@@ -39,7 +37,8 @@ const getStartOfMonth = (reference: Date) => {
   return date;
 };
 
-const getDaysInMonth = (reference: Date) => new Date(reference.getFullYear(), reference.getMonth() + 1, 0).getDate();
+const getDaysInMonth = (reference: Date) =>
+  new Date(reference.getFullYear(), reference.getMonth() + 1, 0).getDate();
 
 const formatDayLabel = (date: Date, mode: ViewMode) => {
   if (mode === 'week') {
@@ -49,8 +48,13 @@ const formatDayLabel = (date: Date, mode: ViewMode) => {
   return date.getDate().toString();
 };
 
-const ProgressRing: React.FC<{ day: DayProgress; mode: ViewMode; colors: any }> = ({ day, mode, colors }) => {
+const ProgressRing: React.FC<{ day: DayProgress; mode: ViewMode; colors: any }> = ({
+  day,
+  mode,
+  colors,
+}) => {
   const segments = [day.pushups, day.water, day.protein, day.sport];
+  const segmentColors = [colors.pushups, colors.water, colors.protein, colors.sport];
   const size = mode === 'month' ? 46 : 72;
   const strokeWidth = mode === 'month' ? 8 : 10;
   const radius = (size - strokeWidth) / 2;
@@ -60,14 +64,21 @@ const ProgressRing: React.FC<{ day: DayProgress; mode: ViewMode; colors: any }> 
   return (
     <View style={[styles.ringContainer, mode === 'month' && styles.ringContainerSmall]}>
       <Svg width={size} height={size}>
-        <Circle cx={size / 2} cy={size / 2} r={radius} stroke={colors.border} strokeWidth={strokeWidth} fill="transparent" />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke={colors.border}
+          strokeWidth={strokeWidth}
+          fill="transparent"
+        />
         {segments.map((active, index) => (
           <Circle
             key={`segment-${index}`}
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke={active ? SEGMENT_COLORS[index] : colors.border}
+            stroke={active ? segmentColors[index] : colors.border}
             strokeWidth={strokeWidth}
             strokeDasharray={`${segmentLength} ${circumference}`}
             strokeDashoffset={circumference - segmentLength * (index + 1)}
@@ -78,8 +89,12 @@ const ProgressRing: React.FC<{ day: DayProgress; mode: ViewMode; colors: any }> 
         ))}
       </Svg>
       <View style={styles.ringCenter}>
-        <Text style={[styles.ringValue, { color: colors.text }]}>{Math.round(day.completion)}%</Text>
-        <Text style={[styles.dayLabel, { color: colors.textSecondary }]}>{formatDayLabel(day.date, mode)}</Text>
+        <Text style={[styles.ringValue, { color: colors.text }]}>
+          {Math.round(day.completion)}%
+        </Text>
+        <Text style={[styles.dayLabel, { color: colors.textSecondary }]}>
+          {formatDayLabel(day.date, mode)}
+        </Text>
       </View>
     </View>
   );
@@ -191,7 +206,11 @@ export default function WeeklyOverview() {
             ]}
             onPress={() => setViewMode('week')}
           >
-            <Text style={[styles.toggleText, { color: viewMode === 'week' ? 'white' : colors.text }]}>Woche</Text>
+            <Text
+              style={[styles.toggleText, { color: viewMode === 'week' ? 'white' : colors.text }]}
+            >
+              Woche
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[
@@ -200,32 +219,41 @@ export default function WeeklyOverview() {
             ]}
             onPress={() => setViewMode('month')}
           >
-            <Text style={[styles.toggleText, { color: viewMode === 'month' ? 'white' : colors.text }]}>Monat</Text>
+            <Text
+              style={[styles.toggleText, { color: viewMode === 'month' ? 'white' : colors.text }]}
+            >
+              Monat
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={[styles.ringsContainer, viewMode === 'month' && styles.ringsContainerMonth]}>
         {data.map((day, index) => (
-          <ProgressRing key={`${day.date.toISOString()}-${index}`} day={day} mode={viewMode} colors={colors} />
+          <ProgressRing
+            key={`${day.date.toISOString()}-${index}`}
+            day={day}
+            mode={viewMode}
+            colors={colors}
+          />
         ))}
       </View>
 
       <View style={styles.legend}>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: SEGMENT_COLORS[0] }]} />
+          <View style={[styles.legendDot, { backgroundColor: colors.pushups }]} />
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Push-ups</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: SEGMENT_COLORS[1] }]} />
+          <View style={[styles.legendDot, { backgroundColor: colors.water }]} />
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Wasser</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: SEGMENT_COLORS[2] }]} />
+          <View style={[styles.legendDot, { backgroundColor: colors.protein }]} />
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Protein</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: SEGMENT_COLORS[3] }]} />
+          <View style={[styles.legendDot, { backgroundColor: colors.sport }]} />
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Sport</Text>
         </View>
       </View>

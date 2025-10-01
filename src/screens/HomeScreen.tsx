@@ -97,9 +97,15 @@ export default function HomeScreen({ navigation }: any) {
       getProteinEntries(user.uid),
     ]);
 
-    setTodayPushUps(pushUps.filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.count, 0));
-    setTodayWater(water.filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.amount, 0));
-    setTodayProtein(protein.filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.grams, 0));
+    setTodayPushUps(
+      pushUps.filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.count, 0)
+    );
+    setTodayWater(
+      water.filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.amount, 0)
+    );
+    setTodayProtein(
+      protein.filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.grams, 0)
+    );
 
     const todaySportEntry = sport.find(entry => isToday(entry.date));
     setTodaySport(!!todaySportEntry);
@@ -137,12 +143,22 @@ export default function HomeScreen({ navigation }: any) {
       };
 
       const memberSummaries: MemberDailySummary[] = members.map((member, index) => {
-        const pushTotal = pushData[index].filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.count, 0);
-        const waterTotal = waterData[index].filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.amount, 0);
-        const proteinTotal = proteinData[index].filter(entry => isToday(entry.date)).reduce((sum, entry) => sum + entry.grams, 0);
+        const pushTotal = pushData[index]
+          .filter(entry => isToday(entry.date))
+          .reduce((sum, entry) => sum + entry.count, 0);
+        const waterTotal = waterData[index]
+          .filter(entry => isToday(entry.date))
+          .reduce((sum, entry) => sum + entry.amount, 0);
+        const proteinTotal = proteinData[index]
+          .filter(entry => isToday(entry.date))
+          .reduce((sum, entry) => sum + entry.grams, 0);
         const sportDone = sportData[index].some(entry => isToday(entry.date));
 
-        const score = pushTotal + Math.floor(waterTotal / 1000) + Math.floor(proteinTotal / 10) + (sportDone ? 10 : 0);
+        const score =
+          pushTotal +
+          Math.floor(waterTotal / 1000) +
+          Math.floor(proteinTotal / 10) +
+          (sportDone ? 10 : 0);
 
         return {
           id: member.id,
@@ -195,7 +211,9 @@ export default function HomeScreen({ navigation }: any) {
   const handleQuickAddWater = async (amount: number) => {
     try {
       await addWaterEntry(user!.uid, { amount, date: new Date() });
-      Alert.alert('✅', `${amount} ml Wasser gespeichert!`, [{ text: 'OK' }], { cancelable: false });
+      Alert.alert('✅', `${amount} ml Wasser gespeichert!`, [{ text: 'OK' }], {
+        cancelable: false,
+      });
       loadPersonalStats();
       loadGroupSummary();
     } catch (error) {
@@ -281,24 +299,34 @@ export default function HomeScreen({ navigation }: any) {
             <Ionicons name="people-outline" size={18} color={colors.text} />
             <Text style={[styles.groupTitle, { color: colors.text }]}>Team heute</Text>
           </View>
-          <Text style={[styles.groupSubtitle, { color: colors.textSecondary }]}>Mitglieder: {members.length}</Text>
+          <Text style={[styles.groupSubtitle, { color: colors.textSecondary }]}>
+            Mitglieder: {members.length}
+          </Text>
         </View>
         <View style={styles.groupTotalsRow}>
           <View style={styles.groupTotalBox}>
             <Text style={[styles.groupTotalLabel, { color: colors.textSecondary }]}>Push-ups</Text>
-            <Text style={[styles.groupTotalValue, { color: '#FF6B6B' }]}>{totals.pushUps}</Text>
+            <Text style={[styles.groupTotalValue, { color: colors.pushups }]}>
+              {totals.pushUps}
+            </Text>
           </View>
           <View style={styles.groupTotalBox}>
             <Text style={[styles.groupTotalLabel, { color: colors.textSecondary }]}>Wasser</Text>
-            <Text style={[styles.groupTotalValue, { color: '#45AAF2' }]}>{(totals.water / 1000).toFixed(1)} L</Text>
+            <Text style={[styles.groupTotalValue, { color: colors.water }]}>
+              {(totals.water / 1000).toFixed(1)} L
+            </Text>
           </View>
           <View style={styles.groupTotalBox}>
             <Text style={[styles.groupTotalLabel, { color: colors.textSecondary }]}>Protein</Text>
-            <Text style={[styles.groupTotalValue, { color: '#FFB347' }]}>{totals.protein} g</Text>
+            <Text style={[styles.groupTotalValue, { color: colors.protein }]}>
+              {totals.protein} g
+            </Text>
           </View>
           <View style={styles.groupTotalBox}>
             <Text style={[styles.groupTotalLabel, { color: colors.textSecondary }]}>Sport</Text>
-            <Text style={[styles.groupTotalValue, { color: '#00D084' }]}>{totals.sport}/{members.length}</Text>
+            <Text style={[styles.groupTotalValue, { color: colors.sport }]}>
+              {totals.sport}/{members.length}
+            </Text>
           </View>
         </View>
         <View style={styles.groupLeaderboard}>
@@ -307,10 +335,17 @@ export default function HomeScreen({ navigation }: any) {
               key={member.id}
               style={[styles.groupLeaderboardRow, { borderBottomColor: colors.border }]}
             >
-              <Text style={[styles.groupLeaderboardRank, { color: colors.text }]}>{index + 1}.</Text>
+              <Text style={[styles.groupLeaderboardRank, { color: colors.text }]}>
+                {index + 1}.
+              </Text>
               <View style={styles.groupLeaderboardInfo}>
-                <Text style={[styles.groupLeaderboardName, { color: colors.text }]}>{member.label}</Text>
-                <Text style={[styles.groupLeaderboardStats, { color: colors.textSecondary }]}>S {member.score} · PU {member.pushUps} · W {(member.water / 1000).toFixed(1)} L · P {member.protein} g</Text>
+                <Text style={[styles.groupLeaderboardName, { color: colors.text }]}>
+                  {member.label}
+                </Text>
+                <Text style={[styles.groupLeaderboardStats, { color: colors.textSecondary }]}>
+                  S {member.score} · PU {member.pushUps} · W {(member.water / 1000).toFixed(1)} L ·
+                  P {member.protein} g
+                </Text>
               </View>
             </View>
           ))}
@@ -325,16 +360,28 @@ export default function HomeScreen({ navigation }: any) {
         <View style={[styles.content, isDesktop && styles.contentDesktop]}>
           <GlassCard style={styles.header}>
             <View>
-              <Text style={[styles.greeting, { color: colors.text }]}>Hallo, {userData?.nickname || user?.displayName || 'User'}!</Text>
+              <Text style={[styles.greeting, { color: colors.text }]}>
+                Hallo, {userData?.nickname || user?.displayName || 'User'}!
+              </Text>
               <Text style={[styles.date, { color: colors.textSecondary }]}>
-                {new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}
+                {new Date().toLocaleDateString('de-DE', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                })}
               </Text>
             </View>
             <View style={styles.headerButtons}>
-              <TouchableOpacity onPress={() => navigation.navigate('Leaderboard')} style={styles.headerButton}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Leaderboard')}
+                style={styles.headerButton}
+              >
                 <Ionicons name="trophy-outline" size={20} color={colors.text} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => navigation.navigate('Settings')} style={styles.headerButton}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Settings')}
+                style={styles.headerButton}
+              >
                 <Ionicons name="settings-outline" size={20} color={colors.text} />
               </TouchableOpacity>
             </View>
@@ -348,13 +395,18 @@ export default function HomeScreen({ navigation }: any) {
           <GlassCard style={styles.trackingCard}>
             <View style={styles.cardHeader}>
               <View style={styles.cardHeaderLeft}>
-                <Ionicons name="barbell-outline" size={28} color="#FF6B6B" />
+                <Ionicons name="barbell-outline" size={28} color={colors.pushups} />
                 <View style={styles.cardTitleContainer}>
                   <Text style={[styles.cardTitle, { color: colors.text }]}>Push-ups</Text>
-                  <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Heute: {todayPushUps}</Text>
+                  <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                    Heute: {todayPushUps}
+                  </Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => handleOpenHistory('pushups')} style={styles.historyIconButton}>
+              <TouchableOpacity
+                onPress={() => handleOpenHistory('pushups')}
+                style={styles.historyIconButton}
+              >
                 <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
@@ -363,7 +415,7 @@ export default function HomeScreen({ navigation }: any) {
                 <GlassButton
                   key={count}
                   title={`+${count}`}
-                  color="#FF6B6B"
+                  color={colors.pushups}
                   onPress={() => handleQuickAddPushUps(count)}
                   style={styles.quickButton}
                   textStyle={styles.quickButtonText}
@@ -375,13 +427,18 @@ export default function HomeScreen({ navigation }: any) {
           <GlassCard style={styles.trackingCard}>
             <View style={styles.cardHeader}>
               <View style={styles.cardHeaderLeft}>
-                <Ionicons name="water-outline" size={28} color="#45AAF2" />
+                <Ionicons name="water-outline" size={28} color={colors.water} />
                 <View style={styles.cardTitleContainer}>
                   <Text style={[styles.cardTitle, { color: colors.text }]}>Wasser</Text>
-                  <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Heute: {todayWater} ml</Text>
+                  <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                    Heute: {todayWater} ml
+                  </Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => handleOpenHistory('water')} style={styles.historyIconButton}>
+              <TouchableOpacity
+                onPress={() => handleOpenHistory('water')}
+                style={styles.historyIconButton}
+              >
                 <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
@@ -390,7 +447,7 @@ export default function HomeScreen({ navigation }: any) {
                 <GlassButton
                   key={amount}
                   title={`+${amount}`}
-                  color="#45AAF2"
+                  color={colors.water}
                   onPress={() => handleQuickAddWater(amount)}
                   style={styles.quickButton}
                   textStyle={styles.quickButtonText}
@@ -402,13 +459,22 @@ export default function HomeScreen({ navigation }: any) {
           <GlassCard style={styles.trackingCard}>
             <View style={styles.cardHeader}>
               <View style={styles.cardHeaderLeft}>
-                <MaterialCommunityIcons name="food-drumstick-outline" size={28} color="#FFB347" />
+                <MaterialCommunityIcons
+                  name="food-drumstick-outline"
+                  size={28}
+                  color={colors.protein}
+                />
                 <View style={styles.cardTitleContainer}>
                   <Text style={[styles.cardTitle, { color: colors.text }]}>Protein</Text>
-                  <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Heute: {todayProtein} g · Ziel: {proteinGoal} g</Text>
+                  <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                    Heute: {todayProtein} g · Ziel: {proteinGoal} g
+                  </Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => handleOpenHistory('protein')} style={styles.historyIconButton}>
+              <TouchableOpacity
+                onPress={() => handleOpenHistory('protein')}
+                style={styles.historyIconButton}
+              >
                 <Ionicons name="time-outline" size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
@@ -417,7 +483,7 @@ export default function HomeScreen({ navigation }: any) {
                 <GlassButton
                   key={grams}
                   title={`+${grams}`}
-                  color="#FFB347"
+                  color={colors.protein}
                   onPress={() => handleQuickAddProtein(grams)}
                   style={styles.quickButton}
                   textStyle={styles.quickButtonText}
@@ -429,16 +495,18 @@ export default function HomeScreen({ navigation }: any) {
           <GlassCard style={styles.trackingCard}>
             <View style={styles.cardHeader}>
               <View style={styles.cardHeaderLeft}>
-                <MaterialCommunityIcons name="run-fast" size={28} color="#00D084" />
+                <MaterialCommunityIcons name="run-fast" size={28} color={colors.sport} />
                 <View style={styles.cardTitleContainer}>
                   <Text style={[styles.cardTitle, { color: colors.text }]}>Sport</Text>
-                  <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>Heute: {todaySport ? 'Erledigt ✓' : 'Noch offen'}</Text>
+                  <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]}>
+                    Heute: {todaySport ? 'Erledigt ✓' : 'Noch offen'}
+                  </Text>
                 </View>
               </View>
             </View>
             <GlassButton
               title={todaySport ? 'Status zurücksetzen' : 'Abhaken'}
-              color={todaySport ? '#FF6B6B' : '#95E1D3'}
+              color={todaySport ? colors.pushups : colors.sport}
               onPress={handleToggleSport}
               style={styles.sportButton}
               textStyle={styles.sportButtonText}
