@@ -31,7 +31,7 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
       "build": {
-        "publicPath": "./"
+        "publicPath": "/winter-arc-app/"
       },
       "splash": {
         "image": "./assets/splash.jpg",
