@@ -241,6 +241,187 @@ Stack Navigator (with modal presentation)
 5. **Responsive**: Works on mobile and desktop browsers
 6. **Offline-First**: Cache recent data for offline viewing
 7. **Modal Over Pages**: Never navigate away from home for quick actions
+8. **Glassmorphism/Liquid Glass**: Modern, ethereal aesthetic with transparency and blur effects
+
+## Glassmorphism Design System
+
+### Core Visual Style
+
+The app uses a **Liquid Glass / Glassmorphism** design language for a modern, premium feel.
+
+#### Glass Effect Properties
+```css
+/* Standard Glass Card */
+background: rgba(255, 255, 255, 0.1);  /* Semi-transparent white */
+backdrop-filter: blur(10px);            /* Blur background */
+-webkit-backdrop-filter: blur(10px);   /* Safari support */
+border: 1px solid rgba(255, 255, 255, 0.2);  /* Subtle border */
+border-radius: 16px;
+box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+```
+
+#### Color Palette
+- **Background Gradients**: Animated gradients (e.g., #667eea → #764ba2, #4ECDC4 → #556270)
+- **Glass Overlays**: rgba(255, 255, 255, 0.05-0.2) for light mode, rgba(0, 0, 0, 0.1-0.3) for dark
+- **Text**: High contrast white/black with opacity variations
+- **Accent Colors**:
+  - Push-ups: #FF6B6B (red/coral)
+  - Water: #4ECDC4 (cyan)
+  - Sport: #95E1D3 (mint)
+  - Protein: #F9CA24 (gold)
+  - Weight: #A29BFE (purple)
+
+#### Visual Effects
+- **Backdrop Blur**: 10-20px for depth
+- **Hover States**:
+  - `brightness(1.1)`
+  - `transform: scale(1.02) translateY(-2px)`
+  - Smooth glow effect
+- **Transitions**: `0.3s cubic-bezier(0.4, 0, 0.2, 1)` for all interactions
+- **Floating Animations**: Subtle vertical movement for cards
+- **Micro-interactions**:
+  - Button ripples on tap
+  - Card tilt on hover (desktop)
+  - Smooth loading skeletons with shimmer
+
+### Component-Specific Glass Effects
+
+#### GlassCard (Tracking Cards)
+```tsx
+// Used for: Push-ups, Water, Sport, Protein cards
+- Background: rgba(255, 255, 255, 0.1) or rgba(28, 28, 30, 0.8) in dark
+- Blur: 10px backdrop-filter
+- Border: 1px solid rgba(255, 255, 255, 0.2)
+- Shadow: Soft, elevated shadow
+- Border-radius: 16px
+- Padding: 20px
+```
+
+#### GlassButton (Quick-Add Buttons)
+```tsx
+// Category-colored buttons with glass overlay
+- Semi-transparent category color
+- Blur: 8px
+- Hover: Brighter + slight scale
+- Active: Scale down + brightness boost
+- Ripple effect on tap
+```
+
+#### GlassNavigation (Header)
+```tsx
+// Sticky header with strong blur
+- Background: rgba(255, 255, 255, 0.7) / rgba(0, 0, 0, 0.7)
+- Blur: 20px (stronger for readability)
+- Frosted glass appearance
+- Subtle bottom border
+```
+
+### Animations & Interactions
+
+#### Floating Effect (Cards)
+```css
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+/* Apply: animation: float 6s ease-in-out infinite; */
+```
+
+#### Shimmer Loading
+```css
+/* For skeleton screens */
+background: linear-gradient(
+  90deg,
+  rgba(255,255,255,0.0) 0%,
+  rgba(255,255,255,0.2) 50%,
+  rgba(255,255,255,0.0) 100%
+);
+animation: shimmer 2s infinite;
+```
+
+#### Button Ripple
+```tsx
+// On tap: expand circular overlay from tap point
+- Origin: Touch/click position
+- Expand: 0 → 100% in 0.6s
+- Fade: opacity 0.3 → 0
+```
+
+### Accessibility Considerations
+
+**Critical for Glass Design:**
+1. **Contrast Ratios**: Text must maintain WCAG AA (4.5:1) despite transparency
+   - Use higher opacity text: rgba(255, 255, 255, 0.95) not 0.7
+   - Add subtle text shadows for readability on complex backgrounds
+
+2. **Safari Fallbacks**:
+   ```css
+   @supports not (backdrop-filter: blur(10px)) {
+     background: rgba(255, 255, 255, 0.95);  /* Solid fallback */
+   }
+   ```
+
+3. **Performance**:
+   - Use `will-change: transform` for animated elements
+   - Limit backdrop-filter to visible cards only
+   - Optimize with `transform: translateZ(0)` for GPU acceleration
+
+4. **Touch Targets**: Minimum 44x44px tap areas (extra important with semi-transparent buttons)
+
+### Gradient Backgrounds
+
+#### Animated Background Gradient
+```css
+background: linear-gradient(
+  135deg,
+  #667eea 0%,
+  #764ba2 50%,
+  #f093fb 100%
+);
+background-size: 400% 400%;
+animation: gradientShift 15s ease infinite;
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+```
+
+#### Theme-Specific Gradients
+- **Light Mode**: Bright, colorful gradients (pastel to vibrant)
+- **Dark Mode**: Deep, moody gradients (dark purple → dark blue)
+
+### Implementation Notes
+
+1. **React Native Limitations**:
+   - `backdrop-filter` not supported → Use fallback solid colors with high opacity
+   - Can use `BlurView` from `expo-blur` for native blur effect
+   - Web version gets full glassmorphism
+
+2. **Component Library Structure**:
+   ```
+   components/
+   ├── GlassCard.tsx          # Reusable glass card wrapper
+   ├── GlassButton.tsx        # Glass-styled buttons
+   ├── FloatingElement.tsx    # Animated floating container
+   └── ShimmerLoader.tsx      # Glass skeleton loader
+   ```
+
+3. **CSS Variables for Theming**:
+   ```css
+   :root {
+     --glass-bg-light: rgba(255, 255, 255, 0.1);
+     --glass-bg-dark: rgba(28, 28, 30, 0.8);
+     --glass-border: rgba(255, 255, 255, 0.2);
+     --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+   }
+   ```
+
+### Inspiration References
+- **Apple iOS Design**: Frosted glass panels, translucent overlays
+- **Windows Fluent Design**: Acrylic materials, depth layers
+- **Glassmorphism.com**: Reference for blur intensities and overlays
 
 ## Common Issues & Solutions
 
