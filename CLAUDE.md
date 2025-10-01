@@ -76,20 +76,60 @@ The app tracks:
   - Firebase Security Rules (Access control)
   - Firebase App Check (Bot protection - Web only)
 
-## Development Commands
+## Quick Start Guide
+
+### Initial Setup
 
 ```bash
+# Clone repository
+git clone <repository-url>
+cd winter-arc-app
+
+# Install dependencies
+npm install
+
+# Create environment file
+cp .env.example .env
+# Edit .env with your Firebase credentials
+
 # Start development server
+npm start
+```
+
+### Development Commands
+
+```bash
+# Start development server (with QR code for mobile)
 npm start
 
 # Run on specific platforms
-npm run web       # Web browser
+npm run web       # Web browser (http://localhost:8081)
 npm run android   # Android emulator/device
 npm run ios       # iOS simulator (macOS only)
 
-# Build for web
-npm run build:web
+# Build & Deploy
+npm run build:web # Build for production (web)
+npm run deploy    # Deploy to GitHub Pages (via Actions)
+
+# Testing & Quality
+npm test          # Run test suite
+npm run lint      # Run ESLint
+npm run type-check # TypeScript type checking
+
+# Firebase Operations
+firebase deploy --only firestore:rules  # Deploy security rules
+firebase emulators:start                # Test locally
 ```
+
+### Environment Setup Checklist
+
+- [ ] Node.js 18+ installed
+- [ ] Firebase account created
+- [ ] Firebase project created
+- [ ] Google OAuth credentials configured
+- [ ] `.env` file created with all required keys
+- [ ] GitHub repository created
+- [ ] GitHub secrets configured (for deployment)
 
 ## Project Structure
 
@@ -653,40 +693,275 @@ firebase emulators:start --only firestore
 6. **Use HTTPS only** - Firebase enforces this automatically
 7. **Enable 2FA** - For Firebase Console and GitHub accounts
 
-## Common Issues & Solutions
+## Coding Standards & Best Practices
 
-### Issue: Entries not saving
-- Check Firebase rules allow write access
-- Verify user is authenticated
-- Check network connectivity
-- Verify date format (Timestamp.fromDate())
+### TypeScript Guidelines
 
-### Issue: Entries not displaying after logging
-- Verify loadAllData() is called after add/edit/delete operations
-- Check state updates are triggering re-renders
-- Verify userId matches in database queries
-- Check date filters (today calculation)
+```typescript
+// ✅ GOOD: Strong typing
+interface UserData {
+  nickname: string;
+  age: number;
+  weight?: number;
+}
 
-### Issue: Edit/Delete not working
-- Verify update/delete functions are imported from database.ts
-- Check entry IDs are being passed correctly
-- Ensure user is authenticated before operations
+// ❌ BAD: Using 'any'
+const user: any = {};
 
-### Issue: Theme not applying
-- Check useTheme() is called in component
-- Ensure ThemeProvider wraps Navigation
-- Verify colors object is destructured
+// ✅ GOOD: Explicit return types
+const calculateBMI = (weight: number, height: number): number => {
+  return weight / ((height / 100) ** 2);
+};
 
-### Issue: Weight graph not showing
-- Need at least 1 data point for graph (empty state shows tap-to-track)
-- Check WeightGraph component is properly imported in HomeScreen
-- Verify getWeightEntries is fetching data correctly
-- Check date range filter (last 14 days for HomeScreen mini-graph)
+// ✅ GOOD: Null checks
+if (user?.weight) {
+  console.log(user.weight);
+}
+```
 
-### Issue: WeeklyOverview not updating
-- Verify loadData() refreshes when entries change
-- Check data aggregation logic for today's completion
-- Verify date range calculations (week/month toggle)
+### Component Structure
+
+```typescript
+// Preferred component structure
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
+
+// 1. Type definitions
+interface Props {
+  onPress: () => void;
+  title: string;
+}
+
+// 2. Component
+export const MyComponent: React.FC<Props> = ({ onPress, title }) => {
+  const { colors } = useTheme();
+
+  // 3. State
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 4. Effects
+  useEffect(() => {
+    // Setup
+    return () => {
+      // Cleanup
+    };
+  }, []);
+
+  // 5. Handlers
+  const handlePress = () => {
+    setIsLoading(true);
+    onPress();
+  };
+
+  // 6. Render
+  return (
+    <View style={styles.container}>
+      <Text style={{ color: colors.text }}>{title}</Text>
+    </View>
+  );
+};
+
+// 7. Styles
+const styles = StyleSheet.create({
+  container: {
+    padding: 16,
+  },
+});
+```
+
+### Error Handling
+
+```typescript
+// ✅ GOOD: Comprehensive error handling
+try {
+  await addPushUpEntry(userId, count);
+  Alert.alert('Erfolg', 'Eintrag gespeichert');
+} catch (error) {
+  console.error('Failed to save entry:', error);
+  Alert.alert(
+    'Fehler',
+    'Eintrag konnte nicht gespeichert werden. Bitte versuche es erneut.'
+  );
+} finally {
+  setLoading(false);
+}
+
+// ❌ BAD: Silent failures
+try {
+  await addPushUpEntry(userId, count);
+} catch (error) {
+  // Empty catch block
+}
+```
+
+### Performance Optimization
+
+```typescript
+// ✅ GOOD: Memoization
+const expensiveCalculation = useMemo(() => {
+  return data.reduce((sum, item) => sum + item.value, 0);
+}, [data]);
+
+// ✅ GOOD: Callback memoization
+const handlePress = useCallback(() => {
+  onPress(id);
+}, [id, onPress]);
+
+// ✅ GOOD: Lazy loading
+const HeavyComponent = lazy(() => import('./HeavyComponent'));
+```
+
+### Naming Conventions
+
+```typescript
+// Components: PascalCase
+export const GlassButton = () => {};
+
+// Functions/Variables: camelCase
+const getUserData = () => {};
+const isLoading = false;
+
+// Constants: UPPER_SNAKE_CASE
+const MAX_PUSH_UPS = 1000;
+const API_ENDPOINT = 'https://api.example.com';
+
+// Types/Interfaces: PascalCase
+interface UserProfile {}
+type ThemeMode = 'light' | 'dark' | 'auto';
+
+// Files: kebab-case or PascalCase
+// Components: GlassButton.tsx
+// Utilities: date-utils.ts
+```
+
+## Common Issues & Troubleshooting
+
+### Database Issues
+
+#### Issue: Entries not saving
+**Symptoms:**
+- No error message shown
+- Data not appearing in Firestore console
+- App appears to work but data is lost
+
+**Solutions:**
+1. Check Firebase rules allow write access
+   ```bash
+   firebase deploy --only firestore:rules
+   ```
+2. Verify user is authenticated
+   ```typescript
+   if (!auth.currentUser) {
+     throw new Error('User not authenticated');
+   }
+   ```
+3. Check network connectivity
+4. Verify date format (use `Timestamp.fromDate()`)
+5. Check Firestore quotas in Firebase Console
+
+#### Issue: Entries not displaying after logging
+**Symptoms:**
+- Entry saves to database
+- UI doesn't update immediately
+- Refresh shows the entry
+
+**Solutions:**
+1. Call `loadAllData()` after add/edit/delete operations
+   ```typescript
+   await addPushUpEntry(userId, count);
+   await loadAllData(); // ← Critical!
+   ```
+2. Verify state updates trigger re-renders
+3. Check userId matches in queries
+4. Verify date filters (today calculation)
+5. Use React DevTools to inspect state
+
+#### Issue: Edit/Delete not working
+**Solutions:**
+1. Verify functions are imported correctly
+   ```typescript
+   import { updatePushUpEntry, deletePushUpEntry } from '../services/database';
+   ```
+2. Check entry IDs are passed correctly (not undefined)
+3. Ensure user is authenticated
+4. Check Firebase rules allow update/delete
+
+### UI/UX Issues
+
+#### Issue: Theme not applying
+**Solutions:**
+1. Verify `useTheme()` is called in component
+2. Ensure `ThemeProvider` wraps Navigation in App.tsx
+3. Check colors object is destructured: `const { colors } = useTheme()`
+4. Clear cache: Stop Metro, delete `.expo` folder, restart
+
+#### Issue: Weight graph not showing
+**Symptoms:**
+- Empty graph component
+- "Tippen um Gewicht zu tracken" shows when data exists
+
+**Solutions:**
+1. Need at least 1 data point for graph
+2. Check `WeightGraph` component is imported in HomeScreen
+3. Verify `getWeightEntries()` fetches data correctly
+4. Check date range filter (last 14 days)
+5. Inspect console for errors
+6. Verify `weightEntries` prop is passed and not empty
+
+#### Issue: WeeklyOverview not updating
+**Solutions:**
+1. Verify `loadData()` refreshes when entries change
+2. Check data aggregation logic for today's completion
+3. Verify date range calculations (week/month toggle)
+4. Ensure `useEffect` dependencies include entry arrays
+
+### Build & Deployment Issues
+
+#### Issue: Build fails with type errors
+**Solutions:**
+```bash
+# Clear cache and rebuild
+rm -rf node_modules .expo dist
+npm install
+npm run type-check
+```
+
+#### Issue: GitHub Pages deployment fails
+**Solutions:**
+1. Verify all GitHub secrets are set
+2. Check `homepage` field in package.json
+3. Ensure `gh-pages` branch exists
+4. Review GitHub Actions logs for specific errors
+
+#### Issue: Firebase App Check blocking requests
+**Solutions:**
+1. Disable enforcement in Firebase Console temporarily
+2. Verify reCAPTCHA site key is correct
+3. Check domain is whitelisted in reCAPTCHA admin
+4. Use debug tokens for testing
+
+### Performance Issues
+
+#### Issue: App feels slow/laggy
+**Solutions:**
+1. Use React DevTools Profiler to identify slow renders
+2. Add memoization to expensive calculations
+3. Implement virtualization for long lists
+4. Optimize images (use WebP, lazy load)
+5. Reduce backdrop-filter usage (expensive on mobile)
+
+#### Issue: Large bundle size
+**Solutions:**
+```bash
+# Analyze bundle
+npx expo-cli export --public-url . --dev false
+npx source-map-explorer dist/**/*.js
+
+# Optimize imports (use specific imports, not entire libraries)
+import { format } from 'date-fns'; // ✅ Good
+import * as dateFns from 'date-fns'; // ❌ Bad
+```
 
 ## Testing Checklist
 
@@ -756,3 +1031,368 @@ firebase emulators:start --only firestore
 - [ ] Week/Month toggle works
 - [ ] Current user is highlighted
 - [ ] Medal emojis show for top 3
+
+## Development Workflow
+
+### Feature Development Process
+
+1. **Planning Phase**
+   - [ ] Review requirements in this CLAUDE.md
+   - [ ] Break down feature into tasks
+   - [ ] Identify affected components/files
+   - [ ] Consider security implications
+   - [ ] Plan data model changes if needed
+
+2. **Implementation Phase**
+   - [ ] Create feature branch: `git checkout -b feature/feature-name`
+   - [ ] Implement changes following coding standards
+   - [ ] Add TypeScript types for all new code
+   - [ ] Handle errors gracefully
+   - [ ] Update state management if needed
+
+3. **Testing Phase** (MANDATORY)
+   - [ ] Test feature manually in dev environment
+   - [ ] Verify UI updates immediately
+   - [ ] Test edge cases (empty state, max values, errors)
+   - [ ] Test on multiple screen sizes (mobile, tablet, desktop)
+   - [ ] Check dark mode compatibility
+   - [ ] Verify Firebase rules work correctly
+   - [ ] Test offline behavior
+
+4. **Documentation Phase**
+   - [ ] Update this CLAUDE.md with new features/requirements
+   - [ ] Add JSDoc comments for complex functions
+   - [ ] Update README.md if user-facing changes
+   - [ ] Document any new environment variables
+
+5. **Deployment Phase**
+   - [ ] Commit with descriptive message
+   - [ ] Push to GitHub
+   - [ ] Verify GitHub Actions pass
+   - [ ] Test production build locally: `npm run build:web`
+   - [ ] Monitor Firebase usage after deployment
+
+### Git Commit Message Format
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `refactor`: Code refactoring
+- `style`: UI/styling changes
+- `docs`: Documentation updates
+- `test`: Adding/updating tests
+- `chore`: Build tasks, dependencies
+
+**Examples:**
+```bash
+feat(tracking): add inline edit for push-up entries
+
+- Add edit button to each entry row
+- Open inline form on edit click
+- Update database and UI on save
+- Show confirmation message
+
+Closes #42
+
+---
+
+fix(auth): prevent navigation before onboarding complete
+
+Users were able to access HomeScreen before completing
+onboarding by using browser back button.
+
+Fixes #38
+
+---
+
+refactor(theme): extract color constants to theme context
+
+- Move hardcoded colors to theme configuration
+- Add type-safe color accessors
+- Update all components to use theme colors
+```
+
+## API Reference
+
+### Firebase Database Functions
+
+Located in `src/services/database.ts`
+
+#### User Management
+
+```typescript
+// Create or update user profile
+await createOrUpdateUser(
+  userId: string,
+  data: Partial<UserProfile>
+): Promise<void>
+
+// Get user profile
+const user = await getUser(userId: string): Promise<UserProfile | null>
+```
+
+#### Push-ups
+
+```typescript
+// Add entry
+await addPushUpEntry(
+  userId: string,
+  count: number,
+  notes?: string
+): Promise<string>
+
+// Get entries for date range
+const entries = await getPushUpEntries(
+  userId: string,
+  startDate: Date,
+  endDate: Date
+): Promise<PushUpEntry[]>
+
+// Update entry
+await updatePushUpEntry(
+  entryId: string,
+  data: Partial<PushUpEntry>
+): Promise<void>
+
+// Delete entry
+await deletePushUpEntry(entryId: string): Promise<void>
+```
+
+#### Water
+
+```typescript
+// Add entry
+await addWaterEntry(
+  userId: string,
+  amount: number
+): Promise<string>
+
+// Get today's entries
+const entries = await getWaterEntries(
+  userId: string,
+  date: Date
+): Promise<WaterEntry[]>
+
+// Calculate today's total
+const total = await getTodayWaterTotal(userId: string): Promise<number>
+```
+
+#### Protein
+
+```typescript
+// Add entry
+await addProteinEntry(
+  userId: string,
+  grams: number,
+  notes?: string
+): Promise<string>
+
+// Get entries
+const entries = await getProteinEntries(
+  userId: string,
+  startDate: Date,
+  endDate: Date
+): Promise<ProteinEntry[]>
+```
+
+#### Sport
+
+```typescript
+// Mark sport complete for today
+await markSportComplete(userId: string): Promise<void>
+
+// Check if sport completed today
+const isComplete = await isSportCompleteToday(userId: string): Promise<boolean>
+
+// Get sport entries
+const entries = await getSportEntries(
+  userId: string,
+  startDate: Date,
+  endDate: Date
+): Promise<SportEntry[]>
+```
+
+#### Weight
+
+```typescript
+// Add weight entry
+await addWeightEntry(
+  userId: string,
+  weight: number,
+  bodyFat?: number
+): Promise<string>
+
+// Get weight history
+const entries = await getWeightEntries(
+  userId: string,
+  days: number
+): Promise<WeightEntry[]>
+
+// Calculate BMI
+const bmi = calculateBMI(weight: number, height: number): number
+```
+
+### Theme Context API
+
+```typescript
+import { useTheme } from '../contexts/ThemeContext';
+
+// In component
+const { theme, colors, setTheme } = useTheme();
+
+// Available themes
+type ThemeMode = 'light' | 'dark' | 'auto';
+
+// Colors object structure
+interface ThemeColors {
+  // Base colors
+  background: string;
+  surface: string;
+  text: string;
+  textSecondary: string;
+  border: string;
+
+  // Category colors
+  pushUps: string;
+  water: string;
+  sport: string;
+  protein: string;
+  weight: string;
+
+  // Status colors
+  success: string;
+  error: string;
+  warning: string;
+
+  // Glass effect colors
+  glassBackground: string;
+  glassBorder: string;
+}
+```
+
+### Auth Context API
+
+```typescript
+import { useAuth } from '../contexts/AuthContext';
+
+// In component
+const { user, profile, loading, signIn, signOut } = useAuth();
+
+// Auth state
+user: User | null;              // Firebase user object
+profile: UserProfile | null;    // User profile from Firestore
+loading: boolean;               // Auth state loading
+
+// Methods
+signIn: () => Promise<void>;    // Sign in with Google
+signOut: () => Promise<void>;   // Sign out current user
+```
+
+## Future Enhancements
+
+### Planned Features
+
+#### Priority 1 (Next Sprint)
+- [ ] **Habit Streaks**: Track consecutive days of goal completion
+- [ ] **Custom Goals**: Allow users to set personalized daily targets
+- [ ] **Photo Logging**: Add before/after progress photos
+- [ ] **Export Data**: Download personal data as CSV/JSON
+- [ ] **Weekly Reports**: Email summary of weekly progress
+
+#### Priority 2 (Backlog)
+- [ ] **Social Features**: Like/comment on friend's achievements
+- [ ] **Challenges**: Create group challenges (e.g., "1000 push-ups this month")
+- [ ] **Achievements/Badges**: Gamification rewards
+- [ ] **Meal Tracking**: Log full meals instead of just protein
+- [ ] **Workout Plans**: Pre-defined workout routines
+- [ ] **Rest Days**: Track rest/recovery days
+- [ ] **Injury Tracking**: Log injuries and affected activities
+
+#### Priority 3 (Wishlist)
+- [ ] **AI Coach**: Personalized recommendations based on progress
+- [ ] **Wearable Integration**: Sync with Apple Health, Google Fit
+- [ ] **Video Tutorials**: Exercise form guides
+- [ ] **Nutrition Database**: Food search with macros
+- [ ] **Calendar View**: Monthly calendar with all activities
+- [ ] **Voice Logging**: "Hey Siri/Alexa, log 50 push-ups"
+
+### Technical Debt
+
+- [ ] Add unit tests (Jest + React Testing Library)
+- [ ] Add E2E tests (Detox for mobile, Playwright for web)
+- [ ] Implement proper error boundaries
+- [ ] Add performance monitoring (Firebase Performance)
+- [ ] Set up Sentry for error tracking
+- [ ] Implement analytics (Firebase Analytics)
+- [ ] Add offline support with local database sync
+- [ ] Optimize bundle size (code splitting, lazy loading)
+- [ ] Implement proper loading states (skeletons)
+- [ ] Add accessibility features (screen reader support)
+- [ ] Internationalization (i18n) support
+
+### Performance Optimizations
+
+- [ ] Implement pagination for large data sets
+- [ ] Add infinite scroll for history views
+- [ ] Cache frequently accessed data (React Query)
+- [ ] Optimize images (WebP format, responsive images)
+- [ ] Implement service worker for PWA features
+- [ ] Add request debouncing for search/filter
+- [ ] Optimize Firestore queries (composite indexes)
+- [ ] Implement virtual scrolling for long lists
+
+## Resources & References
+
+### Official Documentation
+- [Expo Documentation](https://docs.expo.dev/)
+- [React Navigation](https://reactnavigation.org/docs/getting-started)
+- [Firebase Documentation](https://firebase.google.com/docs)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [React Native Documentation](https://reactnative.dev/docs/getting-started)
+
+### Design Resources
+- [Glassmorphism.com](https://glassmorphism.com/) - Glass effect generator
+- [Coolors.co](https://coolors.co/) - Color palette generator
+- [React Native UI Libraries](https://www.reactnative.directory/)
+
+### Security Resources
+- [OWASP Mobile Security](https://owasp.org/www-project-mobile-security/)
+- [Firebase Security Rules Guide](https://firebase.google.com/docs/rules)
+- [Socket.dev](https://socket.dev/) - Dependency security
+
+### Learning Resources
+- [React Native Express](https://www.reactnative.express/)
+- [Expo Router Tutorial](https://docs.expo.dev/router/introduction/)
+- [Firebase for React Native](https://rnfirebase.io/)
+
+## Changelog
+
+### Version 2.0.0 (2025-10-01)
+- ✨ Restructured CLAUDE.md for professional setup
+- ✨ Added comprehensive coding standards
+- ✨ Added detailed troubleshooting guide
+- ✨ Added development workflow process
+- ✨ Added API reference documentation
+- ✨ Added future enhancements roadmap
+- ✨ Added resources and references section
+
+### Version 1.x.x (Previous)
+- Initial setup and basic documentation
+- Core tracking features implemented
+- Glassmorphism design system
+- Firebase integration
+- GitHub Actions deployment
+
+---
+
+**Last Updated:** 2025-10-01
+**Maintained By:** Development Team
+**Questions?** Check the resources section or open an issue on GitHub
