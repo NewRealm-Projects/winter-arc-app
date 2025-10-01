@@ -1,6 +1,12 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+**Claude Code Configuration & Development Guidelines**
+
+This file provides comprehensive guidance for Claude Code (claude.ai/code) when working with the Winter Arc fitness tracking application. It ensures consistent development practices, maintains code quality, and serves as the single source of truth for project requirements.
+
+**Version:** 2.0
+**Last Updated:** 2025-10-01
+**Project:** Winter Arc Fitness Tracker
 
 ## 🔄 Meta-Requirement: Documentation Updates
 
@@ -89,28 +95,45 @@ npm run build:web
 
 ```
 src/
-├── components/      # Reusable UI components
-│   └── WeeklyOverview.tsx  # Week/month progress rings
-├── contexts/        # React contexts
-│   ├── AuthContext.tsx     # User authentication & data
-│   └── ThemeContext.tsx    # Dark/light/auto theme
-├── screens/         # Screen components
-│   ├── LoginScreen.tsx
-│   ├── OnboardingScreen.tsx
-│   ├── HomeScreen.tsx
-│   ├── PushUpsScreen.tsx
-│   ├── WaterScreen.tsx
-│   ├── SportScreen.tsx
-│   ├── ProteinScreen.tsx
-│   ├── WeightTrackerScreen.tsx
-│   ├── LeaderboardScreen.tsx
-│   └── SettingsScreen.tsx
-├── services/        # External services
-│   ├── firebase.ts  # Firebase initialization
-│   ├── database.ts  # Firestore CRUD operations
-│   └── notifications.ts  # Push notifications
-└── types/           # TypeScript type definitions
+├── components/          # Reusable UI components
+│   ├── AnimatedGradient.tsx   # Gradient background wrapper
+│   ├── GlassButton.tsx        # Glass-styled buttons
+│   ├── GlassCard.tsx          # Glass-styled card container
+│   ├── WeeklyOverview.tsx     # Week/month progress rings
+│   └── WeightGraph.tsx        # Interactive weight graph with dual lines
+├── contexts/            # React contexts
+│   ├── AuthContext.tsx        # User authentication & data
+│   └── ThemeContext.tsx       # Dark/light/auto theme
+├── screens/             # Screen components
+│   ├── LoginScreen.tsx        # Google OAuth login
+│   ├── OnboardingScreen.tsx   # First-time user setup
+│   ├── HomeScreen.tsx         # Main dashboard with inline logging
+│   ├── WeightTrackerScreen.tsx   # 30-day weight graph view
+│   ├── LeaderboardScreen.tsx     # Group rankings
+│   ├── SettingsScreen.tsx        # Profile & app settings
+│   ├── PushUpsScreen.tsx         # (DEPRECATED - unused)
+│   ├── WaterScreen.tsx           # (DEPRECATED - unused)
+│   ├── SportScreen.tsx           # (DEPRECATED - unused)
+│   ├── ProteinScreen.tsx         # (DEPRECATED - unused)
+│   └── NutritionScreen.tsx       # (DEPRECATED - unused)
+├── services/            # External services
+│   ├── firebase.ts            # Firebase initialization + App Check
+│   ├── database.ts            # Firestore CRUD operations
+│   └── notifications.ts       # Push notifications
+└── types/               # TypeScript type definitions
+    └── index.ts               # All type definitions
+
+.github/
+└── workflows/
+    ├── deploy.yml             # Web deployment to GitHub Pages
+    └── socket-security.yml    # Socket.dev security scanning
+
+firestore.rules              # Firebase Security Rules
+SECURITY_SETUP.md           # Security configuration guide
+REQUIREMENTS_STATUS.md      # Latest requirements review
 ```
+
+**Note:** PushUps, Water, Sport, Protein, and Nutrition screens are deprecated. All logging is now done inline on HomeScreen.
 
 ## Firebase Configuration
 
@@ -124,6 +147,7 @@ EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=...
 EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
 EXPO_PUBLIC_FIREBASE_APP_ID=...
 EXPO_PUBLIC_GOOGLE_CLIENT_ID=...
+EXPO_PUBLIC_RECAPTCHA_SITE_KEY=...  # For Firebase App Check (optional)
 ```
 
 ## GitHub Actions Deployment
@@ -137,6 +161,9 @@ The app automatically deploys to GitHub Pages on every push to `main` branch.
 - `EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET`
 - `EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
 - `EXPO_PUBLIC_FIREBASE_APP_ID`
+- `EXPO_PUBLIC_GOOGLE_CLIENT_ID`
+- `EXPO_PUBLIC_RECAPTCHA_SITE_KEY` (optional - for App Check)
+- `SOCKET_SECURITY_API_KEY` (optional - for Socket.dev scanning)
 
 **Enable GitHub Pages:**
 1. Go to repository Settings → Pages
@@ -306,16 +333,14 @@ Stack Navigator (with modal presentation)
 ├── Login (no header)
 ├── Onboarding (no header, one-time)
 └── Main Flow
-    ├── Home (no header)
+    ├── Home (no header) - Main dashboard with ALL inline logging
     └── Modals (all use presentation: 'modal')
-        ├── PushUps
-        ├── Water
-        ├── Sport
-        ├── Protein
-        ├── WeightTracker
-        ├── Leaderboard
-        └── Settings
+        ├── WeightTracker - 30-day detailed graph view
+        ├── Leaderboard - Group rankings
+        └── Settings - Profile & app settings
 ```
+
+**IMPORTANT:** Push-ups, Water, Sport, and Protein NO LONGER have separate screens. All logging is done inline on HomeScreen with quick-add buttons and inline edit/delete.
 
 ## Design Principles
 
@@ -636,10 +661,16 @@ firebase emulators:start --only firestore
 - Check network connectivity
 - Verify date format (Timestamp.fromDate())
 
-### Issue: Modals opening as full pages
-- Ensure `presentation: 'modal'` in screenOptions
-- Check navigation.navigate() is called correctly
-- Verify Stack.Navigator configuration
+### Issue: Entries not displaying after logging
+- Verify loadAllData() is called after add/edit/delete operations
+- Check state updates are triggering re-renders
+- Verify userId matches in database queries
+- Check date filters (today calculation)
+
+### Issue: Edit/Delete not working
+- Verify update/delete functions are imported from database.ts
+- Check entry IDs are being passed correctly
+- Ensure user is authenticated before operations
 
 ### Issue: Theme not applying
 - Check useTheme() is called in component
@@ -647,22 +678,81 @@ firebase emulators:start --only firestore
 - Verify colors object is destructured
 
 ### Issue: Weight graph not showing
-- Need at least 2 data points for graph
-- Check date range (last 30 days for monthly)
-- Verify weight entries are fetched correctly
+- Need at least 1 data point for graph (empty state shows tap-to-track)
+- Check WeightGraph component is properly imported in HomeScreen
+- Verify getWeightEntries is fetching data correctly
+- Check date range filter (last 14 days for HomeScreen mini-graph)
+
+### Issue: WeeklyOverview not updating
+- Verify loadData() refreshes when entries change
+- Check data aggregation logic for today's completion
+- Verify date range calculations (week/month toggle)
 
 ## Testing Checklist
 
-- [ ] Can log push-ups with quick buttons
+### Logging System
+- [ ] Can log push-ups with quick buttons (10, 20, 30, 50)
+- [ ] Push-up entries display immediately after logging
+- [ ] Can edit push-up entries inline
+- [ ] Can delete push-up entries with confirmation
+- [ ] Can log water with quick buttons (250ml, 500ml, 750ml, 1000ml)
+- [ ] Water entries display with timestamps
+- [ ] Can edit/delete water entries
+- [ ] Can log protein with quick buttons (20g, 30g, 40g, 50g)
+- [ ] Protein entries display immediately
+- [ ] Can edit/delete protein entries
 - [ ] Can check sport as completed
-- [ ] Can add protein with quick amounts
-- [ ] Can add water with quick amounts
-- [ ] Can log weight with BMI calculation
-- [ ] All modals open as overlays, not full screens
-- [ ] Modals auto-close after successful save
-- [ ] Weekly overview shows rings for all days
-- [ ] Leaderboard shows group members correctly
+- [ ] Sport cannot be checked twice on same day
+- [ ] Today's totals update immediately after logging
+
+### Weight Tracker
+- [ ] WeightGraph displays on HomeScreen
+- [ ] Empty state shows "Tippen um Gewicht zu tracken"
+- [ ] Graph shows last 14 days when data exists
+- [ ] Dual-line graph: Weight (purple) + Body fat (gold) when available
+- [ ] Body fat line shows last known value when not updated
+- [ ] Weight change indicator shows correctly (green/red)
+- [ ] Tapping graph opens WeightTrackerScreen
+- [ ] WeightTrackerScreen shows 30-day graph
+- [ ] Can add weight entries in WeightTrackerScreen
+- [ ] BMI calculation displays correctly
+
+### Weekly Overview
+- [ ] Shows rings for last 7 days (week mode)
+- [ ] Shows rings for last 30 days (month mode)
+- [ ] Rings update immediately after logging
+- [ ] Completion percentage calculates correctly (4 categories)
+- [ ] Toggle between week/month works
+- [ ] Statistics show correct perfect days count
+
+### Navigation & UI
+- [ ] WeightTracker opens as modal
+- [ ] Leaderboard opens as modal
+- [ ] Settings opens as modal
+- [ ] All modals have close/back buttons
 - [ ] Theme switches work (light/dark/auto)
-- [ ] Onboarding flow works for new users
-- [ ] Settings save correctly
+- [ ] Glassmorphism design applied throughout
+- [ ] Gradient background displays correctly
+
+### Authentication & Onboarding
+- [ ] Google OAuth login works
+- [ ] New users see onboarding screen
+- [ ] Onboarding validates all required fields
+- [ ] Onboarding saves data to Firestore
+- [ ] Completed onboarding redirects to HomeScreen
+- [ ] Settings can update profile data
 - [ ] Logout works and returns to login screen
+
+### Security
+- [ ] Firebase Security Rules deployed
+- [ ] Socket.dev workflow runs on push
+- [ ] Firebase App Check initialized (web only)
+- [ ] Users can only access their own data
+- [ ] Invalid data is rejected by rules
+
+### Leaderboard
+- [ ] Shows group members when groupCode set
+- [ ] Rankings calculate correctly
+- [ ] Week/Month toggle works
+- [ ] Current user is highlighted
+- [ ] Medal emojis show for top 3
