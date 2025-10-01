@@ -1,6 +1,6 @@
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, type Firestore } from 'firebase/firestore';
 import { initializeAppCheck, ReCaptchaV3Provider } from '@firebase/app-check';
 import { Platform } from 'react-native';
 
@@ -64,7 +64,15 @@ if (isFirebaseConfigured) {
   }
 
   auth = getAuth(app);
-  db = getFirestore(app);
+
+  if (Platform.OS === 'web') {
+    db = initializeFirestore(app, {
+      experimentalForceLongPolling: true,
+      useFetchStreams: false,
+    });
+  } else {
+    db = getFirestore(app);
+  }
 } else {
   console.warn(
     '[Firebase] Missing environment variables for configuration. Provide the keys listed below to enable real backend connectivity:',

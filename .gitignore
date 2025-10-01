@@ -3,6 +3,10 @@
 # dependencies
 node_modules/
 
+# re-include Expo web font assets committed for GitHub Pages
+!assets/node_modules/
+!assets/node_modules/**
+
 # Expo
 .expo/
 dist/
