@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Switch, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Switch, Alert, Platform, Linking } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db, isFirebaseConfigured } from '../services/firebase';
+import { deleteUser } from 'firebase/auth';
+import { db, auth } from '../services/firebase';
 import {
   requestPermissions,
   scheduleWaterReminder,
@@ -11,6 +12,9 @@ import {
   cancelAllNotifications,
   getScheduledNotifications,
 } from '../services/notifications';
+import { deleteUserData } from '../services/database';
+
+const APP_CLIP_URL = process.env.EXPO_PUBLIC_APP_CLIP_URL;
 
 export default function SettingsScreen() {
   const { user, logout, refreshUserData } = useAuth();
@@ -20,6 +24,9 @@ export default function SettingsScreen() {
   const [waterReminder, setWaterReminder] = useState(false);
   const [workoutReminder, setWorkoutReminder] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+
+  const notificationsSupported = Platform.OS !== 'web';
 
   useEffect(() => {
     loadSettings();
@@ -27,11 +34,6 @@ export default function SettingsScreen() {
 
   const loadSettings = async () => {
     if (!user) return;
-
-    if (!isFirebaseConfigured || !db) {
-      setLoading(false);
-      return;
-    }
 
     try {
       const userDoc = await getDoc(doc(db!, 'users', user.uid));
@@ -42,6 +44,9 @@ export default function SettingsScreen() {
         setWaterReminder(data.waterReminder || false);
         setWorkoutReminder(data.workoutReminder || false);
       }
+      if (notificationsSupported) {
+        await getScheduledNotifications();
+      }
       setLoading(false);
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -51,11 +56,6 @@ export default function SettingsScreen() {
 
   const saveProfile = async () => {
     if (!user) return;
-
-    if (!isFirebaseConfigured || !db) {
-      setLoading(false);
-      return;
-    }
 
     try {
       await updateDoc(doc(db!, 'users', user.uid), {
@@ -69,15 +69,23 @@ export default function SettingsScreen() {
     }
   };
 
-  const toggleWaterReminder = async (value: boolean) => {
-    if (!isFirebaseConfigured || !db) {
-      Alert.alert('Konfiguration', 'Firebase ist nicht konfiguriert. Bitte setze die erforderlichen Umgebungsvariablen.');
-      return;
+  const ensureNotificationsAllowed = async () => {
+    if (!notificationsSupported) {
+      Alert.alert('Nicht verf¸gbar', 'Benachrichtigungen werden im Web derzeit nicht unterst¸tzt.');
+      return false;
     }
 
     const granted = await requestPermissions();
     if (!granted) {
-      Alert.alert('Benachrichtigungen', 'Bitte erlaube Benachrichtigungen in den Einstellungen');
+      Alert.alert('Benachrichtigungen', 'Bitte erlaube Benachrichtigungen in den Einstellungen.');
+      return false;
+    }
+    return true;
+  };
+
+  const toggleWaterReminder = async (value: boolean) => {
+    if (!user) return;
+    if (!(await ensureNotificationsAllowed())) {
       return;
     }
 
@@ -92,20 +100,14 @@ export default function SettingsScreen() {
       }
     }
 
-    await updateDoc(doc(db!, 'users', user!.uid), {
+    await updateDoc(doc(db!, 'users', user.uid), {
       waterReminder: value,
     });
   };
 
   const toggleWorkoutReminder = async (value: boolean) => {
-    if (!isFirebaseConfigured || !db) {
-      Alert.alert('Konfiguration', 'Firebase ist nicht konfiguriert. Bitte setze die erforderlichen Umgebungsvariablen.');
-      return;
-    }
-
-    const granted = await requestPermissions();
-    if (!granted) {
-      Alert.alert('Benachrichtigungen', 'Bitte erlaube Benachrichtigungen in den Einstellungen');
+    if (!user) return;
+    if (!(await ensureNotificationsAllowed())) {
       return;
     }
 
@@ -120,7 +122,7 @@ export default function SettingsScreen() {
       }
     }
 
-    await updateDoc(doc(db!, 'users', user!.uid), {
+    await updateDoc(doc(db!, 'users', user.uid), {
       workoutReminder: value,
     });
   };
@@ -137,10 +139,62 @@ export default function SettingsScreen() {
     else setTheme('light');
   };
 
+  const handleDeleteAccount = () => {
+    if (!user) return;
+    Alert.alert(
+      'Konto lˆschen',
+      'Mˆchtest du dein Konto und alle Daten dauerhaft lˆschen?',
+      [
+        { text: 'Abbrechen', style: 'cancel' },
+        {
+          text: 'Konto lˆschen',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setDeleting(true);
+              await deleteUserData(user.uid);
+              if (auth?.currentUser) {
+                try {
+                  await deleteUser(auth.currentUser);
+                } catch (error: any) {
+                  if (error.code === 'auth/requires-recent-login') {
+                    Alert.alert('Hinweis', 'Bitte melde dich erneut an, bevor du dein Konto lˆschst.');
+                  } else {
+                    console.error('Error deleting auth user:', error);
+                    Alert.alert('Fehler', 'Konnte den Nutzer nicht lˆschen.');
+                  }
+                }
+              }
+              await logout();
+            } catch (error) {
+              console.error('Error deleting account:', error);
+              Alert.alert('Fehler', 'Konnte Konto nicht lˆschen.');
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const openAppClip = async () => {
+    if (!APP_CLIP_URL) {
+      Alert.alert('Nicht verf¸gbar', 'App Clip URL ist nicht konfiguriert.');
+      return;
+    }
+    try {
+      await Linking.openURL(APP_CLIP_URL);
+    } catch (error) {
+      console.error('Error opening App Clip URL:', error);
+      Alert.alert('Fehler', 'App Clip konnte nicht geˆffnet werden.');
+    }
+  };
+
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Text style={{ color: colors.text }}>L√§dt...</Text>
+      <View style={[styles.container, { backgroundColor: colors.background }]}> 
+        <Text style={{ color: colors.text }}>L‰dt...</Text>
       </View>
     );
   }
@@ -148,112 +202,91 @@ export default function SettingsScreen() {
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.content}>
-        {/* Profile Section */}
-        <View style={[styles.section, { backgroundColor: colors.card }]}>
+        <View style={[styles.section, { backgroundColor: colors.card }]}> 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Profil</Text>
-
-          <View style={styles.userInfo}>
-            <Text style={[styles.label, { color: colors.textSecondary }]}>E-Mail</Text>
-            <Text style={[styles.value, { color: colors.text }]}>{user?.email}</Text>
-          </View>
-
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>Spitzname</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-              placeholder="Dein Spitzname"
+              style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.background }]}
+              placeholder="z.B. Max"
               placeholderTextColor={colors.textSecondary}
               value={nickname}
               onChangeText={setNickname}
             />
-          </View>
-
-          <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: colors.textSecondary }]}>Gruppen-Code</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.border }]}
-              placeholder="z.B. boys"
+              style={[styles.input, { borderColor: colors.border, color: colors.text, backgroundColor: colors.background }]}
+              placeholder="z.B. winter-warriors"
               placeholderTextColor={colors.textSecondary}
               value={groupCode}
               onChangeText={setGroupCode}
               autoCapitalize="none"
             />
-            <Text style={[styles.hint, { color: colors.textSecondary }]}>
-              Mit dem gleichen Code kannst du dich mit Freunden vergleichen
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={[styles.saveButton, { backgroundColor: colors.primary }]}
-            onPress={saveProfile}
-          >
-            <Text style={styles.saveButtonText}>Profil speichern</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Appearance Section */}
-        <View style={[styles.section, { backgroundColor: colors.card }]}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Darstellung</Text>
-
-          <View style={styles.settingRow}>
-            <View>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>Design</Text>
-              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
-                {getThemeLabel()}
-              </Text>
-            </View>
-            <TouchableOpacity
-              style={[styles.themeButton, { backgroundColor: colors.background }]}
-              onPress={cycleTheme}
-            >
-              <Text style={styles.themeIcon}>
-                {theme === 'light' ? '‚òÄÔ∏è' : theme === 'dark' ? 'üåô' : 'üîÑ'}
-              </Text>
+            <TouchableOpacity style={[styles.saveButton, { backgroundColor: colors.primary }]} onPress={saveProfile}>
+              <Text style={styles.saveButtonText}>Profil speichern</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Notifications Section */}
-        <View style={[styles.section, { backgroundColor: colors.card }]}>
+        <View style={[styles.section, { backgroundColor: colors.card }]}> 
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Benachrichtigungen</Text>
-
+          {!notificationsSupported && (
+            <Text style={[styles.hint, { color: colors.textSecondary }]}>Benachrichtigungen werden im Web nicht unterst¸tzt.</Text>
+          )}
           <View style={styles.settingRow}>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>üíß Wasser-Erinnerung</Text>
-              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
-                T√§glich um 10:00 Uhr
-              </Text>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>?? Wasser-Erinnerung</Text>
+              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>T‰glich um 10:00 Uhr</Text>
             </View>
             <Switch
               value={waterReminder}
               onValueChange={toggleWaterReminder}
               trackColor={{ false: colors.border, true: '#4ECDC4' }}
               thumbColor={waterReminder ? '#fff' : '#f4f3f4'}
+              disabled={!notificationsSupported}
             />
           </View>
-
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
           <View style={styles.settingRow}>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.settingLabel, { color: colors.text }]}>üí™ Workout-Erinnerung</Text>
-              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
-                T√§glich um 18:00 Uhr
-              </Text>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>?? Workout-Erinnerung</Text>
+              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>T‰glich um 18:00 Uhr</Text>
             </View>
             <Switch
               value={workoutReminder}
               onValueChange={toggleWorkoutReminder}
               trackColor={{ false: colors.border, true: '#FF6B6B' }}
               thumbColor={workoutReminder ? '#fff' : '#f4f3f4'}
+              disabled={!notificationsSupported}
             />
           </View>
         </View>
 
-        {/* Account Section */}
-        <View style={[styles.section, { backgroundColor: colors.card }]}>
+        <View style={[styles.section, { backgroundColor: colors.card }]}> 
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Darstellung</Text>
+          <TouchableOpacity style={[styles.themeButton, { backgroundColor: colors.background }]} onPress={cycleTheme}>
+            <Text style={[styles.themeText, { color: colors.text }]}>Theme: {getThemeLabel()}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={[styles.section, { backgroundColor: colors.card }]}> 
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Account</Text>
+          {Platform.OS === 'ios' && APP_CLIP_URL && (
+            <TouchableOpacity
+              style={[styles.secondaryButton, { borderColor: colors.border }]}
+              onPress={openAppClip}
+            >
+              <Text style={[styles.secondaryButtonText, { color: colors.text }]}>App Clip installieren</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.logoutButton} onPress={logout}>
             <Text style={styles.logoutText}>Abmelden</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.deleteButton, deleting && { opacity: 0.6 }]}
+            onPress={handleDeleteAccount}
+            disabled={deleting}
+          >
+            <Text style={styles.deleteText}>{deleting ? 'Lˆsche KontoÖ' : 'Konto lˆschen'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -267,14 +300,12 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-    maxWidth: 600,
-    alignSelf: 'center',
-    width: '100%',
+    gap: 16,
   },
   section: {
     borderRadius: 16,
     padding: 20,
-    marginBottom: 16,
+    gap: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -284,35 +315,26 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    marginBottom: 16,
   },
-  userInfo: {
-    marginBottom: 16,
+  inputGroup: {
+    gap: 12,
   },
   label: {
     fontSize: 12,
     fontWeight: '600',
-    marginBottom: 4,
     textTransform: 'uppercase',
-  },
-  value: {
-    fontSize: 16,
-  },
-  inputGroup: {
-    marginTop: 8,
   },
   input: {
     padding: 12,
     borderRadius: 8,
-    fontSize: 16,
     borderWidth: 1,
-    marginTop: 4,
-    marginBottom: 12,
+    fontSize: 16,
   },
   saveButton: {
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
+    marginTop: 8,
   },
   saveButtonText: {
     color: 'white',
@@ -321,8 +343,6 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 12,
-    marginTop: -8,
-    marginBottom: 12,
     fontStyle: 'italic',
   },
   settingRow: {
@@ -334,7 +354,6 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 4,
   },
   settingDescription: {
     fontSize: 14,
@@ -342,13 +361,21 @@ const styles = StyleSheet.create({
   themeButton: {
     padding: 12,
     borderRadius: 12,
+    alignItems: 'center',
   },
-  themeIcon: {
-    fontSize: 24,
+  themeText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
-  divider: {
-    height: 1,
-    marginVertical: 12,
+  secondaryButton: {
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   logoutButton: {
     backgroundColor: '#FF6B6B',
@@ -361,9 +388,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  deleteButton: {
+    marginTop: 8,
+    padding: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: '#B00020',
+  },
+  deleteText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });
-
-
-
 
 

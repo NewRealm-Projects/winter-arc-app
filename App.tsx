@@ -12,6 +12,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import WeightTrackerScreen from './src/screens/WeightTrackerScreen';
 import LeaderboardScreen from './src/screens/LeaderboardScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import HistoryScreen from './src/screens/HistoryScreen';
 import { isFirebaseConfigured, missingFirebaseEnvVars } from './src/services/firebase';
 
 const Stack = createStackNavigator();
@@ -89,6 +90,14 @@ function Navigation() {
             component={LeaderboardScreen}
             options={{
               title: 'Rangliste',
+              presentation: 'modal',
+            }}
+          />
+          <Stack.Screen
+            name="History"
+            component={HistoryScreen}
+            options={{
+              title: 'Historie',
               presentation: 'modal',
             }}
           />

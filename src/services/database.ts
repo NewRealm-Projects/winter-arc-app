@@ -408,6 +408,24 @@ export const deleteEntry = async (collectionName: string, entryId: string): Prom
   await deleteDoc(doc(ensureDb(), collectionName, entryId));
 };
 
+const deleteCollectionEntries = async (collectionName: string, userId: string) => {
+  const snapshot = await getDocs(query(collection(ensureDb(), collectionName), where('userId', '==', userId)));
+  await Promise.all(snapshot.docs.map((docSnap) => deleteDoc(docSnap.ref)));
+};
+
+export const deleteUserData = async (userId: string): Promise<void> => {
+  if (!userId) {
+    throw new Error('User ID is required');
+  }
+
+  const collections = ['pushUpEntries', 'waterEntries', 'proteinEntries', 'sportEntries', 'weightEntries'];
+  for (const name of collections) {
+    await deleteCollectionEntries(name, userId);
+  }
+
+  await deleteDoc(doc(ensureDb(), 'users', userId));
+};
+
 // ============================================================================
 // UTILITY FUNCTIONS
 // ============================================================================
