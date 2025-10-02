@@ -37,10 +37,11 @@ function LoginPage() {
 
       // Provide user-friendly error messages
       let errorMessage = 'Login fehlgeschlagen';
+      const currentDomain = window.location.hostname;
 
-      if (err.code === 'auth/internal-error') {
-        errorMessage = '⚠️ Firebase OAuth nicht konfiguriert. Bitte füge localhost:5175 in Firebase Console zu den autorisierten Domains hinzu.';
-        console.error('📋 Fix: Firebase Console → Authentication → Settings → Authorized domains → Add: localhost:5175');
+      if (err.code === 'auth/internal-error' || err.code === 'auth/unauthorized-domain') {
+        errorMessage = `⚠️ Firebase OAuth nicht konfiguriert. Bitte füge "${currentDomain}" in Firebase Console zu den autorisierten Domains hinzu.`;
+        console.error(`📋 Fix: Firebase Console → Authentication → Settings → Authorized domains → Add: ${currentDomain}`);
       } else if (err.code === 'auth/popup-closed-by-user') {
         errorMessage = 'Login abgebrochen';
       } else if (err.code === 'auth/popup-blocked') {
