@@ -2,14 +2,12 @@ import { useState } from 'react';
 import { Gender, Language } from '../types';
 import { useStore } from '../store/useStore';
 import { initPushupPlan } from '../utils/pushupAlgorithm';
-import { useTranslation } from '../hooks/useTranslation';
 
 interface OnboardingPageProps {
   birthdayOnly?: boolean; // If true, only ask for birthday
 }
 
 function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
-  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [language, setLanguage] = useState<Language>('de');
   const [nickname, setNickname] = useState('');
