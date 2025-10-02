@@ -30,9 +30,30 @@ export function useAuth() {
             // User exists in Firestore
             console.log('✅ User data found in Firestore');
             const userData = userDoc.data() as Omit<User, 'id'>;
+
+            // Upload profile picture to Firebase Storage if it doesn't exist
+            let storagePhotoURL = userData.photoURL;
+            if (firebaseUser.photoURL && !userData.photoURL) {
+              console.log('📸 Uploading profile picture to Firebase Storage...');
+              const { uploadProfilePictureFromUrl } = await import('../services/storageService');
+              const result = await uploadProfilePictureFromUrl(firebaseUser.photoURL, firebaseUser.uid);
+
+              if (result.success && result.url) {
+                storagePhotoURL = result.url;
+                const { updateUser } = await import('../services/firestoreService');
+                await updateUser(firebaseUser.uid, {
+                  photoURL: result.url,
+                  shareProfilePicture: true // Default to sharing
+                });
+                console.log('✅ Profile picture uploaded to Storage');
+              }
+            }
+
             setUser({
               id: firebaseUser.uid,
               ...userData,
+              photoURL: storagePhotoURL,
+              shareProfilePicture: userData.shareProfilePicture ?? true,
               createdAt: userData.createdAt || new Date(),
             });
 
@@ -60,6 +81,20 @@ export function useAuth() {
           } else {
             // New user - needs onboarding
             console.log('🆕 New user detected, starting onboarding...');
+
+            // Upload profile picture to Firebase Storage
+            let storagePhotoURL: string | undefined = undefined;
+            if (firebaseUser.photoURL) {
+              console.log('📸 Uploading profile picture to Firebase Storage...');
+              const { uploadProfilePictureFromUrl } = await import('../services/storageService');
+              const result = await uploadProfilePictureFromUrl(firebaseUser.photoURL, firebaseUser.uid);
+
+              if (result.success && result.url) {
+                storagePhotoURL = result.url;
+                console.log('✅ Profile picture uploaded to Storage');
+              }
+            }
+
             setUser({
               id: firebaseUser.uid,
               language: 'de',
@@ -69,6 +104,8 @@ export function useAuth() {
               weight: 0,
               maxPushups: 0,
               groupCode: '',
+              photoURL: storagePhotoURL,
+              shareProfilePicture: true,
               createdAt: new Date(),
               pushupState: {
                 baseReps: 0,

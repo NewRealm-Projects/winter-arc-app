@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { User, DailyTracking } from '../types';
+﻿import { create } from 'zustand';
+import { User, DailyTracking, BeforeInstallPromptEvent } from '../types';
 
 interface AppState {
   user: User | null;
@@ -9,12 +9,24 @@ interface AppState {
   setTracking: (tracking: Record<string, DailyTracking>) => void;
   updateDayTracking: (date: string, data: Partial<DailyTracking>) => void;
 
+  selectedDate: string;
+  setSelectedDate: (date: string) => void;
+
+  pwaInstallPrompt: BeforeInstallPromptEvent | null;
+  setPwaInstallPrompt: (event: BeforeInstallPromptEvent | null) => void;
+
+  groupCache: Record<string, { timestamp: number; data: unknown }>;
+  setGroupCache: (key: string, payload: { data: unknown; timestamp?: number }) => void;
+  clearGroupCache: () => void;
+
   darkMode: boolean;
   toggleDarkMode: () => void;
 
   isOnboarded: boolean;
   setIsOnboarded: (value: boolean) => void;
 }
+
+const getTodayDate = (): string => new Date().toISOString().split('T')[0];
 
 // Load dark mode preference from localStorage
 const getInitialDarkMode = (): boolean => {
@@ -46,6 +58,25 @@ export const useStore = create<AppState>((set) => ({
         },
       },
     })),
+
+  selectedDate: getTodayDate(),
+  setSelectedDate: (date) => set({ selectedDate: date }),
+
+  pwaInstallPrompt: null,
+  setPwaInstallPrompt: (event) => set({ pwaInstallPrompt: event }),
+
+  groupCache: {},
+  setGroupCache: (key, payload) =>
+    set((state) => ({
+      groupCache: {
+        ...state.groupCache,
+        [key]: {
+          data: payload.data,
+          timestamp: payload.timestamp ?? Date.now(),
+        },
+      },
+    })),
+  clearGroupCache: () => set({ groupCache: {} }),
 
   darkMode: getInitialDarkMode(),
   toggleDarkMode: () =>

@@ -4,6 +4,11 @@ export type Language = 'de' | 'en';
 
 export type WorkoutStatus = 'pass' | 'hold' | 'fail';
 
+export interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 export interface User {
   id: string;
   language: Language;
@@ -15,6 +20,8 @@ export interface User {
   maxPushups: number;
   groupCode: string;
   birthday?: string; // YYYY-MM-DD
+  photoURL?: string; // Profile picture URL (Firebase Storage)
+  shareProfilePicture?: boolean; // Allow profile picture to be visible in leaderboard
   createdAt: Date;
   pushupState: PushupState;
 }

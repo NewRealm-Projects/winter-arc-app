@@ -19,12 +19,22 @@ function PushupTile() {
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
+  const selectedDate = useStore((state) => state.selectedDate);
 
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const todayTracking = tracking[today];
-  const totalToday = todayTracking?.pushups?.total || 0;
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
+  const activeDate = selectedDate || todayKey;
+  const isToday = activeDate === todayKey;
+  const activeTracking = tracking[activeDate];
+  const currentPushups = activeTracking?.pushups;
+  const workoutTotal =
+    currentPushups?.workout?.reps?.reduce((sum, reps) => sum + reps, 0) ?? 0;
+  const pushupsForDay = (currentPushups?.total ?? workoutTotal) ?? 0;
 
-  // Generiere heutigen Plan
+  const displayDayLabel = isToday
+    ? t('tracking.today')
+    : format(new Date(activeDate), 'dd.MM.');
+
+  // Generiere Plan basierend auf Historie
   const lastTotal = getLastPushupTotal(tracking);
   const daysCompleted = countPushupDays(tracking);
   const initialTotal = lastTotal > 0 ? lastTotal : Math.round((user?.maxPushups || 20) * 2.5);
@@ -34,9 +44,10 @@ function PushupTile() {
   const handleSave = () => {
     const amount = parseInt(inputValue);
     if (!isNaN(amount) && amount > 0) {
-      updateDayTracking(today, {
+      updateDayTracking(activeDate, {
         pushups: {
-          total: (totalToday || 0) + amount,
+          ...currentPushups,
+          total: (currentPushups?.total ?? 0) + amount,
         },
       });
       setInputValue('');
@@ -47,37 +58,54 @@ function PushupTile() {
   return (
     <>
       <button
+        type="button"
         onClick={() => setShowModal(true)}
-        className="w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow text-left"
+        className="w-full glass-dark touchable p-6 text-left text-white"
       >
+        {/* Header with Count */}
         <div className="flex items-center justify-between mb-4">
-          <div>
-            <div className="text-3xl mb-2">💪</div>
+          <div className="flex items-center gap-2">
+            <div className="text-3xl">💪</div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               {t('tracking.pushups')}
             </h3>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold text-winter-600 dark:text-winter-400">
-              {totalToday}
+            <div className="text-4xl font-bold text-winter-600 dark:text-winter-400">
+              {pushupsForDay}
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              {t('tracking.today')}
+              {displayDayLabel}
             </div>
           </div>
         </div>
 
-        {/* Training Plan Info - Clickable */}
-        <div className="flex items-center gap-2 text-sm">
-          <div
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate('/tracking/pushup-training');
-            }}
-            className="px-3 py-2 bg-winter-100 dark:bg-winter-900 rounded-lg text-winter-700 dark:text-winter-300 font-medium hover:bg-winter-200 dark:hover:bg-winter-800 transition-colors flex items-center gap-2 cursor-pointer"
-          >
-            <span>📋 {t('tracking.plan')}: {todayPlan.join(' - ')}</span>
-            <span className="text-xs opacity-75">({plannedTotal} {t('tracking.total')})</span>
+        {/* Training Plan Info - Enhanced */}
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate('/tracking/pushup-training');
+          }}
+          className="p-3 bg-gradient-to-r from-winter-50 to-blue-50 dark:from-winter-900/30 dark:to-blue-900/20 rounded-lg border border-winter-200 dark:border-winter-700 hover:shadow-md transition-all cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-winter-700 dark:text-winter-300 uppercase tracking-wide">
+              📊 {t('tracking.todaysPlan')}
+            </span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              → {t('tracking.startWorkout')}
+            </span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <div className="text-sm font-bold text-gray-900 dark:text-white">
+              {todayPlan.join(' • ')}
+            </div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              = {plannedTotal} {t('tracking.reps')}
+            </div>
+          </div>
+          <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+            💡 {t('tracking.planHint')}
           </div>
         </div>
       </button>
@@ -90,7 +118,7 @@ function PushupTile() {
               {t('tracking.addPushups')}
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {t('tracking.howMany')}
+              {t('tracking.howMany')} ({displayDayLabel})
             </p>
             <input
               type="number"

@@ -7,8 +7,9 @@ import ProteinTile from '../components/ProteinTile';
 import WeightTile from '../components/WeightTile';
 import { useState, useEffect } from 'react';
 import { generateDailyMotivation } from '../services/aiService';
+import { getWeatherForAachen } from '../services/weatherService';
 import { format } from 'date-fns';
-import { calculateStreak } from '../utils/calculations';
+import { calculateStreak, calculateWaterGoal } from '../utils/calculations';
 import { useTranslation } from '../hooks/useTranslation';
 import { useTracking } from '../hooks/useTracking';
 import { Link } from 'react-router-dom';
@@ -16,6 +17,7 @@ import { Link } from 'react-router-dom';
 function DashboardPage() {
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
+  const selectedDate = useStore((state) => state.selectedDate);
   const { t } = useTranslation();
   // Auto-save tracking data to Firebase
   useTracking();
@@ -24,13 +26,25 @@ function DashboardPage() {
     subtext: 'Bleib fokussiert und tracke deine Fortschritte jeden Tag.',
   });
   const [loadingQuote, setLoadingQuote] = useState(true);
+  const [weather, setWeather] = useState<{ temperature: number; emoji: string; description: string } | null>(null);
 
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const todayTracking = tracking[today];
-  const todayPushups = todayTracking?.pushups?.total ||
-    (todayTracking?.pushups?.workout?.reps.reduce((sum, reps) => sum + reps, 0)) || 0;
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
+  const activeDate = selectedDate || todayKey;
+  const isToday = activeDate === todayKey;
+  const activeTracking = tracking[activeDate];
+  const activePushups = activeTracking?.pushups;
+  const activeWorkoutTotal =
+    activePushups?.workout?.reps?.reduce((sum, reps) => sum + reps, 0) ?? 0;
+  const pushupsForActiveDay = (activePushups?.total ?? activeWorkoutTotal) ?? 0;
+  const displayDayLabel = isToday
+    ? t('tracking.today')
+    : format(new Date(activeDate), 'dd.MM.');
 
   const streak = calculateStreak(Object.keys(tracking));
+  const waterGoal = user?.weight ? calculateWaterGoal(user.weight) : 3000;
+  const activeWater = activeTracking?.water ?? 0;
+  const waterProgress = waterGoal > 0 ? Math.min(Math.round((activeWater / waterGoal) * 100), 999) : 0;
+
 
   useEffect(() => {
     const loadMotivation = async () => {
@@ -38,7 +52,21 @@ function DashboardPage() {
 
       setLoadingQuote(true);
       try {
-        const result = await generateDailyMotivation(tracking, user.nickname, user.birthday);
+        // Load weather
+        const weatherData = await getWeatherForAachen();
+        if (weatherData) {
+          setWeather({
+            temperature: weatherData.temperature,
+            emoji: weatherData.weatherEmoji,
+            description: weatherData.weatherDescription,
+          });
+        }
+
+        // Generate motivation with weather context
+        const weatherContext = weatherData
+          ? `Weather: ${weatherData.temperature}°C, ${weatherData.weatherDescription}`
+          : '';
+        const result = await generateDailyMotivation(tracking, user.nickname, user.birthday, weatherContext);
         setMotivation(result);
       } catch (error) {
         console.error('Error loading motivation:', error);
@@ -53,22 +81,49 @@ function DashboardPage() {
   return (
     <div className="min-h-screen safe-area-inset-top">
       {/* Header */}
-      <div className="relative bg-gradient-to-r from-winter-600 to-winter-700 dark:from-winter-700 dark:to-winter-800 text-white p-6 pb-8">
+      <div className="relative text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="flex items-center justify-between mb-3">
-            <h1 className="text-3xl font-bold">
-              {t('dashboard.greeting', { nickname: user?.nickname || 'User' })}
-            </h1>
-            <Link
-              to="/tracking/history"
-              className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
-            >
-              📋 {t('tracking.history')}
-            </Link>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              {user?.photoURL && (
+                <img
+                  src={user.photoURL}
+                  alt={user.nickname}
+                  referrerPolicy="no-referrer"
+                  className="w-12 h-12 rounded-full border-2 border-white/30 shadow-lg object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              )}
+              <h1 className="text-3xl font-bold">
+                {t('dashboard.greeting', { nickname: user?.nickname || 'User' })}
+              </h1>
+            </div>
+            <div className="flex items-center gap-2">
+              {weather && (
+                <div className="glass-dark px-3 py-2 rounded-lg transition-colors text-sm font-medium flex items-center gap-2">
+                  <span>{weather.emoji}</span>
+                  <span>{weather.temperature}°C</span>
+                </div>
+              )}
+              <Link
+                to="/tracking/history"
+                className="glass-dark px-3 py-2 hover:bg-white/10 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
+              >
+                📋 {t('tracking.history')}
+              </Link>
+              <Link
+                to="/settings"
+                className="glass-dark px-3 py-2 hover:bg-white/10 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
+              >
+                ⚙️ {t('nav.settings')}
+              </Link>
+            </div>
           </div>
 
           {/* AI Motivation Quote */}
-          <div className="glass animate-fade-in-up rounded-[20px] p-4 mb-3 border border-white/20">
+          <div className="glass-dark touchable animate-fade-in-up p-4">
             <div className="flex items-start gap-3">
               <div className="text-3xl">💡</div>
               <div className="flex-1">
@@ -94,42 +149,19 @@ function DashboardPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 -mt-4 pb-20 space-y-6">
+      <div className="max-w-7xl mx-auto px-4 pb-20 space-y-6">
         {/* Week Overview */}
         <div className="animate-fade-in-up delay-100">
           <WeekOverview />
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 gap-4 animate-fade-in-up delay-200">
-          <div className="glass dark:glass-dark rounded-[20px] p-4 hover:scale-105 transition-transform duration-200">
-            <div className="text-3xl mb-2">🔥</div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {streak}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {t('dashboard.streak')}
-            </div>
-          </div>
-
-          <div className="glass dark:glass-dark rounded-[20px] p-4 hover:scale-105 transition-transform duration-200">
-            <div className="text-3xl mb-2">💪</div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {todayPushups}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {t('dashboard.pushupsToday')}
-            </div>
-          </div>
-        </div>
-
         {/* Tracking Tiles */}
         <div className="space-y-4 animate-fade-in-up delay-300">
-          {/* Pushups */}
-          <PushupTile />
-
-          {/* Sport */}
-          <SportTile />
+          {/* Pushups & Sport Side by Side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <PushupTile />
+            <SportTile />
+          </div>
 
           {/* Water & Protein Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

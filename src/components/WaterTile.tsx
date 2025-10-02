@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+﻿import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
 import { calculateWaterGoal } from '../utils/calculations';
 import { useTranslation } from '../hooks/useTranslation';
@@ -8,16 +8,22 @@ function WaterTile() {
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
+  const selectedDate = useStore((state) => state.selectedDate);
 
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const todayTracking = tracking[today];
-  const currentWater = todayTracking?.water || 0;
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
+  const activeDate = selectedDate || todayKey;
+  const isToday = activeDate === todayKey;
+  const activeTracking = tracking[activeDate];
+  const currentWater = activeTracking?.water || 0;
 
-  // Calculate water goal based on weight (35ml per kg)
+  const displayDayLabel = isToday
+    ? t('tracking.today')
+    : format(new Date(activeDate), 'dd.MM.');
+
   const waterGoal = user?.weight ? calculateWaterGoal(user.weight) : 3000;
 
   const addWater = (amount: number) => {
-    updateDayTracking(today, {
+    updateDayTracking(activeDate, {
       water: currentWater + amount,
     });
   };
@@ -27,13 +33,19 @@ function WaterTile() {
   const goalLiters = (waterGoal / 1000).toFixed(2);
 
   return (
-    <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
+    <div className="glass-dark touchable p-6 text-white">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <div className="text-3xl mb-2">💧</div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {t('tracking.water')}
-          </h3>
+          <div className="flex items-center gap-2">
+            <div className="text-3xl">💧</div>
+            <div>
+              <div className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400">WA</div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t('tracking.water')}
+              </h3>
+            </div>
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{displayDayLabel}</div>
         </div>
         <div className="text-right">
           <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
@@ -45,7 +57,6 @@ function WaterTile() {
         </div>
       </div>
 
-      {/* Progress Bar */}
       <div className="mb-4">
         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
           <div
@@ -58,26 +69,17 @@ function WaterTile() {
         </div>
       </div>
 
-      {/* Quick Add Buttons */}
       <div className="grid grid-cols-3 gap-2">
-        <button
-          onClick={() => addWater(250)}
-          className="px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium text-sm"
-        >
-          +250ml
-        </button>
-        <button
-          onClick={() => addWater(500)}
-          className="px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium text-sm"
-        >
-          +500ml
-        </button>
-        <button
-          onClick={() => addWater(1000)}
-          className="px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium text-sm"
-        >
-          +1L
-        </button>
+        {[250, 500, 1000].map((amount) => (
+          <button
+            key={amount}
+            type="button"
+            onClick={() => addWater(amount)}
+            className="px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium text-sm"
+          >
+            +{amount}ml
+          </button>
+        ))}
       </div>
     </div>
   );

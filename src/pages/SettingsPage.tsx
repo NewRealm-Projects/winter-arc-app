@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import * as Sentry from '@sentry/react';
 import { auth } from '../firebase/config';
@@ -17,14 +17,62 @@ function SettingsPage() {
   const [editWeight, setEditWeight] = useState('');
   const [editBodyFat, setEditBodyFat] = useState('');
   const [editMaxPushups, setEditMaxPushups] = useState('');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [notificationTime, setNotificationTime] = useState('20:00');
-  const [showTimeModal, setShowTimeModal] = useState(false);
+  const defaultSchedule = {
+    hydration: '08:00',
+    protein: '13:00',
+    pushups: '20:00',
+  } as const;
+
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('notification-enabled') === 'true';
+  });
+
+  const [notificationSchedule, setNotificationSchedule] = useState(() => {
+    if (typeof window === 'undefined') return { ...defaultSchedule };
+    try {
+      const stored = localStorage.getItem('notification-schedule');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return { ...defaultSchedule, ...parsed };
+      }
+    } catch (error) {
+      console.warn('Failed to parse notification schedule', error);
+    }
+    return { ...defaultSchedule };
+  });
+
+  const notificationTimers = useRef<number[]>([]);
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
 
   const user = useStore((state) => state.user);
   const darkMode = useStore((state) => state.darkMode);
   const toggleDarkMode = useStore((state) => state.toggleDarkMode);
   const setUser = useStore((state) => state.setUser);
+  const pwaInstallPrompt = useStore((state) => state.pwaInstallPrompt);
+  const setPwaInstallPrompt = useStore((state) => state.setPwaInstallPrompt);
+  const isIOS = typeof window !== 'undefined' && /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  const isStandalone = typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone);
+
+
+  const handleInstallApp = async () => {
+    if (pwaInstallPrompt) {
+      try {
+        setShowInstallHelp(false);
+        await pwaInstallPrompt.prompt();
+        const { outcome } = await pwaInstallPrompt.userChoice;
+        if (outcome === 'accepted') {
+          setPwaInstallPrompt(null);
+        } else {
+          localStorage.setItem('pwa-install-dismissed', Date.now().toString());
+        }
+      } catch (error) {
+        console.error('Install prompt failed:', error);
+      }
+      return;
+    }
+    setShowInstallHelp(true);
+  };
 
   const handleLogout = async () => {
     try {
@@ -203,9 +251,27 @@ function SettingsPage() {
       <div className="max-w-7xl mx-auto px-4 -mt-4 pb-20 space-y-4">
         {/* Profile Section */}
         <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            👤 {t('settings.profile')}
-          </h2>
+          <div className="flex items-center gap-4 mb-6">
+            {user?.photoURL && (
+              <img
+                src={user.photoURL}
+                alt={user.nickname}
+                referrerPolicy="no-referrer"
+                className="w-20 h-20 rounded-full border-2 border-winter-200 dark:border-winter-700 shadow-lg object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+            )}
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                👤 {t('settings.profile')}
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {user?.nickname}
+              </p>
+            </div>
+          </div>
           {isEditingProfile ? (
             <div className="space-y-4">
               <div>
@@ -422,6 +488,43 @@ function SettingsPage() {
           )}
         </div>
 
+        {/* Privacy Section */}
+        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+            🔒 {t('settings.privacy')}
+          </h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-semibold text-gray-900 dark:text-white">
+                {t('settings.shareProfilePicture')}
+              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {t('settings.shareProfilePictureDesc')}
+              </div>
+            </div>
+            <button
+              onClick={async () => {
+                if (!user) return;
+                const newValue = !user.shareProfilePicture;
+                const { updateUser } = await import('../services/firestoreService');
+                const result = await updateUser(user.id, { shareProfilePicture: newValue });
+                if (result.success) {
+                  setUser({ ...user, shareProfilePicture: newValue });
+                }
+              }}
+              className={`relative w-14 h-8 rounded-full transition-colors ${
+                user?.shareProfilePicture ? 'bg-winter-600' : 'bg-gray-300'
+              }`}
+            >
+              <div
+                className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
+                  user?.shareProfilePicture ? 'translate-x-6' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
         {/* Appearance Section */}
         <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
@@ -450,6 +553,43 @@ function SettingsPage() {
             </button>
           </div>
         </div>
+
+
+{/* Install Section */}
+<div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
+  <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+    📲 {t('settings.installSection')}
+  </h2>
+  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+    {t('settings.installDescription')}
+  </p>
+  <div className="flex flex-wrap gap-2">
+    <button
+      onClick={handleInstallApp}
+      className="px-4 py-3 bg-winter-600 text-white rounded-lg font-semibold hover:bg-winter-700 transition-colors flex-1 md:flex-initial"
+      disabled={isStandalone}
+    >
+      {pwaInstallPrompt ? t('settings.installButton') : t('settings.installHelp')}
+    </button>
+    {!pwaInstallPrompt && (
+      <button
+        onClick={() => setShowInstallHelp((prev) => !prev)}
+        className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+      >
+        {showInstallHelp ? t('settings.hideInstructions') : t('settings.showInstructions')}
+      </button>
+    )}
+  </div>
+  {(showInstallHelp || !pwaInstallPrompt) && (
+    <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+      {isStandalone
+        ? t('settings.installAlready')
+        : isIOS
+          ? t('settings.installInstructionsIos')
+          : t('settings.installInstructions')}
+    </p>
+  )}
+</div>
 
         {/* Notifications Section */}
         <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">

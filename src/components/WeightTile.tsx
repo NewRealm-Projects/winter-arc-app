@@ -15,8 +15,15 @@ function WeightTile() {
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
+  const selectedDate = useStore((state) => state.selectedDate);
 
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
+  const activeDate = selectedDate || todayKey;
+  const isToday = activeDate === todayKey;
+  const activeTracking = tracking[activeDate];
+  const displayDayLabel = isToday
+    ? t('tracking.today')
+    : format(new Date(activeDate), 'dd.MM.');
 
   const saveWeight = () => {
     const weightValue = parseFloat(weight);
@@ -25,7 +32,7 @@ function WeightTile() {
         ? calculateBMI(weightValue, user.height)
         : undefined;
 
-      updateDayTracking(today, {
+      updateDayTracking(activeDate, {
         weight: {
           value: weightValue,
           bodyFat: bodyFat ? parseFloat(bodyFat) : undefined,
@@ -99,17 +106,18 @@ function WeightTile() {
            new Date(2024, parseInt(monthB) - 1, parseInt(dayB)).getTime();
   });
 
-  const latestWeight = tracking[today]?.weight?.value || user?.weight || 0;
-  const latestBMI = tracking[today]?.weight?.bmi;
+  const latestWeight = activeTracking?.weight?.value ?? user?.weight ?? 0;
+  const latestBMI = activeTracking?.weight?.bmi;
 
   return (
-    <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
+    <div className="glass-dark touchable p-6 text-white">
       <div className="flex items-center justify-between mb-4">
         <div>
           <div className="text-3xl mb-2">⚖️</div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {t('tracking.weight')}
           </h3>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{displayDayLabel}</div>
         </div>
         <div className="text-right">
           <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
@@ -123,39 +131,76 @@ function WeightTile() {
         </div>
       </div>
 
-      {/* Chart */}
+      {/* Combined Chart - Weight & Body Fat */}
       {chartData.length > 0 ? (
         <>
-          <div className="h-48 mb-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <XAxis
-                  dataKey="date"
-                  stroke="#9ca3af"
-                  style={{ fontSize: '12px' }}
-                />
-                <YAxis
-                  stroke="#9ca3af"
-                  style={{ fontSize: '12px' }}
-                  domain={['dataMin - 2', 'dataMax + 2']}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1f2937',
-                    border: 'none',
-                    borderRadius: '8px',
-                    color: '#fff',
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="weight"
-                  stroke="#9333ea"
-                  strokeWidth={2}
-                  dot={{ fill: '#9333ea', r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="mb-4">
+            <div className="flex items-center gap-4 mb-2 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-purple-600"></div>
+                <span className="font-medium text-gray-700 dark:text-gray-300">{t('tracking.weight')}</span>
+              </div>
+              {chartData.some(d => d.bodyFat) && (
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">{t('tracking.bodyFat')}</span>
+                </div>
+              )}
+            </div>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <XAxis
+                    dataKey="date"
+                    stroke="#9ca3af"
+                    style={{ fontSize: '12px' }}
+                  />
+                  <YAxis
+                    yAxisId="weight"
+                    stroke="#9333ea"
+                    style={{ fontSize: '12px' }}
+                    domain={['dataMin - 2', 'dataMax + 2']}
+                  />
+                  {chartData.some(d => d.bodyFat) && (
+                    <YAxis
+                      yAxisId="bodyFat"
+                      orientation="right"
+                      stroke="#f97316"
+                      style={{ fontSize: '12px' }}
+                      domain={['dataMin - 2', 'dataMax + 2']}
+                    />
+                  )}
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#1f2937',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#fff',
+                    }}
+                  />
+                  <Line
+                    yAxisId="weight"
+                    type="monotone"
+                    dataKey="weight"
+                    stroke="#9333ea"
+                    strokeWidth={2}
+                    dot={{ fill: '#9333ea', r: 4 }}
+                    name="Weight (kg)"
+                  />
+                  {chartData.some(d => d.bodyFat) && (
+                    <Line
+                      yAxisId="bodyFat"
+                      type="monotone"
+                      dataKey="bodyFat"
+                      stroke="#f97316"
+                      strokeWidth={2}
+                      dot={{ fill: '#f97316', r: 4 }}
+                      name="Body Fat (%)"
+                    />
+                  )}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           {/* Time Range Selector */}

@@ -14,6 +14,7 @@ function PushupTrainingPage() {
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
+  const selectedDate = useStore((state) => state.selectedDate);
 
   const [currentSet, setCurrentSet] = useState(0);
   const [reps, setReps] = useState<number[]>([]);
@@ -23,7 +24,10 @@ function PushupTrainingPage() {
   const [startCountdown, setStartCountdown] = useState(3);
   const [isStarted, setIsStarted] = useState(false);
 
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
+  const activeDate = selectedDate || todayKey;
+  const isToday = activeDate === todayKey;
+  const displayDayLabel = isToday ? 'Heute' : format(new Date(activeDate), 'dd.MM.');
 
   // Generiere den Trainingsplan basierend auf Historie
   const lastTotal = getLastPushupTotal(tracking);
@@ -72,7 +76,7 @@ function PushupTrainingPage() {
       setIsComplete(true);
       const total = calculateTotalReps(newReps);
 
-      updateDayTracking(today, {
+      updateDayTracking(activeDate, {
         pushups: {
           total,
           workout: {
@@ -215,7 +219,7 @@ function PushupTrainingPage() {
           </button>
           <h1 className="text-3xl font-bold mb-2">Liegestütze Training</h1>
           <p className="text-winter-100">
-            Heute geplant: {plannedTotal} Wiederholungen
+            {displayDayLabel} geplant: {plannedTotal} Wiederholungen
           </p>
         </div>
       </div>

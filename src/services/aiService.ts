@@ -123,7 +123,8 @@ function analyzeTrackingData(tracking: Record<string, DailyTracking>): UserTrack
 export async function generateDailyMotivation(
   tracking: Record<string, DailyTracking>,
   nickname: string,
-  birthday?: string
+  birthday?: string,
+  weatherContext?: string
 ): Promise<{ quote: string; subtext: string }> {
   try {
     // Check if it's the user's birthday
@@ -157,6 +158,8 @@ export async function generateDailyMotivation(
 
     const stats = analyzeTrackingData(tracking);
 
+    const weatherInfo = weatherContext ? `\n- ${weatherContext}` : '';
+
     const prompt = `Du bist ein motivierender Fitness-Coach für die "Winter Arc Challenge".
 Erstelle einen kurzen, motivierenden Tagesspruch auf Deutsch für ${nickname}.
 
@@ -166,7 +169,7 @@ Erstelle einen kurzen, motivierenden Tagesspruch auf Deutsch für ${nickname}.
 - Sport-Sessions: ${stats.sportSessions}
 - Ø Wasser: ${Math.round(stats.avgWater)}ml
 - Ø Protein: ${Math.round(stats.avgProtein)}g
-- Heute abgeschlossen: ${stats.completedToday ? 'Ja' : 'Nein'}
+- Heute abgeschlossen: ${stats.completedToday ? 'Ja' : 'Nein'}${weatherInfo}
 
 **Anforderungen:**
 1. Kurzer, prägnanter Hauptspruch (max. 10 Wörter)

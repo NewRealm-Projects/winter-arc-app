@@ -73,6 +73,8 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
         maxPushups: parseInt(maxPushups),
         birthday: birthday || undefined,
         groupCode: '',
+        photoURL: user?.photoURL || undefined, // photoURL already uploaded in useAuth
+        shareProfilePicture: true, // Default to sharing
         createdAt: new Date(),
         pushupState,
       };

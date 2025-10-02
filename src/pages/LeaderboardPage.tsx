@@ -361,11 +361,26 @@ function LeaderboardPage() {
                   }
                 >
                   <div className="flex items-center gap-4">
-                    {/* Rank Badge */}
+                    {/* Profile Picture - only show if user allows sharing or it's the current user */}
+                    {(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? (
+                      <img
+                        src={entry.photoURL}
+                        alt={entry.nickname}
+                        referrerPolicy="no-referrer"
+                        className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-600 object-cover flex-shrink-0"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const badge = target.nextElementSibling as HTMLElement;
+                          if (badge) badge.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    {/* Rank Badge - fallback if no photo or photo not shared */}
                     <div
                       className={`w-12 h-12 rounded-full ${getRankColor(
                         rank
-                      )} flex items-center justify-center text-white font-bold text-lg flex-shrink-0`}
+                      )} ${(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? 'hidden' : 'flex'} items-center justify-center text-white font-bold text-lg flex-shrink-0`}
                     >
                       #{rank}
                     </div>
@@ -386,6 +401,17 @@ function LeaderboardPage() {
                         <span>💪 {entry.dailyPushups || 0} {t('group.today')}</span>
                       </div>
                     </div>
+
+                    {/* Rank Badge on the right */}
+                    {(entry.shareProfilePicture || isCurrentUser) && entry.photoURL && (
+                      <div
+                        className={`w-10 h-10 rounded-full ${getRankColor(
+                          rank
+                        )} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}
+                      >
+                        #{rank}
+                      </div>
+                    )}
                   </div>
 
                   {/* Expanded Details */}
