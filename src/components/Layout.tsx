@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+﻿import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
 
@@ -11,15 +11,19 @@ function Layout({ children }: LayoutProps) {
   const { t } = useTranslation();
 
   const navItems = [
-    { path: '/', labelKey: 'nav.dashboard', icon: '📊' },
-    { path: '/leaderboard', labelKey: 'nav.group', icon: '👥' },
-    { path: '/settings', labelKey: 'nav.settings', icon: '⚙️' },
+    { path: '/', labelKey: 'nav.dashboard', icon: 'ðŸ“Š' },
+    { path: '/leaderboard', labelKey: 'nav.group', icon: 'ðŸ‘¥' },
+    { path: '/settings', labelKey: 'nav.settings', icon: 'âš™ï¸' },
   ];
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-24">{children}</main>
+      <main key={location.pathname} className="flex-1 overflow-y-auto pb-24">
+        <div className="animate-fade-in-up">
+          {children}
+        </div>
+      </main>
 
       {/* Floating Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 flex justify-center pb-4 safe-area-inset-bottom pointer-events-none">
@@ -64,3 +68,4 @@ function Layout({ children }: LayoutProps) {
 }
 
 export default Layout;
+
