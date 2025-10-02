@@ -33,30 +33,29 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
 const app = initializeApp(firebaseConfig);
 
 // Initialize App Check with reCAPTCHA v3 (optional)
-// Only initialize if VITE_RECAPTCHA_SITE_KEY is set and valid
+// Only on localhost/development - not on production
 const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-// Enable App Check debug token for localhost
-if (import.meta.env.DEV || window.location.hostname === 'localhost') {
-  console.log('🔓 App Check Debug Mode enabled for localhost');
-  // @ts-ignore - self.FIREBASE_APPCHECK_DEBUG_TOKEN is a global variable
-  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-}
-
-if (recaptchaSiteKey && recaptchaSiteKey.length > 10) {
+if (isLocalhost && recaptchaSiteKey && recaptchaSiteKey.length > 10) {
   try {
+    // Enable App Check debug token for localhost
+    console.log('🔓 App Check Debug Mode enabled for localhost');
+    // @ts-ignore - self.FIREBASE_APPCHECK_DEBUG_TOKEN is a global variable
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+
     initializeAppCheck(app, {
       provider: new ReCaptchaV3Provider(recaptchaSiteKey),
       isTokenAutoRefreshEnabled: true,
     });
-    console.log('✓ Firebase App Check initialized with reCAPTCHA v3');
+    console.log('✓ Firebase App Check initialized with reCAPTCHA v3 (localhost only)');
   } catch (error) {
     console.warn('⚠ App Check initialization failed - continuing without App Check:', error);
   }
 } else {
   console.info(
-    'ℹ App Check not configured (optional). ' +
-    'Add VITE_RECAPTCHA_SITE_KEY to enable protection against abuse.'
+    'ℹ App Check disabled on production. ' +
+    'To enable: Register your production domain in Firebase App Check settings.'
   );
 }
 
