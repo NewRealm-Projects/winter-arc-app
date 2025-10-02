@@ -31,34 +31,13 @@ export function useAuth() {
             console.log('✅ User data found in Firestore');
             const userData = userDoc.data() as Omit<User, 'id'>;
 
-            // Upload profile picture to Firebase Storage if it doesn't exist
-            let storagePhotoURL = userData.photoURL;
-            if (firebaseUser.photoURL && !userData.photoURL) {
-              console.log('📸 Uploading profile picture to Firebase Storage...');
-              try {
-                const { uploadProfilePictureFromUrl } = await import('../services/storageService');
-                const result = await uploadProfilePictureFromUrl(firebaseUser.photoURL, firebaseUser.uid);
-
-                if (result.success && result.url) {
-                  storagePhotoURL = result.url;
-                  const { updateUser } = await import('../services/firestoreService');
-                  await updateUser(firebaseUser.uid, {
-                    photoURL: result.url,
-                    shareProfilePicture: true // Default to sharing
-                  });
-                  console.log('✅ Profile picture uploaded to Storage');
-                }
-              } catch (uploadError) {
-                console.warn('⚠️ Profile picture upload failed, using Google URL as fallback:', uploadError);
-                // Use Google's photo URL as fallback
-                storagePhotoURL = firebaseUser.photoURL;
-              }
-            }
+            // Use Google profile picture directly (no Firebase Storage upload)
+            const photoURL = userData.photoURL || firebaseUser.photoURL;
 
             setUser({
               id: firebaseUser.uid,
               ...userData,
-              photoURL: storagePhotoURL,
+              photoURL,
               shareProfilePicture: userData.shareProfilePicture ?? true,
               createdAt: userData.createdAt || new Date(),
             });
@@ -88,28 +67,7 @@ export function useAuth() {
             // New user - needs onboarding
             console.log('🆕 New user detected, starting onboarding...');
 
-            // Upload profile picture to Firebase Storage
-            let storagePhotoURL: string | undefined = undefined;
-            if (firebaseUser.photoURL) {
-              console.log('📸 Uploading profile picture to Firebase Storage...');
-              try {
-                const { uploadProfilePictureFromUrl } = await import('../services/storageService');
-                const result = await uploadProfilePictureFromUrl(firebaseUser.photoURL, firebaseUser.uid);
-
-                if (result.success && result.url) {
-                  storagePhotoURL = result.url;
-                  console.log('✅ Profile picture uploaded to Storage');
-                } else {
-                  // Use Google's photo URL as fallback
-                  storagePhotoURL = firebaseUser.photoURL;
-                }
-              } catch (uploadError) {
-                console.warn('⚠️ Profile picture upload failed, using Google URL as fallback:', uploadError);
-                // Use Google's photo URL as fallback
-                storagePhotoURL = firebaseUser.photoURL;
-              }
-            }
-
+            // Use Google profile picture directly (no Firebase Storage upload)
             setUser({
               id: firebaseUser.uid,
               language: 'de',
@@ -119,7 +77,7 @@ export function useAuth() {
               weight: 0,
               maxPushups: 0,
               groupCode: '',
-              photoURL: storagePhotoURL,
+              photoURL: firebaseUser.photoURL,
               shareProfilePicture: true,
               createdAt: new Date(),
               pushupState: {
