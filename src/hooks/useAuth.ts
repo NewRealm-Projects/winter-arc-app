@@ -48,6 +48,7 @@ export function useAuth() {
             // New user - needs onboarding
             setUser({
               id: firebaseUser.uid,
+              language: 'de',
               nickname: '',
               gender: 'male',
               height: 0,

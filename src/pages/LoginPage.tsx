@@ -29,6 +29,7 @@ function LoginPage() {
     // Create demo user for testing
     const demoUser = {
       id: 'demo-user-123',
+      language: 'de' as const,
       nickname: 'Demo User',
       gender: 'male' as const,
       height: 180,
