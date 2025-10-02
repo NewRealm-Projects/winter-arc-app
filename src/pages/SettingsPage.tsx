@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { signOut } from 'firebase/auth';
 import * as Sentry from '@sentry/react';
@@ -6,7 +7,27 @@ import { useStore } from '../store/useStore';
 import { Language } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 
+// Wetter-Stadt Auswahl Optionen
+const cityOptions = [
+  'Aachen', 'Berlin', 'Hamburg', 'München', 'Köln', 'Frankfurt', 'Stuttgart', 'Dresden', 'Leipzig', 'Düsseldorf'
+];
+
+
+
 function SettingsPage() {
+  // Wetter-Stadt Auswahl
+  const [weatherCity, setWeatherCity] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('weather-city') || 'Aachen';
+    }
+    return 'Aachen';
+  });
+  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setWeatherCity(e.target.value);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('weather-city', e.target.value);
+    }
+  };
   const { t } = useTranslation();
   const [showGroupInput, setShowGroupInput] = useState(false);
   const [groupCode, setGroupCode] = useState('');
@@ -233,6 +254,21 @@ function SettingsPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 -mt-4 pb-20 space-y-4">
+        {/* Wetter Stadt Auswahl */}
+        <div className="glass dark:glass-dark rounded-[20px] p-6 mb-2">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">🌤️ Wetter-Stadt</h2>
+          <label htmlFor="weather-city-select" className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Stadt für Wetterdaten auswählen:</label>
+          <select
+            id="weather-city-select"
+            value={weatherCity}
+            onChange={handleCityChange}
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none"
+          >
+            {cityOptions.map((city) => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
+        </div>
         {/* Profile Section */}
         <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
           <div className="flex items-center gap-4 mb-6">

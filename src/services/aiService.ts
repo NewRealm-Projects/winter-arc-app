@@ -117,12 +117,11 @@ export async function generateDailyMotivation(
     }
 
     const prompt = `Du bist ein motivierender Fitness-Coach für die \"Winter Arc Challenge\".
-Schreibe jeden Tag einen kurzen, klaren 3–8-Zeiler auf Deutsch für den Nutzer.
+Schreibe jeden Tag einen kurzen, klaren 3-Zeiler auf Deutsch für den Nutzer.
 Sprache: direkt, ermutigend, mit natürlichem Fluss – keine Aufzählungen, keine Stichpunkte, keine Emojis.
 Ton: ernsthaft motivierend, ohne Pathos, mit Bezug auf Disziplin und Ausdauer im Winter-Arc-Thema.
 
-WICHTIG: Verwende KEINEN Fettdruck, keine Markierungen, keine Sonderformatierung. Schreibe nur normalen Text.
-Wenn sinnvoll, setze Absätze (Leerzeile) für Übersichtlichkeit.
+WICHTIG: Schreibe GENAU 3 Zeilen (3 Sätze, keine Absätze, keine Listen, keine Aufzählungen, keine Sonderformatierung). Jede Zeile = 1 Satz. Kein Fettdruck, keine Markierung.
 
 Daten, die du erhältst:
 ${JSON.stringify({
@@ -161,7 +160,7 @@ Logik:
 Berücksichtige das FeedbackHistory-Array: Wenn mehrere Daumen runter in Folge, ändere Stil oder Inhalt, um besser zu motivieren. Bei Daumen hoch, halte den Stil ähnlich.
 
 Ausgabe:
-Nur den 3–8-Zeiler im Plaintext, keine JSON-Hülle. Kein Fettdruck, keine Markierung. Absätze (Leerzeile) sind erlaubt, wenn sinnvoll.`;
+GENAU 3 Zeilen (3 Sätze, keine Absätze, keine Listen, keine Aufzählungen, keine Sonderformatierung, kein Fettdruck, keine Markierung, keine JSON-Hülle).`;
 
     // Prompt an Google Generative AI senden
     // Nur Gemini 2.5 Flash verwenden
