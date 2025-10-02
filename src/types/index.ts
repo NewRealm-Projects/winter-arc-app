@@ -42,6 +42,7 @@ export interface DailyTracking {
     cardio: boolean;
     gym: boolean;
     schwimmen: boolean;
+    soccer: boolean;
     rest: boolean;
   };
   water: number; // ml
