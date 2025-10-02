@@ -74,6 +74,7 @@ function LeaderboardPage() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const selectedUserData = selectedUser
     ? leaderboardData.find((u: any) => u.userId === selectedUser)
     : null;
