@@ -52,7 +52,7 @@ export function useAuth() {
             setUser({
               id: firebaseUser.uid,
               ...userData,
-              photoURL: storagePhotoURL,
+              photoURL: storagePhotoURL ?? undefined,
               shareProfilePicture: userData.shareProfilePicture ?? true,
               createdAt: userData.createdAt || new Date(),
             });
@@ -104,7 +104,7 @@ export function useAuth() {
               weight: 0,
               maxPushups: 0,
               groupCode: '',
-              photoURL: storagePhotoURL,
+              photoURL: storagePhotoURL ?? undefined,
               shareProfilePicture: true,
               createdAt: new Date(),
               pushupState: {
@@ -126,6 +126,20 @@ export function useAuth() {
         setUser(null);
         setIsOnboarded(false);
         setTracking({});
+        // Session/Cookies/LocalStorage aufräumen
+        try {
+          // Alle Cookies löschen
+          document.cookie.split(';').forEach((c) => {
+            document.cookie = c
+              .replace(/^ +/, '')
+              .replace(/=.*/, '=;expires=' + new Date(0).toUTCString() + ';path=/');
+          });
+          // LocalStorage und SessionStorage leeren
+          localStorage.clear();
+          sessionStorage.clear();
+        } catch (e) {
+          console.warn('Fehler beim Aufräumen der Session:', e);
+        }
       }
     });
 

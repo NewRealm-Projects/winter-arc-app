@@ -7,6 +7,7 @@ import ProteinTile from '../components/ProteinTile';
 import WeightTile from '../components/WeightTile';
 import { useState, useEffect } from 'react';
 import { generateDailyMotivation } from '../services/aiService';
+import { getAIQuote, saveAIQuote, setAIQuoteFeedback, QuoteTimePeriod, AIQuote } from '../services/aiQuoteService';
 import { getWeatherForAachen } from '../services/weatherService';
 
 
@@ -16,15 +17,14 @@ import { Link } from 'react-router-dom';
 
 function DashboardPage() {
   const user = useStore((state) => state.user);
+  // tracking wird nur für Motivation geladen, nicht für Header
   const tracking = useStore((state) => state.tracking);
 
   const { t } = useTranslation();
   // Auto-save tracking data to Firebase
   useTracking();
-  const [motivation, setMotivation] = useState({
-    quote: 'Der Winter formt Champions!',
-    subtext: 'Bleib fokussiert und tracke deine Fortschritte jeden Tag.',
-  });
+  const [motivation, setMotivation] = useState<AIQuote | null>(null);
+  const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
   const [loadingQuote, setLoadingQuote] = useState(true);
   const [weather, setWeather] = useState<{ temperature: number; emoji: string; description: string } | null>(null);
 
@@ -39,10 +39,11 @@ function DashboardPage() {
   useEffect(() => {
     const loadMotivation = async () => {
       if (!user) return;
-
+      // Warte, bis Tracking-Daten geladen sind (mind. 1 Key)
+      if (!tracking || Object.keys(tracking).length === 0) return;
       setLoadingQuote(true);
       try {
-        // Load weather
+        // Wetter laden
         const weatherData = await getWeatherForAachen();
         if (weatherData) {
           setWeather({
@@ -51,46 +52,71 @@ function DashboardPage() {
             description: weatherData.weatherDescription,
           });
         }
+        // Zeitfenster bestimmen
+        const hour = new Date().getHours();
+        let period: QuoteTimePeriod = 'morning';
+        if (hour >= 12 && hour < 18) period = 'noon';
+        else if (hour >= 18 || hour < 6) period = 'evening';
 
-        // Generate motivation with weather context
+        // Quote aus Firestore laden
+        const firestoreQuote = await getAIQuote(user.id, period);
+        const today = new Date().toISOString().split('T')[0];
+        if (firestoreQuote && firestoreQuote.updatedAt?.slice(0, 10) === today) {
+          setMotivation(firestoreQuote);
+          setFeedback(firestoreQuote.feedback?.[user.id] || null);
+          setLoadingQuote(false);
+          return;
+        }
+
+        // Wetter-Kontext
         const weatherContext = weatherData
           ? `Weather: ${weatherData.temperature}°C, ${weatherData.weatherDescription}`
           : '';
+        // Neue Quote generieren
         const result = await generateDailyMotivation(tracking, user.nickname, user.birthday, weatherContext);
-        setMotivation(result);
+        const newQuote: AIQuote = {
+          quote: result.quote,
+          subtext: result.subtext,
+          period,
+          updatedAt: new Date().toISOString(),
+          feedback: {},
+        };
+        await saveAIQuote(user.id, period, newQuote);
+        setMotivation(newQuote);
+        setFeedback(null);
       } catch (error) {
         console.error('Error loading motivation:', error);
       } finally {
         setLoadingQuote(false);
       }
     };
-
     loadMotivation();
   }, [user, tracking]);
 
   return (
     <div className="min-h-screen safe-area-inset-top">
-      {/* Header */}
+      {/* Header + AI Quote */}
       <div className="relative text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto relative z-10">
+          {/* Header Row */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex-1 flex items-center gap-3 min-w-0">
               {user?.photoURL && (
                 <img
                   src={user.photoURL}
                   alt={user.nickname}
                   referrerPolicy="no-referrer"
-                  className="w-12 h-12 rounded-full border-2 border-white/30 shadow-lg object-cover"
+                  className="w-12 h-12 rounded-full border-2 border-white/30 dark:border-white/30 border-gray-300 shadow-lg object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
                 />
               )}
-              <h1 className="text-3xl font-bold truncate">
+              <h1 className="text-3xl font-bold truncate text-gray-900 dark:text-white">
                 {t('dashboard.greeting', { nickname: user?.nickname || 'User' })}
               </h1>
             </div>
-            <div className="flex items-center gap-2 flex-wrap justify-start sm:justify-end">
+            <div className="flex items-center gap-2 flex-wrap justify-end">
               {weather && (
                 <div className="glass-dark px-3 py-2 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 min-w-[60px] justify-center">
                   <span>{weather.emoji}</span>
@@ -99,23 +125,22 @@ function DashboardPage() {
               )}
               <Link
                 to="/tracking/history"
-                className="glass-dark px-3 py-2 hover:bg-white/10 rounded-lg transition-colors text-xl flex items-center justify-center"
+                className="glass-dark px-3 py-2 hover:bg-white/10 hover:dark:bg-white/10 rounded-lg transition-colors text-xl flex items-center justify-center"
                 title={t('tracking.history')}
               >
                 📋
               </Link>
               <Link
                 to="/settings"
-                className="glass-dark px-3 py-2 hover:bg-white/10 rounded-lg transition-colors text-xl flex items-center justify-center"
+                className="glass-dark px-3 py-2 hover:bg-white/10 hover:dark:bg-white/10 rounded-lg transition-colors text-xl flex items-center justify-center"
                 title={t('nav.settings')}
               >
                 ⚙️
               </Link>
             </div>
           </div>
-
           {/* AI Motivation Quote */}
-          <div className="glass-dark touchable animate-fade-in-up p-4">
+          <div className="glass-dark touchable animate-fade-in-up p-6 text-white relative transition-all duration-200 hover:bg-white/5 hover:dark:bg-white/10">
             <div className="flex items-start gap-3">
               <div className="text-3xl">💡</div>
               <div className="flex-1">
@@ -124,21 +149,45 @@ function DashboardPage() {
                     <div className="h-6 bg-white/20 rounded mb-2 w-3/4"></div>
                     <div className="h-4 bg-white/20 rounded w-full"></div>
                   </div>
-                ) : (
+                ) : motivation ? (
                   <>
-                    <p className="text-lg font-semibold mb-1">
-                      "{motivation.quote}"
-                    </p>
-                    <p className="text-winter-100 text-sm">
-                      {motivation.subtext}
-                    </p>
+                    <div className="text-lg whitespace-pre-line mb-1">
+                      {motivation.quote}
+                    </div>
+                    {motivation.subtext && (
+                      <p className="text-winter-100 text-sm mb-2">{motivation.subtext}</p>
+                    )}
+                    {/* Feedback-Buttons klein unten rechts */}
+                    <div className="absolute right-2 bottom-2 flex gap-1 items-center text-xs opacity-80">
+                      <button
+                        className={`px-1 py-0.5 rounded-full text-base border border-gray-300 dark:border-white/20 ${feedback === 'up' ? 'bg-green-500/80 text-white' : 'bg-white/40 dark:bg-white/10 hover:bg-green-500/30'}`}
+                        disabled={!!feedback || !user}
+                        onClick={async () => {
+                          if (!motivation || !user) return;
+                          setFeedback('up');
+                          await setAIQuoteFeedback(user.id, motivation.period, user.id, 'up');
+                        }}
+                        title="Gefällt mir"
+                      >👍</button>
+                      <button
+                        className={`px-1 py-0.5 rounded-full text-base border border-gray-300 dark:border-white/20 ${feedback === 'down' ? 'bg-red-500/80 text-white' : 'bg-white/40 dark:bg-white/10 hover:bg-red-500/30'}`}
+                        disabled={!!feedback || !user}
+                        onClick={async () => {
+                          if (!motivation || !user) return;
+                          setFeedback('down');
+                          await setAIQuoteFeedback(user.id, motivation.period, user.id, 'down');
+                        }}
+                        title="Gefällt mir nicht"
+                      >👎</button>
+                      {feedback && <span className="ml-2">Feedback gespeichert</span>}
+                    </div>
                   </>
-                )}
+                ) : null}
               </div>
             </div>
           </div>
         </div>
-      </div>
+  </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 pb-20 space-y-6">

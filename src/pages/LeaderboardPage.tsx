@@ -162,23 +162,19 @@ function LeaderboardPage() {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const dayTracking = tracking[dateStr];
                 const isCurrentDay = isToday(day);
-
-                // Calculate progress percentage
+                // Calculate progress percentage (wie im Original)
                 const pushups = dayTracking?.pushups?.total || 0;
                 const sports = Object.values(dayTracking?.sports || {}).filter(Boolean).length;
                 const water = dayTracking?.water || 0;
                 const protein = dayTracking?.protein || 0;
-
-                // Simple progress: 25% per category (pushups, sports, water, protein)
                 const progress = (
                   (pushups > 0 ? 25 : 0) +
                   (sports > 0 ? 25 : 0) +
                   (water >= 2000 ? 25 : 0) +
                   (protein >= 100 ? 25 : 0)
                 );
-
                 return (
-                  <div key={dateStr} className="flex flex-col items-center gap-1">
+                  <div key={`week-${dateStr}`} className="flex flex-col items-center gap-1">
                     {/* Day label */}
                     <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
                       {format(day, 'EEE', { locale })}
@@ -249,7 +245,7 @@ function LeaderboardPage() {
               ))}
               {/* Empty cells for offset */}
               {Array.from({ length: firstDayOffset }).map((_, i) => (
-                <div key={`offset-${i}`} className="aspect-square" />
+                <div key={`offset-month-${i}`} className="aspect-square" />
               ))}
               {daysInMonth.map((day) => {
               const dateStr = format(day, 'yyyy-MM-dd');
@@ -272,7 +268,7 @@ function LeaderboardPage() {
 
               return (
                 <div
-                  key={dateStr}
+                  key={`month-${dateStr}`}
                   className="aspect-square flex items-center justify-center relative"
                 >
                   {/* Progress Circle (50% size) */}
@@ -345,10 +341,11 @@ function LeaderboardPage() {
               {sortedLeaderboardData.map((entry, index) => {
               const rank = index + 1;
               const isCurrentUser = user?.nickname === entry.nickname;
-
+              // Fallback falls userId fehlt: nutze index
+              const key = entry.userId || `entry-${index}`;
               return (
                 <div
-                  key={entry.userId}
+                  key={key}
                   className={`p-4 rounded-xl transition-all cursor-pointer ${
                     isCurrentUser
                       ? 'bg-winter-100 dark:bg-winter-900 ring-2 ring-winter-500'

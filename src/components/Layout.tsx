@@ -27,32 +27,30 @@ function Layout({ children }: LayoutProps) {
 
       {/* Floating Bottom Navigation - Glassmorphism Style */}
       <nav className="fixed left-1/2 -translate-x-1/2 bottom-5 z-50">
-        <div className="glass-dark rounded-[32px] px-6 py-3 shadow-[0_20px_60px_rgba(0,0,0,0.45)] safe-area-inset-bottom animate-fade-in-up delay-400">
-          <div className="flex items-center justify-center gap-4">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`touchable flex items-center justify-center w-12 h-12 rounded-[18px] transition-all duration-200 ${
-                    isActive
-                      ? 'bg-gradient-to-b from-violet-600/40 to-blue-500/40 text-blue-100 shadow-[0_8px_24px_rgba(59,130,246,0.45)]'
-                      : 'text-blue-100/70 hover:bg-white/10'
+        <div className="flex items-center justify-center gap-4 animate-fade-in-up delay-400">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`touchable flex items-center justify-center w-12 h-12 rounded-[18px] transition-all duration-200 ${
+                  isActive
+                    ? 'bg-gradient-to-b from-violet-600/40 to-blue-500/40 text-blue-100 shadow-[0_8px_24px_rgba(59,130,246,0.45)]'
+                    : 'text-blue-100/70 hover:bg-white/10'
+                }`}
+                aria-label={t(item.labelKey)}
+              >
+                <span
+                  className={`text-2xl flex items-center justify-center transition-transform duration-200 ${
+                    isActive ? 'scale-110' : ''
                   }`}
-                  aria-label={t(item.labelKey)}
                 >
-                  <span
-                    className={`text-2xl flex items-center justify-center transition-transform duration-200 ${
-                      isActive ? 'scale-110' : ''
-                    }`}
-                  >
-                    {item.icon}
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
+                  {item.icon}
+                </span>
+              </Link>
+            );
+          })}
         </div>
       </nav>
     </div>

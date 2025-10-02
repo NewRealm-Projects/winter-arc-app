@@ -127,138 +127,128 @@ export async function generateDailyMotivation(
   weatherContext?: string
 ): Promise<{ quote: string; subtext: string }> {
   try {
-    // Check if it's the user's birthday
-    if (birthday) {
-      const today = new Date().toISOString().split('T')[0];
-      const [, todayMonth, todayDay] = today.split('-');
-      const [, birthdayMonth, birthdayDay] = birthday.split('-');
+    // Nur Tracking-Daten der letzten 7 Tage verwenden
+    const today = new Date();
+    const last7Days = Array.from({ length: 7 }).map((_, i) => {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      return d.toISOString().split('T')[0];
+    });
+    const trackingLast7: Record<string, DailyTracking> = {};
+    for (const date of last7Days) {
+      if (tracking[date]) trackingLast7[date] = tracking[date];
+    }
+    // Debug: Logge alle AI-relevanten Userdaten für das Prompt
+    console.log('[AI PROMPT DEBUG] Userdaten für Motivation (letzte 7 Tage):', {
+      nickname,
+      birthday,
+      weatherContext,
+      tracking: trackingLast7,
+    });
 
-      if (todayMonth === birthdayMonth && todayDay === birthdayDay) {
-        return {
-          quote: `🎉 Alles Gute zum Geburtstag, ${nickname}!`,
-          subtext: 'Heute ist dein besonderer Tag - trainiere wie ein Champion! 💪🎂',
-        };
+    // Prompt-Variablen vorbereiten
+    const now = new Date();
+    const isoDatetime = now.toISOString();
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+    const weatherInfo = weatherContext || '';
+    const stats = analyzeTrackingData(trackingLast7);
+    const todayReps = trackingLast7[now.toISOString().split('T')[0]]?.pushups?.workout?.reps;
+
+    // Prompt-Variablen vorbereiten
+    // (bereits oben deklariert)
+
+    // Prompt-String deklarieren
+    // Feedback-Kontext (letzte 7 Feedbacks, falls vorhanden)
+    let feedbackHistory: any[] = [];
+    if (typeof window !== 'undefined') {
+      const raw = localStorage.getItem('ai_feedback_history');
+      if (raw) {
+        try {
+          feedbackHistory = JSON.parse(raw);
+        } catch {}
       }
     }
 
-    // Check cache first (saves API tokens)
-    const cachedQuote = getCachedQuote();
-    if (cachedQuote) {
-      return cachedQuote;
-    }
+    const prompt = `Du bist ein motivierender Fitness-Coach für die \"Winter Arc Challenge\".
+Schreibe jeden Tag einen kurzen, klaren 3–8-Zeiler auf Deutsch für den Nutzer.
+Sprache: direkt, ermutigend, mit natürlichem Fluss – keine Aufzählungen, keine Stichpunkte, keine Emojis.
+Ton: ernsthaft motivierend, ohne Pathos, mit Bezug auf Disziplin und Ausdauer im Winter-Arc-Thema.
 
-    // Check if API key is available
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) {
-      console.warn('⚠️ Gemini API key not found, using fallback quote');
-      return getFallbackQuote();
-    }
+WICHTIG: Verwende KEINEN Fettdruck, keine Markierungen, keine Sonderformatierung. Schreibe nur normalen Text.
+Wenn sinnvoll, setze Absätze (Leerzeile) für Übersichtlichkeit.
 
-    console.log('🔑 Gemini API Key:', apiKey ? `${apiKey.substring(0, 10)}...` : '✗ Missing');
+Daten, die du erhältst:
+${JSON.stringify({
+  nickname,
+  weatherContext: weatherInfo,
+  stats: {
+    currentStreak: stats.currentStreak,
+    totalPushups: stats.totalPushups,
+    sportSessions: stats.sportSessions,
+    avgWater: Math.round(stats.avgWater),
+    avgProtein: Math.round(stats.avgProtein),
+    completedToday: stats.completedToday,
+    today: todayReps ? { reps: todayReps } : undefined,
+    rest: false
+  },
+  timeContext: isoDatetime,
+  feedbackHistory // z.B. [{date, quote, feedback: 'up'|'down'}]
+}, null, 2)}
 
-    const stats = analyzeTrackingData(tracking);
+Logik:
+- Bestimme aus der Uhrzeit, ob es Morgen (05–10 Uhr), Mittag (11–16 Uhr) oder Abend (17–23 Uhr) ist.
+- Passe den Text an die Tageszeit an:
+  - Morgen: Aufbruch, Energie, Zielsetzung.
+  - Mittag: Dranbleiben, Zwischenbilanz, Korrektur (z. B. mehr trinken, Protein snacken).
+  - Abend: Bilanz, Disziplin sichern, evtl. kleiner Finisher.
+- Nutze die Stats für personalisierte Hinweise:
+  - Streak hoch → Stolz betonen, Momentum halten.
+  - Streak niedrig → Neubeginn betonen, Motivation aufbauen.
+  - completedToday = false → kleinstes lieferbares Ergebnis vorschlagen (z. B. 1 Satz).
+  - avgWater < 2000 → erinnere ans Trinken.
+  - avgProtein < 120 → erinnere an Protein.
+  - Rest = true → Fokus auf Regeneration.
+- Wetter nur kurz einbauen (z. B. kühle Luft, klare Gedanken).
+- Schreibe in einem natürlichen Fluss, nicht stichpunktartig.
 
-    const weatherInfo = weatherContext ? `\n- ${weatherContext}` : '';
+Berücksichtige das FeedbackHistory-Array: Wenn mehrere Daumen runter in Folge, ändere Stil oder Inhalt, um besser zu motivieren. Bei Daumen hoch, halte den Stil ähnlich.
 
-    const prompt = `Du bist ein motivierender Fitness-Coach für die "Winter Arc Challenge".
-Erstelle einen kurzen, motivierenden Tagesspruch auf Deutsch für ${nickname}.
+Ausgabe:
+Nur den 3–8-Zeiler im Plaintext, keine JSON-Hülle. Kein Fettdruck, keine Markierung. Absätze (Leerzeile) sind erlaubt, wenn sinnvoll.`;
 
-**Aktuelle Stats:**
-- Streak: ${stats.currentStreak} Tage
-- Gesamt Liegestütze: ${stats.totalPushups}
-- Sport-Sessions: ${stats.sportSessions}
-- Ø Wasser: ${Math.round(stats.avgWater)}ml
-- Ø Protein: ${Math.round(stats.avgProtein)}g
-- Heute abgeschlossen: ${stats.completedToday ? 'Ja' : 'Nein'}${weatherInfo}
-
-**Anforderungen:**
-1. Kurzer, prägnanter Hauptspruch (max. 10 Wörter)
-2. Unterstützender Subtext (max. 15 Wörter)
-3. Basierend auf den aktuellen Stats personalisiert
-4. Motivierend und ermutigend
-5. Bezug zum Winter Arc Thema
-
-**Format (JSON):**
-{
-  "quote": "Hauptspruch hier",
-  "subtext": "Unterstützender Text hier"
-}
-
-Antworte NUR mit dem JSON-Objekt, keine zusätzlichen Erklärungen.`;
-
-    // Try different model names in order of preference (newest first)
-    const modelNames = ['gemini-2.5-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro', 'gemini-pro'];
-    let text = '';
-    let lastError: Error | null = null;
-
-    for (const modelName of modelNames) {
+    // Prompt an Google Generative AI senden
+    // Modell-Priorität: 2.5 Pro → 2.5 Flash → 2.5 Flash-Lite
+    const modelOrder = [
+      'gemini-2.5-pro',
+      'gemini-1.5-pro-latest',
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
+    ];
+    let lastError = null;
+    for (const modelName of modelOrder) {
       try {
-        console.log(`🤖 Trying Gemini model: ${modelName}...`);
         const model = genAI.getGenerativeModel({ model: modelName });
         const result = await model.generateContent(prompt);
-        const response = await result.response;
-        text = response.text();
-        console.log(`✅ Successfully used model: ${modelName}`);
-        break; // Success, exit loop
-      } catch (error: any) {
-        console.warn(`⚠️ Model ${modelName} failed:`, error.message);
-        lastError = error;
-        continue; // Try next model
+        const response = result.response;
+        const text = response.text().trim();
+        if (text) {
+          return {
+            quote: text,
+            subtext: '',
+          };
+        }
+      } catch (err) {
+        lastError = err;
+        // Versuche nächstes Modell
       }
     }
-
-    // If all models failed, throw the last error
-    if (!text && lastError) {
-      console.error('❌ All Gemini models failed, using fallback quote');
-      console.error('📋 Possible solutions:');
-      console.error('   1. Check if Generative Language API is enabled: https://console.cloud.google.com/apis/api/generativelanguage.googleapis.com');
-      console.error('   2. Verify your API key is correct: https://makersuite.google.com/app/apikey');
-      console.error('   3. Make sure the API key has no usage restrictions');
-      console.error('   Last error:', lastError.message);
-      return getFallbackQuote();
-    }
-
-    // Parse JSON response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      const result = {
-        quote: parsed.quote || 'Der Winter formt Champions!',
-        subtext: parsed.subtext || 'Bleib fokussiert und tracke deine Fortschritte jeden Tag.',
-      };
-      // Cache the generated quote
-      setCachedQuote(result.quote, result.subtext);
-      return result;
-    }
-
-    const fallback = getFallbackQuote();
-    setCachedQuote(fallback.quote, fallback.subtext);
-    return fallback;
+    // Wenn alle Modelle fehlschlagen
+    throw lastError || new Error('Kein Gemini-Modell verfügbar');
   } catch (error) {
-    console.error('Error generating AI motivation:', error);
-    return getFallbackQuote();
+    console.error('[AI PROMPT ERROR]', error);
+    return {
+      quote: 'Fehler beim Generieren der Motivation.',
+      subtext: '',
+    };
   }
-}
-
-function getFallbackQuote(): { quote: string; subtext: string } {
-  const fallbackQuotes = [
-    {
-      quote: 'Der Winter formt Champions!',
-      subtext: 'Bleib fokussiert und tracke deine Fortschritte jeden Tag.',
-    },
-    {
-      quote: 'Jeder Tag zählt im Winter Arc!',
-      subtext: 'Deine Konsistenz bringt dich ans Ziel.',
-    },
-    {
-      quote: 'Stärke kommt von innen!',
-      subtext: 'Nutze die kalte Jahreszeit für deine Transformation.',
-    },
-    {
-      quote: 'Dein Winter Arc beginnt jetzt!',
-      subtext: 'Kleine Schritte führen zu großen Erfolgen.',
-    },
-  ];
-
-  return fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
 }

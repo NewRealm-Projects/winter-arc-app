@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { generateDailyMotivation } from '../services/aiService';
 import { saveDailyTracking } from '../services/firestoreService';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -75,12 +76,12 @@ function PushupTrainingPage() {
     setCurrentReps(currentReps + 1);
   };
 
-  const handleCompleteSet = () => {
+  const handleCompleteSet = async () => {
     const newReps = [...reps, currentReps];
     setReps(newReps);
     setCurrentReps(0);
 
-    if (newReps.length < 5) {
+  if (newReps.length < 5) {
       // Nächster Satz - starte Pause
       setCurrentSet(currentSet + 1);
       setRestTimeLeft(restTime);
@@ -108,6 +109,17 @@ function PushupTrainingPage() {
       updateDayTracking(activeDate, newTracking);
       if (user?.id) {
         saveDailyTracking(user.id, activeDate, newTracking);
+      }
+      // AI Prompt Log für Training
+      if (user) {
+        const nickname = user.nickname;
+        const birthday = user.birthday;
+        // Tracking für den aktuellen User (kann auch alle Tage enthalten)
+        try {
+          await generateDailyMotivation(tracking, nickname, birthday, 'PushupTraining Abschluss');
+        } catch (e) {
+          console.warn('AI Prompt Log (PushupTraining) Fehler:', e);
+        }
       }
     }
   };

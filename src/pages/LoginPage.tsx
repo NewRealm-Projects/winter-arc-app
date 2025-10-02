@@ -84,9 +84,9 @@ function LoginPage() {
   };
 
   return (
-  <div className="min-h-screen glass-dark flex items-center justify-center p-4">
+  <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--bg-deep-navy, #0f172a)' }}>
       <div className="max-w-md w-full">
-  <div className="glass-dark rounded-2xl shadow-xl p-8 text-center">
+  <div className="glass-dark rounded-none shadow-xl p-8 text-center">
           {/* Logo/Icon */}
           <div className="mb-8">
             <div className="text-6xl mb-4">❄️</div>
