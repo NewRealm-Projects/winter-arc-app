@@ -5,62 +5,10 @@ import { calculateStreak } from '../utils/calculations';
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || '');
 
 // Cache configuration
-const CACHE_KEY = 'winter_arc_daily_quote';
-const CACHE_DURATION_MS = 4 * 60 * 60 * 1000; // 4 hours
 
 // Time periods for quote generation (3x daily)
-type TimePeriod = 'morning' | 'noon' | 'evening';
 
-function getCurrentTimePeriod(): TimePeriod {
-  const hour = new Date().getHours();
-  if (hour >= 6 && hour < 12) return 'morning';
-  if (hour >= 12 && hour < 18) return 'noon';
-  return 'evening';
-}
 
-function getCachedQuote(): { quote: string; subtext: string } | null {
-  try {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (!cached) return null;
-
-    const { quote, subtext, timestamp, period } = JSON.parse(cached);
-    const currentPeriod = getCurrentTimePeriod();
-
-    // Check if cache is from the same time period
-    if (period !== currentPeriod) {
-      console.log(`🔄 Time period changed from ${period} to ${currentPeriod}, generating new quote`);
-      return null;
-    }
-
-    // Check if cache is still valid (additional safety check)
-    const age = Date.now() - timestamp;
-    if (age > CACHE_DURATION_MS) {
-      console.log('⏰ Cache expired, generating new quote');
-      return null;
-    }
-
-    console.log(`✅ Using cached quote from ${period} period (${Math.round(age / 1000 / 60)}min ago)`);
-    return { quote, subtext };
-  } catch (error) {
-    console.error('❌ Error reading quote cache:', error);
-    return null;
-  }
-}
-
-function setCachedQuote(quote: string, subtext: string) {
-  try {
-    const cacheData = {
-      quote,
-      subtext,
-      timestamp: Date.now(),
-      period: getCurrentTimePeriod(),
-    };
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
-    console.log(`💾 Quote cached for ${getCurrentTimePeriod()} period`);
-  } catch (error) {
-    console.error('❌ Error saving quote cache:', error);
-  }
-}
 
 interface UserTrackingStats {
   currentStreak: number;
@@ -149,7 +97,6 @@ export async function generateDailyMotivation(
     // Prompt-Variablen vorbereiten
     const now = new Date();
     const isoDatetime = now.toISOString();
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
     const weatherInfo = weatherContext || '';
     const stats = analyzeTrackingData(trackingLast7);
     const todayReps = trackingLast7[now.toISOString().split('T')[0]]?.pushups?.workout?.reps;
