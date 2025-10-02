@@ -2,10 +2,18 @@ import { useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { useStore } from '../store/useStore';
+import { Language } from '../types';
 
 function SettingsPage() {
   const [showGroupInput, setShowGroupInput] = useState(false);
   const [groupCode, setGroupCode] = useState('');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editLanguage, setEditLanguage] = useState<Language>('de');
+  const [editNickname, setEditNickname] = useState('');
+  const [editHeight, setEditHeight] = useState('');
+  const [editWeight, setEditWeight] = useState('');
+  const [editBodyFat, setEditBodyFat] = useState('');
+  const [editMaxPushups, setEditMaxPushups] = useState('');
 
   const user = useStore((state) => state.user);
   const darkMode = useStore((state) => state.darkMode);
@@ -18,6 +26,50 @@ function SettingsPage() {
       setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
+    }
+  };
+
+  const handleEditProfile = () => {
+    if (!user) return;
+    setEditLanguage(user.language || 'de');
+    setEditNickname(user.nickname);
+    setEditHeight(user.height.toString());
+    setEditWeight(user.weight.toString());
+    setEditBodyFat(user.bodyFat?.toString() || '');
+    setEditMaxPushups(user.maxPushups.toString());
+    setIsEditingProfile(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+
+    try {
+      const { updateUser } = await import('../services/firestoreService');
+
+      const updates = {
+        language: editLanguage,
+        nickname: editNickname,
+        height: parseInt(editHeight),
+        weight: parseInt(editWeight),
+        bodyFat: editBodyFat ? parseFloat(editBodyFat) : undefined,
+        maxPushups: parseInt(editMaxPushups),
+      };
+
+      const result = await updateUser(user.id, updates);
+
+      if (result.success) {
+        setUser({
+          ...user,
+          ...updates,
+        });
+        setIsEditingProfile(false);
+        alert('Profil erfolgreich aktualisiert!');
+      } else {
+        alert('Fehler beim Speichern');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Fehler beim Speichern');
     }
   };
 
@@ -71,55 +123,162 @@ function SettingsPage() {
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             👤 Profil
           </h2>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">Sprache</span>
-              <span className="font-semibold text-gray-900 dark:text-white">
-                {user?.language === 'de' ? '🇩🇪 Deutsch' : '🇬🇧 English'}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">Spitzname</span>
-              <span className="font-semibold text-gray-900 dark:text-white">
-                {user?.nickname}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">Geschlecht</span>
-              <span className="font-semibold text-gray-900 dark:text-white capitalize">
-                {user?.gender === 'male' ? 'Männlich' : user?.gender === 'female' ? 'Weiblich' : 'Divers'}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">Größe</span>
-              <span className="font-semibold text-gray-900 dark:text-white">
-                {user?.height} cm
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">Gewicht</span>
-              <span className="font-semibold text-gray-900 dark:text-white">
-                {user?.weight} kg
-              </span>
-            </div>
-            {user?.bodyFat && (
-              <div className="flex justify-between items-center">
-                <span className="text-gray-600 dark:text-gray-400">KFA</span>
-                <span className="font-semibold text-gray-900 dark:text-white">
-                  {user.bodyFat}%
-                </span>
+          {isEditingProfile ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Sprache
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setEditLanguage('de')}
+                    className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
+                      editLanguage === 'de'
+                        ? 'border-winter-600 bg-winter-50 dark:bg-winter-900 text-winter-600 dark:text-winter-400'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-winter-400'
+                    }`}
+                  >
+                    🇩🇪 Deutsch
+                  </button>
+                  <button
+                    onClick={() => setEditLanguage('en')}
+                    className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
+                      editLanguage === 'en'
+                        ? 'border-winter-600 bg-winter-50 dark:bg-winter-900 text-winter-600 dark:text-winter-400'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-winter-400'
+                    }`}
+                  >
+                    🇬🇧 English
+                  </button>
+                </div>
               </div>
-            )}
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-400">Max. Liegestütze</span>
-              <span className="font-semibold text-gray-900 dark:text-white">
-                {user?.maxPushups}
-              </span>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Spitzname
+                </label>
+                <input
+                  type="text"
+                  value={editNickname}
+                  onChange={(e) => setEditNickname(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Größe (cm)
+                </label>
+                <input
+                  type="number"
+                  value={editHeight}
+                  onChange={(e) => setEditHeight(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Gewicht (kg)
+                </label>
+                <input
+                  type="number"
+                  value={editWeight}
+                  onChange={(e) => setEditWeight(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  KFA (%) - Optional
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={editBodyFat}
+                  onChange={(e) => setEditBodyFat(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Max. Liegestütze
+                </label>
+                <input
+                  type="number"
+                  value={editMaxPushups}
+                  onChange={(e) => setEditMaxPushups(e.target.value)}
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSaveProfile}
+                  className="flex-1 px-4 py-3 bg-winter-600 text-white rounded-lg hover:bg-winter-700 transition-colors font-medium"
+                >
+                  Speichern
+                </button>
+                <button
+                  onClick={() => setIsEditingProfile(false)}
+                  className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Abbrechen
+                </button>
+              </div>
             </div>
-          </div>
-          <button className="mt-4 w-full px-4 py-3 bg-winter-600 text-white rounded-lg hover:bg-winter-700 transition-colors font-medium">
-            Profil bearbeiten
-          </button>
+          ) : (
+            <>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 dark:text-gray-400">Sprache</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {user?.language === 'de' ? '🇩🇪 Deutsch' : '🇬🇧 English'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 dark:text-gray-400">Spitzname</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {user?.nickname}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 dark:text-gray-400">Geschlecht</span>
+                  <span className="font-semibold text-gray-900 dark:text-white capitalize">
+                    {user?.gender === 'male' ? 'Männlich' : user?.gender === 'female' ? 'Weiblich' : 'Divers'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 dark:text-gray-400">Größe</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {user?.height} cm
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 dark:text-gray-400">Gewicht</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {user?.weight} kg
+                  </span>
+                </div>
+                {user?.bodyFat && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 dark:text-gray-400">KFA</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                      {user.bodyFat}%
+                    </span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 dark:text-gray-400">Max. Liegestütze</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {user?.maxPushups}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={handleEditProfile}
+                className="mt-4 w-full px-4 py-3 bg-winter-600 text-white rounded-lg hover:bg-winter-700 transition-colors font-medium"
+              >
+                Profil bearbeiten
+              </button>
+            </>
+          )}
         </div>
 
         {/* Groups Section */}
