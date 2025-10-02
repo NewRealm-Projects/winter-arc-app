@@ -67,16 +67,16 @@ function PushupTile() {
 
         {/* Training Plan Info - Clickable */}
         <div className="flex items-center gap-2 text-sm">
-          <button
+          <div
             onClick={(e) => {
               e.stopPropagation();
               navigate('/tracking/pushup-training');
             }}
-            className="px-3 py-2 bg-winter-100 dark:bg-winter-900 rounded-lg text-winter-700 dark:text-winter-300 font-medium hover:bg-winter-200 dark:hover:bg-winter-800 transition-colors flex items-center gap-2"
+            className="px-3 py-2 bg-winter-100 dark:bg-winter-900 rounded-lg text-winter-700 dark:text-winter-300 font-medium hover:bg-winter-200 dark:hover:bg-winter-800 transition-colors flex items-center gap-2 cursor-pointer"
           >
             <span>📋 Plan: {todayPlan.join(' - ')}</span>
             <span className="text-xs opacity-75">({plannedTotal} total)</span>
-          </button>
+          </div>
         </div>
       </button>
 

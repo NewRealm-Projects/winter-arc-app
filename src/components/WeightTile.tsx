@@ -41,19 +41,23 @@ function WeightTile() {
 
   // Add onboarding weight as the first data point if available and within the date range
   if (user?.weight && user?.createdAt) {
-    const onboardingDate = typeof user.createdAt === 'string'
-      ? user.createdAt
-      : user.createdAt.toISOString?.() || new Date(user.createdAt).toISOString();
-    const createdDate = format(new Date(onboardingDate), 'yyyy-MM-dd');
-    const oldestDateInRange = format(subDays(new Date(), days - 1), 'yyyy-MM-dd');
+    try {
+      const onboardingDate = typeof user.createdAt === 'string'
+        ? user.createdAt
+        : user.createdAt.toISOString?.() || new Date(user.createdAt as any).toISOString();
+      const createdDate = format(new Date(onboardingDate), 'yyyy-MM-dd');
+      const oldestDateInRange = format(subDays(new Date(), days - 1), 'yyyy-MM-dd');
 
-    // Include onboarding weight if it's within the selected date range
-    if (createdDate >= oldestDateInRange) {
-      chartData.push({
-        date: format(new Date(createdDate), 'dd.MM'),
-        weight: user.weight,
-        bodyFat: user.bodyFat,
-      });
+      // Include onboarding weight if it's within the selected date range
+      if (createdDate >= oldestDateInRange) {
+        chartData.push({
+          date: format(new Date(createdDate), 'dd.MM'),
+          weight: user.weight,
+          bodyFat: user.bodyFat,
+        });
+      }
+    } catch (error) {
+      console.error('Error parsing onboarding date:', error);
     }
   }
 
