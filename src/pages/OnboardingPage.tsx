@@ -29,12 +29,19 @@ function OnboardingPage() {
     }
   };
 
-  const handleComplete = () => {
-    // TODO: Save user data to Firebase
+  const handleComplete = async () => {
     const pushupState = initPushupPlan(parseInt(maxPushups));
 
+    // Get current Firebase user
+    const { auth } = await import('../firebase/config');
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      alert('Fehler: Nicht angemeldet');
+      return;
+    }
+
     const newUser = {
-      id: 'temp-id', // Will be replaced with Firebase user ID
       nickname,
       gender,
       height: parseInt(height),
@@ -46,8 +53,19 @@ function OnboardingPage() {
       pushupState,
     };
 
-    setUser(newUser);
-    setIsOnboarded(true);
+    // Save to Firebase
+    const { saveUser } = await import('../services/firestoreService');
+    const result = await saveUser(currentUser.uid, newUser);
+
+    if (result.success) {
+      setUser({
+        id: currentUser.uid,
+        ...newUser,
+      });
+      setIsOnboarded(true);
+    } else {
+      alert('Fehler beim Speichern der Daten');
+    }
   };
 
   const canProceed = () => {

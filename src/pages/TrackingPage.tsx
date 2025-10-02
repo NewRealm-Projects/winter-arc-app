@@ -3,8 +3,11 @@ import SportTile from '../components/SportTile';
 import WaterTile from '../components/WaterTile';
 import ProteinTile from '../components/ProteinTile';
 import WeightTile from '../components/WeightTile';
+import { useTracking } from '../hooks/useTracking';
 
 function TrackingPage() {
+  // Auto-save tracking data to Firebase
+  useTracking();
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 safe-area-inset-top">
       {/* Header */}

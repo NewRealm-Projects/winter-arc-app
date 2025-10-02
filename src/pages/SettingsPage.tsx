@@ -21,11 +21,37 @@ function SettingsPage() {
     }
   };
 
-  const handleJoinGroup = () => {
-    // TODO: Implement group joining logic
-    console.log('Joining group:', groupCode);
-    setShowGroupInput(false);
-    setGroupCode('');
+  const handleJoinGroup = async () => {
+    if (!user) return;
+
+    try {
+      const { joinGroup } = await import('../services/firestoreService');
+      const { updateUser } = await import('../services/firestoreService');
+
+      // Join the group
+      const groupResult = await joinGroup(groupCode, user.id);
+
+      if (groupResult.success) {
+        // Update user's groupCode
+        await updateUser(user.id, { groupCode });
+
+        // Update local state
+        setUser({
+          ...user,
+          groupCode,
+        });
+
+        alert('Erfolgreich der Gruppe beigetreten!');
+      } else {
+        alert('Fehler beim Beitreten der Gruppe');
+      }
+    } catch (error) {
+      console.error('Error joining group:', error);
+      alert('Fehler beim Beitreten der Gruppe');
+    } finally {
+      setShowGroupInput(false);
+      setGroupCode('');
+    }
   };
 
   return (
