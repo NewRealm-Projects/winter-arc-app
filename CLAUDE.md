@@ -305,6 +305,10 @@ groups: {
 # Install dependencies
 npm install
 
+# Setup environment variables
+cp .env.example .env
+# Then fill in Firebase credentials in .env
+
 # Run development server
 npm run dev
 
@@ -319,6 +323,72 @@ npm test
 
 # Run linter
 npm run lint
+```
+
+---
+
+## Architecture
+
+### State Management
+
+The app uses **Zustand** for global state management:
+- `useStore` - Main store with user, tracking, dark mode
+- State automatically syncs with Firebase via hooks
+
+### Firebase Integration
+
+**Authentication:**
+- `useAuth` hook - Listens to Firebase auth state
+- Automatically fetches/creates user data on login
+- Redirects to onboarding if user data doesn't exist
+
+**Firestore:**
+- `firestoreService` - CRUD operations for users, tracking, groups
+- `useTracking` hook - Auto-saves tracking data (debounced 1s)
+- Security rules prevent unauthorized access
+
+### Key Hooks
+
+- `useAuth()` - Firebase authentication listener
+- `useTracking()` - Auto-sync tracking data to Firestore
+
+### Data Flow
+
+1. User logs in with Google SSO
+2. `useAuth` fetches user data from Firestore
+3. If no user data exists, redirect to onboarding
+4. Onboarding saves user data to Firestore
+5. Tracking changes auto-save to Firestore (debounced)
+
+---
+
+## Firebase Structure
+
+```
+firestore/
+├── users/{userId}
+│   ├── nickname: string
+│   ├── gender: 'male' | 'female' | 'diverse'
+│   ├── height: number
+│   ├── weight: number
+│   ├── bodyFat?: number
+│   ├── maxPushups: number
+│   ├── groupCode: string
+│   ├── createdAt: timestamp
+│   └── pushupState: { baseReps, sets, restTime }
+│
+├── tracking/{userId}/days/{date}
+│   ├── pushups: { total?, workout? }
+│   ├── sports: { hiit, cardio, gym }
+│   ├── water: number
+│   ├── protein: number
+│   ├── weight?: { value, bodyFat?, bmi? }
+│   └── completed: boolean
+│
+└── groups/{groupCode}
+    ├── name: string
+    ├── members: string[]
+    └── createdAt: timestamp
 ```
 
 ---

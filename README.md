@@ -98,15 +98,39 @@ src/
 
 ## Firebase Setup
 
+### 1. Create Firebase Project
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Create a new project
+3. Enable Google Authentication in Authentication > Sign-in method
+4. Create a Firestore database in production mode
+5. Deploy security rules from `firestore.rules`
+
+### 2. Configure Environment Variables
+
+Copy `.env.example` to `.env` and fill in your Firebase credentials:
+
+```bash
+cp .env.example .env
+```
+
 ### Firestore Collections
 
-- `users` - User profiles and settings
-- `tracking` - Daily tracking data
-- `groups` - Leaderboard groups
+- `users/{userId}` - User profiles and settings
+- `tracking/{userId}/days/{date}` - Daily tracking data
+- `groups/{groupCode}` - Leaderboard groups
 
 ### Security Rules
 
-See `firestore.rules` for database security configuration.
+The app includes Firestore security rules in `firestore.rules`:
+- Users can only read/write their own data
+- All authenticated users can read group data
+- Groups cannot be deleted
+
+Deploy rules with:
+```bash
+firebase deploy --only firestore:rules
+```
 
 ## PWA Features
 
