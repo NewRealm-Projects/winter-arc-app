@@ -17,28 +17,30 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize App Check with reCAPTCHA v3
-// In development, use debug token if available, otherwise use reCAPTCHA
+// Initialize App Check with reCAPTCHA v3 (optional)
+// Only initialize if VITE_RECAPTCHA_SITE_KEY is set and valid
+const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
 if (import.meta.env.DEV) {
   // Development mode: enable debug token
   // @ts-ignore - self.FIREBASE_APPCHECK_DEBUG_TOKEN is a global variable
   self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
 }
 
-if (import.meta.env.VITE_RECAPTCHA_SITE_KEY) {
+if (recaptchaSiteKey && recaptchaSiteKey.length > 10) {
   try {
     initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider(import.meta.env.VITE_RECAPTCHA_SITE_KEY),
+      provider: new ReCaptchaV3Provider(recaptchaSiteKey),
       isTokenAutoRefreshEnabled: true,
     });
-    console.log('Firebase App Check initialized successfully');
+    console.log('✓ Firebase App Check initialized with reCAPTCHA v3');
   } catch (error) {
-    console.error('Error initializing App Check:', error);
+    console.warn('⚠ App Check initialization failed - continuing without App Check:', error);
   }
 } else {
-  console.warn(
-    'App Check not initialized: VITE_RECAPTCHA_SITE_KEY missing. ' +
-    'Add your reCAPTCHA v3 site key to .env for production.'
+  console.info(
+    'ℹ App Check not configured (optional). ' +
+    'Add VITE_RECAPTCHA_SITE_KEY to enable protection against abuse.'
   );
 }
 
