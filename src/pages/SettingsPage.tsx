@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { signOut } from 'firebase/auth';
 import * as Sentry from '@sentry/react';
 import { auth } from '../firebase/config';
@@ -17,32 +17,16 @@ function SettingsPage() {
   const [editWeight, setEditWeight] = useState('');
   const [editBodyFat, setEditBodyFat] = useState('');
   const [editMaxPushups, setEditMaxPushups] = useState('');
-  const defaultSchedule = {
-    hydration: '08:00',
-    protein: '13:00',
-    pushups: '20:00',
-  } as const;
+
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('notification-enabled') === 'true';
   });
 
-  const [notificationSchedule, setNotificationSchedule] = useState(() => {
-    if (typeof window === 'undefined') return { ...defaultSchedule };
-    try {
-      const stored = localStorage.getItem('notification-schedule');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return { ...defaultSchedule, ...parsed };
-      }
-    } catch (error) {
-      console.warn('Failed to parse notification schedule', error);
-    }
-    return { ...defaultSchedule };
-  });
 
-  const notificationTimers = useRef<number[]>([]);
+  const [notificationTime, setNotificationTime] = useState('20:00');
+  const [showTimeModal, setShowTimeModal] = useState(false);
   const [showInstallHelp, setShowInstallHelp] = useState(false);
 
   const user = useStore((state) => state.user);

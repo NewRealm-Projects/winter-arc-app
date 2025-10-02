@@ -8,8 +8,8 @@ import WeightTile from '../components/WeightTile';
 import { useState, useEffect } from 'react';
 import { generateDailyMotivation } from '../services/aiService';
 import { getWeatherForAachen } from '../services/weatherService';
-import { format } from 'date-fns';
-import { calculateStreak, calculateWaterGoal } from '../utils/calculations';
+
+
 import { useTranslation } from '../hooks/useTranslation';
 import { useTracking } from '../hooks/useTracking';
 import { Link } from 'react-router-dom';
@@ -17,7 +17,7 @@ import { Link } from 'react-router-dom';
 function DashboardPage() {
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
-  const selectedDate = useStore((state) => state.selectedDate);
+
   const { t } = useTranslation();
   // Auto-save tracking data to Firebase
   useTracking();
@@ -28,13 +28,11 @@ function DashboardPage() {
   const [loadingQuote, setLoadingQuote] = useState(true);
   const [weather, setWeather] = useState<{ temperature: number; emoji: string; description: string } | null>(null);
 
-  const todayKey = format(new Date(), 'yyyy-MM-dd');
-  const activeDate = selectedDate || todayKey;
-  const isToday = activeDate === todayKey;
-  const activeTracking = tracking[activeDate];
-  const activePushups = activeTracking?.pushups;
-  const activeWorkoutTotal =
-    activePushups?.workout?.reps?.reduce((sum, reps) => sum + reps, 0) ?? 0;
+
+
+
+
+
 
 
 
