@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { saveDailyTracking } from '../services/firestoreService';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
@@ -7,6 +8,7 @@ import {
   getLastPushupTotal,
   countPushupDays,
   calculateTotalReps,
+  evaluateWorkout,
 } from '../utils/pushupAlgorithm';
 
 function PushupTrainingPage() {
@@ -58,7 +60,18 @@ function PushupTrainingPage() {
     }
   }, [restTimeLeft]);
 
+
+  // Automatischer Satzabschluss, wenn Ziel erreicht
+  useEffect(() => {
+    if (currentReps > 0 && currentReps >= plan[currentSet] && restTimeLeft === 0 && currentSet < 5) {
+      handleCompleteSet();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentReps]);
+
   const handleTap = () => {
+    // Verhindere Scrollen auf Mobilgeräten
+    window.scrollTo({ top: 0, behavior: 'auto' });
     setCurrentReps(currentReps + 1);
   };
 
@@ -76,16 +89,26 @@ function PushupTrainingPage() {
       setIsComplete(true);
       const total = calculateTotalReps(newReps);
 
-      updateDayTracking(activeDate, {
+      const prevPushups = tracking[activeDate]?.pushups || {};
+      // Ermittle Status korrekt
+      const planState = user?.pushupState || { baseReps: 10, sets: 5, restTime: 60 };
+      const { status } = evaluateWorkout(planState, newReps);
+      const newTracking = {
+        ...tracking[activeDate],
         pushups: {
+          ...prevPushups,
           total,
           workout: {
             reps: newReps,
-            status: 'pass',
+            status,
             timestamp: new Date(),
           },
         },
-      });
+      };
+      updateDayTracking(activeDate, newTracking);
+      if (user?.id) {
+        saveDailyTracking(user.id, activeDate, newTracking);
+      }
     }
   };
 
@@ -103,8 +126,8 @@ function PushupTrainingPage() {
     const performance = ((totalReps / plannedReps) * 100).toFixed(0);
 
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 safe-area-inset-top">
-        <div className="bg-gradient-to-r from-winter-600 to-winter-700 dark:from-winter-700 dark:to-winter-800 text-white p-6 pb-8">
+  <div className="min-h-screen glass-dark rounded-2xl safe-area-inset-top">
+  <div className="glass-dark rounded-2xl text-white p-6 pb-8">
           <div className="max-w-7xl mx-auto">
             <button
               onClick={() => navigate(-1)}
@@ -117,7 +140,7 @@ function PushupTrainingPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 -mt-4 pb-20">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+          <div className="glass-dark rounded-2xl shadow-lg p-8">
             {/* Stats */}
             <div className="text-center mb-8">
               <div className="text-6xl font-bold text-winter-600 dark:text-winter-400 mb-2">
@@ -143,10 +166,10 @@ function PushupTrainingPage() {
                 {reps.map((rep, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-winter-600 dark:bg-winter-500 text-white flex items-center justify-center font-bold">
+                      <div className="w-10 h-10 bg-winter-600 dark:bg-winter-500 text-white flex items-center justify-center font-bold" style={{ borderRadius: 0 }}>
                         {index + 1}
                       </div>
                       <span className="text-gray-900 dark:text-white font-medium">
@@ -167,7 +190,7 @@ function PushupTrainingPage() {
             </div>
 
             {/* Motivation */}
-            <div className="bg-winter-50 dark:bg-winter-900/20 rounded-xl p-6 mb-6">
+            <div className="bg-winter-50 dark:bg-winter-900/20 p-6 mb-6" style={{ borderRadius: 0 }}>
               <p className="text-center text-gray-900 dark:text-white font-medium">
                 {totalReps >= plannedReps
                   ? '🔥 Fantastisch! Du hast dein Ziel erreicht!'
@@ -180,7 +203,8 @@ function PushupTrainingPage() {
 
             <button
               onClick={handleFinish}
-              className="w-full py-4 bg-winter-600 dark:bg-winter-500 text-white rounded-xl hover:bg-winter-700 dark:hover:bg-winter-600 transition-colors font-semibold text-lg"
+              className="w-full py-4 bg-winter-600 dark:bg-winter-500 text-white hover:bg-winter-700 dark:hover:bg-winter-600 transition-colors font-semibold text-lg"
+              style={{ borderRadius: 0 }}
             >
               Fertig
             </button>
@@ -193,7 +217,7 @@ function PushupTrainingPage() {
   // Show countdown before starting
   if (!isStarted) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+  <div className="min-h-screen glass-dark rounded-2xl flex items-center justify-center">
         <div className="text-center">
           <div className="text-9xl font-bold text-winter-600 dark:text-winter-400 mb-4">
             {startCountdown}
@@ -207,9 +231,9 @@ function PushupTrainingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 safe-area-inset-top">
+  <div className="min-h-screen glass-dark rounded-2xl safe-area-inset-top overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-winter-600 to-winter-700 dark:from-winter-700 dark:to-winter-800 text-white p-6 pb-8">
+  <div className="glass-dark rounded-2xl text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto">
           <button
             onClick={() => navigate(-1)}
@@ -226,7 +250,7 @@ function PushupTrainingPage() {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 -mt-4 pb-20">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+  <div className="glass-dark rounded-2xl shadow-lg p-6">
           {/* Plan Overview */}
           <div className="mb-6">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -292,13 +316,16 @@ function PushupTrainingPage() {
                 <div className="space-y-6">
                   {/* Tap Circle */}
                   <div className="flex flex-col items-center">
-                    <button
-                      onClick={handleTap}
-                      className="w-64 h-64 rounded-full bg-gradient-to-br from-winter-500 to-winter-700 hover:from-winter-600 hover:to-winter-800 active:scale-95 transition-all shadow-2xl flex flex-col items-center justify-center text-white"
-                    >
-                      <div className="text-7xl font-bold mb-2">{currentReps}</div>
-                      <div className="text-lg opacity-90">Tippe mit der Nase</div>
-                    </button>
+                    <div className="w-72 h-72 flex items-center justify-center overflow-hidden select-none" style={{ touchAction: 'manipulation' }}>
+                      <button
+                        onClick={handleTap}
+                        className="w-64 h-64 rounded-full bg-gradient-to-br from-winter-500 to-winter-700 hover:from-winter-600 hover:to-winter-800 active:scale-95 transition-all shadow-2xl flex flex-col items-center justify-center text-white focus:outline-none"
+                        style={{ userSelect: 'none' }}
+                      >
+                        <div className="text-7xl font-bold mb-2">{currentReps}</div>
+                        <div className="text-lg opacity-90">Tippe mit der Nase</div>
+                      </button>
+                    </div>
                   </div>
 
                   <button

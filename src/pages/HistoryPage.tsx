@@ -26,9 +26,9 @@ function HistoryPage() {
   };
 
   return (
-    <div className="min-h-screen safe-area-inset-top">
+  <div className="min-h-screen glass-dark safe-area-inset-top">
       {/* Header */}
-      <div className="bg-gradient-to-r from-winter-600 to-winter-700 dark:from-winter-700 dark:to-winter-800 text-white p-6 pb-8">
+  <div className="glass-dark text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto flex items-center gap-4">
           <button
             onClick={() => navigate('/')}

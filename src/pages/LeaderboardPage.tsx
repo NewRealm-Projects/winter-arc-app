@@ -119,9 +119,9 @@ function LeaderboardPage() {
   };
 
   return (
-    <div className="min-h-screen safe-area-inset-top">
+  <div className="min-h-screen glass-dark safe-area-inset-top">
       {/* Header */}
-      <div className="bg-gradient-to-r from-winter-600 to-winter-700 dark:from-winter-700 dark:to-winter-800 text-white p-6 pb-8">
+  <div className="glass-dark text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-3xl font-bold mb-2">👥 {t('group.title')}</h1>
           <p className="text-winter-100">{t('group.code')}: {user?.groupCode || t('group.none')}</p>

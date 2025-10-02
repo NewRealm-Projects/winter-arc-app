@@ -73,8 +73,8 @@ function DashboardPage() {
       {/* Header */}
       <div className="relative text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               {user?.photoURL && (
                 <img
                   src={user.photoURL}
@@ -86,28 +86,30 @@ function DashboardPage() {
                   }}
                 />
               )}
-              <h1 className="text-3xl font-bold">
+              <h1 className="text-3xl font-bold truncate">
                 {t('dashboard.greeting', { nickname: user?.nickname || 'User' })}
               </h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap justify-start sm:justify-end">
               {weather && (
-                <div className="glass-dark px-3 py-2 rounded-lg transition-colors text-sm font-medium flex items-center gap-2">
+                <div className="glass-dark px-3 py-2 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 min-w-[60px] justify-center">
                   <span>{weather.emoji}</span>
                   <span>{weather.temperature}°C</span>
                 </div>
               )}
               <Link
                 to="/tracking/history"
-                className="glass-dark px-3 py-2 hover:bg-white/10 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
+                className="glass-dark px-3 py-2 hover:bg-white/10 rounded-lg transition-colors text-xl flex items-center justify-center"
+                title={t('tracking.history')}
               >
-                📋 {t('tracking.history')}
+                📋
               </Link>
               <Link
                 to="/settings"
-                className="glass-dark px-3 py-2 hover:bg-white/10 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
+                className="glass-dark px-3 py-2 hover:bg-white/10 rounded-lg transition-colors text-xl flex items-center justify-center"
+                title={t('nav.settings')}
               >
-                ⚙️ {t('nav.settings')}
+                ⚙️
               </Link>
             </div>
           </div>

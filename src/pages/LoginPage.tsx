@@ -84,9 +84,9 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-winter-50 to-winter-100 dark:from-gray-900 dark:to-gray-800 p-4">
+  <div className="min-h-screen glass-dark flex items-center justify-center p-4">
       <div className="max-w-md w-full">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 text-center">
+  <div className="glass-dark rounded-2xl shadow-xl p-8 text-center">
           {/* Logo/Icon */}
           <div className="mb-8">
             <div className="text-6xl mb-4">❄️</div>

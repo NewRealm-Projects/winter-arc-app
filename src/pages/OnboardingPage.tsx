@@ -121,9 +121,9 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-winter-50 to-winter-100 dark:from-gray-900 dark:to-gray-800 p-4 flex items-center justify-center">
+  <div className="min-h-screen glass-dark p-4 flex items-center justify-center">
       <div className="max-w-md w-full">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+  <div className="glass-dark rounded-2xl shadow-xl p-8">
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-2">
