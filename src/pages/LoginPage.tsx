@@ -1,13 +1,48 @@
-import { useState } from 'react';
-import { signInWithPopup } from 'firebase/auth';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/config';
 import { useStore } from '../store/useStore';
 
 function LoginPage() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [useRedirect, setUseRedirect] = useState(false);
+  const user = useStore((state) => state.user);
   const setUser = useStore((state) => state.setUser);
   const setIsOnboarded = useStore((state) => state.setIsOnboarded);
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      console.log('🔄 User already logged in, redirecting...');
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
+
+  // Check for redirect result on mount
+  useEffect(() => {
+    const checkRedirectResult = async () => {
+      try {
+        setLoading(true);
+        const result = await getRedirectResult(auth);
+        if (result) {
+          console.log('✅ Redirect login successful!', {
+            uid: result.user.uid,
+            email: result.user.email,
+          });
+        }
+      } catch (err: any) {
+        console.error('❌ Redirect result error:', err);
+        setError(`Redirect error: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkRedirectResult();
+  }, []);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -19,15 +54,25 @@ function LoginPage() {
       authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
       projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
     });
+    console.log('Current URL:', window.location.href);
+    console.log('Current Domain:', window.location.hostname);
 
     try {
-      console.log('📱 Opening Google Sign-In popup...');
-      const result = await signInWithPopup(auth, googleProvider);
-      console.log('✅ Login successful!', {
-        uid: result.user.uid,
-        email: result.user.email,
-        displayName: result.user.displayName,
-      });
+      if (useRedirect) {
+        console.log('🔄 Using redirect-based login...');
+        await signInWithRedirect(auth, googleProvider);
+        // Page will reload after redirect, no need to handle result here
+      } else {
+        console.log('📱 Opening Google Sign-In popup...');
+        const result = await signInWithPopup(auth, googleProvider);
+        console.log('✅ Login successful!', {
+          uid: result.user.uid,
+          email: result.user.email,
+          displayName: result.user.displayName,
+        });
+        console.log('🔄 Waiting for auth state to propagate...');
+        // The useAuth hook will handle the rest via onAuthStateChanged
+      }
     } catch (err: any) {
       console.error('❌ Login error:', {
         code: err.code,
@@ -45,7 +90,9 @@ function LoginPage() {
       } else if (err.code === 'auth/popup-closed-by-user') {
         errorMessage = 'Login abgebrochen';
       } else if (err.code === 'auth/popup-blocked') {
-        errorMessage = 'Popup wurde blockiert. Bitte erlaube Popups für diese Seite.';
+        errorMessage = 'Popup wurde blockiert. Versuche Redirect-Modus.';
+        console.log('💡 Switching to redirect mode...');
+        setUseRedirect(true);
       } else if (err.code === 'auth/network-request-failed') {
         errorMessage = 'Netzwerkfehler. Bitte überprüfe deine Internetverbindung.';
       } else {
@@ -53,7 +100,6 @@ function LoginPage() {
       }
 
       setError(errorMessage);
-    } finally {
       setLoading(false);
     }
   };
@@ -132,10 +178,31 @@ function LoginPage() {
           </button>
 
           {error && (
-            <div className="mt-4 text-red-600 dark:text-red-400 text-sm">
-              {error}
+            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+              {error.includes('Popup') && (
+                <button
+                  onClick={() => {
+                    setError(null);
+                    setUseRedirect(true);
+                  }}
+                  className="mt-2 text-xs text-red-700 dark:text-red-300 underline"
+                >
+                  Try redirect mode instead
+                </button>
+              )}
             </div>
           )}
+
+          {/* Login Mode Toggle */}
+          <div className="mt-3 flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <button
+              onClick={() => setUseRedirect(!useRedirect)}
+              className="underline hover:text-gray-700 dark:hover:text-gray-300"
+            >
+              {useRedirect ? 'Switch to popup mode' : 'Switch to redirect mode'}
+            </button>
+          </div>
 
           {/* Demo Mode Button */}
           <button

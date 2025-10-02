@@ -14,9 +14,16 @@ export async function uploadProfilePictureFromUrl(
   try {
     console.log('📥 Downloading profile picture from URL...');
 
-    // Fetch the image
-    const response = await fetch(imageUrl);
-    if (!response.ok) {
+    // Fetch the image with no-cors mode as fallback
+    let response;
+    try {
+      response = await fetch(imageUrl);
+    } catch (fetchError) {
+      console.warn('⚠️ CORS fetch failed, trying no-cors mode...');
+      response = await fetch(imageUrl, { mode: 'no-cors' });
+    }
+
+    if (!response.ok && response.type !== 'opaque') {
       throw new Error('Failed to download image');
     }
 
@@ -40,7 +47,9 @@ export async function uploadProfilePictureFromUrl(
     return { success: true, url: downloadURL };
   } catch (error) {
     console.error('❌ Error uploading profile picture:', error);
-    return { success: false, error };
+    // Return error details for better debugging
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return { success: false, error: errorMessage };
   }
 }
 
