@@ -119,7 +119,7 @@ function LeaderboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 safe-area-inset-top">
+    <div className="min-h-screen safe-area-inset-top">
       {/* Header */}
       <div className="bg-gradient-to-r from-winter-600 to-winter-700 dark:from-winter-700 dark:to-winter-800 text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto">
@@ -131,7 +131,7 @@ function LeaderboardPage() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 -mt-4 pb-20 space-y-4">
         {/* Filter Tabs */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-2 flex gap-2">
+        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-2 flex gap-2">
           {[
             { key: 'week' as const, label: t('group.week') },
             { key: 'month' as const, label: t('group.month') },
@@ -153,7 +153,7 @@ function LeaderboardPage() {
 
         {/* Week Heatmap - Only show in week view */}
         {filter === 'week' && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-3">
+          <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-3">
             <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
               {t('group.trainingWeek')} ({t('group.weekNumber')} {format(now, 'ww', { locale })})
             </h2>
@@ -234,7 +234,7 @@ function LeaderboardPage() {
 
         {/* Month Heatmap - Only show in month view */}
         {filter === 'month' && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-3">
+          <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-3">
             <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
               {t('group.trainingHeatmap')} ({format(now, 'MMMM yyyy', { locale })})
             </h2>
@@ -328,7 +328,7 @@ function LeaderboardPage() {
         )}
 
         {/* Leaderboard Rankings */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             {t('group.rankings')}
           </h2>
@@ -439,7 +439,7 @@ function LeaderboardPage() {
         </div>
 
         {/* Achievements */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             🏅 {t('group.achievements')}
           </h2>

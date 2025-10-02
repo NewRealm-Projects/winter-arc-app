@@ -31,7 +31,7 @@ function WeekOverview() {
   const progressPercent = (completedDays / 7) * 100;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+    <div className="glass dark:glass-dark rounded-[20px] p-6 hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
           {t('dashboard.weekOverview')}

@@ -51,10 +51,10 @@ function DashboardPage() {
   }, [user, tracking]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 safe-area-inset-top">
+    <div className="min-h-screen safe-area-inset-top">
       {/* Header */}
-      <div className="bg-gradient-to-r from-winter-600 to-winter-700 dark:from-winter-700 dark:to-winter-800 text-white p-6 pb-8">
-        <div className="max-w-7xl mx-auto">
+      <div className="relative bg-gradient-to-r from-winter-600 to-winter-700 dark:from-winter-700 dark:to-winter-800 text-white p-6 pb-8">
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-3xl font-bold">
               {t('dashboard.greeting', { nickname: user?.nickname || 'User' })}
@@ -68,7 +68,7 @@ function DashboardPage() {
           </div>
 
           {/* AI Motivation Quote */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-3">
+          <div className="glass animate-fade-in-up rounded-[20px] p-4 mb-3 border border-white/20">
             <div className="flex items-start gap-3">
               <div className="text-3xl">💡</div>
               <div className="flex-1">
@@ -96,11 +96,13 @@ function DashboardPage() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 -mt-4 pb-20 space-y-6">
         {/* Week Overview */}
-        <WeekOverview />
+        <div className="animate-fade-in-up delay-100">
+          <WeekOverview />
+        </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
+        <div className="grid grid-cols-2 gap-4 animate-fade-in-up delay-200">
+          <div className="glass dark:glass-dark rounded-[20px] p-4 hover:scale-105 transition-transform duration-200">
             <div className="text-3xl mb-2">🔥</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {streak}
@@ -110,7 +112,7 @@ function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
+          <div className="glass dark:glass-dark rounded-[20px] p-4 hover:scale-105 transition-transform duration-200">
             <div className="text-3xl mb-2">💪</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {todayPushups}
@@ -122,7 +124,7 @@ function DashboardPage() {
         </div>
 
         {/* Tracking Tiles */}
-        <div className="space-y-4">
+        <div className="space-y-4 animate-fade-in-up delay-300">
           {/* Pushups */}
           <PushupTile />
 

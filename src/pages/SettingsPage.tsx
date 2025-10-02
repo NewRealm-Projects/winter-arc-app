@@ -190,7 +190,7 @@ function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 safe-area-inset-top">
+    <div className="min-h-screen safe-area-inset-top">
       {/* Header */}
       <div className="bg-gradient-to-r from-winter-600 to-winter-700 dark:from-winter-700 dark:to-winter-800 text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto">
@@ -202,7 +202,7 @@ function SettingsPage() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 -mt-4 pb-20 space-y-4">
         {/* Profile Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             👤 {t('settings.profile')}
           </h2>
@@ -365,7 +365,7 @@ function SettingsPage() {
         </div>
 
         {/* Groups Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             👥 {t('settings.group')}
           </h2>
@@ -423,7 +423,7 @@ function SettingsPage() {
         </div>
 
         {/* Appearance Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             🎨 {t('settings.appearance')}
           </h2>
@@ -452,7 +452,7 @@ function SettingsPage() {
         </div>
 
         {/* Notifications Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             🔔 {t('settings.notifications')}
           </h2>
@@ -541,7 +541,7 @@ function SettingsPage() {
         )}
 
         {/* Account Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             🔐 {t('settings.account')}
           </h2>
@@ -559,7 +559,7 @@ function SettingsPage() {
         </div>
 
         {/* Legal Section */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             📄 {t('settings.legal')}
           </h2>
