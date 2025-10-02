@@ -14,6 +14,9 @@ function SettingsPage() {
   const [editWeight, setEditWeight] = useState('');
   const [editBodyFat, setEditBodyFat] = useState('');
   const [editMaxPushups, setEditMaxPushups] = useState('');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [notificationTime, setNotificationTime] = useState('20:00');
+  const [showTimeModal, setShowTimeModal] = useState(false);
 
   const user = useStore((state) => state.user);
   const darkMode = useStore((state) => state.darkMode);
@@ -380,18 +383,68 @@ function SettingsPage() {
                   Tägliche Erinnerung
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  20:00 Uhr
+                  {notificationTime} Uhr
                 </div>
               </div>
-              <button className="relative w-14 h-8 rounded-full bg-gray-300">
-                <div className="absolute top-1 left-1 w-6 h-6 bg-white rounded-full" />
+              <button
+                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                className={`relative w-14 h-8 rounded-full transition-colors ${
+                  notificationsEnabled
+                    ? 'bg-winter-600'
+                    : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+              >
+                <div
+                  className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform ${
+                    notificationsEnabled ? 'left-7' : 'left-1'
+                  }`}
+                />
               </button>
             </div>
           </div>
-          <button className="mt-4 w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium">
-            Zeit ändern
-          </button>
+          {notificationsEnabled && (
+            <button
+              onClick={() => setShowTimeModal(true)}
+              className="mt-4 w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
+            >
+              Zeit ändern
+            </button>
+          )}
         </div>
+
+        {/* Time Modal */}
+        {showTimeModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                Erinnerungszeit
+              </h2>
+              <input
+                type="time"
+                value={notificationTime}
+                onChange={(e) => setNotificationTime(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none mb-4"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowTimeModal(false)}
+                  className="flex-1 px-4 py-3 bg-winter-600 text-white rounded-lg font-semibold hover:bg-winter-700 transition-colors"
+                >
+                  Speichern
+                </button>
+                <button
+                  onClick={() => {
+                    setShowTimeModal(false);
+                    setNotificationTime('20:00');
+                  }}
+                  className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Abbrechen
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Account Section */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">

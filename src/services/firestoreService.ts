@@ -132,7 +132,7 @@ export async function joinGroup(groupCode: string, userId: string) {
   }
 }
 
-export async function getGroupMembers(groupCode: string) {
+export async function getGroupMembers(groupCode: string, startDate?: Date, endDate?: Date) {
   try {
     const groupRef = doc(db, 'groups', groupCode);
     const groupDoc = await getDoc(groupRef);
@@ -141,20 +141,94 @@ export async function getGroupMembers(groupCode: string) {
       const memberIds = groupDoc.data().members || [];
       const today = new Date().toISOString().split('T')[0];
 
-      // Fetch all member user data and their daily tracking
+      // Fetch all member user data and their tracking statistics
       const members = await Promise.all(
         memberIds.map(async (memberId: string) => {
           const result = await getUser(memberId);
           if (!result.success || !result.data) return null;
 
-          // Fetch today's tracking data
-          const trackingRef = doc(db, 'tracking', memberId, 'days', today);
-          const trackingDoc = await getDoc(trackingRef);
-          const dailyPushups = trackingDoc.exists() ? trackingDoc.data()?.pushups?.total || 0 : 0;
+          // Fetch all tracking data for this member
+          const trackingCollectionRef = collection(db, 'tracking', memberId, 'days');
+          const trackingSnapshot = await getDocs(trackingCollectionRef);
+
+          const allTrackingData: any = {};
+          trackingSnapshot.forEach((doc) => {
+            allTrackingData[doc.id] = doc.data();
+          });
+
+          // Filter tracking data by date range if provided
+          let trackingData = allTrackingData;
+          if (startDate && endDate) {
+            const startStr = startDate.toISOString().split('T')[0];
+            const endStr = endDate.toISOString().split('T')[0];
+
+            trackingData = Object.keys(allTrackingData)
+              .filter(date => date >= startStr && date <= endStr)
+              .reduce((filtered: any, date) => {
+                filtered[date] = allTrackingData[date];
+                return filtered;
+              }, {});
+          }
+
+          // Calculate statistics
+
+          // Today's pushups
+          const dailyPushups = allTrackingData[today]?.pushups?.total ||
+            (allTrackingData[today]?.pushups?.workout?.reps?.reduce((sum: number, reps: number) => sum + reps, 0)) || 0;
+
+          // Total pushups in the filtered period
+          const totalPushups = Object.values(trackingData).reduce(
+            (sum: number, day: any) => sum + (day.pushups?.total || 0),
+            0
+          );
+
+          // Sport sessions in the filtered period
+          const sportSessions = Object.values(trackingData).reduce(
+            (sum: number, day: any) =>
+              sum + Object.values(day.sports || {}).filter(Boolean).length,
+            0
+          );
+
+          // Streak calculation (always based on all-time data)
+          const allTrackingDates = Object.keys(allTrackingData).sort();
+          let streak = 0;
+          if (allTrackingDates.length > 0) {
+            streak = 1;
+            const sortedDates = [...allTrackingDates].sort().reverse();
+            for (let i = 0; i < sortedDates.length - 1; i++) {
+              const current = new Date(sortedDates[i]);
+              const next = new Date(sortedDates[i + 1]);
+              const diffDays = Math.floor(
+                (current.getTime() - next.getTime()) / (1000 * 60 * 60 * 24)
+              );
+              if (diffDays === 1) {
+                streak++;
+              } else {
+                break;
+              }
+            }
+          }
+
+          // Average water (only days with water > 0 in the filtered period)
+          const waterEntries = Object.values(trackingData).filter((day: any) => day.water > 0);
+          const avgWater = waterEntries.length > 0
+            ? waterEntries.reduce((sum: number, day: any) => sum + day.water, 0) / waterEntries.length
+            : 0;
+
+          // Average protein (only days with protein > 0 in the filtered period)
+          const proteinEntries = Object.values(trackingData).filter((day: any) => day.protein > 0);
+          const avgProtein = proteinEntries.length > 0
+            ? proteinEntries.reduce((sum: number, day: any) => sum + day.protein, 0) / proteinEntries.length
+            : 0;
 
           return {
             ...result.data,
-            dailyPushups
+            dailyPushups,
+            totalPushups,
+            sportSessions,
+            streak,
+            avgWater: Math.round(avgWater),
+            avgProtein: Math.round(avgProtein),
           };
         })
       );

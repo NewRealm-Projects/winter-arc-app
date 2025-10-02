@@ -13,7 +13,6 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   const [nickname, setNickname] = useState('');
   const [gender, setGender] = useState<Gender>('male');
   const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
   const [maxPushups, setMaxPushups] = useState('');
   const [birthday, setBirthday] = useState('');
@@ -22,7 +21,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   const setUser = useStore((state) => state.setUser);
   const setIsOnboarded = useStore((state) => state.setIsOnboarded);
 
-  const totalSteps = birthdayOnly ? 1 : 8;
+  const totalSteps = birthdayOnly ? 1 : 7;
 
   const handleNext = () => {
     if (step < totalSteps) {
@@ -69,7 +68,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
         nickname,
         gender,
         height: parseInt(height),
-        weight: parseInt(weight),
+        weight: 0, // Weight will be set in tracking page
         bodyFat: bodyFat ? parseFloat(bodyFat) : undefined,
         maxPushups: parseInt(maxPushups),
         birthday: birthday || undefined,
@@ -109,12 +108,10 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
       case 4:
         return height && parseInt(height) > 0;
       case 5:
-        return weight && parseInt(weight) > 0;
-      case 6:
         return true; // bodyFat is optional
-      case 7:
+      case 6:
         return maxPushups && parseInt(maxPushups) > 0;
-      case 8:
+      case 7:
         return true; // birthday is optional
       default:
         return false;
@@ -274,31 +271,6 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
             {!birthdayOnly && step === 5 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Dein Gewicht
-                </h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  In Kilogramm (kg)
-                </p>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={weight}
-                    onChange={(e) => setWeight(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
-                    placeholder="z.B. 75"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
-                    autoFocus
-                  />
-                  <span className="absolute right-4 top-3 text-gray-500 dark:text-gray-400">
-                    kg
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {!birthdayOnly && step === 6 && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Körperfettanteil (optional)
                 </h2>
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
@@ -322,7 +294,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
               </div>
             )}
 
-            {!birthdayOnly && step === 7 && (
+            {!birthdayOnly && step === 6 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Maximale Liegestütze
@@ -358,7 +330,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
               </div>
             )}
 
-            {!birthdayOnly && step === 8 && (
+            {!birthdayOnly && step === 7 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   🎂 Geburtstag (optional)
