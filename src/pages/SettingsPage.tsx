@@ -164,8 +164,8 @@ function SettingsPage() {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('⏰ Winter Arc Tracker', {
           body: 'Zeit für dein Training! Logge deine Fortschritte.',
-          icon: '/winter-arc-app/icon-192.png',
-          badge: '/winter-arc-app/icon-192.png',
+          icon: '/icon-192.png',
+          badge: '/icon-192.png',
         });
 
         // Reschedule for next day
@@ -180,8 +180,8 @@ function SettingsPage() {
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('🧪 Test-Benachrichtigung', {
         body: 'Benachrichtigungen funktionieren! Du wirst täglich um ' + notificationTime + ' Uhr erinnert.',
-        icon: '/winter-arc-app/icon-192.png',
-        badge: '/winter-arc-app/icon-192.png',
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
       });
       console.log('📬 Test-Benachrichtigung gesendet');
     } else {
