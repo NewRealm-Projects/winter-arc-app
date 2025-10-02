@@ -31,9 +31,10 @@ function WeekOverview() {
     const hasSports = Object.values(dayTracking?.sports || {}).some(Boolean);
     const hasWater = (dayTracking?.water || 0) >= 2000; // Goal: 2L
     const hasProtein = (dayTracking?.protein || 0) >= 100; // Goal: 100g
+    const hasWeight = !!dayTracking?.weight?.value; // Weight entered
 
-    const tasksCompleted = [hasPushups, hasSports, hasWater, hasProtein].filter(Boolean).length;
-    const isCompleted = tasksCompleted >= 3; // At least 3 tasks for streak
+    const tasksCompleted = [hasPushups, hasSports, hasWater, hasProtein, hasWeight].filter(Boolean).length;
+    const isCompleted = tasksCompleted >= 4; // At least 4 tasks for streak
 
     return {
       date,
@@ -47,6 +48,7 @@ function WeekOverview() {
       hasSports,
       hasWater,
       hasProtein,
+      hasWeight,
       tasksCompleted,
     };
   });
@@ -78,7 +80,7 @@ function WeekOverview() {
       </div>
 
       <div className="mb-4 text-xs text-gray-500 dark:text-gray-400 text-center">
-        {t('dashboard.streakInfo')} (3/4 {t('dashboard.tasks')})
+        {t('dashboard.streakInfo')} (4/5 {t('dashboard.tasks')})
       </div>
 
       {/* Week Days Grid */}
@@ -123,6 +125,7 @@ function WeekOverview() {
                 <div className={`w-1.5 h-1.5 rounded-full ${day.hasSports ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'}`} title="Sport" />
                 <div className={`w-1.5 h-1.5 rounded-full ${day.hasWater ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`} title="Water" />
                 <div className={`w-1.5 h-1.5 rounded-full ${day.hasProtein ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-600'}`} title="Protein" />
+                <div className={`w-1.5 h-1.5 rounded-full ${day.hasWeight ? 'bg-purple-500' : 'bg-gray-300 dark:bg-gray-600'}`} title="Weight" />
               </div>
 
               {/* Streak indicator */}

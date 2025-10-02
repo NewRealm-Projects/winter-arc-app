@@ -162,16 +162,18 @@ function LeaderboardPage() {
                 const dateStr = format(day, 'yyyy-MM-dd');
                 const dayTracking = tracking[dateStr];
                 const isCurrentDay = isToday(day);
-                // Calculate progress percentage (wie im Original)
+                // Calculate progress percentage
                 const pushups = dayTracking?.pushups?.total || 0;
                 const sports = Object.values(dayTracking?.sports || {}).filter(Boolean).length;
                 const water = dayTracking?.water || 0;
                 const protein = dayTracking?.protein || 0;
+                const weight = dayTracking?.weight?.value || 0;
                 const progress = (
-                  (pushups > 0 ? 25 : 0) +
-                  (sports > 0 ? 25 : 0) +
-                  (water >= 2000 ? 25 : 0) +
-                  (protein >= 100 ? 25 : 0)
+                  (pushups > 0 ? 20 : 0) +
+                  (sports > 0 ? 20 : 0) +
+                  (water >= 2000 ? 20 : 0) +
+                  (protein >= 100 ? 20 : 0) +
+                  (weight > 0 ? 20 : 0)
                 );
                 return (
                   <div key={`week-${dateStr}`} className="flex flex-col items-center gap-1">
@@ -257,13 +259,15 @@ function LeaderboardPage() {
               const sports = Object.values(dayTracking?.sports || {}).filter(Boolean).length;
               const water = dayTracking?.water || 0;
               const protein = dayTracking?.protein || 0;
+              const weight = dayTracking?.weight?.value || 0;
 
-              // Simple progress: 25% per category (pushups, sports, water, protein)
+              // Progress: 20% per category (pushups, sports, water, protein, weight)
               const progress = (
-                (pushups > 0 ? 25 : 0) +
-                (sports > 0 ? 25 : 0) +
-                (water >= 2000 ? 25 : 0) +
-                (protein >= 100 ? 25 : 0)
+                (pushups > 0 ? 20 : 0) +
+                (sports > 0 ? 20 : 0) +
+                (water >= 2000 ? 20 : 0) +
+                (protein >= 100 ? 20 : 0) +
+                (weight > 0 ? 20 : 0)
               );
 
               return (
