@@ -26,12 +26,14 @@ service cloud.firestore {
     }
 
     // Groups collection - authenticated users can read all groups
-    // Only group members can write
+    // Users can create groups and update if they're adding themselves to members
     match /groups/{groupCode} {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated();
-      allow update: if isAuthenticated() &&
-                      request.auth.uid in resource.data.members;
+      allow update: if isAuthenticated() && (
+        request.auth.uid in resource.data.members ||
+        request.auth.uid in request.resource.data.members
+      );
       allow delete: if false; // Groups cannot be deleted
     }
   }

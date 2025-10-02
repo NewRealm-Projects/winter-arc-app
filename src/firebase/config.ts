@@ -18,7 +18,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Initialize App Check with reCAPTCHA v3
-// In development, App Check will be skipped if no site key is provided
+// In development, use debug token if available, otherwise use reCAPTCHA
+if (import.meta.env.DEV) {
+  // Development mode: enable debug token
+  // @ts-ignore - self.FIREBASE_APPCHECK_DEBUG_TOKEN is a global variable
+  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+}
+
 if (import.meta.env.VITE_RECAPTCHA_SITE_KEY) {
   try {
     initializeAppCheck(app, {

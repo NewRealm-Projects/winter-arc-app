@@ -6,7 +6,11 @@ import type { User, DailyTracking } from '../types';
 export async function saveUser(userId: string, userData: Omit<User, 'id'>) {
   try {
     const userRef = doc(db, 'users', userId);
-    await setDoc(userRef, userData);
+    // Remove undefined fields to avoid Firestore error
+    const cleanedData = Object.fromEntries(
+      Object.entries(userData).filter(([_, value]) => value !== undefined)
+    );
+    await setDoc(userRef, cleanedData);
     return { success: true };
   } catch (error) {
     console.error('Error saving user:', error);

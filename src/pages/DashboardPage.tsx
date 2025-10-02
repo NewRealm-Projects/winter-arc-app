@@ -19,7 +19,7 @@ function DashboardPage() {
 
       setLoadingQuote(true);
       try {
-        const result = await generateDailyMotivation(tracking, user.nickname);
+        const result = await generateDailyMotivation(tracking, user.nickname, user.birthday);
         setMotivation(result);
       } catch (error) {
         console.error('Error loading motivation:', error);

@@ -64,9 +64,24 @@ function analyzeTrackingData(tracking: Record<string, DailyTracking>): UserTrack
 
 export async function generateDailyMotivation(
   tracking: Record<string, DailyTracking>,
-  nickname: string
+  nickname: string,
+  birthday?: string
 ): Promise<{ quote: string; subtext: string }> {
   try {
+    // Check if it's the user's birthday
+    if (birthday) {
+      const today = new Date().toISOString().split('T')[0];
+      const [, todayMonth, todayDay] = today.split('-');
+      const [, birthdayMonth, birthdayDay] = birthday.split('-');
+
+      if (todayMonth === birthdayMonth && todayDay === birthdayDay) {
+        return {
+          quote: `🎉 Alles Gute zum Geburtstag, ${nickname}!`,
+          subtext: 'Heute ist dein besonderer Tag - trainiere wie ein Champion! 💪🎂',
+        };
+      }
+    }
+
     // Check if API key is available
     if (!import.meta.env.VITE_GEMINI_API_KEY) {
       console.warn('Gemini API key not found, using fallback quote');
@@ -101,7 +116,7 @@ Erstelle einen kurzen, motivierenden Tagesspruch auf Deutsch für ${nickname}.
 
 Antworte NUR mit dem JSON-Objekt, keine zusätzlichen Erklärungen.`;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();

@@ -38,6 +38,26 @@ function WeightTile() {
 
   // Generate chart data
   const chartData = [];
+
+  // Add onboarding weight as the first data point if available and within the date range
+  if (user?.weight && user?.createdAt) {
+    const onboardingDate = typeof user.createdAt === 'string'
+      ? user.createdAt
+      : user.createdAt.toISOString?.() || new Date(user.createdAt).toISOString();
+    const createdDate = format(new Date(onboardingDate), 'yyyy-MM-dd');
+    const oldestDateInRange = format(subDays(new Date(), days - 1), 'yyyy-MM-dd');
+
+    // Include onboarding weight if it's within the selected date range
+    if (createdDate >= oldestDateInRange) {
+      chartData.push({
+        date: format(new Date(createdDate), 'dd.MM'),
+        weight: user.weight,
+        bodyFat: user.bodyFat,
+      });
+    }
+  }
+
+  // Add tracked weights
   for (let i = days - 1; i >= 0; i--) {
     const date = format(subDays(new Date(), i), 'yyyy-MM-dd');
     const dayTracking = tracking[date];
@@ -49,6 +69,14 @@ function WeightTile() {
       });
     }
   }
+
+  // Sort by date to ensure proper chronological order
+  chartData.sort((a, b) => {
+    const [dayA, monthA] = a.date.split('.');
+    const [dayB, monthB] = b.date.split('.');
+    return new Date(2024, parseInt(monthA) - 1, parseInt(dayA)).getTime() -
+           new Date(2024, parseInt(monthB) - 1, parseInt(dayB)).getTime();
+  });
 
   const latestWeight = tracking[today]?.weight?.value || user?.weight || 0;
   const latestBMI = tracking[today]?.weight?.bmi;

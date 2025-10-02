@@ -7,6 +7,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const setUser = useStore((state) => state.setUser);
+  const setIsOnboarded = useStore((state) => state.setIsOnboarded);
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -22,6 +23,30 @@ function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDemoLogin = () => {
+    // Create demo user for testing
+    const demoUser = {
+      id: 'demo-user-123',
+      nickname: 'Demo User',
+      gender: 'male' as const,
+      height: 180,
+      weight: 75,
+      bodyFat: 15,
+      maxPushups: 30,
+      groupCode: 'demo-group',
+      birthday: '1990-05-15',
+      createdAt: new Date('2024-01-01'),
+      pushupState: {
+        baseReps: 13,
+        sets: 5,
+        restTime: 60,
+      },
+    };
+
+    setUser(demoUser);
+    setIsOnboarded(true);
   };
 
   return (
@@ -77,6 +102,15 @@ function LoginPage() {
               {error}
             </div>
           )}
+
+          {/* Demo Mode Button */}
+          <button
+            onClick={handleDemoLogin}
+            className="w-full mt-4 px-6 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+          >
+            <span>🧪</span>
+            <span>Demo Mode (Testing)</span>
+          </button>
 
           {/* Features */}
           <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">

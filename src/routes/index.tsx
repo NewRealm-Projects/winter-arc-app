@@ -26,9 +26,12 @@ function AppRoutes() {
 
   // Logged in but not onboarded
   if (!isOnboarded) {
+    // Check if user has basic data but missing birthday
+    const birthdayOnly = user.nickname && user.height && !user.birthday;
+
     return (
       <Routes>
-        <Route path="/onboarding" element={<OnboardingPage />} />
+        <Route path="/onboarding" element={<OnboardingPage birthdayOnly={birthdayOnly} />} />
         <Route path="*" element={<Navigate to="/onboarding" replace />} />
       </Routes>
     );

@@ -26,7 +26,13 @@ export function useAuth() {
               ...userData,
               createdAt: userData.createdAt || new Date(),
             });
-            setIsOnboarded(true);
+
+            // Check if birthday is missing - if so, show birthday onboarding
+            if (!userData.birthday) {
+              setIsOnboarded(false); // Will trigger birthday-only onboarding
+            } else {
+              setIsOnboarded(true);
+            }
 
             // Load tracking data
             const trackingRef = collection(db, 'tracking', firebaseUser.uid, 'days');

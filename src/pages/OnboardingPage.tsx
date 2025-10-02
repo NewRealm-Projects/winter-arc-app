@@ -3,7 +3,11 @@ import { Gender } from '../types';
 import { useStore } from '../store/useStore';
 import { initPushupPlan } from '../utils/pushupAlgorithm';
 
-function OnboardingPage() {
+interface OnboardingPageProps {
+  birthdayOnly?: boolean; // If true, only ask for birthday
+}
+
+function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   const [step, setStep] = useState(1);
   const [nickname, setNickname] = useState('');
   const [gender, setGender] = useState<Gender>('male');
@@ -11,11 +15,13 @@ function OnboardingPage() {
   const [weight, setWeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
   const [maxPushups, setMaxPushups] = useState('');
+  const [birthday, setBirthday] = useState('');
 
+  const user = useStore((state) => state.user);
   const setUser = useStore((state) => state.setUser);
   const setIsOnboarded = useStore((state) => state.setIsOnboarded);
 
-  const totalSteps = 6;
+  const totalSteps = birthdayOnly ? 1 : 7;
 
   const handleNext = () => {
     if (step < totalSteps) {
@@ -30,8 +36,6 @@ function OnboardingPage() {
   };
 
   const handleComplete = async () => {
-    const pushupState = initPushupPlan(parseInt(maxPushups));
-
     // Get current Firebase user
     const { auth } = await import('../firebase/config');
     const currentUser = auth.currentUser;
@@ -41,34 +45,58 @@ function OnboardingPage() {
       return;
     }
 
-    const newUser = {
-      nickname,
-      gender,
-      height: parseInt(height),
-      weight: parseInt(weight),
-      bodyFat: bodyFat ? parseFloat(bodyFat) : undefined,
-      maxPushups: parseInt(maxPushups),
-      groupCode: '',
-      createdAt: new Date(),
-      pushupState,
-    };
+    if (birthdayOnly) {
+      // Only update birthday for existing user
+      const { updateUser } = await import('../services/firestoreService');
+      const result = await updateUser(currentUser.uid, { birthday });
 
-    // Save to Firebase
-    const { saveUser } = await import('../services/firestoreService');
-    const result = await saveUser(currentUser.uid, newUser);
-
-    if (result.success) {
-      setUser({
-        id: currentUser.uid,
-        ...newUser,
-      });
-      setIsOnboarded(true);
+      if (result.success && user) {
+        setUser({
+          ...user,
+          birthday,
+        });
+        setIsOnboarded(true);
+      } else {
+        alert('Fehler beim Speichern des Geburtstags');
+      }
     } else {
-      alert('Fehler beim Speichern der Daten');
+      // Full onboarding
+      const pushupState = initPushupPlan(parseInt(maxPushups));
+
+      const newUser = {
+        nickname,
+        gender,
+        height: parseInt(height),
+        weight: parseInt(weight),
+        bodyFat: bodyFat ? parseFloat(bodyFat) : undefined,
+        maxPushups: parseInt(maxPushups),
+        birthday: birthday || undefined,
+        groupCode: '',
+        createdAt: new Date(),
+        pushupState,
+      };
+
+      // Save to Firebase
+      const { saveUser } = await import('../services/firestoreService');
+      const result = await saveUser(currentUser.uid, newUser);
+
+      if (result.success) {
+        setUser({
+          id: currentUser.uid,
+          ...newUser,
+        });
+        setIsOnboarded(true);
+      } else {
+        alert('Fehler beim Speichern der Daten');
+      }
     }
   };
 
   const canProceed = () => {
+    if (birthdayOnly) {
+      return birthday.length > 0;
+    }
+
     switch (step) {
       case 1:
         return nickname.trim().length > 0;
@@ -82,6 +110,8 @@ function OnboardingPage() {
         return true; // bodyFat is optional
       case 6:
         return maxPushups && parseInt(maxPushups) > 0;
+      case 7:
+        return true; // birthday is optional
       default:
         return false;
     }
@@ -111,7 +141,25 @@ function OnboardingPage() {
 
           {/* Step Content */}
           <div className="mb-8">
-            {step === 1 && (
+            {birthdayOnly && step === 1 && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  🎂 Wann hast du Geburtstag?
+                </h2>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  Damit wir dir an deinem besonderen Tag gratulieren können!
+                </p>
+                <input
+                  type="date"
+                  value={birthday}
+                  onChange={(e) => setBirthday(e.target.value)}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
+                  autoFocus
+                />
+              </div>
+            )}
+
+            {!birthdayOnly && step === 1 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Wie sollen wir dich nennen?
@@ -131,7 +179,7 @@ function OnboardingPage() {
               </div>
             )}
 
-            {step === 2 && (
+            {!birthdayOnly && step === 2 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Dein Geschlecht
@@ -164,7 +212,7 @@ function OnboardingPage() {
               </div>
             )}
 
-            {step === 3 && (
+            {!birthdayOnly && step === 3 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Deine Größe
@@ -189,7 +237,7 @@ function OnboardingPage() {
               </div>
             )}
 
-            {step === 4 && (
+            {!birthdayOnly && step === 4 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Dein Gewicht
@@ -214,7 +262,7 @@ function OnboardingPage() {
               </div>
             )}
 
-            {step === 5 && (
+            {!birthdayOnly && step === 5 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Körperfettanteil (optional)
@@ -240,7 +288,7 @@ function OnboardingPage() {
               </div>
             )}
 
-            {step === 6 && (
+            {!birthdayOnly && step === 6 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Maximale Liegestütze
@@ -253,7 +301,7 @@ function OnboardingPage() {
                     type="number"
                     value={maxPushups}
                     onChange={(e) => setMaxPushups(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleComplete()}
+                    onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                     placeholder="z.B. 30"
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
                     autoFocus
@@ -273,6 +321,25 @@ function OnboardingPage() {
                     </p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {!birthdayOnly && step === 7 && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  🎂 Geburtstag (optional)
+                </h2>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  Damit wir dir an deinem besonderen Tag gratulieren können!
+                </p>
+                <input
+                  type="date"
+                  value={birthday}
+                  onChange={(e) => setBirthday(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleComplete()}
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
+                  autoFocus
+                />
               </div>
             )}
           </div>

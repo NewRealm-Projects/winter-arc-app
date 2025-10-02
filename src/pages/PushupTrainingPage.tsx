@@ -17,9 +17,11 @@ function PushupTrainingPage() {
 
   const [currentSet, setCurrentSet] = useState(0);
   const [reps, setReps] = useState<number[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [currentReps, setCurrentReps] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [restTimeLeft, setRestTimeLeft] = useState(0);
+  const [startCountdown, setStartCountdown] = useState(3);
+  const [isStarted, setIsStarted] = useState(false);
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
@@ -32,8 +34,19 @@ function PushupTrainingPage() {
   const plan = generateProgressivePlan(initialTotal, daysCompleted);
   const plannedTotal = calculateTotalReps(plan);
 
-  const restTime = 90; // 90 Sekunden Pause
+  const restTime = 60; // 60 Sekunden Pause
 
+  // Start countdown timer
+  useEffect(() => {
+    if (!isStarted && startCountdown > 0) {
+      const timer = setTimeout(() => setStartCountdown(startCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (!isStarted && startCountdown === 0) {
+      setIsStarted(true);
+    }
+  }, [startCountdown, isStarted]);
+
+  // Rest timer
   useEffect(() => {
     if (restTimeLeft > 0) {
       const timer = setTimeout(() => setRestTimeLeft(restTimeLeft - 1), 1000);
@@ -41,33 +54,34 @@ function PushupTrainingPage() {
     }
   }, [restTimeLeft]);
 
-  const handleAddReps = () => {
-    const value = parseInt(inputValue);
-    if (!isNaN(value) && value >= 0) {
-      const newReps = [...reps, value];
-      setReps(newReps);
-      setInputValue('');
+  const handleTap = () => {
+    setCurrentReps(currentReps + 1);
+  };
 
-      if (newReps.length < 5) {
-        // Nächster Satz - starte Pause
-        setCurrentSet(currentSet + 1);
-        setRestTimeLeft(restTime);
-      } else {
-        // Training abgeschlossen
-        setIsComplete(true);
-        const total = calculateTotalReps(newReps);
+  const handleCompleteSet = () => {
+    const newReps = [...reps, currentReps];
+    setReps(newReps);
+    setCurrentReps(0);
 
-        updateDayTracking(today, {
-          pushups: {
-            total,
-            workout: {
-              reps: newReps,
-              status: 'pass', // Kann später basierend auf Performance bewertet werden
-              timestamp: new Date(),
-            },
+    if (newReps.length < 5) {
+      // Nächster Satz - starte Pause
+      setCurrentSet(currentSet + 1);
+      setRestTimeLeft(restTime);
+    } else {
+      // Training abgeschlossen
+      setIsComplete(true);
+      const total = calculateTotalReps(newReps);
+
+      updateDayTracking(today, {
+        pushups: {
+          total,
+          workout: {
+            reps: newReps,
+            status: 'pass',
+            timestamp: new Date(),
           },
-        });
-      }
+        },
+      });
     }
   };
 
@@ -172,6 +186,22 @@ function PushupTrainingPage() {
     );
   }
 
+  // Show countdown before starting
+  if (!isStarted) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-9xl font-bold text-winter-600 dark:text-winter-400 mb-4">
+            {startCountdown}
+          </div>
+          <p className="text-2xl text-gray-600 dark:text-gray-400">
+            Mach dich bereit...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 safe-area-inset-top">
       {/* Header */}
@@ -230,7 +260,6 @@ function PushupTrainingPage() {
           {currentSet < 5 && (
             <div className="mb-6">
               <div className="text-center mb-4">
-                <div className="text-5xl mb-2">💪</div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
                   Satz {currentSet + 1}
                 </h2>
@@ -256,22 +285,24 @@ function PushupTrainingPage() {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <input
-                    type="number"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddReps()}
-                    placeholder="Wie viele hast du geschafft?"
-                    className="w-full px-4 py-4 text-center text-2xl font-bold rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none"
-                    autoFocus
-                  />
+                <div className="space-y-6">
+                  {/* Tap Circle */}
+                  <div className="flex flex-col items-center">
+                    <button
+                      onClick={handleTap}
+                      className="w-64 h-64 rounded-full bg-gradient-to-br from-winter-500 to-winter-700 hover:from-winter-600 hover:to-winter-800 active:scale-95 transition-all shadow-2xl flex flex-col items-center justify-center text-white"
+                    >
+                      <div className="text-7xl font-bold mb-2">{currentReps}</div>
+                      <div className="text-lg opacity-90">Tippe mit der Nase</div>
+                    </button>
+                  </div>
+
                   <button
-                    onClick={handleAddReps}
-                    disabled={!inputValue}
+                    onClick={handleCompleteSet}
+                    disabled={currentReps === 0}
                     className="w-full py-4 bg-winter-600 dark:bg-winter-500 text-white rounded-xl hover:bg-winter-700 dark:hover:bg-winter-600 transition-colors font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Satz abschließen
+                    Satz abschließen ({currentReps} Wiederholungen)
                   </button>
                 </div>
               )}

@@ -21,8 +21,8 @@ function WaterTile() {
   };
 
   const progress = Math.min((currentWater / waterGoal) * 100, 100);
-  const liters = (currentWater / 1000).toFixed(1);
-  const goalLiters = (waterGoal / 1000).toFixed(1);
+  const liters = currentWater / 1000;
+  const goalLiters = waterGoal / 1000;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">

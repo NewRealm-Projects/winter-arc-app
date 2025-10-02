@@ -11,6 +11,7 @@ export interface User {
   bodyFat?: number; // %
   maxPushups: number;
   groupCode: string;
+  birthday?: string; // YYYY-MM-DD
   createdAt: Date;
   pushupState: PushupState;
 }
