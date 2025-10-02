@@ -1,47 +1,60 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useStore } from '../store/useStore';
-
-// Mock data
-const mockLeaderboardData = [
-  {
-    userId: '1',
-    nickname: 'Alex',
-    score: 850,
-    totalPushups: 2450,
-    sportSessions: 18,
-    streak: 12,
-    avgWater: 2800,
-    avgProtein: 165,
-  },
-  {
-    userId: '2',
-    nickname: 'Maria',
-    score: 720,
-    totalPushups: 1980,
-    sportSessions: 15,
-    streak: 8,
-    avgWater: 2500,
-    avgProtein: 145,
-  },
-  {
-    userId: '3',
-    nickname: 'Jonas',
-    score: 680,
-    totalPushups: 1750,
-    sportSessions: 14,
-    streak: 5,
-    avgWater: 2200,
-    avgProtein: 140,
-  },
-];
+import { getGroupMembers } from '../services/firestoreService';
+import { calculateStreak } from '../utils/calculations';
 
 function LeaderboardPage() {
   const [filter, setFilter] = useState<'week' | 'month' | 'all'>('month');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
+
+  // Calculate current user stats
+  const userStats = useMemo(() => {
+    const trackingDates = Object.keys(tracking).sort();
+    const totalPushups = Object.values(tracking).reduce(
+      (sum, day) => sum + (day.pushups?.total || 0),
+      0
+    );
+    const sportSessions = Object.values(tracking).reduce(
+      (sum, day) =>
+        sum +
+        Object.values(day.sports || {}).filter(Boolean).length,
+      0
+    );
+    const streak = calculateStreak(trackingDates);
+
+    return {
+      totalPushups,
+      sportSessions,
+      streak,
+    };
+  }, [tracking]);
+
+  useEffect(() => {
+    const loadLeaderboard = async () => {
+      if (!user?.groupCode) return;
+
+      setLoading(true);
+      try {
+        const result = await getGroupMembers(user.groupCode);
+        if (result.success && result.data) {
+          setLeaderboardData(result.data);
+        }
+      } catch (error) {
+        console.error('Error loading leaderboard:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadLeaderboard();
+  }, [user?.groupCode]);
 
   const currentMonth = new Date();
   const monthStart = startOfMonth(currentMonth);
@@ -143,8 +156,17 @@ function LeaderboardPage() {
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
             Rankings
           </h2>
-          <div className="space-y-3">
-            {mockLeaderboardData.map((entry, index) => {
+          {loading ? (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              Laden...
+            </div>
+          ) : leaderboardData.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              Keine Gruppenmitglieder gefunden
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {leaderboardData.map((entry, index) => {
               const rank = index + 1;
               const isCurrentUser = user?.nickname === entry.nickname;
 
@@ -244,7 +266,8 @@ function LeaderboardPage() {
                 </div>
               );
             })}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Achievements */}
@@ -254,10 +277,26 @@ function LeaderboardPage() {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              { icon: '🔥', label: '7 Tage Streak', locked: false },
-              { icon: '💪', label: '1000 Pushups', locked: false },
-              { icon: '🏃', label: '20 Workouts', locked: true },
-              { icon: '⭐', label: 'Top 3', locked: true },
+              {
+                icon: '🔥',
+                label: '7 Tage Streak',
+                locked: userStats.streak < 7
+              },
+              {
+                icon: '💪',
+                label: '1000 Pushups',
+                locked: userStats.totalPushups < 1000
+              },
+              {
+                icon: '🏃',
+                label: '20 Workouts',
+                locked: userStats.sportSessions < 20
+              },
+              {
+                icon: '⭐',
+                label: 'Top 3',
+                locked: true // TODO: Calculate rank
+              },
             ].map((achievement, i) => (
               <div
                 key={i}

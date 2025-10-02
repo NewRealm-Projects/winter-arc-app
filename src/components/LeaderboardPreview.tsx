@@ -1,17 +1,39 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
-
-// Mock data for now - will be replaced with real Firebase data
-const mockLeaderboard = [
-  { userId: '1', nickname: 'Alex', score: 850, rank: 1 },
-  { userId: '2', nickname: 'Maria', score: 720, rank: 2 },
-  { userId: '3', nickname: 'Jonas', score: 680, rank: 3 },
-  { userId: '4', nickname: 'Sarah', score: 540, rank: 4 },
-  { userId: '5', nickname: 'Tom', score: 420, rank: 5 },
-];
+import { getGroupMembers } from '../services/firestoreService';
 
 function LeaderboardPreview() {
   const user = useStore((state) => state.user);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const loadLeaderboard = async () => {
+      if (!user?.groupCode) return;
+
+      setLoading(true);
+      try {
+        const result = await getGroupMembers(user.groupCode);
+        if (result.success && result.data) {
+          // Calculate scores and sort
+          const scored = result.data.map((member, index) => ({
+            userId: member.id,
+            nickname: member.nickname,
+            score: 100, // Placeholder score
+            rank: index + 1,
+          }));
+          setLeaderboard(scored.slice(0, 5)); // Top 5
+        }
+      } catch (error) {
+        console.error('Error loading leaderboard:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadLeaderboard();
+  }, [user?.groupCode]);
 
   const getRankColor = (rank: number) => {
     switch (rank) {
@@ -64,53 +86,65 @@ function LeaderboardPreview() {
       </div>
 
       {/* Leaderboard List */}
-      <div className="space-y-3">
-        {mockLeaderboard.map((entry) => {
-          const isCurrentUser = user?.nickname === entry.nickname;
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="text-gray-500 dark:text-gray-400">Laden...</div>
+        </div>
+      ) : leaderboard.length > 0 ? (
+        <div className="space-y-3">
+          {leaderboard.map((entry) => {
+            const isCurrentUser = user?.nickname === entry.nickname;
 
-          return (
-            <div
-              key={entry.userId}
-              className={`flex items-center gap-4 p-3 rounded-lg transition-all ${
-                isCurrentUser
-                  ? 'bg-winter-100 dark:bg-winter-900 ring-2 ring-winter-500'
-                  : 'bg-gray-50 dark:bg-gray-700'
-              }`}
-            >
-              {/* Rank */}
+            return (
               <div
-                className={`flex-shrink-0 w-12 text-center font-bold ${getRankColor(
-                  entry.rank
-                )}`}
+                key={entry.userId}
+                className={`flex items-center gap-4 p-3 rounded-lg transition-all ${
+                  isCurrentUser
+                    ? 'bg-winter-100 dark:bg-winter-900 ring-2 ring-winter-500'
+                    : 'bg-gray-50 dark:bg-gray-700'
+                }`}
               >
-                {getRankIcon(entry.rank)}
-              </div>
+                {/* Rank */}
+                <div
+                  className={`flex-shrink-0 w-12 text-center font-bold ${getRankColor(
+                    entry.rank
+                  )}`}
+                >
+                  {getRankIcon(entry.rank)}
+                </div>
 
-              {/* Nickname */}
-              <div className="flex-1">
-                <div className="font-semibold text-gray-900 dark:text-white">
-                  {entry.nickname}
-                  {isCurrentUser && (
-                    <span className="ml-2 text-xs text-winter-600 dark:text-winter-400">
-                      (Du)
-                    </span>
-                  )}
+                {/* Nickname */}
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-900 dark:text-white">
+                    {entry.nickname}
+                    {isCurrentUser && (
+                      <span className="ml-2 text-xs text-winter-600 dark:text-winter-400">
+                        (Du)
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Score */}
-              <div className="flex-shrink-0 text-right">
-                <div className="text-lg font-bold text-gray-900 dark:text-white">
-                  {entry.score}
-                </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">
-                  Punkte
+                {/* Score */}
+                <div className="flex-shrink-0 text-right">
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">
+                    {entry.score}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Punkte
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <div className="text-gray-500 dark:text-gray-400">
+            Noch keine Gruppenmitglieder
+          </div>
+        </div>
+      )}
 
       {/* Join Group CTA */}
       {!user?.groupCode && (

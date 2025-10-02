@@ -123,6 +123,7 @@ function OnboardingPage() {
                   type="text"
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                   placeholder="z.B. Max"
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
                   autoFocus
@@ -176,6 +177,7 @@ function OnboardingPage() {
                     type="number"
                     value={height}
                     onChange={(e) => setHeight(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                     placeholder="z.B. 180"
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
                     autoFocus
@@ -200,6 +202,7 @@ function OnboardingPage() {
                     type="number"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                     placeholder="z.B. 75"
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
                     autoFocus
@@ -225,6 +228,7 @@ function OnboardingPage() {
                     step="0.1"
                     value={bodyFat}
                     onChange={(e) => setBodyFat(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                     placeholder="z.B. 15.5"
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
                     autoFocus
@@ -249,6 +253,7 @@ function OnboardingPage() {
                     type="number"
                     value={maxPushups}
                     onChange={(e) => setMaxPushups(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleComplete()}
                     placeholder="z.B. 30"
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
                     autoFocus
