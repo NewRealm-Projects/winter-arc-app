@@ -15,14 +15,17 @@ const firebaseConfig = {
 };
 
 // Validate Firebase configuration
+console.log('🔥 Firebase Configuration:');
+console.log('  API Key:', firebaseConfig.apiKey ? '✓ Set' : '✗ Missing');
+console.log('  Auth Domain:', firebaseConfig.authDomain || '✗ Missing');
+console.log('  Project ID:', firebaseConfig.projectId || '✗ Missing');
+console.log('  Storage Bucket:', firebaseConfig.storageBucket || '✗ Missing');
+console.log('  Messaging Sender ID:', firebaseConfig.messagingSenderId || '✗ Missing');
+console.log('  App ID:', firebaseConfig.appId ? '✓ Set' : '✗ Missing');
+
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-  console.error('❌ Firebase configuration missing! Environment variables:');
-  console.error('VITE_FIREBASE_API_KEY:', firebaseConfig.apiKey ? '✓ Set' : '✗ Missing');
-  console.error('VITE_FIREBASE_AUTH_DOMAIN:', firebaseConfig.authDomain ? '✓ Set' : '✗ Missing');
-  console.error('VITE_FIREBASE_PROJECT_ID:', firebaseConfig.projectId ? '✓ Set' : '✗ Missing');
-  console.error('VITE_FIREBASE_STORAGE_BUCKET:', firebaseConfig.storageBucket ? '✓ Set' : '✗ Missing');
-  console.error('VITE_FIREBASE_MESSAGING_SENDER_ID:', firebaseConfig.messagingSenderId ? '✓ Set' : '✗ Missing');
-  console.error('VITE_FIREBASE_APP_ID:', firebaseConfig.appId ? '✓ Set' : '✗ Missing');
+  console.error('❌ Firebase configuration incomplete!');
+  console.error('   Please ensure all VITE_FIREBASE_* variables are set in .env');
   throw new Error('Firebase configuration is incomplete. Please check your environment variables.');
 }
 
@@ -33,8 +36,9 @@ const app = initializeApp(firebaseConfig);
 // Only initialize if VITE_RECAPTCHA_SITE_KEY is set and valid
 const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
-if (import.meta.env.DEV) {
-  // Development mode: enable debug token
+// Enable App Check debug token for localhost
+if (import.meta.env.DEV || window.location.hostname === 'localhost') {
+  console.log('🔓 App Check Debug Mode enabled for localhost');
   // @ts-ignore - self.FIREBASE_APPCHECK_DEBUG_TOKEN is a global variable
   self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
 }
@@ -59,6 +63,13 @@ if (recaptchaSiteKey && recaptchaSiteKey.length > 10) {
 // Initialize Firebase services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Configure Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: 'select_account', // Always show account selection
+});
+
+console.log('🔐 Google OAuth Provider configured');
 
 export default app;

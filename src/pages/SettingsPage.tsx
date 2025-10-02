@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { signOut } from 'firebase/auth';
+import * as Sentry from '@sentry/react';
 import { auth } from '../firebase/config';
 import { useStore } from '../store/useStore';
 import { Language } from '../types';
@@ -103,6 +104,16 @@ function SettingsPage() {
     } finally {
       setShowGroupInput(false);
       setGroupCode('');
+    }
+  };
+
+  const handleTestError = () => {
+    try {
+      console.log('🧪 Testing Sentry error capture...');
+      throw new Error('Test error for Sentry - triggered from Settings page');
+    } catch (error) {
+      Sentry.captureException(error);
+      alert('Test-Fehler wurde an Sentry gesendet! Prüfe dein Sentry Dashboard.');
     }
   };
 
@@ -425,6 +436,26 @@ function SettingsPage() {
             </button>
           </div>
         </div>
+
+        {/* Debug Section (only in development) */}
+        {import.meta.env.DEV && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl shadow-lg p-6 border-2 border-yellow-300 dark:border-yellow-700">
+            <h2 className="text-lg font-bold text-yellow-900 dark:text-yellow-300 mb-4">
+              🧪 Debug Tools
+            </h2>
+            <div className="space-y-2">
+              <button
+                onClick={handleTestError}
+                className="w-full px-4 py-3 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-200 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-900/60 transition-colors font-medium text-left"
+              >
+                Test Sentry Error Tracking
+              </button>
+              <div className="text-xs text-yellow-700 dark:text-yellow-400 mt-2">
+                Sentry Status: {import.meta.env.VITE_SENTRY_DSN ? '✅ Konfiguriert' : '⚠️ Nicht konfiguriert'}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* App Version */}
         <div className="text-center text-sm text-gray-500 dark:text-gray-400 pt-4">

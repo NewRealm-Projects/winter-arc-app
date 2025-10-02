@@ -42,22 +42,37 @@ function WeightTile() {
   // Add onboarding weight as the first data point if available and within the date range
   if (user?.weight && user?.createdAt) {
     try {
-      const onboardingDate = typeof user.createdAt === 'string'
-        ? user.createdAt
-        : user.createdAt.toISOString?.() || new Date(user.createdAt as any).toISOString();
-      const createdDate = format(new Date(onboardingDate), 'yyyy-MM-dd');
-      const oldestDateInRange = format(subDays(new Date(), days - 1), 'yyyy-MM-dd');
+      // Handle different date formats from Firestore
+      let createdAtDate: Date;
 
-      // Include onboarding weight if it's within the selected date range
-      if (createdDate >= oldestDateInRange) {
-        chartData.push({
-          date: format(new Date(createdDate), 'dd.MM'),
-          weight: user.weight,
-          bodyFat: user.bodyFat,
-        });
+      if (typeof user.createdAt === 'string') {
+        createdAtDate = new Date(user.createdAt);
+      } else if (user.createdAt instanceof Date) {
+        createdAtDate = user.createdAt;
+      } else if (typeof user.createdAt === 'object' && 'seconds' in user.createdAt) {
+        // Firestore Timestamp object
+        createdAtDate = new Date((user.createdAt as any).seconds * 1000);
+      } else {
+        // Try to convert to Date
+        createdAtDate = new Date(user.createdAt as any);
+      }
+
+      // Validate the date
+      if (!isNaN(createdAtDate.getTime())) {
+        const createdDate = format(createdAtDate, 'yyyy-MM-dd');
+        const oldestDateInRange = format(subDays(new Date(), days - 1), 'yyyy-MM-dd');
+
+        // Include onboarding weight if it's within the selected date range
+        if (createdDate >= oldestDateInRange) {
+          chartData.push({
+            date: format(createdAtDate, 'dd.MM'),
+            weight: user.weight,
+            bodyFat: user.bodyFat,
+          });
+        }
       }
     } catch (error) {
-      console.error('Error parsing onboarding date:', error);
+      console.error('❌ Error parsing onboarding date:', error, 'createdAt:', user.createdAt);
     }
   }
 

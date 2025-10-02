@@ -11,15 +11,24 @@ export function useAuth() {
   const setTracking = useStore((state) => state.setTracking);
 
   useEffect(() => {
+    console.log('👤 Setting up auth state listener...');
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // User is signed in
+        console.log('✅ User authenticated:', {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+        });
+
         try {
           const userDocRef = doc(db, 'users', firebaseUser.uid);
+          console.log('📄 Fetching user data from Firestore...');
           const userDoc = await getDoc(userDocRef);
 
           if (userDoc.exists()) {
             // User exists in Firestore
+            console.log('✅ User data found in Firestore');
             const userData = userDoc.data() as Omit<User, 'id'>;
             setUser({
               id: firebaseUser.uid,
@@ -29,12 +38,15 @@ export function useAuth() {
 
             // Check if birthday is missing - if so, show birthday onboarding
             if (!userData.birthday) {
+              console.log('⚠️ Birthday missing, showing birthday onboarding');
               setIsOnboarded(false); // Will trigger birthday-only onboarding
             } else {
+              console.log('✅ User profile complete');
               setIsOnboarded(true);
             }
 
             // Load tracking data
+            console.log('📊 Loading tracking data...');
             const trackingRef = collection(db, 'tracking', firebaseUser.uid, 'days');
             const trackingSnapshot = await getDocs(trackingRef);
 
@@ -43,9 +55,11 @@ export function useAuth() {
               trackingData[doc.id] = doc.data() as DailyTracking;
             });
 
+            console.log(`✅ Loaded ${Object.keys(trackingData).length} tracking entries`);
             setTracking(trackingData);
           } else {
             // New user - needs onboarding
+            console.log('🆕 New user detected, starting onboarding...');
             setUser({
               id: firebaseUser.uid,
               language: 'de',
@@ -65,12 +79,13 @@ export function useAuth() {
             setIsOnboarded(false);
           }
         } catch (error) {
-          console.error('Error fetching user data:', error);
+          console.error('❌ Error fetching user data:', error);
           setUser(null);
           setIsOnboarded(false);
         }
       } else {
         // User is signed out
+        console.log('🚪 User signed out');
         setUser(null);
         setIsOnboarded(false);
         setTracking({});

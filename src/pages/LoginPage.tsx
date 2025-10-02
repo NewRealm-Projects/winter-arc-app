@@ -13,13 +13,45 @@ function LoginPage() {
     setLoading(true);
     setError(null);
 
+    console.log('🔐 Starting Google login...');
+    console.log('Firebase Auth Config:', {
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? '✓ Set' : '✗ Missing',
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    });
+
     try {
+      console.log('📱 Opening Google Sign-In popup...');
       const result = await signInWithPopup(auth, googleProvider);
-      // User data will be fetched in a useEffect in App.tsx
-      console.log('Logged in:', result.user.uid);
+      console.log('✅ Login successful!', {
+        uid: result.user.uid,
+        email: result.user.email,
+        displayName: result.user.displayName,
+      });
     } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.message || 'Login fehlgeschlagen');
+      console.error('❌ Login error:', {
+        code: err.code,
+        message: err.message,
+        details: err,
+      });
+
+      // Provide user-friendly error messages
+      let errorMessage = 'Login fehlgeschlagen';
+
+      if (err.code === 'auth/internal-error') {
+        errorMessage = '⚠️ Firebase OAuth nicht konfiguriert. Bitte füge localhost:5175 in Firebase Console zu den autorisierten Domains hinzu.';
+        console.error('📋 Fix: Firebase Console → Authentication → Settings → Authorized domains → Add: localhost:5175');
+      } else if (err.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Login abgebrochen';
+      } else if (err.code === 'auth/popup-blocked') {
+        errorMessage = 'Popup wurde blockiert. Bitte erlaube Popups für diese Seite.';
+      } else if (err.code === 'auth/network-request-failed') {
+        errorMessage = 'Netzwerkfehler. Bitte überprüfe deine Internetverbindung.';
+      } else {
+        errorMessage = `Fehler: ${err.message}`;
+      }
+
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
