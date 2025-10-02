@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { useStore } from '../store/useStore';
 import { getGroupMembers } from '../services/firestoreService';
@@ -42,7 +42,27 @@ function LeaderboardPage() {
 
       setLoading(true);
       try {
-        const result = await getGroupMembers(user.groupCode);
+        const now = new Date();
+        let startDate: Date | undefined;
+        let endDate: Date | undefined;
+
+        switch (filter) {
+          case 'week':
+            startDate = startOfWeek(now, { weekStartsOn: 1 }); // Monday
+            endDate = endOfWeek(now, { weekStartsOn: 1 }); // Sunday
+            break;
+          case 'month':
+            startDate = startOfMonth(now);
+            endDate = endOfMonth(now);
+            break;
+          case 'all':
+            // Don't pass date range for all-time stats
+            startDate = undefined;
+            endDate = undefined;
+            break;
+        }
+
+        const result = await getGroupMembers(user.groupCode, startDate, endDate);
         if (result.success && result.data) {
           setLeaderboardData(result.data);
         }
@@ -54,11 +74,29 @@ function LeaderboardPage() {
     };
 
     loadLeaderboard();
-  }, [user?.groupCode]);
+  }, [user?.groupCode, filter]);
 
-  const currentMonth = new Date();
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
+  // Sort leaderboard data
+  const sortedLeaderboardData = useMemo(() => {
+    if (!leaderboardData.length) return [];
+
+    // Sort by total pushups in the filtered period, then by streak
+    return [...leaderboardData].sort((a, b) => {
+      if (b.totalPushups !== a.totalPushups) return b.totalPushups - a.totalPushups;
+      return b.streak - a.streak;
+    });
+  }, [leaderboardData]);
+
+  const now = new Date();
+
+  // Week data
+  const weekStart = startOfWeek(now, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
+  const daysInWeek = eachDayOfInterval({ start: weekStart, end: weekEnd });
+
+  // Month data
+  const monthStart = startOfMonth(now);
+  const monthEnd = endOfMonth(now);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
   // Calculate offset for first day (0 = Monday, 6 = Sunday)
@@ -110,28 +148,109 @@ function LeaderboardPage() {
           ))}
         </div>
 
-        {/* Heatmap Calendar */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-3">
-          <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
-            Trainings-Heatmap ({format(currentMonth, 'MMMM yyyy', { locale: de })})
-          </h2>
-          <div className="grid grid-cols-7 gap-0.5 max-w-sm">
-            {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((day) => (
-              <div
-                key={day}
-                className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 pb-0.5"
-              >
-                {day}
-              </div>
-            ))}
-            {/* Empty cells for offset */}
-            {Array.from({ length: firstDayOffset }).map((_, i) => (
-              <div key={`offset-${i}`} className="aspect-square" />
-            ))}
-            {daysInMonth.map((day) => {
+        {/* Week Heatmap - Only show in week view */}
+        {filter === 'week' && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-3">
+            <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
+              Trainings-Woche (KW {format(now, 'ww', { locale: de })})
+            </h2>
+            <div className="grid grid-cols-7 gap-2">
+              {daysInWeek.map((day) => {
+                const dateStr = format(day, 'yyyy-MM-dd');
+                const dayTracking = tracking[dateStr];
+                const isCurrentDay = isToday(day);
+
+                // Calculate progress percentage
+                const pushups = dayTracking?.pushups?.total || 0;
+                const sports = Object.values(dayTracking?.sports || {}).filter(Boolean).length;
+                const water = dayTracking?.water || 0;
+                const protein = dayTracking?.protein || 0;
+
+                // Simple progress: 25% per category (pushups, sports, water, protein)
+                const progress = (
+                  (pushups > 0 ? 25 : 0) +
+                  (sports > 0 ? 25 : 0) +
+                  (water >= 2000 ? 25 : 0) +
+                  (protein >= 100 ? 25 : 0)
+                );
+
+                return (
+                  <div key={dateStr} className="flex flex-col items-center gap-1">
+                    {/* Day label */}
+                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                      {format(day, 'EEE', { locale: de })}
+                    </div>
+
+                    {/* Progress Circle (larger for week view) */}
+                    <div className="w-12 h-12 flex items-center justify-center relative">
+                      <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                        {/* Background circle */}
+                        <circle
+                          cx="18"
+                          cy="18"
+                          r="16"
+                          fill="none"
+                          className="stroke-gray-200 dark:stroke-gray-700"
+                          strokeWidth="4"
+                        />
+                        {/* Progress circle */}
+                        {progress > 0 && (
+                          <circle
+                            cx="18"
+                            cy="18"
+                            r="16"
+                            fill="none"
+                            className={`${
+                              isCurrentDay
+                                ? 'stroke-winter-500'
+                                : 'stroke-winter-400'
+                            }`}
+                            strokeWidth="4"
+                            strokeDasharray={`${progress} 100`}
+                            strokeLinecap="round"
+                          />
+                        )}
+                      </svg>
+                      {/* Day number */}
+                      <div
+                        className={`absolute inset-0 flex items-center justify-center text-xs font-semibold ${
+                          isCurrentDay
+                            ? 'text-winter-600 dark:text-winter-400'
+                            : 'text-gray-600 dark:text-gray-300'
+                        }`}
+                      >
+                        {format(day, 'd')}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Month Heatmap - Only show in month view */}
+        {filter === 'month' && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-3">
+            <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
+              Trainings-Heatmap ({format(now, 'MMMM yyyy', { locale: de })})
+            </h2>
+            <div className="grid grid-cols-7 gap-0.5 max-w-sm">
+              {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((day) => (
+                <div
+                  key={day}
+                  className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 pb-0.5"
+                >
+                  {day}
+                </div>
+              ))}
+              {/* Empty cells for offset */}
+              {Array.from({ length: firstDayOffset }).map((_, i) => (
+                <div key={`offset-${i}`} className="aspect-square" />
+              ))}
+              {daysInMonth.map((day) => {
               const dateStr = format(day, 'yyyy-MM-dd');
               const dayTracking = tracking[dateStr];
-              const isCompleted = dayTracking?.completed || false;
               const isCurrentDay = isToday(day);
 
               // Calculate progress percentage
@@ -162,7 +281,7 @@ function LeaderboardPage() {
                       r="16"
                       fill="none"
                       className={`${
-                        isSameMonth(day, currentMonth)
+                        isSameMonth(day, monthStart)
                           ? 'stroke-gray-200 dark:stroke-gray-700'
                           : 'stroke-gray-100 dark:stroke-gray-800'
                       }`}
@@ -176,9 +295,7 @@ function LeaderboardPage() {
                         r="16"
                         fill="none"
                         className={`${
-                          isCompleted
-                            ? 'stroke-green-500'
-                            : isCurrentDay
+                          isCurrentDay
                             ? 'stroke-winter-500'
                             : 'stroke-winter-400'
                         }`}
@@ -191,11 +308,9 @@ function LeaderboardPage() {
                   {/* Day number */}
                   <div
                     className={`absolute inset-0 flex items-center justify-center text-xs font-medium ${
-                      isCompleted
-                        ? 'text-green-600 dark:text-green-400'
-                        : isCurrentDay
+                      isCurrentDay
                         ? 'text-winter-600 dark:text-winter-400'
-                        : isSameMonth(day, currentMonth)
+                        : isSameMonth(day, monthStart)
                         ? 'text-gray-600 dark:text-gray-400'
                         : 'text-gray-300 dark:text-gray-700'
                     }`}
@@ -206,7 +321,8 @@ function LeaderboardPage() {
               );
             })}
           </div>
-        </div>
+          </div>
+        )}
 
         {/* Leaderboard Rankings */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
@@ -223,7 +339,7 @@ function LeaderboardPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {leaderboardData.map((entry, index) => {
+              {sortedLeaderboardData.map((entry, index) => {
               const rank = index + 1;
               const isCurrentUser = user?.nickname === entry.nickname;
 

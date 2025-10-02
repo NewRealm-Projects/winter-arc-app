@@ -1,8 +1,9 @@
 import { useStore } from '../store/useStore';
 import WeekOverview from '../components/WeekOverview';
-import LeaderboardPreview from '../components/LeaderboardPreview';
 import { useState, useEffect } from 'react';
 import { generateDailyMotivation } from '../services/aiService';
+import { format } from 'date-fns';
+import { calculateStreak } from '../utils/calculations';
 
 function DashboardPage() {
   const user = useStore((state) => state.user);
@@ -12,6 +13,13 @@ function DashboardPage() {
     subtext: 'Bleib fokussiert und tracke deine Fortschritte jeden Tag.',
   });
   const [loadingQuote, setLoadingQuote] = useState(true);
+
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const todayTracking = tracking[today];
+  const todayPushups = todayTracking?.pushups?.total ||
+    (todayTracking?.pushups?.workout?.reps.reduce((sum, reps) => sum + reps, 0)) || 0;
+
+  const streak = calculateStreak(Object.keys(tracking));
 
   useEffect(() => {
     const loadMotivation = async () => {
@@ -74,15 +82,12 @@ function DashboardPage() {
         {/* Week Overview */}
         <WeekOverview />
 
-        {/* Leaderboard Preview */}
-        <LeaderboardPreview />
-
         {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
             <div className="text-3xl mb-2">🔥</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              0
+              {streak}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
               Tage Streak
@@ -92,7 +97,7 @@ function DashboardPage() {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
             <div className="text-3xl mb-2">💪</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              0
+              {todayPushups}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
               Liegestütze heute

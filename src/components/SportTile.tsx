@@ -6,15 +6,14 @@ function SportTile() {
   const updateDayTracking = useStore((state) => state.updateDayTracking);
 
   const today = format(new Date(), 'yyyy-MM-dd');
-  const todayTracking = tracking[today] || {
-    sports: { hiit: false, cardio: false, gym: false, schwimmen: false },
-  };
+  const todayTracking = tracking[today];
+  const currentSports = todayTracking?.sports || { hiit: false, cardio: false, gym: false, schwimmen: false, rest: false } as Record<string, boolean>;
 
-  const toggleSport = (sport: 'hiit' | 'cardio' | 'gym' | 'schwimmen') => {
+  const toggleSport = (sport: 'hiit' | 'cardio' | 'gym' | 'schwimmen' | 'rest') => {
     updateDayTracking(today, {
       sports: {
-        ...todayTracking.sports,
-        [sport]: !todayTracking.sports[sport],
+        ...currentSports,
+        [sport]: !currentSports[sport],
       },
     });
   };
@@ -24,11 +23,10 @@ function SportTile() {
     { key: 'cardio' as const, label: 'Cardio', icon: '🏃' },
     { key: 'gym' as const, label: 'Gym', icon: '🏋️' },
     { key: 'schwimmen' as const, label: 'Schwimmen', icon: '🏊' },
+    { key: 'rest' as const, label: 'Ausruhen', icon: '😴' },
   ];
 
-  const completedCount = Object.values(todayTracking.sports || {}).filter(
-    Boolean
-  ).length;
+  const completedCount = Object.values(currentSports).filter(Boolean).length;
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
@@ -51,7 +49,7 @@ function SportTile() {
 
       <div className="space-y-2">
         {sportOptions.map((sport) => {
-          const isChecked = todayTracking.sports?.[sport.key] || false;
+          const isChecked = currentSports[sport.key] || false;
 
           return (
             <button
