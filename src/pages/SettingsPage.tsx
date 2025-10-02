@@ -120,6 +120,73 @@ function SettingsPage() {
     }
   };
 
+  const handleToggleNotifications = async () => {
+    if (!notificationsEnabled) {
+      // Request permission when enabling
+      if ('Notification' in window) {
+        const permission = await Notification.requestPermission();
+
+        if (permission === 'granted') {
+          setNotificationsEnabled(true);
+          scheduleNotification(notificationTime);
+          console.log('✅ Benachrichtigungen aktiviert für', notificationTime);
+        } else if (permission === 'denied') {
+          alert('❌ Benachrichtigungs-Berechtigung wurde verweigert. Bitte erlaube Benachrichtigungen in deinen Browser-Einstellungen.');
+        } else {
+          alert('⚠️ Benachrichtigungs-Berechtigung wurde nicht erteilt.');
+        }
+      } else {
+        alert('❌ Dein Browser unterstützt keine Benachrichtigungen.');
+      }
+    } else {
+      // Disable notifications
+      setNotificationsEnabled(false);
+      console.log('🔕 Benachrichtigungen deaktiviert');
+    }
+  };
+
+  const scheduleNotification = (time: string) => {
+    // Calculate time until notification
+    const [hours, minutes] = time.split(':').map(Number);
+    const now = new Date();
+    const scheduledTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+
+    // If time has passed today, schedule for tomorrow
+    if (scheduledTime <= now) {
+      scheduledTime.setDate(scheduledTime.getDate() + 1);
+    }
+
+    const timeUntilNotification = scheduledTime.getTime() - now.getTime();
+
+    setTimeout(() => {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('⏰ Winter Arc Tracker', {
+          body: 'Zeit für dein Training! Logge deine Fortschritte.',
+          icon: '/winter-arc-app/icon-192.png',
+          badge: '/winter-arc-app/icon-192.png',
+        });
+
+        // Reschedule for next day
+        scheduleNotification(time);
+      }
+    }, timeUntilNotification);
+
+    console.log(`🔔 Benachrichtigung geplant für ${scheduledTime.toLocaleString()}`);
+  };
+
+  const sendTestNotification = () => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('🧪 Test-Benachrichtigung', {
+        body: 'Benachrichtigungen funktionieren! Du wirst täglich um ' + notificationTime + ' Uhr erinnert.',
+        icon: '/winter-arc-app/icon-192.png',
+        badge: '/winter-arc-app/icon-192.png',
+      });
+      console.log('📬 Test-Benachrichtigung gesendet');
+    } else {
+      alert('❌ Benachrichtigungen sind nicht aktiviert oder die Berechtigung wurde verweigert.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 safe-area-inset-top">
       {/* Header */}
@@ -398,7 +465,7 @@ function SettingsPage() {
                 </div>
               </div>
               <button
-                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                onClick={handleToggleNotifications}
                 className={`relative w-14 h-8 rounded-full transition-colors ${
                   notificationsEnabled
                     ? 'bg-winter-600'
@@ -414,12 +481,20 @@ function SettingsPage() {
             </div>
           </div>
           {notificationsEnabled && (
-            <button
-              onClick={() => setShowTimeModal(true)}
-              className="mt-4 w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
-            >
-              Zeit ändern
-            </button>
+            <div className="mt-4 space-y-2">
+              <button
+                onClick={() => setShowTimeModal(true)}
+                className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
+              >
+                Zeit ändern
+              </button>
+              <button
+                onClick={sendTestNotification}
+                className="w-full px-4 py-3 bg-winter-50 dark:bg-winter-900/20 text-winter-600 dark:text-winter-400 rounded-lg hover:bg-winter-100 dark:hover:bg-winter-900/30 transition-colors font-medium"
+              >
+                Test-Benachrichtigung senden
+              </button>
+            </div>
           )}
         </div>
 
@@ -438,7 +513,13 @@ function SettingsPage() {
               />
               <div className="flex gap-2">
                 <button
-                  onClick={() => setShowTimeModal(false)}
+                  onClick={() => {
+                    setShowTimeModal(false);
+                    if (notificationsEnabled) {
+                      scheduleNotification(notificationTime);
+                      console.log('🔄 Benachrichtigungszeit aktualisiert:', notificationTime);
+                    }
+                  }}
                   className="flex-1 px-4 py-3 bg-winter-600 text-white rounded-lg font-semibold hover:bg-winter-700 transition-colors"
                 >
                   Speichern
