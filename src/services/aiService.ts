@@ -164,33 +164,21 @@ Ausgabe:
 Nur den 3–8-Zeiler im Plaintext, keine JSON-Hülle. Kein Fettdruck, keine Markierung. Absätze (Leerzeile) sind erlaubt, wenn sinnvoll.`;
 
     // Prompt an Google Generative AI senden
-    // Modell-Priorität: 2.5 Pro → 2.5 Flash → 2.5 Flash-Lite
-    const modelOrder = [
-      'gemini-2.5-pro',
-      'gemini-1.5-pro-latest',
-      'gemini-2.5-flash',
-      'gemini-2.5-flash-lite',
-    ];
-    let lastError = null;
-    for (const modelName of modelOrder) {
-      try {
-        const model = genAI.getGenerativeModel({ model: modelName });
-        const result = await model.generateContent(prompt);
-        const response = result.response;
-        const text = response.text().trim();
-        if (text) {
-          return {
-            quote: text,
-            subtext: '',
-          };
-        }
-      } catch (err) {
-        lastError = err;
-        // Versuche nächstes Modell
-      }
+    // Nur Gemini 2.5 Flash verwenden
+    try {
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+      const result = await model.generateContent(prompt);
+      const response = result.response;
+      // Entferne doppelte Leerzeilen im Output
+      let text = response.text().trim();
+      text = text.replace(/\n{3,}/g, '\n\n');
+      return {
+        quote: text,
+        subtext: '',
+      };
+    } catch (err) {
+      throw err;
     }
-    // Wenn alle Modelle fehlschlagen
-    throw lastError || new Error('Kein Gemini-Modell verfügbar');
   } catch (error) {
     console.error('[AI PROMPT ERROR]', error);
     return {
