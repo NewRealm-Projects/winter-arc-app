@@ -1,7 +1,9 @@
 import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
+import { useTranslation } from '../hooks/useTranslation';
 
 function SportTile() {
+  const { t } = useTranslation();
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
 
@@ -19,11 +21,11 @@ function SportTile() {
   };
 
   const sportOptions = [
-    { key: 'hiit' as const, label: 'HIIT/HYROX', icon: '🔥' },
-    { key: 'cardio' as const, label: 'Cardio', icon: '🏃' },
-    { key: 'gym' as const, label: 'Gym', icon: '🏋️' },
-    { key: 'schwimmen' as const, label: 'Schwimmen', icon: '🏊' },
-    { key: 'rest' as const, label: 'Ausruhen', icon: '😴' },
+    { key: 'hiit' as const, label: t('tracking.hiit'), icon: '🔥' },
+    { key: 'cardio' as const, label: t('tracking.cardio'), icon: '🏃' },
+    { key: 'gym' as const, label: t('tracking.gym'), icon: '🏋️' },
+    { key: 'schwimmen' as const, label: t('tracking.swimming'), icon: '🏊' },
+    { key: 'rest' as const, label: t('tracking.rest'), icon: '😴' },
   ];
 
   const completedCount = Object.values(currentSports).filter(Boolean).length;
@@ -34,7 +36,7 @@ function SportTile() {
         <div>
           <div className="text-3xl mb-2">🏃</div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Sport
+            {t('tracking.sport')}
           </h3>
         </div>
         <div className="text-right">
@@ -42,7 +44,7 @@ function SportTile() {
             {completedCount}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            Sessions
+            {t('tracking.sessions')}
           </div>
         </div>
       </div>

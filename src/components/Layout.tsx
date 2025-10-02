@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface LayoutProps {
   children: ReactNode;
@@ -7,12 +8,13 @@ interface LayoutProps {
 
 function Layout({ children }: LayoutProps) {
   const location = useLocation();
+  const { t } = useTranslation();
 
   const navItems = [
-    { path: '/', label: 'Dashboard', icon: '📊' },
-    { path: '/tracking', label: 'Tracking', icon: '✍️' },
-    { path: '/leaderboard', label: 'Gruppe', icon: '👥' },
-    { path: '/settings', label: 'Settings', icon: '⚙️' },
+    { path: '/', labelKey: 'nav.dashboard', icon: '📊' },
+    { path: '/tracking', labelKey: 'nav.tracking', icon: '✍️' },
+    { path: '/leaderboard', labelKey: 'nav.group', icon: '👥' },
+    { path: '/settings', labelKey: 'nav.settings', icon: '⚙️' },
   ];
 
   return (
@@ -36,7 +38,7 @@ function Layout({ children }: LayoutProps) {
                 }`}
               >
                 <span className="text-2xl mb-1">{item.icon}</span>
-                <span className="text-xs font-medium">{item.label}</span>
+                <span className="text-xs font-medium">{t(item.labelKey)}</span>
               </Link>
             );
           })}

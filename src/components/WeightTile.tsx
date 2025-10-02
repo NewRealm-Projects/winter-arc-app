@@ -3,8 +3,10 @@ import { format, subDays } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useStore } from '../store/useStore';
 import { calculateBMI } from '../utils/calculations';
+import { useTranslation } from '../hooks/useTranslation';
 
 function WeightTile() {
+  const { t } = useTranslation();
   const [showInput, setShowInput] = useState(false);
   const [weight, setWeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
@@ -91,7 +93,7 @@ function WeightTile() {
         <div>
           <div className="text-3xl mb-2">⚖️</div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Gewicht
+            {t('tracking.weight')}
           </h3>
         </div>
         <div className="text-right">
@@ -100,7 +102,7 @@ function WeightTile() {
           </div>
           {latestBMI && (
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              BMI: {latestBMI}
+              {t('tracking.bmi')}: {latestBMI}
             </div>
           )}
         </div>
@@ -143,17 +145,21 @@ function WeightTile() {
 
           {/* Time Range Selector */}
           <div className="flex gap-2 mb-4">
-            {[7, 30, 90].map((d) => (
+            {[
+              { days: 7, label: t('tracking.week') },
+              { days: 30, label: t('tracking.month') },
+              { days: 90, label: t('tracking.allTime') },
+            ].map((range) => (
               <button
-                key={d}
-                onClick={() => setDays(d)}
+                key={range.days}
+                onClick={() => setDays(range.days)}
                 className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  days === d
+                  days === range.days
                     ? 'bg-purple-600 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                {d}T
+                {range.label}
               </button>
             ))}
           </div>
@@ -212,7 +218,7 @@ function WeightTile() {
           onClick={() => setShowInput(true)}
           className="w-full px-4 py-3 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium"
         >
-          Gewicht eintragen
+          {t('tracking.addWeight')}
         </button>
       )}
     </div>

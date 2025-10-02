@@ -5,8 +5,10 @@ import WaterTile from '../components/WaterTile';
 import ProteinTile from '../components/ProteinTile';
 import WeightTile from '../components/WeightTile';
 import { useTracking } from '../hooks/useTracking';
+import { useTranslation } from '../hooks/useTranslation';
 
 function TrackingPage() {
+  const { t } = useTranslation();
   // Auto-save tracking data to Firebase
   useTracking();
   return (
@@ -15,16 +17,16 @@ function TrackingPage() {
       <div className="bg-gradient-to-r from-winter-600 to-winter-700 dark:from-winter-700 dark:to-winter-800 text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-2">
-            <h1 className="text-3xl font-bold">Heute tracken ✍️</h1>
+            <h1 className="text-3xl font-bold">{t('tracking.title')}</h1>
             <Link
               to="/tracking/history"
               className="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
             >
-              📋 Historie
+              📋 {t('tracking.history')}
             </Link>
           </div>
           <p className="text-winter-100">
-            Trage deine heutigen Fortschritte ein
+            {t('tracking.subtitle')}
           </p>
         </div>
       </div>

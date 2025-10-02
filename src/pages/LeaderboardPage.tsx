@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
-import { de } from 'date-fns/locale';
+import { de, enUS } from 'date-fns/locale';
 import { useStore } from '../store/useStore';
 import { getGroupMembers } from '../services/firestoreService';
 import { calculateStreak } from '../utils/calculations';
+import { useTranslation } from '../hooks/useTranslation';
 
 function LeaderboardPage() {
+  const { t, language } = useTranslation();
   const [filter, setFilter] = useState<'week' | 'month' | 'all'>('month');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
@@ -13,6 +15,7 @@ function LeaderboardPage() {
 
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
+  const locale = language === 'de' ? de : enUS;
 
   // Calculate current user stats
   const userStats = useMemo(() => {
@@ -120,8 +123,8 @@ function LeaderboardPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-winter-600 to-winter-700 dark:from-winter-700 dark:to-winter-800 text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">👥 Gruppe</h1>
-          <p className="text-winter-100">Code: {user?.groupCode || 'Keine'}</p>
+          <h1 className="text-3xl font-bold mb-2">👥 {t('group.title')}</h1>
+          <p className="text-winter-100">{t('group.code')}: {user?.groupCode || t('group.none')}</p>
         </div>
       </div>
 
@@ -130,9 +133,9 @@ function LeaderboardPage() {
         {/* Filter Tabs */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-2 flex gap-2">
           {[
-            { key: 'week' as const, label: 'Woche' },
-            { key: 'month' as const, label: 'Monat' },
-            { key: 'all' as const, label: 'Gesamt' },
+            { key: 'week' as const, label: t('group.week') },
+            { key: 'month' as const, label: t('group.month') },
+            { key: 'all' as const, label: t('group.all') },
           ].map((tab) => (
             <button
               key={tab.key}
@@ -152,7 +155,7 @@ function LeaderboardPage() {
         {filter === 'week' && (
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-3">
             <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
-              Trainings-Woche (KW {format(now, 'ww', { locale: de })})
+              {t('group.trainingWeek')} ({t('group.weekNumber')} {format(now, 'ww', { locale })})
             </h2>
             <div className="grid grid-cols-7 gap-2">
               {daysInWeek.map((day) => {
@@ -178,7 +181,7 @@ function LeaderboardPage() {
                   <div key={dateStr} className="flex flex-col items-center gap-1">
                     {/* Day label */}
                     <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                      {format(day, 'EEE', { locale: de })}
+                      {format(day, 'EEE', { locale })}
                     </div>
 
                     {/* Progress Circle (larger for week view) */}
@@ -233,10 +236,10 @@ function LeaderboardPage() {
         {filter === 'month' && (
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-3">
             <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
-              Trainings-Heatmap ({format(now, 'MMMM yyyy', { locale: de })})
+              {t('group.trainingHeatmap')} ({format(now, 'MMMM yyyy', { locale })})
             </h2>
             <div className="grid grid-cols-7 gap-0.5 max-w-sm">
-              {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((day) => (
+              {(language === 'de' ? ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']).map((day) => (
                 <div
                   key={day}
                   className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 pb-0.5"
@@ -327,15 +330,15 @@ function LeaderboardPage() {
         {/* Leaderboard Rankings */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            Rankings
+            {t('group.rankings')}
           </h2>
           {loading ? (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              Laden...
+              {t('common.loading')}
             </div>
           ) : leaderboardData.length === 0 ? (
             <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              Keine Gruppenmitglieder gefunden
+              {t('group.noMembers')}
             </div>
           ) : (
             <div className="space-y-3">
@@ -373,14 +376,14 @@ function LeaderboardPage() {
                         {entry.nickname}
                         {isCurrentUser && (
                           <span className="text-xs bg-winter-500 text-white px-2 py-0.5 rounded">
-                            Du
+                            {t('group.you')}
                           </span>
                         )}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                        <span>{entry.streak} Tage Streak 🔥</span>
+                        <span>{entry.streak} {t('group.daysStreak')} 🔥</span>
                         <span>•</span>
-                        <span>💪 {entry.dailyPushups || 0} heute</span>
+                        <span>💪 {entry.dailyPushups || 0} {t('group.today')}</span>
                       </div>
                     </div>
                   </div>
@@ -395,7 +398,7 @@ function LeaderboardPage() {
                             {entry.totalPushups}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">
-                            Liegestütze
+                            {t('group.pushups')}
                           </div>
                         </div>
                         <div>
@@ -404,7 +407,7 @@ function LeaderboardPage() {
                             {entry.sportSessions}
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">
-                            Sport-Sessions
+                            {t('group.sportSessions')}
                           </div>
                         </div>
                         <div>
@@ -413,7 +416,7 @@ function LeaderboardPage() {
                             {(entry.avgWater / 1000).toFixed(1)}L
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">
-                            Ø Wasser
+                            {t('group.avgWater')}
                           </div>
                         </div>
                         <div>
@@ -422,7 +425,7 @@ function LeaderboardPage() {
                             {entry.avgProtein}g
                           </div>
                           <div className="text-xs text-gray-500 dark:text-gray-400">
-                            Ø Protein
+                            {t('group.avgProtein')}
                           </div>
                         </div>
                       </div>
@@ -438,28 +441,28 @@ function LeaderboardPage() {
         {/* Achievements */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            🏅 Achievements
+            🏅 {t('group.achievements')}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               {
                 icon: '🔥',
-                label: '7 Tage Streak',
+                label: t('group.achievement7Days'),
                 locked: userStats.streak < 7
               },
               {
                 icon: '💪',
-                label: '1000 Pushups',
+                label: t('group.achievement1000'),
                 locked: userStats.totalPushups < 1000
               },
               {
                 icon: '🏃',
-                label: '20 Workouts',
+                label: t('group.achievement20Workouts'),
                 locked: userStats.sportSessions < 20
               },
               {
                 icon: '⭐',
-                label: 'Top 3',
+                label: t('group.achievementTop3'),
                 locked: true // TODO: Calculate rank
               },
             ].map((achievement, i) => (

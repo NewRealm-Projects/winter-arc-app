@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import { generateDailyMotivation } from '../services/aiService';
 import { format } from 'date-fns';
 import { calculateStreak } from '../utils/calculations';
+import { useTranslation } from '../hooks/useTranslation';
 
 function DashboardPage() {
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
+  const { t } = useTranslation();
   const [motivation, setMotivation] = useState({
     quote: 'Der Winter formt Champions!',
     subtext: 'Bleib fokussiert und tracke deine Fortschritte jeden Tag.',
@@ -46,7 +48,7 @@ function DashboardPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-3xl font-bold">
-              Hey, {user?.nickname || 'User'}! 👋
+              {t('dashboard.greeting', { nickname: user?.nickname || 'User' })}
             </h1>
             <div className="text-2xl">❄️</div>
           </div>
@@ -90,7 +92,7 @@ function DashboardPage() {
               {streak}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Tage Streak
+              {t('dashboard.streak')}
             </div>
           </div>
 
@@ -100,7 +102,7 @@ function DashboardPage() {
               {todayPushups}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Liegestütze heute
+              {t('dashboard.pushupsToday')}
             </div>
           </div>
         </div>

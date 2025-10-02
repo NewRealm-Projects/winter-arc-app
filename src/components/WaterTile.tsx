@@ -1,8 +1,10 @@
 import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
 import { calculateWaterGoal } from '../utils/calculations';
+import { useTranslation } from '../hooks/useTranslation';
 
 function WaterTile() {
+  const { t } = useTranslation();
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
@@ -30,7 +32,7 @@ function WaterTile() {
         <div>
           <div className="text-3xl mb-2">💧</div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Wasser
+            {t('tracking.water')}
           </h3>
         </div>
         <div className="text-right">
@@ -38,7 +40,7 @@ function WaterTile() {
             {liters}L
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            von {goalLiters}L
+            {t('tracking.goal')}: {goalLiters}L
           </div>
         </div>
       </div>

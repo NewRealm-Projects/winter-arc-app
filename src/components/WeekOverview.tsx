@@ -1,11 +1,14 @@
 import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
-import { de } from 'date-fns/locale';
+import { de, enUS } from 'date-fns/locale';
 import { useStore } from '../store/useStore';
+import { useTranslation } from '../hooks/useTranslation';
 
 function WeekOverview() {
+  const { t, language } = useTranslation();
   const tracking = useStore((state) => state.tracking);
   const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Monday
+  const locale = language === 'de' ? de : enUS;
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(weekStart, i);
@@ -17,7 +20,7 @@ function WeekOverview() {
     return {
       date,
       dateStr,
-      dayName: format(date, 'EEE', { locale: de }),
+      dayName: format(date, 'EEE', { locale }),
       dayNumber: format(date, 'd'),
       isToday,
       isCompleted,
@@ -31,10 +34,10 @@ function WeekOverview() {
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-          Diese Woche
+          {t('dashboard.weekOverview')}
         </h2>
         <div className="text-sm font-medium text-winter-600 dark:text-winter-400">
-          {completedDays} / 7 Tage
+          {completedDays} / 7 {t('dashboard.days')}
         </div>
       </div>
 
@@ -47,7 +50,7 @@ function WeekOverview() {
           />
         </div>
         <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
-          {Math.round(progressPercent)}% abgeschlossen
+          {Math.round(progressPercent)}% {t('dashboard.completed')}
         </div>
       </div>
 

@@ -3,8 +3,10 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { useStore } from '../store/useStore';
 import { Language } from '../types';
+import { useTranslation } from '../hooks/useTranslation';
 
 function SettingsPage() {
+  const { t } = useTranslation();
   const [showGroupInput, setShowGroupInput] = useState(false);
   const [groupCode, setGroupCode] = useState('');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -66,13 +68,13 @@ function SettingsPage() {
           ...updates,
         });
         setIsEditingProfile(false);
-        alert('Profil erfolgreich aktualisiert!');
+        alert(t('settings.profileUpdated'));
       } else {
-        alert('Fehler beim Speichern');
+        alert(t('settings.saveError'));
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Fehler beim Speichern');
+      alert(t('settings.saveError'));
     }
   };
 
@@ -96,13 +98,13 @@ function SettingsPage() {
           groupCode,
         });
 
-        alert('Erfolgreich der Gruppe beigetreten!');
+        alert(t('settings.joinedGroup'));
       } else {
-        alert('Fehler beim Beitreten der Gruppe');
+        alert(t('settings.joinGroupError'));
       }
     } catch (error) {
       console.error('Error joining group:', error);
-      alert('Fehler beim Beitreten der Gruppe');
+      alert(t('settings.joinGroupError'));
     } finally {
       setShowGroupInput(false);
       setGroupCode('');
@@ -114,8 +116,8 @@ function SettingsPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-winter-600 to-winter-700 dark:from-winter-700 dark:to-winter-800 text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">⚙️ Einstellungen</h1>
-          <p className="text-winter-100">Passe dein Profil an</p>
+          <h1 className="text-3xl font-bold mb-2">⚙️ {t('settings.title')}</h1>
+          <p className="text-winter-100">{t('settings.subtitle')}</p>
         </div>
       </div>
 
@@ -124,13 +126,13 @@ function SettingsPage() {
         {/* Profile Section */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            👤 Profil
+            👤 {t('settings.profile')}
           </h2>
           {isEditingProfile ? (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Sprache
+                  {t('settings.language')}
                 </label>
                 <div className="flex gap-2">
                   <button
@@ -151,13 +153,13 @@ function SettingsPage() {
                         : 'border-gray-300 dark:border-gray-600 hover:border-winter-400'
                     }`}
                   >
-                    🇬🇧 English
+                    🇺🇸 English
                   </button>
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Spitzname
+                  {t('settings.nickname')}
                 </label>
                 <input
                   type="text"
@@ -168,7 +170,7 @@ function SettingsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Größe (cm)
+                  {t('settings.height')}
                 </label>
                 <input
                   type="number"
@@ -179,7 +181,7 @@ function SettingsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Gewicht (kg)
+                  {t('settings.weight')}
                 </label>
                 <input
                   type="number"
@@ -190,7 +192,7 @@ function SettingsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  KFA (%) - Optional
+                  {t('settings.bodyFat')}
                 </label>
                 <input
                   type="number"
@@ -202,7 +204,7 @@ function SettingsPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Max. Liegestütze
+                  {t('settings.maxPushups')}
                 </label>
                 <input
                   type="number"
@@ -216,13 +218,13 @@ function SettingsPage() {
                   onClick={handleSaveProfile}
                   className="flex-1 px-4 py-3 bg-winter-600 text-white rounded-lg hover:bg-winter-700 transition-colors font-medium"
                 >
-                  Speichern
+                  {t('common.save')}
                 </button>
                 <button
                   onClick={() => setIsEditingProfile(false)}
                   className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 >
-                  Abbrechen
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>
@@ -230,45 +232,45 @@ function SettingsPage() {
             <>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Sprache</span>
+                  <span className="text-gray-600 dark:text-gray-400">{t('settings.language')}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    {user?.language === 'de' ? '🇩🇪 Deutsch' : '🇬🇧 English'}
+                    {user?.language === 'de' ? '🇩🇪 Deutsch' : '🇺🇸 English'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Spitzname</span>
+                  <span className="text-gray-600 dark:text-gray-400">{t('settings.nickname')}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
                     {user?.nickname}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Geschlecht</span>
+                  <span className="text-gray-600 dark:text-gray-400">{t('settings.gender')}</span>
                   <span className="font-semibold text-gray-900 dark:text-white capitalize">
-                    {user?.gender === 'male' ? 'Männlich' : user?.gender === 'female' ? 'Weiblich' : 'Divers'}
+                    {user?.gender === 'male' ? t('settings.male') : user?.gender === 'female' ? t('settings.female') : t('settings.diverse')}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Größe</span>
+                  <span className="text-gray-600 dark:text-gray-400">{t('settings.height')}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
                     {user?.height} cm
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Gewicht</span>
+                  <span className="text-gray-600 dark:text-gray-400">{t('settings.weight')}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
                     {user?.weight} kg
                   </span>
                 </div>
                 {user?.bodyFat && (
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600 dark:text-gray-400">KFA</span>
+                    <span className="text-gray-600 dark:text-gray-400">{t('settings.bodyFat')}</span>
                     <span className="font-semibold text-gray-900 dark:text-white">
                       {user.bodyFat}%
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Max. Liegestütze</span>
+                  <span className="text-gray-600 dark:text-gray-400">{t('settings.maxPushups')}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
                     {user?.maxPushups}
                   </span>
@@ -278,7 +280,7 @@ function SettingsPage() {
                 onClick={handleEditProfile}
                 className="mt-4 w-full px-4 py-3 bg-winter-600 text-white rounded-lg hover:bg-winter-700 transition-colors font-medium"
               >
-                Profil bearbeiten
+                {t('settings.editProfile')}
               </button>
             </>
           )}
@@ -287,20 +289,20 @@ function SettingsPage() {
         {/* Groups Section */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            👥 Gruppe
+            👥 {t('settings.group')}
           </h2>
           {user?.groupCode ? (
             <div className="space-y-3">
               <div className="p-4 bg-winter-50 dark:bg-winter-900/20 rounded-lg">
                 <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                  Dein Gruppencode
+                  {t('settings.yourGroupCode')}
                 </div>
                 <div className="text-2xl font-bold text-winter-600 dark:text-winter-400">
                   {user.groupCode}
                 </div>
               </div>
               <button className="w-full px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors font-medium">
-                Gruppe verlassen
+                {t('settings.leaveGroup')}
               </button>
             </div>
           ) : showGroupInput ? (
@@ -309,7 +311,7 @@ function SettingsPage() {
                 type="text"
                 value={groupCode}
                 onChange={(e) => setGroupCode(e.target.value.toUpperCase())}
-                placeholder="GRUPPENCODE"
+                placeholder={t('settings.groupCodePlaceholder')}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none font-mono"
                 autoFocus
               />
@@ -319,7 +321,7 @@ function SettingsPage() {
                   disabled={!groupCode}
                   className="flex-1 px-4 py-3 bg-winter-600 text-white rounded-lg hover:bg-winter-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Beitreten
+                  {t('settings.joinGroup')}
                 </button>
                 <button
                   onClick={() => {
@@ -328,7 +330,7 @@ function SettingsPage() {
                   }}
                   className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 >
-                  Abbrechen
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>
@@ -337,7 +339,7 @@ function SettingsPage() {
               onClick={() => setShowGroupInput(true)}
               className="w-full px-4 py-3 bg-winter-50 dark:bg-winter-900/20 text-winter-600 dark:text-winter-400 rounded-lg hover:bg-winter-100 dark:hover:bg-winter-900/30 transition-colors font-medium"
             >
-              Gruppe beitreten oder erstellen
+              {t('settings.joinOrCreateGroup')}
             </button>
           )}
         </div>
@@ -345,15 +347,15 @@ function SettingsPage() {
         {/* Appearance Section */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            🎨 Darstellung
+            🎨 {t('settings.appearance')}
           </h2>
           <div className="flex items-center justify-between">
             <div>
               <div className="font-semibold text-gray-900 dark:text-white">
-                Dark Mode
+                {t('settings.darkMode')}
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                Dunkles Farbschema verwenden
+                {t('settings.darkModeDesc')}
               </div>
             </div>
             <button
@@ -374,16 +376,16 @@ function SettingsPage() {
         {/* Notifications Section */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            🔔 Benachrichtigungen
+            🔔 {t('settings.notifications')}
           </h2>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <div className="font-medium text-gray-900 dark:text-white">
-                  Tägliche Erinnerung
+                  {t('settings.dailyReminder')}
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {notificationTime} Uhr
+                  {notificationTime}
                 </div>
               </div>
               <button
@@ -407,7 +409,7 @@ function SettingsPage() {
               onClick={() => setShowTimeModal(true)}
               className="mt-4 w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
             >
-              Zeit ändern
+              {t('settings.changeTime')}
             </button>
           )}
         </div>
@@ -417,7 +419,7 @@ function SettingsPage() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                Erinnerungszeit
+                {t('settings.reminderTime')}
               </h2>
               <input
                 type="time"
@@ -430,7 +432,7 @@ function SettingsPage() {
                   onClick={() => setShowTimeModal(false)}
                   className="flex-1 px-4 py-3 bg-winter-600 text-white rounded-lg font-semibold hover:bg-winter-700 transition-colors"
                 >
-                  Speichern
+                  {t('common.save')}
                 </button>
                 <button
                   onClick={() => {
@@ -439,7 +441,7 @@ function SettingsPage() {
                   }}
                   className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 >
-                  Abbrechen
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>
@@ -449,17 +451,17 @@ function SettingsPage() {
         {/* Account Section */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            🔐 Konto
+            🔐 {t('settings.account')}
           </h2>
           <div className="space-y-2">
             <button
               onClick={handleLogout}
               className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium text-left"
             >
-              Abmelden
+              {t('settings.logout')}
             </button>
             <button className="w-full px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors font-medium text-left">
-              Konto löschen
+              {t('settings.deleteAccount')}
             </button>
           </div>
         </div>
@@ -467,14 +469,14 @@ function SettingsPage() {
         {/* Legal Section */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            📄 Rechtliches
+            📄 {t('settings.legal')}
           </h2>
           <div className="space-y-2">
             <button className="w-full px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left">
-              Datenschutzerklärung
+              {t('settings.privacy')}
             </button>
             <button className="w-full px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left">
-              Nutzungsbedingungen
+              {t('settings.terms')}
             </button>
           </div>
         </div>

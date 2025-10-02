@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
 import { calculateProteinGoal } from '../utils/calculations';
+import { useTranslation } from '../hooks/useTranslation';
 
 function ProteinTile() {
+  const { t } = useTranslation();
   const [showInput, setShowInput] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
@@ -36,7 +38,7 @@ function ProteinTile() {
         <div>
           <div className="text-3xl mb-2">🥩</div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Protein
+            {t('tracking.protein')}
           </h3>
         </div>
         <div className="text-right">
@@ -44,7 +46,7 @@ function ProteinTile() {
             {currentProtein}g
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            von {proteinGoal}g
+            {t('tracking.goal')}: {proteinGoal}g
           </div>
         </div>
       </div>
@@ -94,7 +96,7 @@ function ProteinTile() {
           onClick={() => setShowInput(true)}
           className="w-full px-4 py-3 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors font-medium"
         >
-          Protein hinzufügen
+          {t('tracking.addProtein')}
         </button>
       )}
     </div>
