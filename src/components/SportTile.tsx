@@ -9,9 +9,9 @@ function SportTile() {
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const todayTracking = tracking[today];
-  const currentSports = todayTracking?.sports || { hiit: false, cardio: false, gym: false, schwimmen: false, rest: false } as Record<string, boolean>;
+  const currentSports = todayTracking?.sports || { hiit: false, cardio: false, gym: false, schwimmen: false, soccer: false, rest: false } as Record<string, boolean>;
 
-  const toggleSport = (sport: 'hiit' | 'cardio' | 'gym' | 'schwimmen' | 'rest') => {
+  const toggleSport = (sport: 'hiit' | 'cardio' | 'gym' | 'schwimmen' | 'soccer' | 'rest') => {
     updateDayTracking(today, {
       sports: {
         ...currentSports,
@@ -25,6 +25,7 @@ function SportTile() {
     { key: 'cardio' as const, label: t('tracking.cardio'), icon: '🏃' },
     { key: 'gym' as const, label: t('tracking.gym'), icon: '🏋️' },
     { key: 'schwimmen' as const, label: t('tracking.swimming'), icon: '🏊' },
+    { key: 'soccer' as const, label: t('tracking.soccer'), icon: '⚽' },
     { key: 'rest' as const, label: t('tracking.rest'), icon: '😴' },
   ];
 
