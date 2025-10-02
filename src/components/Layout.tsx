@@ -12,7 +12,6 @@ function Layout({ children }: LayoutProps) {
 
   const navItems = [
     { path: '/', labelKey: 'nav.dashboard', icon: '📊' },
-    { path: '/tracking', labelKey: 'nav.tracking', icon: '✍️' },
     { path: '/leaderboard', labelKey: 'nav.group', icon: '👥' },
     { path: '/settings', labelKey: 'nav.settings', icon: '⚙️' },
   ];

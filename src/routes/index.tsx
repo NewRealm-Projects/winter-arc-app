@@ -4,7 +4,6 @@ import Layout from '../components/Layout';
 import LoginPage from '../pages/LoginPage';
 import OnboardingPage from '../pages/OnboardingPage';
 import DashboardPage from '../pages/DashboardPage';
-import TrackingPage from '../pages/TrackingPage';
 import LeaderboardPage from '../pages/LeaderboardPage';
 import SettingsPage from '../pages/SettingsPage';
 import HistoryPage from '../pages/HistoryPage';
@@ -42,7 +41,6 @@ function AppRoutes() {
     <Layout>
       <Routes>
         <Route path="/" element={<DashboardPage />} />
-        <Route path="/tracking" element={<TrackingPage />} />
         <Route path="/tracking/history" element={<HistoryPage />} />
         <Route path="/tracking/pushup-training" element={<PushupTrainingPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
