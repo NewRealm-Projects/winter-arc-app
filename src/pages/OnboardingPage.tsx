@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Gender } from '../types';
+import { Gender, Language } from '../types';
 import { useStore } from '../store/useStore';
 import { initPushupPlan } from '../utils/pushupAlgorithm';
 
@@ -9,6 +9,7 @@ interface OnboardingPageProps {
 
 function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   const [step, setStep] = useState(1);
+  const [language, setLanguage] = useState<Language>('de');
   const [nickname, setNickname] = useState('');
   const [gender, setGender] = useState<Gender>('male');
   const [height, setHeight] = useState('');
@@ -21,7 +22,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   const setUser = useStore((state) => state.setUser);
   const setIsOnboarded = useStore((state) => state.setIsOnboarded);
 
-  const totalSteps = birthdayOnly ? 1 : 7;
+  const totalSteps = birthdayOnly ? 1 : 8;
 
   const handleNext = () => {
     if (step < totalSteps) {
@@ -64,6 +65,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
       const pushupState = initPushupPlan(parseInt(maxPushups));
 
       const newUser = {
+        language,
         nickname,
         gender,
         height: parseInt(height),
@@ -99,18 +101,20 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
 
     switch (step) {
       case 1:
-        return nickname.trim().length > 0;
+        return language !== undefined;
       case 2:
-        return gender !== undefined;
+        return nickname.trim().length > 0;
       case 3:
-        return height && parseInt(height) > 0;
+        return gender !== undefined;
       case 4:
-        return weight && parseInt(weight) > 0;
+        return height && parseInt(height) > 0;
       case 5:
-        return true; // bodyFat is optional
+        return weight && parseInt(weight) > 0;
       case 6:
-        return maxPushups && parseInt(maxPushups) > 0;
+        return true; // bodyFat is optional
       case 7:
+        return maxPushups && parseInt(maxPushups) > 0;
+      case 8:
         return true; // birthday is optional
       default:
         return false;
@@ -162,24 +166,54 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
             {!birthdayOnly && step === 1 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Wie sollen wir dich nennen?
+                  🌍 Wähle deine Sprache / Choose your language
                 </h2>
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Wähle einen Spitznamen für dein Profil
+                  In welcher Sprache möchtest du die App nutzen?
+                </p>
+                <div className="space-y-3">
+                  {[
+                    { value: 'de' as Language, label: 'Deutsch', icon: '🇩🇪' },
+                    { value: 'en' as Language, label: 'English', icon: '🇬🇧' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setLanguage(option.value)}
+                      className={`w-full px-6 py-4 rounded-lg border-2 transition-all flex items-center gap-4 ${
+                        language === option.value
+                          ? 'border-winter-600 dark:border-winter-400 bg-winter-50 dark:bg-winter-900 text-winter-600 dark:text-winter-400'
+                          : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-winter-400 dark:hover:border-winter-500'
+                      }`}
+                    >
+                      <span className="text-3xl">{option.icon}</span>
+                      <span className="text-lg font-medium">{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!birthdayOnly && step === 2 && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  {language === 'de' ? 'Wie sollen wir dich nennen?' : 'What should we call you?'}
+                </h2>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  {language === 'de' ? 'Wähle einen Spitznamen für dein Profil' : 'Choose a nickname for your profile'}
                 </p>
                 <input
                   type="text"
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
-                  placeholder="z.B. Max"
+                  placeholder={language === 'de' ? 'z.B. Max' : 'e.g. Max'}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
                   autoFocus
                 />
               </div>
             )}
 
-            {!birthdayOnly && step === 2 && (
+            {!birthdayOnly && step === 3 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Dein Geschlecht
@@ -212,7 +246,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
               </div>
             )}
 
-            {!birthdayOnly && step === 3 && (
+            {!birthdayOnly && step === 4 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Deine Größe
@@ -237,7 +271,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
               </div>
             )}
 
-            {!birthdayOnly && step === 4 && (
+            {!birthdayOnly && step === 5 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Dein Gewicht
@@ -262,7 +296,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
               </div>
             )}
 
-            {!birthdayOnly && step === 5 && (
+            {!birthdayOnly && step === 6 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Körperfettanteil (optional)
@@ -288,7 +322,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
               </div>
             )}
 
-            {!birthdayOnly && step === 6 && (
+            {!birthdayOnly && step === 7 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   Maximale Liegestütze
@@ -324,7 +358,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
               </div>
             )}
 
-            {!birthdayOnly && step === 7 && (
+            {!birthdayOnly && step === 8 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                   🎂 Geburtstag (optional)

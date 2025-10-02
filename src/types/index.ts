@@ -1,9 +1,12 @@
 export type Gender = 'male' | 'female' | 'diverse';
 
+export type Language = 'de' | 'en';
+
 export type WorkoutStatus = 'pass' | 'hold' | 'fail';
 
 export interface User {
   id: string;
+  language: Language;
   nickname: string;
   gender: Gender;
   height: number; // cm

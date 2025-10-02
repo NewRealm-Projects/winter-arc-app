@@ -73,6 +73,12 @@ function SettingsPage() {
           </h2>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
+              <span className="text-gray-600 dark:text-gray-400">Sprache</span>
+              <span className="font-semibold text-gray-900 dark:text-white">
+                {user?.language === 'de' ? '🇩🇪 Deutsch' : '🇬🇧 English'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-400">Spitzname</span>
               <span className="font-semibold text-gray-900 dark:text-white">
                 {user?.nickname}

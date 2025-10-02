@@ -261,18 +261,10 @@ function LeaderboardPage() {
                           </span>
                         )}
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {entry.streak} Tage Streak 🔥
-                      </div>
-                    </div>
-
-                    {/* Daily Pushups */}
-                    <div className="text-right flex-shrink-0">
-                      <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                        {entry.dailyPushups || 0}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        💪 heute
+                      <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                        <span>{entry.streak} Tage Streak 🔥</span>
+                        <span>•</span>
+                        <span>💪 {entry.dailyPushups || 0} heute</span>
                       </div>
                     </div>
                   </div>

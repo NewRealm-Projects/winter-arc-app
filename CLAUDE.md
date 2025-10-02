@@ -31,12 +31,13 @@ Progressive Web App (PWA) für iOS und Android namens "Winter Arc Fitness Tracke
 ### Login
 - Google SSO über Firebase Auth
 - Beim ersten Login: Onboarding-Flow mit folgenden Schritten:
-  1. Spitzname
-  2. Geschlecht (Männlich/Weiblich/Divers)
-  3. Größe (in cm)
-  4. Gewicht (in kg)
-  5. Körperfettanteil (KFA, optional, in %)
-  6. Maximale Liegestütze am Stück (für Trainingsplan-Generierung)
+  1. Sprache (Deutsch/English)
+  2. Spitzname
+  3. Geschlecht (Männlich/Weiblich/Divers oder Male/Female/Diverse)
+  4. Größe (in cm)
+  5. Gewicht (in kg)
+  6. Körperfettanteil (KFA, optional, in %)
+  7. Maximale Liegestütze am Stück (für Trainingsplan-Generierung)
 
 ---
 
@@ -171,7 +172,7 @@ Drei Checkbox-Optionen (können täglich mehrfach abgehakt werden):
 ### Seite 4: Einstellungen
 
 **Profil**
-- Bearbeiten aller Onboarding-Daten (Spitzname, Geschlecht, Größe, Gewicht, KFA, max. Liegestütze)
+- Bearbeiten aller Onboarding-Daten (Sprache, Spitzname, Geschlecht, Größe, Gewicht, KFA, max. Liegestütze)
 - Profilbild (optional)
 
 **Gruppen**
@@ -211,6 +212,7 @@ Drei Checkbox-Optionen (können täglich mehrfach abgehakt werden):
 // Firestore Collections
 users: {
   [userId]: {
+    language: 'de' | 'en';
     nickname: string;
     gender: 'male' | 'female' | 'diverse';
     height: number; // cm
