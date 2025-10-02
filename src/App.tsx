@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { useStore } from './store/useStore';
 import { useAuth } from './hooks/useAuth';
 
@@ -19,8 +20,14 @@ function App() {
   }, [darkMode]);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
       <AppRoutes />
+      <PWAInstallPrompt />
     </BrowserRouter>
   );
 }

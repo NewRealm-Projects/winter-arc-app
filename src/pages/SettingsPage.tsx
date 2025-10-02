@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { signOut } from 'firebase/auth';
+import * as Sentry from '@sentry/react';
 import { auth } from '../firebase/config';
 import { useStore } from '../store/useStore';
 import { Language } from '../types';
@@ -108,6 +109,83 @@ function SettingsPage() {
     } finally {
       setShowGroupInput(false);
       setGroupCode('');
+    }
+  };
+
+  const handleTestError = () => {
+    try {
+      console.log('🧪 Testing Sentry error capture...');
+      throw new Error('Test error for Sentry - triggered from Settings page');
+    } catch (error) {
+      Sentry.captureException(error);
+      alert('Test-Fehler wurde an Sentry gesendet! Prüfe dein Sentry Dashboard.');
+    }
+  };
+
+  const handleToggleNotifications = async () => {
+    if (!notificationsEnabled) {
+      // Request permission when enabling
+      if ('Notification' in window) {
+        const permission = await Notification.requestPermission();
+
+        if (permission === 'granted') {
+          setNotificationsEnabled(true);
+          scheduleNotification(notificationTime);
+          console.log('✅ Benachrichtigungen aktiviert für', notificationTime);
+        } else if (permission === 'denied') {
+          alert('❌ Benachrichtigungs-Berechtigung wurde verweigert. Bitte erlaube Benachrichtigungen in deinen Browser-Einstellungen.');
+        } else {
+          alert('⚠️ Benachrichtigungs-Berechtigung wurde nicht erteilt.');
+        }
+      } else {
+        alert('❌ Dein Browser unterstützt keine Benachrichtigungen.');
+      }
+    } else {
+      // Disable notifications
+      setNotificationsEnabled(false);
+      console.log('🔕 Benachrichtigungen deaktiviert');
+    }
+  };
+
+  const scheduleNotification = (time: string) => {
+    // Calculate time until notification
+    const [hours, minutes] = time.split(':').map(Number);
+    const now = new Date();
+    const scheduledTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, 0);
+
+    // If time has passed today, schedule for tomorrow
+    if (scheduledTime <= now) {
+      scheduledTime.setDate(scheduledTime.getDate() + 1);
+    }
+
+    const timeUntilNotification = scheduledTime.getTime() - now.getTime();
+
+    setTimeout(() => {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('⏰ Winter Arc Tracker', {
+          body: 'Zeit für dein Training! Logge deine Fortschritte.',
+          icon: '/winter-arc-app/icon-192.png',
+          badge: '/winter-arc-app/icon-192.png',
+        });
+
+        // Reschedule for next day
+        scheduleNotification(time);
+      }
+    }, timeUntilNotification);
+
+    console.log(`🔔 Benachrichtigung geplant für ${scheduledTime.toLocaleString()}`);
+  };
+
+  const sendTestNotification = () => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('🧪 Test-Benachrichtigung', {
+        body: 'Benachrichtigungen funktionieren! Du wirst täglich um ' + notificationTime + ' Uhr erinnert.',
+        icon: '/winter-arc-app/icon-192.png',
+        badge: '/winter-arc-app/icon-192.png',
+      });
+      console.log('📬 Test-Benachrichtigung gesendet');
+    } else {
+      alert('❌ Benachrichtigungen sind nicht aktiviert oder die Berechtigung wurde verweigert.');
     }
   };
 
@@ -389,7 +467,7 @@ function SettingsPage() {
                 </div>
               </div>
               <button
-                onClick={() => setNotificationsEnabled(!notificationsEnabled)}
+                onClick={handleToggleNotifications}
                 className={`relative w-14 h-8 rounded-full transition-colors ${
                   notificationsEnabled
                     ? 'bg-winter-600'
@@ -405,12 +483,20 @@ function SettingsPage() {
             </div>
           </div>
           {notificationsEnabled && (
-            <button
-              onClick={() => setShowTimeModal(true)}
-              className="mt-4 w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
-            >
-              {t('settings.changeTime')}
-            </button>
+            <div className="mt-4 space-y-2">
+              <button
+                onClick={() => setShowTimeModal(true)}
+                className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
+              >
+                {t('settings.changeTime')}
+              </button>
+              <button
+                onClick={sendTestNotification}
+                className="w-full px-4 py-3 bg-winter-50 dark:bg-winter-900/20 text-winter-600 dark:text-winter-400 rounded-lg hover:bg-winter-100 dark:hover:bg-winter-900/30 transition-colors font-medium"
+              >
+                {t('settings.testNotification')}
+              </button>
+            </div>
           )}
         </div>
 
@@ -429,7 +515,13 @@ function SettingsPage() {
               />
               <div className="flex gap-2">
                 <button
-                  onClick={() => setShowTimeModal(false)}
+                  onClick={() => {
+                    setShowTimeModal(false);
+                    if (notificationsEnabled) {
+                      scheduleNotification(notificationTime);
+                      console.log('🔄 Benachrichtigungszeit aktualisiert:', notificationTime);
+                    }
+                  }}
                   className="flex-1 px-4 py-3 bg-winter-600 text-white rounded-lg font-semibold hover:bg-winter-700 transition-colors"
                 >
                   {t('common.save')}
@@ -480,6 +572,26 @@ function SettingsPage() {
             </button>
           </div>
         </div>
+
+        {/* Debug Section (only in development) */}
+        {import.meta.env.DEV && (
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl shadow-lg p-6 border-2 border-yellow-300 dark:border-yellow-700">
+            <h2 className="text-lg font-bold text-yellow-900 dark:text-yellow-300 mb-4">
+              🧪 Debug Tools
+            </h2>
+            <div className="space-y-2">
+              <button
+                onClick={handleTestError}
+                className="w-full px-4 py-3 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-200 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-900/60 transition-colors font-medium text-left"
+              >
+                Test Sentry Error Tracking
+              </button>
+              <div className="text-xs text-yellow-700 dark:text-yellow-400 mt-2">
+                Sentry Status: {import.meta.env.VITE_SENTRY_DSN ? '✅ Konfiguriert' : '⚠️ Nicht konfiguriert'}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* App Version */}
         <div className="text-center text-sm text-gray-500 dark:text-gray-400 pt-4">

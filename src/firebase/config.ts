@@ -15,14 +15,17 @@ const firebaseConfig = {
 };
 
 // Validate Firebase configuration
+console.log('🔥 Firebase Configuration:');
+console.log('  API Key:', firebaseConfig.apiKey ? '✓ Set' : '✗ Missing');
+console.log('  Auth Domain:', firebaseConfig.authDomain || '✗ Missing');
+console.log('  Project ID:', firebaseConfig.projectId || '✗ Missing');
+console.log('  Storage Bucket:', firebaseConfig.storageBucket || '✗ Missing');
+console.log('  Messaging Sender ID:', firebaseConfig.messagingSenderId || '✗ Missing');
+console.log('  App ID:', firebaseConfig.appId ? '✓ Set' : '✗ Missing');
+
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-  console.error('❌ Firebase configuration missing! Environment variables:');
-  console.error('VITE_FIREBASE_API_KEY:', firebaseConfig.apiKey ? '✓ Set' : '✗ Missing');
-  console.error('VITE_FIREBASE_AUTH_DOMAIN:', firebaseConfig.authDomain ? '✓ Set' : '✗ Missing');
-  console.error('VITE_FIREBASE_PROJECT_ID:', firebaseConfig.projectId ? '✓ Set' : '✗ Missing');
-  console.error('VITE_FIREBASE_STORAGE_BUCKET:', firebaseConfig.storageBucket ? '✓ Set' : '✗ Missing');
-  console.error('VITE_FIREBASE_MESSAGING_SENDER_ID:', firebaseConfig.messagingSenderId ? '✓ Set' : '✗ Missing');
-  console.error('VITE_FIREBASE_APP_ID:', firebaseConfig.appId ? '✓ Set' : '✗ Missing');
+  console.error('❌ Firebase configuration incomplete!');
+  console.error('   Please ensure all VITE_FIREBASE_* variables are set in .env');
   throw new Error('Firebase configuration is incomplete. Please check your environment variables.');
 }
 
@@ -30,35 +33,42 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
 const app = initializeApp(firebaseConfig);
 
 // Initialize App Check with reCAPTCHA v3 (optional)
-// Only initialize if VITE_RECAPTCHA_SITE_KEY is set and valid
+// Only on localhost/development - not on production
 const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-if (import.meta.env.DEV) {
-  // Development mode: enable debug token
-  // @ts-ignore - self.FIREBASE_APPCHECK_DEBUG_TOKEN is a global variable
-  self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
-}
-
-if (recaptchaSiteKey && recaptchaSiteKey.length > 10) {
+if (isLocalhost && recaptchaSiteKey && recaptchaSiteKey.length > 10) {
   try {
+    // Enable App Check debug token for localhost
+    console.log('🔓 App Check Debug Mode enabled for localhost');
+    // @ts-ignore - self.FIREBASE_APPCHECK_DEBUG_TOKEN is a global variable
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+
     initializeAppCheck(app, {
       provider: new ReCaptchaV3Provider(recaptchaSiteKey),
       isTokenAutoRefreshEnabled: true,
     });
-    console.log('✓ Firebase App Check initialized with reCAPTCHA v3');
+    console.log('✓ Firebase App Check initialized with reCAPTCHA v3 (localhost only)');
   } catch (error) {
     console.warn('⚠ App Check initialization failed - continuing without App Check:', error);
   }
 } else {
   console.info(
-    'ℹ App Check not configured (optional). ' +
-    'Add VITE_RECAPTCHA_SITE_KEY to enable protection against abuse.'
+    'ℹ App Check disabled on production. ' +
+    'To enable: Register your production domain in Firebase App Check settings.'
   );
 }
 
 // Initialize Firebase services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Configure Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: 'select_account', // Always show account selection
+});
+
+console.log('🔐 Google OAuth Provider configured');
 
 export default app;

@@ -12,7 +12,9 @@
       "Bash(gh api:*)",
       "Bash(gh workflow run:*)",
       "Bash(npm run build:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(gh run view:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": [],
     "ask": []

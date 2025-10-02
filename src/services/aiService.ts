@@ -4,6 +4,64 @@ import { calculateStreak } from '../utils/calculations';
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || '');
 
+// Cache configuration
+const CACHE_KEY = 'winter_arc_daily_quote';
+const CACHE_DURATION_MS = 4 * 60 * 60 * 1000; // 4 hours
+
+// Time periods for quote generation (3x daily)
+type TimePeriod = 'morning' | 'noon' | 'evening';
+
+function getCurrentTimePeriod(): TimePeriod {
+  const hour = new Date().getHours();
+  if (hour >= 6 && hour < 12) return 'morning';
+  if (hour >= 12 && hour < 18) return 'noon';
+  return 'evening';
+}
+
+function getCachedQuote(): { quote: string; subtext: string } | null {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (!cached) return null;
+
+    const { quote, subtext, timestamp, period } = JSON.parse(cached);
+    const currentPeriod = getCurrentTimePeriod();
+
+    // Check if cache is from the same time period
+    if (period !== currentPeriod) {
+      console.log(`🔄 Time period changed from ${period} to ${currentPeriod}, generating new quote`);
+      return null;
+    }
+
+    // Check if cache is still valid (additional safety check)
+    const age = Date.now() - timestamp;
+    if (age > CACHE_DURATION_MS) {
+      console.log('⏰ Cache expired, generating new quote');
+      return null;
+    }
+
+    console.log(`✅ Using cached quote from ${period} period (${Math.round(age / 1000 / 60)}min ago)`);
+    return { quote, subtext };
+  } catch (error) {
+    console.error('❌ Error reading quote cache:', error);
+    return null;
+  }
+}
+
+function setCachedQuote(quote: string, subtext: string) {
+  try {
+    const cacheData = {
+      quote,
+      subtext,
+      timestamp: Date.now(),
+      period: getCurrentTimePeriod(),
+    };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+    console.log(`💾 Quote cached for ${getCurrentTimePeriod()} period`);
+  } catch (error) {
+    console.error('❌ Error saving quote cache:', error);
+  }
+}
+
 interface UserTrackingStats {
   currentStreak: number;
   totalPushups: number;
@@ -82,11 +140,20 @@ export async function generateDailyMotivation(
       }
     }
 
+    // Check cache first (saves API tokens)
+    const cachedQuote = getCachedQuote();
+    if (cachedQuote) {
+      return cachedQuote;
+    }
+
     // Check if API key is available
-    if (!import.meta.env.VITE_GEMINI_API_KEY) {
-      console.warn('Gemini API key not found, using fallback quote');
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      console.warn('⚠️ Gemini API key not found, using fallback quote');
       return getFallbackQuote();
     }
+
+    console.log('🔑 Gemini API Key:', apiKey ? `${apiKey.substring(0, 10)}...` : '✗ Missing');
 
     const stats = analyzeTrackingData(tracking);
 
@@ -116,22 +183,54 @@ Erstelle einen kurzen, motivierenden Tagesspruch auf Deutsch für ${nickname}.
 
 Antworte NUR mit dem JSON-Objekt, keine zusätzlichen Erklärungen.`;
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    // Try different model names in order of preference (newest first)
+    const modelNames = ['gemini-2.5-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-1.0-pro', 'gemini-pro'];
+    let text = '';
+    let lastError: Error | null = null;
+
+    for (const modelName of modelNames) {
+      try {
+        console.log(`🤖 Trying Gemini model: ${modelName}...`);
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        text = response.text();
+        console.log(`✅ Successfully used model: ${modelName}`);
+        break; // Success, exit loop
+      } catch (error: any) {
+        console.warn(`⚠️ Model ${modelName} failed:`, error.message);
+        lastError = error;
+        continue; // Try next model
+      }
+    }
+
+    // If all models failed, throw the last error
+    if (!text && lastError) {
+      console.error('❌ All Gemini models failed, using fallback quote');
+      console.error('📋 Possible solutions:');
+      console.error('   1. Check if Generative Language API is enabled: https://console.cloud.google.com/apis/api/generativelanguage.googleapis.com');
+      console.error('   2. Verify your API key is correct: https://makersuite.google.com/app/apikey');
+      console.error('   3. Make sure the API key has no usage restrictions');
+      console.error('   Last error:', lastError.message);
+      return getFallbackQuote();
+    }
 
     // Parse JSON response
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
-      return {
+      const result = {
         quote: parsed.quote || 'Der Winter formt Champions!',
         subtext: parsed.subtext || 'Bleib fokussiert und tracke deine Fortschritte jeden Tag.',
       };
+      // Cache the generated quote
+      setCachedQuote(result.quote, result.subtext);
+      return result;
     }
 
-    return getFallbackQuote();
+    const fallback = getFallbackQuote();
+    setCachedQuote(fallback.quote, fallback.subtext);
+    return fallback;
   } catch (error) {
     console.error('Error generating AI motivation:', error);
     return getFallbackQuote();

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Winter Arc Icon Generator</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f9ff;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { color: #0284c7; }
+        button {
+            background: #0284c7;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #0369a1; }
+        canvas {
+            border: 2px solid #e0f2fe;
+            margin: 10px;
+            border-radius: 8px;
+        }
+        #icons { display: flex; gap: 20px; margin-top: 20px; }
+        .icon-wrapper {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>❄️ Winter Arc Icon Generator</h1>
+        <p>Generiere Icons für die Winter Arc PWA. Klicke auf "Generieren" und dann auf "Download" für jedes Icon.</p>
+
+        <button onclick="generateIcons()">🎨 Icons Generieren</button>
+
+        <div id="icons"></div>
+    </div>
+
+    <script>
+        function generateIcons() {
+            const sizes = [192, 512];
+            const iconsDiv = document.getElementById('icons');
+            iconsDiv.innerHTML = '';
+
+            sizes.forEach(size => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+
+                // Background gradient
+                const gradient = ctx.createLinearGradient(0, 0, size, size);
+                gradient.addColorStop(0, '#0284c7');
+                gradient.addColorStop(1, '#0369a1');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, size, size);
+
+                // Draw snowflake icon (simplified)
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${size * 0.6}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('❄️', size / 2, size / 2);
+
+                // Add text
+                ctx.font = `bold ${size * 0.12}px Arial`;
+                ctx.fillStyle = 'white';
+                ctx.fillText('Winter Arc', size / 2, size * 0.85);
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'icon-wrapper';
+
+                canvas.style.width = '150px';
+                canvas.style.height = '150px';
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = `Download ${size}x${size}`;
+                downloadBtn.onclick = () => {
+                    const link = document.createElement('a');
+                    link.download = `icon-${size}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                };
+
+                wrapper.appendChild(canvas);
+                wrapper.appendChild(document.createElement('br'));
+                wrapper.appendChild(downloadBtn);
+                iconsDiv.appendChild(wrapper);
+            });
+        }
+
+        // Auto-generate on load
+        window.onload = generateIcons;
+    </script>
+</body>
+</html>

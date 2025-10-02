@@ -465,9 +465,9 @@ function LeaderboardPage() {
                 label: t('group.achievementTop3'),
                 locked: true // TODO: Calculate rank
               },
-            ].map((achievement, i) => (
+            ].map((achievement) => (
               <div
-                key={i}
+                key={achievement.label}
                 className={`p-4 rounded-xl text-center ${
                   achievement.locked
                     ? 'bg-gray-100 dark:bg-gray-700 opacity-50'
