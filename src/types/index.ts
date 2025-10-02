@@ -37,6 +37,7 @@ export interface DailyTracking {
     hiit: boolean;
     cardio: boolean;
     gym: boolean;
+    schwimmen: boolean;
   };
   water: number; // ml
   protein: number; // g

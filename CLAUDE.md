@@ -18,9 +18,11 @@ Progressive Web App (PWA) für iOS und Android namens "Winter Arc Fitness Tracke
 - **Build-Tool**: Vite
 - **Styling**: Tailwind CSS
 - **Backend**: Firebase (Authentication, Firestore, Cloud Functions)
+- **AI**: Google Gemini für personalisierte Motivationssprüche
+- **Security**: Firebase App Check mit reCAPTCHA v3
 - **PWA**: Workbox für Service Worker und Offline-Funktionalität
-- **Charts**: Recharts oder Chart.js für Diagramme
-- **State Management**: Zustand oder Redux
+- **Charts**: Recharts für Gewichtsgraphen
+- **State Management**: Zustand mit automatischer Firebase-Synchronisation
 
 ---
 
@@ -42,7 +44,13 @@ Progressive Web App (PWA) für iOS und Android namens "Winter Arc Fitness Tracke
 
 ### Seite 1: Dashboard/Übersicht
 
-**Wochentracking (oben)**
+**Header mit AI-Motivation (oben)**
+- Persönliche Begrüßung mit Nickname
+- **AI-generierter Motivationsspruch**: Analysiert Tracking-Daten (Streak, Liegestütze, Sport-Sessions) und generiert täglich einen personalisierten, motivierenden Spruch über Google Gemini
+- Fallback auf statische Motivationssprüche, falls Gemini API nicht konfiguriert
+- Glassmorphism-Design mit Backdrop-Blur-Effekt
+
+**Wochentracking (Mitte)**
 - Zeigt die aktuelle Woche (Montag-Sonntag)
 - Visueller Progress-Indikator für täglich erledigte Aufgaben
 - Checkboxen oder Kreise für jeden Tag mit farblicher Kennzeichnung (erledigt/offen)
@@ -324,6 +332,40 @@ npm test
 # Run linter
 npm run lint
 ```
+
+### Environment Variables Setup
+
+The app requires the following environment variables in `.env`:
+
+**Firebase Configuration (Required):**
+```bash
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+```
+
+**Gemini AI for Personalized Quotes (Optional):**
+```bash
+VITE_GEMINI_API_KEY=your_gemini_api_key
+```
+- Get your API key from: https://makersuite.google.com/app/apikey
+- If not set, the app will show fallback motivational quotes
+- The AI analyzes user tracking data (streak, pushups, sports) to generate personalized daily motivational quotes
+
+**Firebase App Check with reCAPTCHA v3 (Optional but recommended for production):**
+```bash
+VITE_RECAPTCHA_SITE_KEY=your_recaptcha_site_key
+```
+- Setup steps:
+  1. Go to Firebase Console → App Check → Register app
+  2. Select reCAPTCHA v3 as provider
+  3. Register your domain (localhost for dev, your-domain.com for prod)
+  4. Copy the site key to `.env`
+- If not set, App Check will be skipped (development mode)
+- Protects Firebase services from abuse and unauthorized access
 
 ---
 

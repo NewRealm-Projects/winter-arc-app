@@ -12,12 +12,25 @@ export function calculateBMI(weight: number, height: number): number {
 /**
  * Berechnet das empfohlene tägliche Proteinziel basierend auf Körpergewicht
  * @param weight Gewicht in kg
- * @param multiplier Multiplikator (Standard: 2g pro kg)
+ * @param multiplier Multiplikator (Standard: 2g pro kg für aktive Personen)
  * @returns Protein in Gramm
  */
 export function calculateProteinGoal(
   weight: number,
   multiplier: number = 2
+): number {
+  return Math.round(weight * multiplier);
+}
+
+/**
+ * Berechnet das empfohlene tägliche Wasserziel basierend auf Körpergewicht
+ * @param weight Gewicht in kg
+ * @param multiplier Multiplikator in ml pro kg (Standard: 35ml pro kg)
+ * @returns Wasser in Milliliter
+ */
+export function calculateWaterGoal(
+  weight: number,
+  multiplier: number = 35
 ): number {
   return Math.round(weight * multiplier);
 }

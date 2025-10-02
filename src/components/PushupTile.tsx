@@ -1,8 +1,16 @@
 import { useState } from 'react';
 import { useStore } from '../store/useStore';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import {
+  generateProgressivePlan,
+  getLastPushupTotal,
+  countPushupDays,
+  calculateTotalReps,
+} from '../utils/pushupAlgorithm';
 
 function PushupTile() {
+  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
@@ -13,6 +21,13 @@ function PushupTile() {
   const today = format(new Date(), 'yyyy-MM-dd');
   const todayTracking = tracking[today];
   const totalToday = todayTracking?.pushups?.total || 0;
+
+  // Generiere heutigen Plan
+  const lastTotal = getLastPushupTotal(tracking);
+  const daysCompleted = countPushupDays(tracking);
+  const initialTotal = lastTotal > 0 ? lastTotal : Math.round((user?.maxPushups || 20) * 2.5);
+  const todayPlan = generateProgressivePlan(initialTotal, daysCompleted);
+  const plannedTotal = calculateTotalReps(todayPlan);
 
   const handleSave = () => {
     const amount = parseInt(inputValue);
@@ -50,14 +65,19 @@ function PushupTile() {
           </div>
         </div>
 
-        {/* Training Plan Info */}
-        {user?.pushupState && (
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <span className="px-2 py-1 bg-winter-100 dark:bg-winter-900 rounded text-winter-700 dark:text-winter-300 font-medium">
-              Plan: {user.pushupState.baseReps} × {user.pushupState.sets}
-            </span>
-          </div>
-        )}
+        {/* Training Plan Info - Clickable */}
+        <div className="flex items-center gap-2 text-sm">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate('/tracking/pushup-training');
+            }}
+            className="px-3 py-2 bg-winter-100 dark:bg-winter-900 rounded-lg text-winter-700 dark:text-winter-300 font-medium hover:bg-winter-200 dark:hover:bg-winter-800 transition-colors flex items-center gap-2"
+          >
+            <span>📋 Plan: {todayPlan.join(' - ')}</span>
+            <span className="text-xs opacity-75">({plannedTotal} total)</span>
+          </button>
+        </div>
       </button>
 
       {/* Modal - Quick Input */}

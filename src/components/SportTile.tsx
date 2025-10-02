@@ -7,10 +7,10 @@ function SportTile() {
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const todayTracking = tracking[today] || {
-    sports: { hiit: false, cardio: false, gym: false },
+    sports: { hiit: false, cardio: false, gym: false, schwimmen: false },
   };
 
-  const toggleSport = (sport: 'hiit' | 'cardio' | 'gym') => {
+  const toggleSport = (sport: 'hiit' | 'cardio' | 'gym' | 'schwimmen') => {
     updateDayTracking(today, {
       sports: {
         ...todayTracking.sports,
@@ -23,6 +23,7 @@ function SportTile() {
     { key: 'hiit' as const, label: 'HIIT/HYROX', icon: '🔥' },
     { key: 'cardio' as const, label: 'Cardio', icon: '🏃' },
     { key: 'gym' as const, label: 'Gym', icon: '🏋️' },
+    { key: 'schwimmen' as const, label: 'Schwimmen', icon: '🏊' },
   ];
 
   const completedCount = Object.values(todayTracking.sports || {}).filter(

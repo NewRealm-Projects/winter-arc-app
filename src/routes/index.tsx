@@ -8,6 +8,7 @@ import TrackingPage from '../pages/TrackingPage';
 import LeaderboardPage from '../pages/LeaderboardPage';
 import SettingsPage from '../pages/SettingsPage';
 import HistoryPage from '../pages/HistoryPage';
+import PushupTrainingPage from '../pages/PushupTrainingPage';
 
 function AppRoutes() {
   const user = useStore((state) => state.user);
@@ -40,6 +41,7 @@ function AppRoutes() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/tracking" element={<TrackingPage />} />
         <Route path="/tracking/history" element={<HistoryPage />} />
+        <Route path="/tracking/pushup-training" element={<PushupTrainingPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

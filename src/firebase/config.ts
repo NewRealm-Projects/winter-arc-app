@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
 // Firebase configuration
 // Diese Werte sollten über Umgebungsvariablen gesetzt werden
@@ -15,6 +16,25 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Initialize App Check with reCAPTCHA v3
+// In development, App Check will be skipped if no site key is provided
+if (import.meta.env.VITE_RECAPTCHA_SITE_KEY) {
+  try {
+    initializeAppCheck(app, {
+      provider: new ReCaptchaV3Provider(import.meta.env.VITE_RECAPTCHA_SITE_KEY),
+      isTokenAutoRefreshEnabled: true,
+    });
+    console.log('Firebase App Check initialized successfully');
+  } catch (error) {
+    console.error('Error initializing App Check:', error);
+  }
+} else {
+  console.warn(
+    'App Check not initialized: VITE_RECAPTCHA_SITE_KEY missing. ' +
+    'Add your reCAPTCHA v3 site key to .env for production.'
+  );
+}
 
 // Initialize Firebase services
 export const auth = getAuth(app);

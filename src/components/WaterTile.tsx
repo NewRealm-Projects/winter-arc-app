@@ -1,9 +1,9 @@
 import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
-
-const WATER_GOAL = 3000; // 3L in ml
+import { calculateWaterGoal } from '../utils/calculations';
 
 function WaterTile() {
+  const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
 
@@ -11,14 +11,18 @@ function WaterTile() {
   const todayTracking = tracking[today];
   const currentWater = todayTracking?.water || 0;
 
+  // Calculate water goal based on weight (35ml per kg)
+  const waterGoal = user?.weight ? calculateWaterGoal(user.weight) : 3000;
+
   const addWater = (amount: number) => {
     updateDayTracking(today, {
       water: currentWater + amount,
     });
   };
 
-  const progress = Math.min((currentWater / WATER_GOAL) * 100, 100);
+  const progress = Math.min((currentWater / waterGoal) * 100, 100);
   const liters = (currentWater / 1000).toFixed(1);
+  const goalLiters = (waterGoal / 1000).toFixed(1);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
@@ -34,7 +38,7 @@ function WaterTile() {
             {liters}L
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            von 3L
+            von {goalLiters}L
           </div>
         </div>
       </div>
