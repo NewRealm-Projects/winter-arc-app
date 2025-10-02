@@ -1,0 +1,190 @@
+import { useState } from 'react';
+import { format, subDays } from 'date-fns';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { useStore } from '../store/useStore';
+import { calculateBMI } from '../utils/calculations';
+
+function WeightTile() {
+  const [showInput, setShowInput] = useState(false);
+  const [weight, setWeight] = useState('');
+  const [bodyFat, setBodyFat] = useState('');
+  const [days, setDays] = useState(7);
+
+  const user = useStore((state) => state.user);
+  const tracking = useStore((state) => state.tracking);
+  const updateDayTracking = useStore((state) => state.updateDayTracking);
+
+  const today = format(new Date(), 'yyyy-MM-dd');
+
+  const saveWeight = () => {
+    const weightValue = parseFloat(weight);
+    if (!isNaN(weightValue) && weightValue > 0) {
+      const bmi = user?.height
+        ? calculateBMI(weightValue, user.height)
+        : undefined;
+
+      updateDayTracking(today, {
+        weight: {
+          value: weightValue,
+          bodyFat: bodyFat ? parseFloat(bodyFat) : undefined,
+          bmi,
+        },
+      });
+      setWeight('');
+      setBodyFat('');
+      setShowInput(false);
+    }
+  };
+
+  // Generate chart data
+  const chartData = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const date = format(subDays(new Date(), i), 'yyyy-MM-dd');
+    const dayTracking = tracking[date];
+    if (dayTracking?.weight) {
+      chartData.push({
+        date: format(new Date(date), 'dd.MM'),
+        weight: dayTracking.weight.value,
+        bodyFat: dayTracking.weight.bodyFat,
+      });
+    }
+  }
+
+  const latestWeight = tracking[today]?.weight?.value || user?.weight || 0;
+  const latestBMI = tracking[today]?.weight?.bmi;
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <div className="text-3xl mb-2">⚖️</div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Gewicht
+          </h3>
+        </div>
+        <div className="text-right">
+          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+            {latestWeight}kg
+          </div>
+          {latestBMI && (
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              BMI: {latestBMI}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Chart */}
+      {chartData.length > 0 ? (
+        <>
+          <div className="h-48 mb-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <XAxis
+                  dataKey="date"
+                  stroke="#9ca3af"
+                  style={{ fontSize: '12px' }}
+                />
+                <YAxis
+                  stroke="#9ca3af"
+                  style={{ fontSize: '12px' }}
+                  domain={['dataMin - 2', 'dataMax + 2']}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#1f2937',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff',
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="weight"
+                  stroke="#9333ea"
+                  strokeWidth={2}
+                  dot={{ fill: '#9333ea', r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Time Range Selector */}
+          <div className="flex gap-2 mb-4">
+            {[7, 30, 90].map((d) => (
+              <button
+                key={d}
+                onClick={() => setDays(d)}
+                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  days === d
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+              >
+                {d}T
+              </button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-center">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Noch keine Gewichtsdaten vorhanden
+          </p>
+        </div>
+      )}
+
+      {/* Input */}
+      {showInput ? (
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <input
+              type="number"
+              step="0.1"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              placeholder="Gewicht (kg)"
+              className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+              autoFocus
+            />
+            <input
+              type="number"
+              step="0.1"
+              value={bodyFat}
+              onChange={(e) => setBodyFat(e.target.value)}
+              placeholder="KFA (%)"
+              className="w-24 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={saveWeight}
+              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+            >
+              Speichern
+            </button>
+            <button
+              onClick={() => {
+                setShowInput(false);
+                setWeight('');
+                setBodyFat('');
+              }}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            >
+              Abbrechen
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowInput(true)}
+          className="w-full px-4 py-3 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium"
+        >
+          Gewicht eintragen
+        </button>
+      )}
+    </div>
+  );
+}
+
+export default WeightTile;
