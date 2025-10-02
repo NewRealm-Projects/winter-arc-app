@@ -139,12 +139,23 @@ export async function getGroupMembers(groupCode: string) {
 
     if (groupDoc.exists()) {
       const memberIds = groupDoc.data().members || [];
+      const today = new Date().toISOString().split('T')[0];
 
-      // Fetch all member user data
+      // Fetch all member user data and their daily tracking
       const members = await Promise.all(
         memberIds.map(async (memberId: string) => {
           const result = await getUser(memberId);
-          return result.success ? result.data : null;
+          if (!result.success || !result.data) return null;
+
+          // Fetch today's tracking data
+          const trackingRef = doc(db, 'tracking', memberId, 'days', today);
+          const trackingDoc = await getDoc(trackingRef);
+          const dailyPushups = trackingDoc.exists() ? trackingDoc.data()?.pushups?.total || 0 : 0;
+
+          return {
+            ...result.data,
+            dailyPushups
+          };
         })
       );
 

@@ -61,6 +61,9 @@ function LeaderboardPage() {
   const monthEnd = endOfMonth(currentMonth);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
+  // Calculate offset for first day (0 = Monday, 6 = Sunday)
+  const firstDayOffset = (monthStart.getDay() + 6) % 7;
+
   const getRankColor = (rank: number) => {
     switch (rank) {
       case 1:
@@ -79,8 +82,8 @@ function LeaderboardPage() {
       {/* Header */}
       <div className="bg-gradient-to-r from-winter-600 to-winter-700 dark:from-winter-700 dark:to-winter-800 text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">🏆 Leaderboard</h1>
-          <p className="text-winter-100">Gruppe: {user?.groupCode || 'Keine'}</p>
+          <h1 className="text-3xl font-bold mb-2">👥 Gruppe</h1>
+          <p className="text-winter-100">Code: {user?.groupCode || 'Keine'}</p>
         </div>
       </div>
 
@@ -108,18 +111,22 @@ function LeaderboardPage() {
         </div>
 
         {/* Heatmap Calendar */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-3">
+          <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
             Trainings-Heatmap ({format(currentMonth, 'MMMM yyyy', { locale: de })})
           </h2>
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-0.5 max-w-sm">
             {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((day) => (
               <div
                 key={day}
-                className="text-center text-xs font-medium text-gray-500 dark:text-gray-400"
+                className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 pb-0.5"
               >
                 {day}
               </div>
+            ))}
+            {/* Empty cells for offset */}
+            {Array.from({ length: firstDayOffset }).map((_, i) => (
+              <div key={`offset-${i}`} className="aspect-square" />
             ))}
             {daysInMonth.map((day) => {
               const dateStr = format(day, 'yyyy-MM-dd');
@@ -127,20 +134,74 @@ function LeaderboardPage() {
               const isCompleted = dayTracking?.completed || false;
               const isCurrentDay = isToday(day);
 
+              // Calculate progress percentage
+              const pushups = dayTracking?.pushups?.total || 0;
+              const sports = Object.values(dayTracking?.sports || {}).filter(Boolean).length;
+              const water = dayTracking?.water || 0;
+              const protein = dayTracking?.protein || 0;
+
+              // Simple progress: 25% per category (pushups, sports, water, protein)
+              const progress = (
+                (pushups > 0 ? 25 : 0) +
+                (sports > 0 ? 25 : 0) +
+                (water >= 2000 ? 25 : 0) +
+                (protein >= 100 ? 25 : 0)
+              );
+
               return (
                 <div
                   key={dateStr}
-                  className={`aspect-square rounded-lg flex items-center justify-center text-xs font-medium transition-all ${
-                    isCompleted
-                      ? 'bg-green-500 text-white'
-                      : isCurrentDay
-                      ? 'bg-winter-500 text-white ring-2 ring-winter-600'
-                      : isSameMonth(day, currentMonth)
-                      ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                      : 'bg-transparent text-gray-300 dark:text-gray-700'
-                  }`}
+                  className="aspect-square flex items-center justify-center relative"
                 >
-                  {format(day, 'd')}
+                  {/* Progress Circle (50% size) */}
+                  <svg className="w-1/2 h-1/2 -rotate-90" viewBox="0 0 36 36">
+                    {/* Background circle */}
+                    <circle
+                      cx="18"
+                      cy="18"
+                      r="16"
+                      fill="none"
+                      className={`${
+                        isSameMonth(day, currentMonth)
+                          ? 'stroke-gray-200 dark:stroke-gray-700'
+                          : 'stroke-gray-100 dark:stroke-gray-800'
+                      }`}
+                      strokeWidth="4"
+                    />
+                    {/* Progress circle */}
+                    {progress > 0 && (
+                      <circle
+                        cx="18"
+                        cy="18"
+                        r="16"
+                        fill="none"
+                        className={`${
+                          isCompleted
+                            ? 'stroke-green-500'
+                            : isCurrentDay
+                            ? 'stroke-winter-500'
+                            : 'stroke-winter-400'
+                        }`}
+                        strokeWidth="4"
+                        strokeDasharray={`${progress} 100`}
+                        strokeLinecap="round"
+                      />
+                    )}
+                  </svg>
+                  {/* Day number */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center text-xs font-medium ${
+                      isCompleted
+                        ? 'text-green-600 dark:text-green-400'
+                        : isCurrentDay
+                        ? 'text-winter-600 dark:text-winter-400'
+                        : isSameMonth(day, currentMonth)
+                        ? 'text-gray-600 dark:text-gray-400'
+                        : 'text-gray-300 dark:text-gray-700'
+                    }`}
+                  >
+                    {format(day, 'd')}
+                  </div>
                 </div>
               );
             })}
@@ -205,13 +266,13 @@ function LeaderboardPage() {
                       </div>
                     </div>
 
-                    {/* Score */}
+                    {/* Daily Pushups */}
                     <div className="text-right flex-shrink-0">
                       <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                        {entry.score}
+                        {entry.dailyPushups || 0}
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Punkte
+                        💪 heute
                       </div>
                     </div>
                   </div>

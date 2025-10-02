@@ -11,7 +11,7 @@ function Layout({ children }: LayoutProps) {
   const navItems = [
     { path: '/', label: 'Dashboard', icon: '📊' },
     { path: '/tracking', label: 'Tracking', icon: '✍️' },
-    { path: '/leaderboard', label: 'Leaderboard', icon: '🏆' },
+    { path: '/leaderboard', label: 'Gruppe', icon: '👥' },
     { path: '/settings', label: 'Settings', icon: '⚙️' },
   ];
 
