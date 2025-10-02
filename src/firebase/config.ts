@@ -14,6 +14,18 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+// Validate Firebase configuration
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+  console.error('❌ Firebase configuration missing! Environment variables:');
+  console.error('VITE_FIREBASE_API_KEY:', firebaseConfig.apiKey ? '✓ Set' : '✗ Missing');
+  console.error('VITE_FIREBASE_AUTH_DOMAIN:', firebaseConfig.authDomain ? '✓ Set' : '✗ Missing');
+  console.error('VITE_FIREBASE_PROJECT_ID:', firebaseConfig.projectId ? '✓ Set' : '✗ Missing');
+  console.error('VITE_FIREBASE_STORAGE_BUCKET:', firebaseConfig.storageBucket ? '✓ Set' : '✗ Missing');
+  console.error('VITE_FIREBASE_MESSAGING_SENDER_ID:', firebaseConfig.messagingSenderId ? '✓ Set' : '✗ Missing');
+  console.error('VITE_FIREBASE_APP_ID:', firebaseConfig.appId ? '✓ Set' : '✗ Missing');
+  throw new Error('Firebase configuration is incomplete. Please check your environment variables.');
+}
+
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
