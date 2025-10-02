@@ -75,7 +75,7 @@ function LeaderboardPage() {
   };
 
   const selectedUserData = selectedUser
-    ? mockLeaderboardData.find((u) => u.userId === selectedUser)
+    ? leaderboardData.find((u: any) => u.userId === selectedUser)
     : null;
 
   return (

@@ -75,5 +75,5 @@ export function formatNumber(num: number): string {
  */
 export function formatDate(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateFormat('de-DE').format(d);
+  return new Intl.DateTimeFormat('de-DE').format(d);
 }

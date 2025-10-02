@@ -43,10 +43,10 @@ function analyzeTrackingData(tracking: Record<string, DailyTracking>): UserTrack
 
   // Get most recent weight
   const weightEntries = Object.entries(tracking)
-    .filter(([_, day]) => day.weight && day.weight.weight > 0)
+    .filter(([_, day]) => day.weight && day.weight.value > 0)
     .sort(([a], [b]) => b.localeCompare(a));
 
-  const recentWeight = weightEntries.length > 0 ? weightEntries[0][1].weight?.weight : undefined;
+  const recentWeight = weightEntries.length > 0 ? weightEntries[0][1].weight?.value : undefined;
   const lastWorkoutDate = trackingDates.length > 0 ? trackingDates[trackingDates.length - 1] : undefined;
   const completedToday = tracking[today]?.completed || false;
 

@@ -78,7 +78,7 @@ export function calculateTotalReps(reps: number[]): number {
  */
 export function generateProgressivePlan(
   previousTotal: number,
-  daysCompleted: number
+  _daysCompleted: number
 ): number[] {
   // Heute wird die Summe um 1 erhöht (progressiver Overload)
   const totalToday = previousTotal + 1;

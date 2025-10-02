@@ -31,7 +31,7 @@ function AppRoutes() {
 
     return (
       <Routes>
-        <Route path="/onboarding" element={<OnboardingPage birthdayOnly={birthdayOnly} />} />
+        <Route path="/onboarding" element={<OnboardingPage birthdayOnly={!!birthdayOnly} />} />
         <Route path="*" element={<Navigate to="/onboarding" replace />} />
       </Routes>
     );
