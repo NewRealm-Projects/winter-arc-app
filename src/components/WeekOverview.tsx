@@ -51,14 +51,7 @@ function WeekOverview() {
     };
   });
 
-  const completedDays = weekDays.filter((day) => day.isCompleted).length;
 
-  let selectedDayLabel = activeDate;
-  try {
-    selectedDayLabel = format(new Date(activeDate), 'EEE, dd.MM.', { locale });
-  } catch (error) {
-    console.warn('Failed to format selected date label:', error);
-  }
 
   return (
     <div className="glass-dark touchable p-6 text-white">

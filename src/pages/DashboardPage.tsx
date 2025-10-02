@@ -35,15 +35,7 @@ function DashboardPage() {
   const activePushups = activeTracking?.pushups;
   const activeWorkoutTotal =
     activePushups?.workout?.reps?.reduce((sum, reps) => sum + reps, 0) ?? 0;
-  const pushupsForActiveDay = (activePushups?.total ?? activeWorkoutTotal) ?? 0;
-  const displayDayLabel = isToday
-    ? t('tracking.today')
-    : format(new Date(activeDate), 'dd.MM.');
 
-  const streak = calculateStreak(Object.keys(tracking));
-  const waterGoal = user?.weight ? calculateWaterGoal(user.weight) : 3000;
-  const activeWater = activeTracking?.water ?? 0;
-  const waterProgress = waterGoal > 0 ? Math.min(Math.round((activeWater / waterGoal) * 100), 999) : 0;
 
 
   useEffect(() => {
