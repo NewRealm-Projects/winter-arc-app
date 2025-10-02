@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { useStore } from './store/useStore';
 import { useAuth } from './hooks/useAuth';
 
@@ -26,6 +27,7 @@ function App() {
       }}
     >
       <AppRoutes />
+      <PWAInstallPrompt />
     </BrowserRouter>
   );
 }

@@ -10,7 +10,9 @@
       "Bash(git commit:*)",
       "Bash(gh repo view:*)",
       "Bash(gh api:*)",
-      "Bash(gh workflow run:*)"
+      "Bash(gh workflow run:*)",
+      "Bash(gh run view:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": [],
     "ask": []

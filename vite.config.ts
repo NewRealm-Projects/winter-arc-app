@@ -15,7 +15,23 @@ export default defineConfig({
         theme_color: '#1e40af',
         background_color: '#ffffff',
         display: 'standalone',
-        icons: []
+        orientation: 'portrait',
+        scope: '/winter-arc-app/',
+        start_url: '/winter-arc-app/',
+        icons: [
+          {
+            src: '/winter-arc-app/icon-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'any maskable'
+          },
+          {
+            src: '/winter-arc-app/icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          }
+        ]
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
