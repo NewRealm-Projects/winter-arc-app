@@ -74,9 +74,11 @@ jobs:
 
       - name: Run mobile device tests
         run: |
-          npm run preview -- --port 4173 &
+          npm run preview -- --port 4174 &
           sleep 5
           npx playwright test tests/mobile/
+        env:
+          BASE_URL: http://localhost:4174
 
       - name: Upload mobile test screenshots
         uses: actions/upload-artifact@v4

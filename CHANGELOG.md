@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Bug Fixes
+- Fix port conflict in Lighthouse CI workflows (mobile-tests now uses port 4174)
+- Make Playwright baseURL configurable via BASE_URL environment variable
+
 ### Chore
 - Configure workflow dependencies: CI → Lighthouse CI → Deploy
 - Deploy only runs if both CI and Lighthouse CI succeed
