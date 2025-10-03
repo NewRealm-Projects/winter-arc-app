@@ -78,6 +78,17 @@ export interface LeaderboardEntry {
   streak: number;
 }
 
+export interface GroupMember extends User {
+  dailyPushups: number;
+  totalPushups: number;
+  sportSessions: number;
+  streak: number;
+  avgWater: number;
+  avgProtein: number;
+}
+
+export type TrackingRecord = Record<string, DailyTracking>;
+
 export interface SetTarget {
   number: number;
   target: number;

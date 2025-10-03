@@ -56,7 +56,7 @@ function SettingsPage() {
   const pwaInstallPrompt = useStore((state) => state.pwaInstallPrompt);
   const setPwaInstallPrompt = useStore((state) => state.setPwaInstallPrompt);
   const isIOS = typeof window !== 'undefined' && /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
-  const isStandalone = typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone);
+  const isStandalone = typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || ('standalone' in window.navigator && (window.navigator as { standalone?: boolean }).standalone));
 
 
   const handleInstallApp = async () => {

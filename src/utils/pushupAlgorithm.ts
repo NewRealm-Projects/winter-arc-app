@@ -1,4 +1,4 @@
-import { PushupState, SetTarget, WorkoutStatus } from '../types';
+import { PushupState, SetTarget, WorkoutStatus, TrackingRecord, DailyTracking } from '../types';
 
 /**
  * Initialisiert den Liegestütze-Trainingsplan basierend auf den maximalen Wiederholungen
@@ -127,7 +127,7 @@ export function generateProgressivePlan(
  * @param tracking Tracking-Daten
  * @returns Letzte Gesamtsumme oder 0 wenn keine Historie vorhanden
  */
-export function getLastPushupTotal(tracking: Record<string, any>): number {
+export function getLastPushupTotal(tracking: TrackingRecord): number {
   const dates = Object.keys(tracking).sort().reverse();
 
   for (const date of dates) {
@@ -145,8 +145,8 @@ export function getLastPushupTotal(tracking: Record<string, any>): number {
  * @param tracking Tracking-Daten
  * @returns Anzahl der Trainingstage
  */
-export function countPushupDays(tracking: Record<string, any>): number {
+export function countPushupDays(tracking: TrackingRecord): number {
   return Object.values(tracking).filter(
-    (day: any) => day?.pushups?.total && day.pushups.total > 0
+    (day: DailyTracking) => day?.pushups?.total && day.pushups.total > 0
   ).length;
 }

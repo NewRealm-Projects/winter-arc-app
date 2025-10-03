@@ -54,7 +54,7 @@ export function useAuth() {
             trackingData[doc.id] = doc.data() as DailyTracking;
           });
           setTracking(trackingData);
-        } catch (error) {
+        } catch {
           setUser(null);
           setIsOnboarded(false);
         }

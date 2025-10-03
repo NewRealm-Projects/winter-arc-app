@@ -1,6 +1,6 @@
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/config';
-import type { User, DailyTracking } from '../types';
+import type { User, DailyTracking, GroupMember, TrackingRecord } from '../types';
 
 // User operations
 export async function saveUser(userId: string, userData: Omit<User, 'id'>) {
@@ -153,9 +153,9 @@ export async function getGroupMembers(groupCode: string, startDate?: Date, endDa
           const trackingCollectionRef = collection(db, 'tracking', memberId, 'days');
           const trackingSnapshot = await getDocs(trackingCollectionRef);
 
-          const allTrackingData: any = {};
+          const allTrackingData: TrackingRecord = {};
           trackingSnapshot.forEach((doc) => {
-            allTrackingData[doc.id] = doc.data();
+            allTrackingData[doc.id] = doc.data() as DailyTracking;
           });
 
           // Filter tracking data by date range if provided
@@ -166,7 +166,7 @@ export async function getGroupMembers(groupCode: string, startDate?: Date, endDa
 
             trackingData = Object.keys(allTrackingData)
               .filter(date => date >= startStr && date <= endStr)
-              .reduce((filtered: any, date) => {
+              .reduce((filtered: TrackingRecord, date) => {
                 filtered[date] = allTrackingData[date];
                 return filtered;
               }, {});
@@ -180,13 +180,13 @@ export async function getGroupMembers(groupCode: string, startDate?: Date, endDa
 
           // Total pushups in the filtered period
           const totalPushups = Object.values(trackingData).reduce(
-            (sum: number, day: any) => sum + (day.pushups?.total || 0),
+            (sum: number, day: DailyTracking) => sum + (day.pushups?.total || 0),
             0
           );
 
           // Sport sessions in the filtered period
           const sportSessions = Object.values(trackingData).reduce(
-            (sum: number, day: any) =>
+            (sum: number, day: DailyTracking) =>
               sum + Object.values(day.sports || {}).filter(Boolean).length,
             0
           );
@@ -212,15 +212,15 @@ export async function getGroupMembers(groupCode: string, startDate?: Date, endDa
           }
 
           // Average water (only days with water > 0 in the filtered period)
-          const waterEntries = Object.values(trackingData).filter((day: any) => day.water > 0);
+          const waterEntries = Object.values(trackingData).filter((day: DailyTracking) => day.water > 0);
           const avgWater = waterEntries.length > 0
-            ? waterEntries.reduce((sum: number, day: any) => sum + day.water, 0) / waterEntries.length
+            ? waterEntries.reduce((sum: number, day: DailyTracking) => sum + day.water, 0) / waterEntries.length
             : 0;
 
           // Average protein (only days with protein > 0 in the filtered period)
-          const proteinEntries = Object.values(trackingData).filter((day: any) => day.protein > 0);
+          const proteinEntries = Object.values(trackingData).filter((day: DailyTracking) => day.protein > 0);
           const avgProtein = proteinEntries.length > 0
-            ? proteinEntries.reduce((sum: number, day: any) => sum + day.protein, 0) / proteinEntries.length
+            ? proteinEntries.reduce((sum: number, day: DailyTracking) => sum + day.protein, 0) / proteinEntries.length
             : 0;
 
           return {
@@ -235,7 +235,7 @@ export async function getGroupMembers(groupCode: string, startDate?: Date, endDa
         })
       );
 
-      return { success: true, data: members.filter(Boolean) as User[] };
+      return { success: true, data: members.filter(Boolean) as GroupMember[] };
     }
     return { success: false, error: 'Group not found' };
   } catch (error) {

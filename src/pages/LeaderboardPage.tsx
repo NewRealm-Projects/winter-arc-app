@@ -5,12 +5,13 @@ import { useStore } from '../store/useStore';
 import { getGroupMembers } from '../services/firestoreService';
 import { calculateStreak } from '../utils/calculations';
 import { useTranslation } from '../hooks/useTranslation';
+import type { GroupMember } from '../types';
 
 function LeaderboardPage() {
   const { t, language } = useTranslation();
   const [filter, setFilter] = useState<'week' | 'month' | 'all'>('month');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
+  const [leaderboardData, setLeaderboardData] = useState<GroupMember[]>([]);
   const [loading, setLoading] = useState(false);
 
   const user = useStore((state) => state.user);
@@ -346,7 +347,7 @@ function LeaderboardPage() {
               const rank = index + 1;
               const isCurrentUser = user?.nickname === entry.nickname;
               // Fallback falls userId fehlt: nutze index
-              const key = entry.userId || `entry-${index}`;
+              const key = entry.id || `entry-${index}`;
               return (
                 <div
                   key={key}
@@ -357,7 +358,7 @@ function LeaderboardPage() {
                   }`}
                   onClick={() =>
                     setSelectedUser(
-                      selectedUser === entry.userId ? null : entry.userId
+                      selectedUser === entry.id ? null : entry.id
                     )
                   }
                 >
@@ -416,7 +417,7 @@ function LeaderboardPage() {
                   </div>
 
                   {/* Expanded Details */}
-                  {selectedUser === entry.userId && (
+                  {selectedUser === entry.id && (
                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div>

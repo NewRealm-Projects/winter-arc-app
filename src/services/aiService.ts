@@ -106,17 +106,19 @@ export async function generateDailyMotivation(
 
     // Prompt-String deklarieren
     // Feedback-Kontext (letzte 7 Feedbacks, falls vorhanden)
-    let feedbackHistory: any[] = [];
+    let feedbackHistory: Array<{ quote: string; thumbsUp: boolean; timestamp: number }> = [];
     if (typeof window !== 'undefined') {
       const raw = localStorage.getItem('ai_feedback_history');
       if (raw) {
         try {
           feedbackHistory = JSON.parse(raw);
-        } catch {}
+        } catch {
+          // Invalid JSON, keep empty array
+        }
       }
     }
 
-    const prompt = `Du bist ein motivierender Fitness-Coach für die \"Winter Arc Challenge\".
+    const prompt = `Du bist ein motivierender Fitness-Coach für die "Winter Arc Challenge".
 Schreibe jeden Tag einen kurzen, klaren 3-Zeiler auf Deutsch für den Nutzer.
 Sprache: direkt, ermutigend, mit natürlichem Fluss – keine Aufzählungen, keine Stichpunkte, keine Emojis.
 Ton: ernsthaft motivierend, ohne Pathos, mit Bezug auf Disziplin und Ausdauer im Winter-Arc-Thema.
@@ -164,20 +166,16 @@ GENAU 3 Zeilen (3 Sätze, keine Absätze, keine Listen, keine Aufzählungen, kei
 
     // Prompt an Google Generative AI senden
     // Nur Gemini 2.5 Flash verwenden
-    try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-      const result = await model.generateContent(prompt);
-      const response = result.response;
-      // Entferne doppelte Leerzeilen im Output
-      let text = response.text().trim();
-      text = text.replace(/\n{3,}/g, '\n\n');
-      return {
-        quote: text,
-        subtext: '',
-      };
-    } catch (err) {
-      throw err;
-    }
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    // Entferne doppelte Leerzeilen im Output
+    let text = response.text().trim();
+    text = text.replace(/\n{3,}/g, '\n\n');
+    return {
+      quote: text,
+      subtext: '',
+    };
   } catch (error) {
     console.error('[AI PROMPT ERROR]', error);
     return {

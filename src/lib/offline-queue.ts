@@ -8,7 +8,7 @@
 interface QueuedMutation {
   id: string;
   type: string;
-  data: any;
+  data: unknown;
   timestamp: number;
   retries: number;
 }
@@ -39,7 +39,7 @@ async function initDB(): Promise<IDBDatabase> {
 /**
  * Add mutation to queue
  */
-export async function queueMutation(type: string, data: any): Promise<void> {
+export async function queueMutation(type: string, data: unknown): Promise<void> {
   try {
     const db = await initDB();
     const tx = db.transaction(STORE_NAME, 'readwrite');
@@ -120,7 +120,7 @@ async function updateRetryCount(id: string, retries: number): Promise<void> {
  * Process queued mutations
  */
 export async function processQueue(
-  handler: (type: string, data: any) => Promise<void>
+  handler: (type: string, data: unknown) => Promise<void>
 ): Promise<void> {
   const mutations = await getQueuedMutations();
 
@@ -173,7 +173,7 @@ export function useOnlineStatus(): boolean {
 /**
  * React Hook to auto-process queue when online
  */
-export function useOfflineQueue(handler: (type: string, data: any) => Promise<void>): void {
+export function useOfflineQueue(handler: (type: string, data: unknown) => Promise<void>): void {
   const isOnline = useOnlineStatus();
 
   useEffect(() => {

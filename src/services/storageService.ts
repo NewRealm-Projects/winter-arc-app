@@ -10,7 +10,7 @@ import { storage } from '../firebase/config';
 export async function uploadProfilePictureFromUrl(
   imageUrl: string,
   userId: string
-): Promise<{ success: boolean; url?: string; error?: any }> {
+): Promise<{ success: boolean; url?: string; error?: string }> {
   try {
     console.log('📥 Downloading profile picture from URL...');
 
@@ -18,7 +18,7 @@ export async function uploadProfilePictureFromUrl(
     let response;
     try {
       response = await fetch(imageUrl);
-    } catch (fetchError) {
+    } catch {
       console.warn('⚠️ CORS fetch failed, trying no-cors mode...');
       response = await fetch(imageUrl, { mode: 'no-cors' });
     }
@@ -59,7 +59,7 @@ export async function uploadProfilePictureFromUrl(
  */
 export async function deleteProfilePicture(
   userId: string
-): Promise<{ success: boolean; error?: any }> {
+): Promise<{ success: boolean; error?: string }> {
   try {
     const storageRef = ref(storage, `profile-pictures/${userId}.jpg`);
     await deleteObject(storageRef);
@@ -67,6 +67,6 @@ export async function deleteProfilePicture(
     return { success: true };
   } catch (error) {
     console.error('❌ Error deleting profile picture:', error);
-    return { success: false, error };
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }

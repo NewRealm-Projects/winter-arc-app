@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { getGroupMembers } from '../services/firestoreService';
+import type { GroupMember } from '../types';
 
 type LeaderboardEntry = {
   userId: string;
@@ -25,7 +26,7 @@ function LeaderboardPreview() {
         const result = await getGroupMembers(user.groupCode);
         if (result.success && result.data) {
           // Calculate scores and sort
-          const scored: LeaderboardEntry[] = result.data.map((member: any, index: number) => ({
+          const scored: LeaderboardEntry[] = result.data.map((member: GroupMember, index: number) => ({
             userId: String(member.id),
             nickname: String(member.nickname),
             score: 100, // Placeholder score

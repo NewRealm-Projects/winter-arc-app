@@ -33,9 +33,9 @@ function LoginPage() {
             email: result.user.email,
           });
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error('❌ Redirect result error:', err);
-        setError(`Redirect error: ${err.message}`);
+        setError(`Redirect error: ${err instanceof Error ? err.message : 'Unknown error'}`);
       } finally {
         setLoading(false);
       }
@@ -73,30 +73,31 @@ function LoginPage() {
         console.log('🔄 Waiting for auth state to propagate...');
         // The useAuth hook will handle the rest via onAuthStateChanged
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('❌ Login error:', {
-        code: err.code,
-        message: err.message,
+        code: err && typeof err === 'object' && 'code' in err ? err.code : 'unknown',
+        message: err instanceof Error ? err.message : 'Unknown error',
         details: err,
       });
 
       // Provide user-friendly error messages
       let errorMessage = 'Login fehlgeschlagen';
       const currentDomain = window.location.hostname;
+      const errorCode = err && typeof err === 'object' && 'code' in err ? String(err.code) : '';
 
-      if (err.code === 'auth/internal-error' || err.code === 'auth/unauthorized-domain') {
+      if (errorCode === 'auth/internal-error' || errorCode === 'auth/unauthorized-domain') {
         errorMessage = `⚠️ Firebase OAuth nicht konfiguriert. Bitte füge "${currentDomain}" in Firebase Console zu den autorisierten Domains hinzu.`;
         console.error(`📋 Fix: Firebase Console → Authentication → Settings → Authorized domains → Add: ${currentDomain}`);
-      } else if (err.code === 'auth/popup-closed-by-user') {
+      } else if (errorCode === 'auth/popup-closed-by-user') {
         errorMessage = 'Login abgebrochen';
-      } else if (err.code === 'auth/popup-blocked') {
+      } else if (errorCode === 'auth/popup-blocked') {
         errorMessage = 'Popup wurde blockiert. Versuche Redirect-Modus.';
         console.log('💡 Switching to redirect mode...');
         setUseRedirect(true);
-      } else if (err.code === 'auth/network-request-failed') {
+      } else if (errorCode === 'auth/network-request-failed') {
         errorMessage = 'Netzwerkfehler. Bitte überprüfe deine Internetverbindung.';
       } else {
-        errorMessage = `Fehler: ${err.message}`;
+        errorMessage = `Fehler: ${err instanceof Error ? err.message : 'Unknown error'}`;
       }
 
       setError(errorMessage);

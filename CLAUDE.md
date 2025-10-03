@@ -48,14 +48,18 @@ npm run scan:knip        # Find unused files/exports
 npm run scan:tsprune     # Find dead TypeScript exports
 npm run scan:dep         # Find unused dependencies
 
-# Testing (after setup)
+# Testing
 npm run test:unit        # Run Vitest unit tests
 npm run test:ui          # Run Playwright visual tests
 npm run test:all         # Run all checks (typecheck + lint + unit + UI)
 
-# Storybook (after setup)
-npm run storybook        # Start Storybook dev server
-npm run storybook:build  # Build Storybook for deployment
+# Performance & Lighthouse
+npm run analyze          # Analyze bundle size with visualizer
+npm run perf:budget      # Check performance budgets
+npm run lhci:collect     # Collect Lighthouse CI metrics
+npm run lhci:assert      # Assert Lighthouse CI thresholds
+npm run lhci:upload      # Upload Lighthouse CI results
+npm run lhci:run         # Run full Lighthouse CI workflow
 ```
 
 ### Definition of Ready (DoR)
@@ -95,23 +99,77 @@ Before marking a task as complete:
 This section tracks planned features, ideas, and experimental work.
 
 ### Status Definitions
+- ✅ **implemented** - Feature is live in production
 - 🔵 **idea** - Raw idea, not yet refined
 - 🟡 **draft** - Under exploration, needs design/tech validation
 - 🟢 **planned** - Refined, ready for implementation
 - 🔴 **blocked** - Waiting on dependencies or decisions
 
-### Planned Features
+### Implemented Features
 
-#### 1. Pushup Training Mode (Status: 🟢 planned)
+#### 1. Pushup Training Mode (Status: ✅ implemented)
 **Value**: Structured progressive overload training with smart auto-progression
-**Acceptance Criteria**:
-- Implement Base & Bump algorithm (see App Structure section)
+**Implementation**:
+- Base & Bump algorithm in `src/utils/pushupAlgorithm.ts`
 - 90-second rest timer between sets
 - Pass/Hold/Fail status after workout
-- Weekly AMRAP re-calibration
-- Training history tracking
+- Progressive plan generation with `generateProgressivePlan()`
+- Tracking via PushupTrainingPage
 
-#### 2. Profile Pictures (Status: 🟡 draft)
+#### 2. Leaderboard Preview Widget (Status: ✅ implemented)
+**Value**: Quick glance at standings without navigating to full leaderboard
+**Implementation**:
+- `src/components/LeaderboardPreview.tsx`
+- Shows top 5 users from group
+- Displays on dashboard below week tracking
+- Link to full leaderboard page
+- Real-time updates via Firebase
+
+#### 3. History Page (Status: ✅ implemented)
+**Value**: View and manage all past tracking entries
+**Implementation**:
+- `src/pages/HistoryPage.tsx`
+- Sorted entries by date (newest first)
+- Delete individual entries with confirmation
+- Full tracking data display per day
+- Accessible via navigation
+
+#### 4. Weather Integration (Status: ✅ implemented)
+**Value**: Contextual weather info in motivation header
+**Implementation**:
+- `src/services/weatherService.ts`
+- Uses Open-Meteo API (free, no API key required)
+- Location: Aachen, Germany (50.7753, 6.0839)
+- Shows temperature and weather emoji
+- WMO Weather interpretation codes
+
+#### 5. Visual Regression Testing (Status: ✅ implemented)
+**Value**: Prevent UI bugs, ensure design consistency
+**Implementation**:
+- Playwright setup in `playwright.config.ts`
+- Baseline screenshots in `tests/`
+- CI workflow in `.github/workflows/`
+- Mobile device emulation
+
+#### 6. Lighthouse CI & Performance (Status: ✅ implemented)
+**Value**: Monitor performance, accessibility, and best practices
+**Implementation**:
+- Lighthouse CI config in `lighthouserc.json`
+- Performance budgets in `scripts/check-budgets.mjs`
+- CI workflow for automated checks
+- Scripts: `lhci:collect`, `lhci:assert`, `lhci:upload`
+
+#### 7. Vitest Unit Tests (Status: ✅ implemented)
+**Value**: Business logic validation, regression prevention
+**Implementation**:
+- Vitest config in `vitest.config.ts`
+- Test for motivation logic: `src/logic/motivation.test.ts`
+- Accessibility tests: `src/__tests__/a11y.test.tsx`
+- Script: `npm run test:unit`
+
+### Planned Features
+
+#### 1. Profile Pictures (Status: 🟡 draft)
 **Value**: Personalization and social engagement in leaderboard
 **Acceptance Criteria**:
 - Upload profile picture in settings
@@ -120,47 +178,31 @@ This section tracks planned features, ideas, and experimental work.
 - Image compression/optimization
 - Placeholder avatars based on nickname initial
 
-#### 3. Leaderboard Preview Widget (Status: 🟡 draft)
-**Value**: Quick glance at standings without navigating to full leaderboard
-**Acceptance Criteria**:
-- Show top 3 users from group
-- Display on dashboard below week tracking
-- Tap to expand to full leaderboard page
-- Real-time updates
-
-#### 4. Push Notifications (Status: 🔵 idea)
+#### 2. Push Notifications (Status: 🔵 idea)
 **Value**: Daily reminders to track progress
 **Needs**: Firebase Cloud Messaging setup, permission handling, notification settings UI
 
-#### 5. Data Export (Status: 🔵 idea)
+#### 3. Data Export (Status: 🔵 idea)
 **Value**: Users can download their data (GDPR compliance, data portability)
 **Needs**: CSV/JSON export format, date range selection
 
-#### 6. Social Sharing (Status: 🔵 idea)
+#### 4. Social Sharing (Status: 🔵 idea)
 **Value**: Viral growth, motivation through social pressure
 **Needs**: Generate shareable progress cards (images), share API integration
 
-#### 7. Achievements/Badges (Status: 🔵 idea)
+#### 5. Achievements/Badges (Status: 🔵 idea)
 **Value**: Gamification, increased engagement
 **Needs**: Badge system design, unlock criteria, UI for badge display
 
 ### Technical Debt & Improvements
 
-#### 1. Visual Regression Testing (Status: 🟢 planned)
-**Value**: Prevent UI bugs, ensure design consistency
-**Tasks**: Setup Playwright, create baseline screenshots, add CI workflow
-
-#### 2. Dark Mode Background Fix (Status: 🟢 planned)
-**Value**: Proper theming, professional appearance
-**Tasks**: Create dark variant of winter_arc_bg, implement CSS variable theming
-
-#### 3. Component Storybook (Status: 🟢 planned)
+#### 1. Component Storybook (Status: 🟢 planned)
 **Value**: Isolated component development, design system documentation
 **Tasks**: Setup Storybook, create stories for tiles and core components
 
-#### 4. Vitest Unit Tests (Status: 🟡 draft)
-**Value**: Business logic validation, regression prevention
-**Needs**: Test pushup algorithm, calculations, data transformations
+#### 2. Expand Unit Test Coverage (Status: 🟡 draft)
+**Value**: Higher code confidence, regression prevention
+**Needs**: Test pushup algorithm, calculations, data transformations, services
 
 ---
 
@@ -283,10 +325,14 @@ This section tracks planned features, ideas, and experimental work.
 - **Styling**: Tailwind CSS
 - **Backend**: Firebase (Authentication, Firestore, Cloud Functions)
 - **AI**: Google Gemini für personalisierte Motivationssprüche
+- **Weather**: Open-Meteo API (free, no key required) für Wetterdaten
 - **Security**: Firebase App Check mit reCAPTCHA v3
 - **PWA**: Workbox für Service Worker und Offline-Funktionalität
 - **Charts**: Recharts für Gewichtsgraphen
 - **State Management**: Zustand mit automatischer Firebase-Synchronisation
+- **Testing**: Vitest (unit), Playwright (E2E & visual regression)
+- **Performance**: Lighthouse CI, Performance Budgets, Bundle Analyzer
+- **Error Tracking**: Sentry für Fehlermonitoring
 
 ---
 
@@ -311,6 +357,7 @@ This section tracks planned features, ideas, and experimental work.
 
 **Header mit AI-Motivation (oben)**
 - Persönliche Begrüßung mit Nickname
+- **Wetter-Integration**: Zeigt aktuelle Temperatur und Wetter-Emoji für Aachen (via Open-Meteo API)
 - **AI-generierter Motivationsspruch**: Analysiert Tracking-Daten (Streak, Liegestütze, Sport-Sessions) und generiert täglich einen personalisierten, motivierenden Spruch über Google Gemini
 - Fallback auf statische Motivationssprüche, falls Gemini API nicht konfiguriert
 - Glassmorphism-Design mit Backdrop-Blur-Effekt
@@ -454,6 +501,19 @@ Drei Checkbox-Optionen (können täglich mehrfach abgehakt werden):
 - Konto löschen (mit Bestätigung, löscht alle Daten aus Firebase)
 - Datenschutzerklärung
 - AGB
+
+### Seite 5: History/Verlauf (Separate Page)
+
+**Übersicht**
+- Vollständige Liste aller vergangenen Tracking-Einträge
+- Sortiert nach Datum (neueste zuerst)
+- Zugriff via Navigation vom Dashboard
+
+**Features**:
+- Anzeige aller Tracking-Daten pro Tag (Liegestütze, Sport, Wasser, Protein, Gewicht)
+- Löschen einzelner Einträge mit Bestätigungsdialog
+- Formatierte Datumsanzeige (lokalisiert DE/EN)
+- Zurück-Button zum Dashboard
 
 ---
 
