@@ -242,17 +242,18 @@ function SettingsPage() {
   };
 
   return (
-  <div className="min-h-screen glass-dark safe-area-inset-top">
+  <div className="min-h-screen-mobile glass-dark safe-pt">
       {/* Header */}
-  <div className="glass-dark text-white p-6 pb-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">⚙️ {t('settings.title')}</h1>
-          <p className="text-winter-100">{t('settings.subtitle')}</p>
+  <div className="glass-dark text-white px-4 py-6 md:px-6 md:py-8">
+        <div className="mobile-container">
+          <h1 className="text-fluid-h1 font-bold mb-2">⚙️ {t('settings.title')}</h1>
+          <p className="text-fluid-base text-winter-100">{t('settings.subtitle')}</p>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 -mt-4 pb-20 space-y-4">
+      <div className="mobile-container -mt-4 pb-20 safe-pb">
+        <div className="mobile-stack">
         {/* Wetter Stadt Auswahl */}
         <div className="glass dark:glass-dark rounded-[20px] p-6 mb-2">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">🌤️ Wetter-Stadt</h2>
@@ -744,6 +745,7 @@ function SettingsPage() {
         {/* App Version */}
         <div className="text-center text-sm text-gray-500 dark:text-gray-400 pt-4">
           Winter Arc Tracker v0.0.1
+        </div>
         </div>
       </div>
     </div>
