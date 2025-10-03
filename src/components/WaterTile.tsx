@@ -75,7 +75,7 @@ function WaterTile() {
             key={amount}
             type="button"
             onClick={() => addWater(amount)}
-            className="px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium text-sm"
+            className="touch-target px-3 py-3 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 active:scale-95 transition-all font-medium text-sm"
           >
             +{amount}ml
           </button>
