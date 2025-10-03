@@ -72,29 +72,27 @@
   --focus-ring-offset: 2px;
 }
 
-/* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Colors - Dark Mode */
-    --primary-blue: #60A5FA;
-    --bg-dark: #0F172A;
-    --surface-dark: #1E293B;
-    --text-primary: #F1F5F9;
-    --text-secondary: #94A3B8;
-    --border-dark: #334155;
+/* Dark Mode - Class-based */
+.dark {
+  /* Colors - Dark Mode */
+  --primary-blue: #60A5FA;
+  --bg-dark: #0F172A;
+  --surface-dark: #1E293B;
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --border-dark: #334155;
 
-    /* Glassmorphism - Dark */
-    --surface-alpha: rgba(17, 25, 40, 0.55);
+  /* Glassmorphism - Dark */
+  --surface-alpha: rgba(17, 25, 40, 0.55);
 
-    /* Background Image - Dark */
-    --bg-image: url('/bg/dark/winter_arc_bg_dark.webp');
+  /* Background Image - Dark */
+  --bg-image: url('/bg/dark/winter_arc_bg_dark.webp');
 
-    /* Adjust shadows for dark mode */
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
-  }
+  /* Adjust shadows for dark mode */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
 }
 
 /* Utility Classes */
@@ -118,10 +116,8 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-@media (prefers-color-scheme: dark) {
-  .app-bg::before {
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  }
+.dark .app-bg::before {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
 }
 
 .glass {
@@ -145,10 +141,8 @@
     background: rgba(255, 255, 255, 0.9);
   }
 
-  @media (prefers-color-scheme: dark) {
-    .glass {
-      background: rgba(17, 25, 40, 0.9);
-    }
+  .dark .glass {
+    background: rgba(17, 25, 40, 0.9);
   }
 }
 
@@ -199,16 +193,14 @@ select:focus-visible {
   border-radius: var(--radius-md);
 }
 
-@media (prefers-color-scheme: dark) {
-  .skeleton {
-    background: linear-gradient(
-      90deg,
-      rgba(60, 60, 60, 0.2) 25%,
-      rgba(60, 60, 60, 0.3) 50%,
-      rgba(60, 60, 60, 0.2) 75%
-    );
-    background-size: 200% 100%;
-  }
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(60, 60, 60, 0.2) 25%,
+    rgba(60, 60, 60, 0.3) 50%,
+    rgba(60, 60, 60, 0.2) 75%
+  );
+  background-size: 200% 100%;
 }
 
 @keyframes skeleton-loading {
@@ -226,9 +218,7 @@ select:focus-visible {
     background: rgba(200, 200, 200, 0.25);
   }
 
-  @media (prefers-color-scheme: dark) {
-    .skeleton {
-      background: rgba(60, 60, 60, 0.25);
-    }
+  .dark .skeleton {
+    background: rgba(60, 60, 60, 0.25);
   }
 }

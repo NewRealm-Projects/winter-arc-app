@@ -1,15 +1,11 @@
-import { useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { useStore } from './store/useStore';
 import { useAuth } from './hooks/useAuth';
 import { usePagePerf, useNetworkToast } from './hooks/usePagePerf';
 
 function App() {
-  const darkMode = useStore((state) => state.darkMode);
-
   // Initialize Firebase authentication listener
   useAuth();
 
@@ -18,14 +14,6 @@ function App() {
 
   // Show network status toasts
   useNetworkToast();
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
 
   return (
     <ErrorBoundary>

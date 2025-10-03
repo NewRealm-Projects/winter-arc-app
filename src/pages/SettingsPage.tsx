@@ -6,6 +6,7 @@ import { auth } from '../firebase/config';
 import { useStore } from '../store/useStore';
 import { Language } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 
 // Wetter-Stadt Auswahl Optionen
 const cityOptions = [
@@ -51,8 +52,6 @@ function SettingsPage() {
   const [showInstallHelp, setShowInstallHelp] = useState(false);
 
   const user = useStore((state) => state.user);
-  const darkMode = useStore((state) => state.darkMode);
-  const toggleDarkMode = useStore((state) => state.toggleDarkMode);
   const setUser = useStore((state) => state.setUser);
   const pwaInstallPrompt = useStore((state) => state.pwaInstallPrompt);
   const setPwaInstallPrompt = useStore((state) => state.setPwaInstallPrompt);
@@ -553,24 +552,13 @@ function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <div className="font-semibold text-gray-900 dark:text-white">
-                {t('settings.darkMode')}
+                {t('settings.theme')}
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                {t('settings.darkModeDesc')}
+                {t('settings.themeDesc')}
               </div>
             </div>
-            <button
-              onClick={toggleDarkMode}
-              className={`relative w-14 h-8 rounded-full transition-colors ${
-                darkMode ? 'bg-winter-600' : 'bg-gray-300'
-              }`}
-            >
-              <div
-                className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                  darkMode ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
-            </button>
+            <ThemeToggle />
           </div>
         </div>
 
