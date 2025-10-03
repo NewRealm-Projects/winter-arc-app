@@ -1,28 +1,26 @@
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/react';
-import { axe, toHaveNoViolations } from 'vitest-axe';
+import { axe } from 'vitest-axe';
 import { Skeleton, CardSkeleton, ListItemSkeleton } from '../components/ui/Skeleton';
-
-expect.extend(toHaveNoViolations);
 
 describe('Accessibility Tests', () => {
   describe('Skeleton Components', () => {
     it('Skeleton should have no accessibility violations', async () => {
       const { container } = render(<Skeleton />);
       const results = await axe(container);
-      expect(results).toHaveNoViolations();
+  expect(results.violations.length).toBe(0);
     });
 
     it('CardSkeleton should have no accessibility violations', async () => {
       const { container } = render(<CardSkeleton />);
       const results = await axe(container);
-      expect(results).toHaveNoViolations();
+  expect(results.violations.length).toBe(0);
     });
 
     it('ListItemSkeleton should have no accessibility violations', async () => {
       const { container } = render(<ListItemSkeleton />);
       const results = await axe(container);
-      expect(results).toHaveNoViolations();
+  expect(results.violations.length).toBe(0);
     });
 
     it('should have proper ARIA attributes', () => {
