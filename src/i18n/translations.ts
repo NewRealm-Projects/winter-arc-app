@@ -4,6 +4,7 @@ export const translations = {
     nav: {
       dashboard: 'Dashboard',
       tracking: 'Tracking',
+      history: 'Historie',
       group: 'Gruppe',
       settings: 'Einstellungen',
     },
@@ -201,6 +202,7 @@ export const translations = {
     nav: {
       dashboard: 'Dashboard',
       tracking: 'Tracking',
+      history: 'History',
       group: 'Group',
       settings: 'Settings',
     },
