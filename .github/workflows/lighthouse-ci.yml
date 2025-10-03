@@ -1,14 +1,19 @@
 name: Lighthouse CI
 
 on:
-  pull_request:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches: [main]
-  push:
+  pull_request:
     branches: [main]
 
 jobs:
   lighthouse:
     runs-on: ubuntu-latest
+    # Only run if CI succeeded (for workflow_run trigger)
+    if: ${{ github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout code
@@ -45,6 +50,8 @@ jobs:
 
   mobile-tests:
     runs-on: ubuntu-latest
+    # Only run if CI succeeded (for workflow_run trigger)
+    if: ${{ github.event_name == 'pull_request' || github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout code

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Chore
+- Configure workflow dependencies: CI → Lighthouse CI → Deploy
+- Deploy only runs if both CI and Lighthouse CI succeed
+- Prevent broken builds from reaching production
+
 ## [0.0.2] - 2025-01-04
 
 ### Bug Fixes
