@@ -49,7 +49,7 @@ export function usePagePerf() {
       // Largest Contentful Paint (LCP)
       const lcpObserver = new PerformanceObserver((entryList) => {
         const entries = entryList.getEntries();
-        const lastEntry = entries[entries.length - 1] as any;
+  const lastEntry = entries[entries.length - 1] as PerformanceEntry;
         metrics.lcp = Math.round(lastEntry.startTime);
       });
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
@@ -59,7 +59,8 @@ export function usePagePerf() {
         const entries = entryList.getEntries();
         for (const entry of entries) {
           if (entry.entryType === 'first-input') {
-            metrics.fid = Math.round((entry as any).processingStart - entry.startTime);
+            const firstInputEntry = entry as PerformanceEventTiming;
+            metrics.fid = Math.round(firstInputEntry.processingStart - entry.startTime);
           }
         }
       });
@@ -69,8 +70,9 @@ export function usePagePerf() {
       let clsValue = 0;
       const clsObserver = new PerformanceObserver((entryList) => {
         for (const entry of entryList.getEntries()) {
-          if (!(entry as any).hadRecentInput) {
-            clsValue += (entry as any).value;
+          const clsEntry = entry as PerformanceEntry & { value?: number; hadRecentInput?: boolean };
+          if (!clsEntry.hadRecentInput) {
+            clsValue += clsEntry.value ?? 0;
             metrics.cls = Math.round(clsValue * 1000) / 1000;
           }
         }

@@ -250,7 +250,6 @@ function replacePlaceholders(text: string, ctx: MotivationContext): string {
  */
 export function getMotivationMessage(ctx: MotivationContext): MotivationMessage {
   const timeOfDay = getTimeOfDay(ctx.hour);
-  const isWeekend = ctx.dayOfWeek === 0 || ctx.dayOfWeek === 6;
 
   // Priority 1: Streak broken or at risk
   if (!ctx.completedYesterday && ctx.streak > 0) {

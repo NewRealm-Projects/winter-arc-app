@@ -23,9 +23,12 @@ export function QuickLogFAB() {
       icon: '💪',
       action: () => {
         const current = todayData.pushups?.total || 0;
-        setTracking(today, {
-          ...todayData,
-          pushups: { total: current + 10 },
+        setTracking({
+          ...tracking,
+          [today]: {
+            ...todayData,
+            pushups: { total: current + 10 },
+          },
         });
       },
     },
@@ -35,9 +38,12 @@ export function QuickLogFAB() {
       icon: '💧',
       action: () => {
         const current = todayData.water || 0;
-        setTracking(today, {
-          ...todayData,
-          water: current + 250,
+        setTracking({
+          ...tracking,
+          [today]: {
+            ...todayData,
+            water: current + 250,
+          },
         });
       },
     },
@@ -47,9 +53,12 @@ export function QuickLogFAB() {
       icon: '🥩',
       action: () => {
         const current = todayData.protein || 0;
-        setTracking(today, {
-          ...todayData,
-          protein: current + 20,
+        setTracking({
+          ...tracking,
+          [today]: {
+            ...todayData,
+            protein: current + 20,
+          },
         });
       },
     },
