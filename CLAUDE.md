@@ -80,17 +80,51 @@ Before marking a task as complete:
 - [ ] No TypeScript errors or ESLint warnings
 - [ ] Code reviewed (if PR workflow)
 - [ ] Docs updated (CLAUDE.md, comments, etc.)
+- [ ] **CHANGELOG.md updated** with new version and changes
+- [ ] **package.json version bumped** according to Semantic Versioning
 - [ ] Commits follow message format
 - [ ] Mobile/responsive behavior tested
 - [ ] Telemetry/error logging added if needed
 
+### Versioning & Changelog
+
+**Semantic Versioning (SemVer):**
+- **Patch** (0.0.1 → 0.0.2): Bug fixes, small improvements, documentation updates
+- **Minor** (0.0.2 → 0.1.0): New features, backwards-compatible changes
+- **Major** (0.1.0 → 1.0.0): Breaking changes, major redesigns
+
+**CHANGELOG.md Requirements:**
+1. **Every change must be documented** in CHANGELOG.md before committing
+2. **Group changes by type:**
+   - 🎉 **Features** - New functionality
+   - 🐛 **Bug Fixes** - Error corrections
+   - ⚡ **Performance** - Speed/efficiency improvements
+   - 📚 **Documentation** - README, CLAUDE.md, comments
+   - 🔧 **Chore** - Dependencies, config, tooling
+   - ♻️ **Refactor** - Code restructuring without behavior change
+   - 🧪 **Tests** - Test additions or improvements
+3. **Format:**
+   ```markdown
+   ## [0.1.0] - 2025-01-04
+
+   ### Features
+   - Add weather integration to dashboard header
+   - Implement History page for tracking entries
+
+   ### Bug Fixes
+   - Fix TypeScript 'any' type errors (30 instances)
+   - Remove unused variables in error handlers
+   ```
+4. **Update package.json version** to match CHANGELOG.md
+
 ### Pull Request Process
 1. Create feature branch from `develop`
 2. Make changes in small, focused commits
-3. Run `npm run test:all` locally
-4. Push and create PR with screenshots (light/dark)
-5. Address review feedback
-6. Squash-merge when CI passes
+3. **Update CHANGELOG.md and bump version in package.json**
+4. Run `npm run test:all` locally
+5. Push and create PR with screenshots (light/dark)
+6. Address review feedback
+7. Squash-merge when CI passes
 
 ---
 
