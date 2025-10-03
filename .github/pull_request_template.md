@@ -30,6 +30,12 @@
 
 <!-- If yes, describe: -->
 
+## Quality Gates
+- [ ] **Accessibility (A11y)**: No axe violations, proper aria-* attributes, focus management tested
+- [ ] **Performance**: CLS < 0.03, LCP < 2.5s, FCP < 1.8s, verified with Chrome DevTools
+- [ ] **Feature Flags**: Tested with and without active flags (if applicable)
+- [ ] **Lighthouse CI**: Performance ≥ 0.9, A11y ≥ 0.95, PWA ≥ 0.9 (run `npm run lhci:run`)
+
 ## Checklist
 - [ ] Code works as expected in dev environment
 - [ ] All tests pass (`npm run test:all`)
@@ -39,6 +45,7 @@
 - [ ] Commits follow message format
 - [ ] Mobile/responsive behavior tested
 - [ ] Telemetry/error logging added if needed
+- [ ] Bundle size acceptable (check with `npm run analyze`)
 
 ## Additional Notes
 <!-- Any other context, concerns, or notes for reviewers -->
