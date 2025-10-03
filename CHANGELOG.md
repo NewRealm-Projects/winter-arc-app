@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Bug Fixes
 - Fix port conflict in Lighthouse CI workflows (mobile-tests now uses port 4174)
 - Make Playwright baseURL configurable via BASE_URL environment variable
+- Fix Vitest attempting to run Playwright tests by excluding tests/** directory
 
 ### Documentation
 - Add Git Hooks section to CLAUDE.md
