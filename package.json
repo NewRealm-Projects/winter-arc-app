@@ -15,7 +15,9 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:ui": "playwright test",
-    "test:all": "npm run typecheck && npm run lint && npm run test:unit && npm run test:ui"
+    "test:all": "npm run typecheck && npm run lint && npm run test:unit && npm run test:ui",
+    "analyze": "vite build && npx rollup-plugin-visualizer stats.html --open",
+    "perf:budget": "node scripts/check-budgets.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
@@ -49,6 +51,7 @@
     "jsdom": "^27.0.0",
     "knip": "^5.64.1",
     "postcss": "^8.4.49",
+    "rollup-plugin-visualizer": "^6.0.4",
     "tailwindcss": "^3.4.17",
     "ts-prune": "^0.10.3",
     "typescript": "~5.6.2",
