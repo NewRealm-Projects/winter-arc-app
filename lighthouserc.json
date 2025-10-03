@@ -9,7 +9,8 @@
       "numberOfRuns": 3,
       "settings": {
         "preset": "desktop",
-        "onlyCategories": ["performance", "accessibility", "best-practices", "pwa"]
+        "onlyCategories": ["performance", "accessibility", "best-practices", "pwa"],
+        "emulatedFormFactor": "mobile"
       }
     },
     "assert": {
