@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-push checks..."
+echo ""
+
+# 1. TypeScript type checking
+echo "📘 TypeScript type checking..."
+npm run typecheck || {
+  echo "❌ TypeScript errors found. Push aborted."
+  exit 1
+}
+
+# 2. ESLint
+echo ""
+echo "🔍 Running ESLint..."
+npm run lint || {
+  echo "❌ ESLint errors found. Push aborted."
+  exit 1
+}
+
+# 3. Unit tests
+echo ""
+echo "🧪 Running unit tests..."
+npm run test:unit || {
+  echo "❌ Unit tests failed. Push aborted."
+  exit 1
+}
+
+# 4. Build test (ensures code compiles)
+echo ""
+echo "🏗️  Testing production build..."
+npm run build > /dev/null 2>&1 || {
+  echo "❌ Build failed. Push aborted."
+  exit 1
+}
+
+echo ""
+echo "✅ All pre-push checks passed!"
+echo ""

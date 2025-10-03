@@ -7,14 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Features
+- Add Git hooks (Husky) to catch errors before push
+- Pre-commit hook validates TypeScript and ESLint
+- Pre-push hook runs full test suite including build
+
 ### Bug Fixes
 - Fix port conflict in Lighthouse CI workflows (mobile-tests now uses port 4174)
 - Make Playwright baseURL configurable via BASE_URL environment variable
+
+### Documentation
+- Add Git Hooks section to CLAUDE.md
+- Update DoD and PR process to mention hooks
 
 ### Chore
 - Configure workflow dependencies: CI → Lighthouse CI → Deploy
 - Deploy only runs if both CI and Lighthouse CI succeed
 - Prevent broken builds from reaching production
+- Install Husky ^9.1.7 for Git hooks
 
 ## [0.0.2] - 2025-01-04
 

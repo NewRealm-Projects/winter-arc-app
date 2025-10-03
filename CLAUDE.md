@@ -78,6 +78,7 @@ Before marking a task as complete:
 - [ ] All tests pass (`npm run test:all`)
 - [ ] Visual regression OK in both light and dark mode
 - [ ] No TypeScript errors or ESLint warnings
+- [ ] **Git hooks passed** (pre-commit and pre-push checks)
 - [ ] Code reviewed (if PR workflow)
 - [ ] Docs updated (CLAUDE.md, comments, etc.)
 - [ ] **CHANGELOG.md updated** with new version and changes
@@ -117,11 +118,31 @@ Before marking a task as complete:
    ```
 4. **Update package.json version** to match CHANGELOG.md
 
+### Git Hooks (Husky)
+
+Pre-push and pre-commit hooks automatically run before commits and pushes to catch errors early:
+
+**Pre-commit Hook:**
+- TypeScript type checking
+- ESLint validation
+
+**Pre-push Hook:**
+- TypeScript type checking
+- ESLint validation
+- Unit tests (Vitest)
+- Production build test
+
+**Skip hooks (emergency only):**
+```bash
+git commit --no-verify
+git push --no-verify
+```
+
 ### Pull Request Process
 1. Create feature branch from `develop`
-2. Make changes in small, focused commits
+2. Make changes in small, focused commits (hooks will auto-check)
 3. **Update CHANGELOG.md and bump version in package.json**
-4. Run `npm run test:all` locally
+4. Run `npm run test:all` locally (or rely on pre-push hook)
 5. Push and create PR with screenshots (light/dark)
 6. Address review feedback
 7. Squash-merge when CI passes

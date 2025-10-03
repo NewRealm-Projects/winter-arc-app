@@ -21,7 +21,8 @@
     "lhci:collect": "lhci collect",
     "lhci:assert": "lhci assert",
     "lhci:upload": "lhci upload",
-    "lhci:run": "npm run build && npm run preview -- --port 4173 & sleep 3 && lhci autorun && kill $!"
+    "lhci:run": "npm run build && npm run preview -- --port 4173 & sleep 3 && lhci autorun && kill $!",
+    "prepare": "husky"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
@@ -39,7 +40,7 @@
   "devDependencies": {
     "@axe-core/react": "^4.10.2",
     "@eslint/js": "^9.17.0",
-  "@lhci/cli": "0.15.1",
+    "@lhci/cli": "0.15.1",
     "@playwright/test": "^1.55.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
@@ -55,6 +56,7 @@
     "eslint-plugin-react-refresh": "^0.4.16",
     "eslint-plugin-unused-imports": "^4.2.0",
     "globals": "^15.14.0",
+    "husky": "^9.1.7",
     "jsdom": "^27.0.0",
     "knip": "^5.64.1",
     "postcss": "^8.4.49",
