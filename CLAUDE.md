@@ -294,7 +294,8 @@ This section tracks planned features, ideas, and experimental work.
 - ✅ Current value/metric top-right (bold, colored)
 - ✅ Consistent padding: `p-3`
 - ✅ Glassmorphism effect: `glass-dark touchable`
-- ❌ Never center icons/titles (breaks visual consistency)
+- ✅ **All content left-aligned** (no `text-center` in tile content)
+- ❌ Never center icons/titles/content (breaks visual consistency)
 
 ### Layout & Grid System
 
