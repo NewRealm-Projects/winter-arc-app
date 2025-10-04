@@ -63,28 +63,30 @@ function PushupTile() {
         className="w-full glass-dark touchable p-3 text-left text-white"
       >
         {/* Header with Icon and Count */}
-        <div className="flex flex-col items-center mb-2">
-          <div className="text-xl mb-1">💪</div>
-          <div className="text-2xl font-bold text-winter-600 dark:text-winter-400">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <div className="text-xl">💪</div>
+            <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400">
+              {t('tracking.pushups')}
+            </h3>
+          </div>
+          <div className="text-sm font-bold text-winter-600 dark:text-winter-400">
             {pushupsForDay}
           </div>
-          <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400">
-            {t('tracking.pushups')}
-          </h3>
         </div>
 
-        {/* Mobile: Show only today's total */}
+        {/* Training plan info */}
         <div
           onClick={(e) => {
             e.stopPropagation();
             navigate('/tracking/pushup-training');
           }}
-          className="p-2 bg-winter-50 dark:bg-winter-900/30 rounded-lg border border-winter-200 dark:border-winter-700 hover:shadow-md transition-all cursor-pointer text-center"
+          className="p-2 bg-winter-50 dark:bg-winter-900/30 rounded-lg border border-winter-200 dark:border-winter-700 hover:shadow-md transition-all cursor-pointer"
         >
-          <div className="text-sm font-bold text-gray-900 dark:text-white">
+          <div className="text-xs font-bold text-gray-900 dark:text-white text-center">
             {t('tracking.today')}: {plannedTotal} {t('tracking.reps')}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 text-center">
             {t('tracking.startWorkout')}
           </div>
         </div>

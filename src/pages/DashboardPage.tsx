@@ -202,13 +202,13 @@ function DashboardPage() {
         {/* Tracking Tiles */}
         <div className="mobile-stack animate-fade-in-up delay-300">
           {/* Pushups & Sport Side by Side on desktop */}
-          <div className="mobile-grid">
+          <div className="tile-grid-2">
             <PushupTile />
             <SportTile />
           </div>
 
           {/* Water & Protein Grid */}
-          <div className="mobile-grid">
+          <div className="tile-grid-2">
             <WaterTile />
             <ProteinTile />
           </div>

@@ -261,6 +261,67 @@ This section tracks planned features, ideas, and experimental work.
 
 ---
 
+## UI/UX Design Guidelines
+
+### Tile Design System
+
+**All tracking tiles MUST follow the same design pattern for consistency:**
+
+```tsx
+// Standard Tile Structure (Example: WaterTile, ProteinTile, PushupTile, SportTile)
+<div className="glass-dark touchable p-3 text-white">
+  {/* Header: Icon (left) + Title + Metric (right) */}
+  <div className="flex items-center justify-between mb-2">
+    <div className="flex items-center gap-2">
+      <div className="text-xl">💧</div> {/* Emoji icon */}
+      <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400">
+        {t('tracking.water')}
+      </h3>
+    </div>
+    <div className="text-sm font-bold text-blue-600 dark:text-blue-400">
+      {value} {/* Current value */}
+    </div>
+  </div>
+
+  {/* Content area (progress bar, buttons, etc.) */}
+  ...
+</div>
+```
+
+**Key Design Rules:**
+- ✅ Emoji/icon always top-left
+- ✅ Title next to icon (small, muted)
+- ✅ Current value/metric top-right (bold, colored)
+- ✅ Consistent padding: `p-3`
+- ✅ Glassmorphism effect: `glass-dark touchable`
+- ❌ Never center icons/titles (breaks visual consistency)
+
+### Layout & Grid System
+
+**Desktop Alignment:**
+- Use `tile-grid-2` for 2-column tile grids (Pushup/Sport, Water/Protein)
+- This ensures all tiles are **flush/bündig** with WeekOverview and WeightTile
+- **Do NOT use `mobile-grid`** for tracking tiles (expands to 3 columns on large screens)
+
+```tsx
+{/* Correct: Flush alignment on desktop */}
+<div className="tile-grid-2">
+  <PushupTile />
+  <SportTile />
+</div>
+
+{/* Wrong: Will break alignment on desktop */}
+<div className="mobile-grid">
+  <PushupTile />
+  <SportTile />
+</div>
+```
+
+**Navigation:**
+- Bottom navigation: 3 items only (🏠 Dashboard, 👥 Group, 📝 Notes)
+- Settings (⚙️) is **only** in the top-right header, NOT in bottom nav
+- This prevents redundancy and saves space
+
 ## Design Tokens & Theming
 
 ### Color Palette

@@ -48,14 +48,16 @@ function SportTile() {
 
   return (
     <div className="glass-dark touchable p-3 text-white">
-      <div className="flex flex-col items-center mb-2">
-        <div className="text-xl mb-1">🏃</div>
-        <div className="text-2xl font-bold text-winter-600 dark:text-winter-400">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <div className="text-xl">🏃</div>
+          <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400">
+            {t('tracking.sport')}
+          </h3>
+        </div>
+        <div className="text-sm font-bold text-winter-600 dark:text-winter-400">
           {completedCount}
         </div>
-        <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400">
-          {t('tracking.sport')}
-        </h3>
       </div>
 
       {/* Sport Options Grid - Compact 3x2, smaller icons with labels */}

@@ -13,10 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pre-push hook runs full test suite including build
 - Add Notes page with Firestore integration for personal workout notes
 - Redesign tiles with compact mobile-first layout
-- Simplify bottom navigation with glassmorphism style
+- Simplify bottom navigation with glassmorphism style (remove Settings)
 - Update WeekOverview with circular progress indicators
 - Lower streak threshold from 4 to 3 tasks
 - Implement Weekly Top 3 achievement system with automatic snapshots
+- **Standardize tile design:** Emoji top-left, metric top-right for all tiles
+- **Desktop layout:** Add tile-grid-2 class for flush alignment
 
 ### Bug Fixes
 - Fix port conflict in Lighthouse CI workflows (mobile-tests now uses port 4174)
@@ -28,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Git Hooks section to CLAUDE.md
 - Update DoD and PR process to mention hooks
 - **Add local development instructions:** Emphasize npm run dev for live reloading
+- **Add UI/UX Design Guidelines section:** Tile design system, layout rules, navigation structure
 
 ### Chore
 - Configure workflow dependencies: CI → Lighthouse CI → Deploy

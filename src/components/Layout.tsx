@@ -14,7 +14,6 @@ function Layout({ children }: LayoutProps) {
     { path: '/', labelKey: 'nav.dashboard', icon: '🏠' },
     { path: '/leaderboard', labelKey: 'nav.group', icon: '👥' },
     { path: '/notes', labelKey: 'nav.notes', icon: '📝' },
-    { path: '/settings', labelKey: 'nav.settings', icon: '⚙️' },
   ];
 
   return (
