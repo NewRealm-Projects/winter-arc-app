@@ -41,19 +41,19 @@ function WaterTile() {
         </div>
       </div>
 
-      <div className="mb-2">
+      <div className="mb-2 text-center">
         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
           <div
             className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
-        <div className="mt-1 text-xs text-right text-gray-500 dark:text-gray-400">
+        <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
           {Math.round(progress)}% / {goalLiters}L
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-1.5">
+      <div className="grid grid-cols-3 gap-1.5 text-center">
         {[250, 500, 1000].map((amount) => (
           <button
             key={amount}

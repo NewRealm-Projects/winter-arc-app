@@ -8,7 +8,7 @@ export function initPushupPlan(maxReps: number): PushupState {
   return {
     baseReps: B,
     sets: 5,
-    restTime: 90, // Sekunden
+    restTime: 60, // Sekunden
   };
 }
 

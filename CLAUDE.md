@@ -166,7 +166,7 @@ This section tracks planned features, ideas, and experimental work.
 **Value**: Structured progressive overload training with smart auto-progression
 **Implementation**:
 - Base & Bump algorithm in `src/utils/pushupAlgorithm.ts`
-- 90-second rest timer between sets
+- 60-second rest timer between sets
 - Pass/Hold/Fail status after workout
 - Progressive plan generation with `generateProgressivePlan()`
 - Tracking via PushupTrainingPage
@@ -270,7 +270,7 @@ This section tracks planned features, ideas, and experimental work.
 ```tsx
 // Standard Tile Structure (Example: WaterTile, ProteinTile, PushupTile, SportTile)
 <div className="glass-dark touchable p-3 text-white">
-  {/* Header: Icon (left) + Title + Metric (right) */}
+  {/* Header: Icon (left) + Title + Metric (right) - ALWAYS left-aligned */}
   <div className="flex items-center justify-between mb-2">
     <div className="flex items-center gap-2">
       <div className="text-xl">💧</div> {/* Emoji icon */}
@@ -283,8 +283,11 @@ This section tracks planned features, ideas, and experimental work.
     </div>
   </div>
 
-  {/* Content area (progress bar, buttons, etc.) */}
-  ...
+  {/* Content area - ALWAYS centered */}
+  <div className="text-center">
+    {/* Progress bars, buttons, inputs, etc. */}
+    ...
+  </div>
 </div>
 ```
 
@@ -294,8 +297,9 @@ This section tracks planned features, ideas, and experimental work.
 - ✅ Current value/metric top-right (bold, colored)
 - ✅ Consistent padding: `p-3`
 - ✅ Glassmorphism effect: `glass-dark touchable`
-- ✅ **All content left-aligned** (no `text-center` in tile content)
-- ❌ Never center icons/titles/content (breaks visual consistency)
+- ✅ **Header left-aligned** (emoji + title on left, metric on right)
+- ✅ **Content centered** (progress bars, buttons, inputs use `text-center`)
+- ❌ Never center the header (emoji/title/metric stay in their positions)
 
 ### Layout & Grid System
 
@@ -509,7 +513,7 @@ function initPushupPlan(maxReps: number) {
   return {
     baseReps: B,
     sets: 5,
-    restTime: 90 // Sekunden
+    restTime: 60 // Sekunden
   };
 }
 
@@ -556,7 +560,7 @@ function evaluateWorkout(state, reps: number[]) {
 
 **Trainingsmodus UI:**
 - Zeige 5 Kacheln für jeden Satz mit Ziel-Wiederholungen
-- 90-Sekunden Countdown-Timer zwischen Sätzen
+- 60-Sekunden Countdown-Timer zwischen Sätzen
 - Input für tatsächliche Wiederholungen pro Satz
 - Nach Abschluss: Status-Badge (Pass/Hold/Fail) und neue Basis für morgen
 - Info-Banner: "1 Wiederholung vor Form-Kollaps stoppen"

@@ -233,54 +233,56 @@ function WeightTile() {
       )}
 
       {/* Input */}
-      {showInput ? (
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <input
-              type="number"
-              step="0.1"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              placeholder="Gewicht (kg)"
-              className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
-              autoFocus
-            />
-            <input
-              type="number"
-              step="0.1"
-              value={bodyFat}
-              onChange={(e) => setBodyFat(e.target.value)}
-              placeholder="KFA (%)"
-              className="w-24 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
-            />
+      <div className="text-center">
+        {showInput ? (
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <input
+                type="number"
+                step="0.1"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                placeholder="Gewicht (kg)"
+                className="flex-1 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+                autoFocus
+              />
+              <input
+                type="number"
+                step="0.1"
+                value={bodyFat}
+                onChange={(e) => setBodyFat(e.target.value)}
+                placeholder="KFA (%)"
+                className="w-24 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={saveWeight}
+                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+              >
+                Speichern
+              </button>
+              <button
+                onClick={() => {
+                  setShowInput(false);
+                  setWeight('');
+                  setBodyFat('');
+                }}
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Abbrechen
+              </button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={saveWeight}
-              className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
-            >
-              Speichern
-            </button>
-            <button
-              onClick={() => {
-                setShowInput(false);
-                setWeight('');
-                setBodyFat('');
-              }}
-              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-            >
-              Abbrechen
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          onClick={() => setShowInput(true)}
-          className="w-full px-4 py-3 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium"
-        >
-          {t('tracking.addWeight')}
-        </button>
-      )}
+        ) : (
+          <button
+            onClick={() => setShowInput(true)}
+            className="w-full px-4 py-3 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium"
+          >
+            {t('tracking.addWeight')}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

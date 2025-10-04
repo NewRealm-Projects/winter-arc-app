@@ -61,7 +61,7 @@ function SportTile() {
       </div>
 
       {/* Sport Options Grid - Compact 3x2, smaller icons with labels */}
-      <div className="grid grid-cols-3 gap-1.5">
+      <div className="grid grid-cols-3 gap-1.5 text-center">
         {sportOptions.map((sport) => {
           const isChecked = currentSports[sport.key] || false;
 

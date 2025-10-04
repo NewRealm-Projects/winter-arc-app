@@ -81,7 +81,7 @@ function PushupTile() {
             e.stopPropagation();
             navigate('/tracking/pushup-training');
           }}
-          className="p-2 bg-winter-50 dark:bg-winter-900/30 rounded-lg border border-winter-200 dark:border-winter-700 hover:shadow-md transition-all cursor-pointer"
+          className="p-2 bg-winter-50 dark:bg-winter-900/30 rounded-lg border border-winter-200 dark:border-winter-700 hover:shadow-md transition-all cursor-pointer text-center"
         >
           <div className="text-xs font-semibold text-winter-700 dark:text-winter-300 mb-1">
             📊 {t('tracking.todaysPlan')}
@@ -90,7 +90,7 @@ function PushupTile() {
             <span className="font-medium">{t('tracking.sets')}:</span> {todayPlan.join(' • ')} = {plannedTotal} {t('tracking.reps')}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            ⏱️ {t('tracking.rest')}: 90s • 💡 {t('tracking.startWorkout')}
+            ⏱️ {t('tracking.rest')}: 60s • 💡 {t('tracking.startWorkout')}
           </div>
         </div>
       </button>
