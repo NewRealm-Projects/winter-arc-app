@@ -698,7 +698,7 @@ npm install
 cp .env.example .env
 # Then fill in Firebase credentials in .env
 
-# Run development server
+# Run development server (automatically opens in browser)
 npm run dev
 
 # Build for production
@@ -713,6 +713,12 @@ npm test
 # Run linter
 npm run lint
 ```
+
+**WICHTIG für Entwicklung:**
+- Das Projekt MUSS lokal gestartet werden mit `npm run dev`, damit Änderungen live im Browser verfolgt werden können
+- Der Entwicklungsserver öffnet automatisch einen Browser-Tab auf `http://localhost:5173`
+- Hot Module Replacement (HMR) ist aktiviert - Änderungen werden sofort im Browser sichtbar ohne manuellen Reload
+- Verwende `npm run dev` für die Entwicklung, NICHT `npm run build`
 
 ### Environment Variables Setup
 

@@ -22,7 +22,6 @@ interface UserTrackingStats {
 }
 
 function analyzeTrackingData(tracking: Record<string, DailyTracking>): UserTrackingStats {
-  const trackingDates = Object.keys(tracking).sort();
   const today = new Date().toISOString().split('T')[0];
 
   const totalPushups = Object.values(tracking).reduce(
@@ -45,13 +44,14 @@ function analyzeTrackingData(tracking: Record<string, DailyTracking>): UserTrack
     ? proteinEntries.reduce((sum, day) => sum + day.protein, 0) / proteinEntries.length
     : 0;
 
-  const currentStreak = calculateStreak(trackingDates);
+  const currentStreak = calculateStreak(tracking);
 
   // Get most recent weight
   const weightEntries = Object.entries(tracking)
     .filter(([_, day]) => day.weight && day.weight.value > 0)
     .sort(([a], [b]) => b.localeCompare(a));
 
+  const trackingDates = Object.keys(tracking).sort();
   const recentWeight = weightEntries.length > 0 ? weightEntries[0][1].weight?.value : undefined;
   const lastWorkoutDate = trackingDates.length > 0 ? trackingDates[trackingDates.length - 1] : undefined;
   const completedToday = tracking[today]?.completed || false;

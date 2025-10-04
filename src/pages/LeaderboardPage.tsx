@@ -20,7 +20,6 @@ function LeaderboardPage() {
 
   // Calculate current user stats
   const userStats = useMemo(() => {
-    const trackingDates = Object.keys(tracking).sort();
     const totalPushups = Object.values(tracking).reduce(
       (sum, day) => sum + (day.pushups?.total || 0),
       0
@@ -31,7 +30,7 @@ function LeaderboardPage() {
         Object.values(day.sports || {}).filter(Boolean).length,
       0
     );
-    const streak = calculateStreak(trackingDates);
+    const streak = calculateStreak(tracking);
 
     return {
       totalPushups,

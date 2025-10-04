@@ -17,7 +17,7 @@ function WeekOverview() {
   const locale = language === 'de' ? de : enUS;
 
   // Calculate streak
-  const streak = calculateStreak(Object.keys(tracking));
+  const streak = calculateStreak(tracking);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(weekStart, i);

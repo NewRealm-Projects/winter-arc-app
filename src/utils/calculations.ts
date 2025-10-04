@@ -36,27 +36,58 @@ export function calculateWaterGoal(
 }
 
 /**
- * Berechnet den Streak (aufeinanderfolgende Tage)
- * @param dates Array von Daten (YYYY-MM-DD) sortiert
- * @returns Anzahl aufeinanderfolgender Tage
+ * Berechnet den Streak (aufeinanderfolgende Tage mit mindestens 3/5 Tasks)
+ * @param tracking Tracking-Daten (key: YYYY-MM-DD, value: DailyTracking)
+ * @returns Anzahl aufeinanderfolgender Tage mit mindestens 3/5 erledigten Tasks
  */
-export function calculateStreak(dates: string[]): number {
+export function calculateStreak(tracking: Record<string, { pushups?: { total?: number }; sports?: Record<string, boolean>; water?: number; protein?: number; weight?: { value?: number } }>): number {
+  const dates = Object.keys(tracking).sort().reverse();
   if (dates.length === 0) return 0;
 
-  let streak = 1;
-  const sortedDates = [...dates].sort().reverse();
+  let streak = 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  for (let i = 0; i < sortedDates.length - 1; i++) {
-    const current = new Date(sortedDates[i]);
-    const next = new Date(sortedDates[i + 1]);
-    const diffDays = Math.floor(
-      (current.getTime() - next.getTime()) / (1000 * 60 * 60 * 24)
-    );
+  for (let i = 0; i < dates.length; i++) {
+    const dateStr = dates[i];
+    const dayTracking = tracking[dateStr];
+    const date = new Date(dateStr);
+    date.setHours(0, 0, 0, 0);
 
-    if (diffDays === 1) {
-      streak++;
-    } else {
+    // Check if day has at least 3/5 tasks completed
+    const hasPushups = (dayTracking?.pushups?.total || 0) > 0;
+    const hasSports = Object.values(dayTracking?.sports || {}).some(Boolean);
+    const hasWater = (dayTracking?.water || 0) >= 2000; // Goal: 2L
+    const hasProtein = (dayTracking?.protein || 0) >= 100; // Goal: 100g
+    const hasWeight = !!dayTracking?.weight?.value; // Weight entered
+
+    const tasksCompleted = [hasPushups, hasSports, hasWater, hasProtein, hasWeight].filter(Boolean).length;
+    const isCompleted = tasksCompleted >= 3; // At least 3 tasks required
+
+    if (!isCompleted) {
+      // Day doesn't meet 3/5 requirement - stop counting
       break;
+    }
+
+    // Check if it's consecutive with previous day (or today for first iteration)
+    if (i === 0) {
+      // First iteration - check if it's today or yesterday
+      const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays > 1) {
+        // Gap detected - no current streak
+        break;
+      }
+      streak = 1;
+    } else {
+      const prevDate = new Date(dates[i - 1]);
+      prevDate.setHours(0, 0, 0, 0);
+      const diffDays = Math.floor((prevDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+
+      if (diffDays === 1) {
+        streak++;
+      } else {
+        break;
+      }
     }
   }
 
