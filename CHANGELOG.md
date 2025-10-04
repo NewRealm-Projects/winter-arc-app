@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add Git hooks (Husky) to catch errors before push
 - Pre-commit hook validates TypeScript and ESLint
 - Pre-push hook runs full test suite including build
+- Add Notes page with Firestore integration for personal workout notes
 
 ### Bug Fixes
 - Fix port conflict in Lighthouse CI workflows (mobile-tests now uses port 4174)
