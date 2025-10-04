@@ -28,7 +28,7 @@ function WaterTile() {
   const goalLiters = (waterGoal / 1000).toFixed(2);
 
   return (
-    <div className="glass-dark touchable p-3 text-white">
+    <div className="rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] transition-all duration-200 p-3 text-white">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <div className="text-xl">💧</div>

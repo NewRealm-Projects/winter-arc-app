@@ -1,3 +1,15 @@
+/**
+ * HistoryPage - ARCHIVED 2025-10-04
+ *
+ * @reason Redundant with week/day navigation in WeekCompactCard, UI simplification
+ * @reactivate
+ *   1. Set HISTORY_ENABLED = true in src/config/features.ts
+ *   2. Re-register route in src/routes/index.tsx
+ *   3. Re-enable navigation link in Dashboard
+ *   4. Restore/re-enable tests
+ * @see src/config/features.ts
+ */
+
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { de, enUS } from 'date-fns/locale';

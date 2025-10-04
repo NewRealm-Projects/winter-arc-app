@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.4] - 2025-10-04
+
+### Removed
+- ♻️ **History/Verlauf Page** - Archived History page (reversible via HISTORY_ENABLED flag)
+  - Removed route from router (`/tracking/history`)
+  - Removed navigation links from Dashboard and BottomNav
+  - Created feature flag system in `src/config/features.ts`
+  - Archived `src/pages/HistoryPage.tsx` with clear reactivation instructions
+  - Updated CLAUDE.md "Archived Features" section with detailed reactivation steps
+
+### Features
+- 🎨 **Dashboard Redesign** - New compact top layout with streak/weather cards
+  - Added StreakMiniCard (168×88px compact card with fire icon)
+  - Added WeatherCard with live Aachen weather data
+  - Added WeekCompactCard with horizontal chip-based week navigation
+  - Removed "Hey, Lars!" header for cleaner layout
+  - All cards use unified glass-card design
+- 🎨 **Standardized Glass-Card Design** - All tiles now use consistent styling
+  - Applied new glass-card classes to all tracking tiles (Pushup, Sport, Water, Protein, Weight)
+  - Mandatory classes: `rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)]`
+  - Deprecated old `glass-dark` class
+  - Updated CLAUDE.md with mandatory design rules
+
+### Documentation
+- Updated CLAUDE.md with glass-card design system rules
+- Added feature flag documentation
+
+## [0.0.3] - 2025-10-04
+
+### Removed
+- ♻️ **AI Motivational Quote feature** - Temporarily removed AI-generated motivational quotes (archived for future reconsideration)
+  - Removed Gemini API integration from dashboard header
+  - Commented out VITE_GEMINI_API_KEY in .env.example
+  - Archived aiService.ts and aiQuoteService.ts
+  - Updated CLAUDE.md with "Archived Features" section
+
 ### Features
 - Add Git hooks (Husky) to catch errors before push
 - Pre-commit hook validates TypeScript and ESLint

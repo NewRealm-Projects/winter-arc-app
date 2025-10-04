@@ -190,7 +190,7 @@ This section tracks planned features, ideas, and experimental work.
 - Accessible via navigation
 
 #### 4. Weather Integration (Status: ✅ implemented)
-**Value**: Contextual weather info in motivation header
+**Value**: Contextual weather info in dashboard header
 **Implementation**:
 - `src/services/weatherService.ts`
 - Uses Open-Meteo API (free, no API key required)
@@ -249,6 +249,33 @@ This section tracks planned features, ideas, and experimental work.
 **Value**: Gamification, increased engagement
 **Needs**: Badge system design, unlock criteria, UI for badge display
 
+### Archived Features
+
+#### 1. AI Motivational Quotes (Status: ⚫ archived 2025-10-04)
+**Reason**: No measurable user value. Can be reactivated by restoring Gemini API integration and Dashboard Header component section.
+**Implementation Details**:
+- Used Google Gemini 2.5 Flash model for personalized quote generation
+- Analyzed tracking data (streak, pushups, sports) for context-aware motivation
+- Time-based variants (morning, midday, evening)
+- Feedback system (thumbs up/down) stored in Firestore
+- Fallback to static motivational quotes when API unavailable
+**Archived Files**:
+- `src/services/aiService.ts` - Gemini API integration
+- `src/services/aiQuoteService.ts` - Firestore quote storage
+- `src/logic/motivation.ts` - Static fallback quotes (still active)
+
+#### 2. History Page (Status: ⚫ archived 2025-10-04)
+**Reason**: Redundant with week/day navigation in WeekCompactCard, UI simplification
+**Reactivation Steps**:
+1. Set `HISTORY_ENABLED = true` in `src/config/features.ts`
+2. Uncomment route in `src/routes/index.tsx` (line 15 + 60)
+3. Uncomment navigation link in `src/components/navigation/BottomNav.tsx` (line 30-35)
+4. Optional: Re-add Dashboard quick action link in `src/pages/DashboardPage.tsx`
+5. Restore/re-enable any related tests
+**Archived Files**:
+- `src/pages/HistoryPage.tsx` - Full history view with delete functionality (preserved with eslint-disable)
+**Feature Flag**: `HISTORY_ENABLED` in `src/config/features.ts`
+
 ### Technical Debt & Improvements
 
 #### 1. Component Storybook (Status: 🟢 planned)
@@ -267,9 +294,11 @@ This section tracks planned features, ideas, and experimental work.
 
 **All tracking tiles MUST follow the same design pattern for consistency:**
 
+**WICHTIG: Alle Kacheln (Tiles) MÜSSEN exakt das gleiche Glass-Card Design verwenden!**
+
 ```tsx
 // Standard Tile Structure (Example: WaterTile, ProteinTile, PushupTile, SportTile)
-<div className="glass-dark touchable p-3 text-white">
+<div className="rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] transition-all duration-200 p-3 text-white">
   {/* Header: Icon (left) + Title + Metric (right) - ALWAYS left-aligned */}
   <div className="flex items-center justify-between mb-2">
     <div className="flex items-center gap-2">
@@ -291,15 +320,60 @@ This section tracks planned features, ideas, and experimental work.
 </div>
 ```
 
+**Mandatory Glass-Card Classes (MUST be used on ALL tiles):**
+```css
+/* Base Glass-Card Style - ALWAYS use this exact combination */
+rounded-2xl
+bg-white/5 dark:bg-white/5
+backdrop-blur-md
+border border-white/10
+shadow-[0_6px_24px_rgba(0,0,0,0.25)]
+transition-all duration-200
+```
+
 **Key Design Rules:**
+- ✅ **ALLE Kacheln verwenden die gleiche Glass-Card Basis-Klasse** (siehe oben)
 - ✅ Emoji/icon always top-left
 - ✅ Title next to icon (small, muted)
 - ✅ Current value/metric top-right (bold, colored)
-- ✅ Consistent padding: `p-3`
-- ✅ Glassmorphism effect: `glass-dark touchable`
+- ✅ Consistent padding: `p-3` (Standard) oder `p-6` (WeightTile mit Graph)
+- ✅ Glassmorphism effect: `backdrop-blur-md` mit `bg-white/5`
+- ✅ Soft shadows: `shadow-[0_6px_24px_rgba(0,0,0,0.25)]`
+- ✅ Rounded corners: `rounded-2xl`
+- ✅ Smooth transitions: `transition-all duration-200`
 - ✅ **Header left-aligned** (emoji + title on left, metric on right)
 - ✅ **Content centered** (progress bars, buttons, inputs use `text-center`)
 - ❌ Never center the header (emoji/title/metric stay in their positions)
+- ❌ **NIEMALS** andere Glass-Styles verwenden (`glass-dark` ist deprecated)
+
+### Mobile Layout Rule (One Screen per Page)
+
+**WICHTIG: Jede Seite muss vollständig in einen mobilen Viewport passen (kein vertikales Scrollen).**
+
+**Core Principles:**
+- ✅ Every main page (Dashboard, Leaderboard, Notes, Settings) fits fully within **one mobile viewport** (~100vh)
+- ✅ No vertical scrolling on the main container
+- ✅ Use responsive grid compression to adapt to smaller devices
+- ✅ Reduce padding/margins on mobile: `px-3 pt-4` (Desktop: `px-6 pt-8`)
+- ✅ Reduce gaps between cards: `gap-2 mb-3` on mobile, `gap-4 mb-4` on desktop
+- ✅ Flatten large tiles (e.g., Weight chart: `h-32` instead of `h-48`)
+- ❌ Only subcomponents (modals, charts, lists inside tiles) may scroll internally
+
+**Viewport Testing:**
+- iPhone SE (375×667px)
+- Pixel 6 (412×915px)
+- Galaxy S20 (360×800px)
+
+**Purpose:** Consistent one-glance interaction, faster daily use, no scrolling fatigue.
+
+**Implementation Example:**
+```tsx
+<div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto">
+  <div className="mobile-container safe-pb px-3 pt-4 md:px-6 md:pt-8 max-h-[calc(100vh-5rem)]">
+    {/* All content must fit here */}
+  </div>
+</div>
+```
 
 ### Layout & Grid System
 
@@ -445,7 +519,7 @@ This section tracks planned features, ideas, and experimental work.
 - **Build-Tool**: Vite
 - **Styling**: Tailwind CSS
 - **Backend**: Firebase (Authentication, Firestore, Cloud Functions)
-- **AI**: Google Gemini für personalisierte Motivationssprüche
+- **AI**: ~~Google Gemini für personalisierte Motivationssprüche~~ (archived 2025-10-04)
 - **Weather**: Open-Meteo API (free, no key required) für Wetterdaten
 - **Security**: Firebase App Check mit reCAPTCHA v3
 - **PWA**: Workbox für Service Worker und Offline-Funktionalität
@@ -476,11 +550,9 @@ This section tracks planned features, ideas, and experimental work.
 
 ### Seite 1: Dashboard/Übersicht
 
-**Header mit AI-Motivation (oben)**
+**Header (oben)**
 - Persönliche Begrüßung mit Nickname
 - **Wetter-Integration**: Zeigt aktuelle Temperatur und Wetter-Emoji für Aachen (via Open-Meteo API)
-- **AI-generierter Motivationsspruch**: Analysiert Tracking-Daten (Streak, Liegestütze, Sport-Sessions) und generiert täglich einen personalisierten, motivierenden Spruch über Google Gemini
-- Fallback auf statische Motivationssprüche, falls Gemini API nicht konfiguriert
 - Glassmorphism-Design mit Backdrop-Blur-Effekt
 
 **Wochentracking (Mitte)**
@@ -800,13 +872,14 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
 ```
 
-**Gemini AI for Personalized Quotes (Optional):**
+**Gemini AI for Personalized Quotes (Archived 2025-10-04):**
 ```bash
-VITE_GEMINI_API_KEY=your_gemini_api_key
+# VITE_GEMINI_API_KEY=your_gemini_api_key  # Archived - feature removed
 ```
-- Get your API key from: https://makersuite.google.com/app/apikey
-- If not set, the app will show fallback motivational quotes
-- The AI analyzes user tracking data (streak, pushups, sports) to generate personalized daily motivational quotes
+- ~~Get your API key from: https://makersuite.google.com/app/apikey~~
+- ~~If not set, the app will show fallback motivational quotes~~
+- ~~The AI analyzes user tracking data (streak, pushups, sports) to generate personalized daily motivational quotes~~
+- This feature has been archived. See "Archived Features" section for details.
 
 **Firebase App Check with reCAPTCHA v3 (Optional but recommended for production):**
 ```bash

@@ -110,8 +110,8 @@ function WeightTile() {
   const latestBMI = activeTracking?.weight?.bmi;
 
   return (
-    <div className="glass-dark touchable p-6 text-white">
-      <div className="flex items-center justify-between mb-4">
+    <div className="rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] transition-all duration-200 p-4 text-white">
+      <div className="flex items-center justify-between mb-3">
         <div>
           <div className="text-3xl mb-2">⚖️</div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -134,20 +134,20 @@ function WeightTile() {
       {/* Combined Chart - Weight & Body Fat */}
       {chartData.length > 0 ? (
         <>
-          <div className="mb-4">
-            <div className="flex items-center gap-4 mb-2 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-purple-600"></div>
+          <div className="mb-2">
+            <div className="flex items-center gap-4 mb-1.5 text-xs">
+              <div className="flex items-center gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-purple-600"></div>
                 <span className="font-medium text-gray-700 dark:text-gray-300">{t('tracking.weight')}</span>
               </div>
               {chartData.some(d => d.bodyFat) && (
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-orange-500"></div>
                   <span className="font-medium text-gray-700 dark:text-gray-300">{t('tracking.bodyFat')}</span>
                 </div>
               )}
             </div>
-            <div className="h-48">
+            <div className="h-32">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
                   <XAxis
@@ -204,7 +204,7 @@ function WeightTile() {
           </div>
 
           {/* Time Range Selector */}
-          <div className="flex gap-2 mb-4">
+          <div className="flex gap-2 mb-2">
             {[
               { days: 7, label: t('tracking.week') },
               { days: 30, label: t('tracking.month') },
@@ -225,7 +225,7 @@ function WeightTile() {
           </div>
         </>
       ) : (
-        <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-center">
+        <div className="mb-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-center">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Noch keine Gewichtsdaten vorhanden
           </p>

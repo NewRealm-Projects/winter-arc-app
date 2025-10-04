@@ -47,7 +47,7 @@ function SportTile() {
   const completedCount = Object.values(currentSports).filter(Boolean).length;
 
   return (
-    <div className="glass-dark touchable p-3 text-white">
+    <div className="rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] transition-all duration-200 p-3 text-white">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <div className="text-xl">🏃</div>
@@ -70,9 +70,9 @@ function SportTile() {
               key={sport.key}
               type="button"
               onClick={() => toggleSport(sport.key)}
-              className={`p-2 rounded-xl transition-all flex flex-col items-center justify-center gap-1 ${
+              className={`p-2 rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-1 ${
                 isChecked
-                  ? 'bg-green-100 dark:bg-green-900/30 border-2 border-green-500 dark:border-green-400'
+                  ? 'bg-blue-600/20 dark:bg-blue-600/30 border-2 border-blue-400 shadow-inner'
                   : 'bg-gray-50 dark:bg-gray-700 border-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600'
               }`}
               title={sport.label}

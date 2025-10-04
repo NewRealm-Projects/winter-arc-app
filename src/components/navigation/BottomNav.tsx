@@ -28,16 +28,16 @@ export function BottomNav() {
       ariaLabel: 'Dashboard'
     },
     {
-      path: '/tracking/history',
-      labelKey: 'nav.history',
-      icon: '📊',
-      ariaLabel: 'History'
-    },
-    {
       path: '/leaderboard',
       labelKey: 'nav.group',
       icon: '👥',
       ariaLabel: 'Leaderboard'
+    },
+    {
+      path: '/notes',
+      labelKey: 'nav.notes',
+      icon: '📝',
+      ariaLabel: 'Notes'
     },
     {
       path: '/settings',
