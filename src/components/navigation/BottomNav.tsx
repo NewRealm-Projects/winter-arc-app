@@ -12,7 +12,7 @@ interface NavItem {
 /**
  * Bottom Navigation Component
  *
- * Mobile-first navigation with 4 main items
+ * Mobile-first navigation with 4 main items (Dashboard, Group, Notes, Settings)
  * Fixed to bottom with safe-area padding
  * Glass effect with backdrop blur
  */

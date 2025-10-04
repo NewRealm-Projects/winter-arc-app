@@ -6,6 +6,7 @@ export const translations = {
       tracking: 'Tracking',
       history: 'Historie',
       group: 'Gruppe',
+      notes: 'Notizen',
       settings: 'Einstellungen',
     },
     // Dashboard
@@ -213,6 +214,7 @@ export const translations = {
       tracking: 'Tracking',
       history: 'History',
       group: 'Group',
+      notes: 'Notes',
       settings: 'Settings',
     },
     // Dashboard
