@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deploy only runs if both CI and Lighthouse CI succeed
 - Prevent broken builds from reaching production
 - Install Husky ^9.1.7 for Git hooks
+- Add Firestore security rules for aiQuotes, notes, and weeklyTop3 collections
+- Add firebase.json configuration file
 
 ## [0.0.2] - 2025-01-04
 
