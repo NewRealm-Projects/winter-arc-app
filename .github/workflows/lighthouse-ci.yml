@@ -67,7 +67,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Build app
         run: npm run build
@@ -75,11 +75,25 @@ jobs:
       - name: Run mobile device tests
         run: |
           npm run preview -- --port 4174 &
+          PREVIEW_PID=$!
+          trap "kill $PREVIEW_PID 2>/dev/null" EXIT
           sleep 5
-          npx playwright test tests/mobile/
+
+          if [ ! -d tests/mobile ]; then
+            echo "No mobile Playwright test directory found, skipping."
+            exit 0
+          fi
+
+          MOBILE_TEST_COUNT=$(find tests/mobile -type f \( -name "*.spec.ts" -o -name "*.spec.tsx" -o -name "*.spec.js" -o -name "*.spec.jsx" -o -name "*.test.ts" -o -name "*.test.tsx" -o -name "*.test.js" -o -name "*.test.jsx" \) | wc -l)
+
+          if [ "$MOBILE_TEST_COUNT" -eq 0 ]; then
+            echo "No mobile Playwright spec files found, skipping."
+            exit 0
+          fi
+
+          npx playwright test --config=playwright.config.mobile.ts
         env:
           BASE_URL: http://localhost:4174
-
       - name: Upload mobile test screenshots
         uses: actions/upload-artifact@v4
         if: always()
