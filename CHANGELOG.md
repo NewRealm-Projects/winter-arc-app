@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pre-commit hook validates TypeScript and ESLint
 - Pre-push hook runs full test suite including build
 - Add Notes page with Firestore integration for personal workout notes
+- Redesign tiles with compact mobile-first layout
+- Simplify bottom navigation with glassmorphism style
+- Update WeekOverview with circular progress indicators
+- Lower streak threshold from 4 to 3 tasks
 
 ### Bug Fixes
 - Fix port conflict in Lighthouse CI workflows (mobile-tests now uses port 4174)
