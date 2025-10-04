@@ -87,6 +87,9 @@ export interface GroupMember extends User {
   avgProtein: number;
 }
 
+// Alias for backwards compatibility
+export type UserWithStats = GroupMember;
+
 export type TrackingRecord = Record<string, DailyTracking>;
 
 export interface SetTarget {

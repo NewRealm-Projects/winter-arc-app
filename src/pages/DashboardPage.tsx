@@ -13,6 +13,7 @@ import { getWeatherForAachen } from '../services/weatherService';
 
 import { useTranslation } from '../hooks/useTranslation';
 import { useTracking } from '../hooks/useTracking';
+import { useWeeklyTop3 } from '../hooks/useWeeklyTop3';
 import { Link } from 'react-router-dom';
 
 function DashboardPage() {
@@ -23,6 +24,8 @@ function DashboardPage() {
   const { t } = useTranslation();
   // Auto-save tracking data to Firebase
   useTracking();
+  // Check and save weekly Top 3 snapshots
+  useWeeklyTop3();
   const [motivation, setMotivation] = useState<AIQuote | null>(null);
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
   const [loadingQuote, setLoadingQuote] = useState(true);

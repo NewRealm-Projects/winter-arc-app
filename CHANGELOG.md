@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Simplify bottom navigation with glassmorphism style
 - Update WeekOverview with circular progress indicators
 - Lower streak threshold from 4 to 3 tasks
+- Implement Weekly Top 3 achievement system with automatic snapshots
 
 ### Bug Fixes
 - Fix port conflict in Lighthouse CI workflows (mobile-tests now uses port 4174)
