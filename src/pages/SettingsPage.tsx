@@ -252,12 +252,12 @@ function SettingsPage() {
       </div>
 
       {/* Content */}
-      <div className="mobile-container -mt-4 pb-20 safe-pb">
+      <div className="mobile-container pt-4 md:pt-6 pb-20 safe-pb">
         <div className="mobile-stack">
         {/* Wetter Stadt Auswahl */}
         <div className="glass dark:glass-dark rounded-[20px] p-6 mb-2">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">🌤️ Wetter-Stadt</h2>
-          <label htmlFor="weather-city-select" className="block mb-2 text-sm text-gray-700 dark:text-gray-300">Stadt für Wetterdaten auswählen:</label>
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">🌤️ {t('settings.weatherCity')}</h2>
+          <label htmlFor="weather-city-select" className="block mb-2 text-sm text-gray-700 dark:text-gray-300">{t('settings.weatherCityDesc')}:</label>
           <select
             id="weather-city-select"
             value={weatherCity}

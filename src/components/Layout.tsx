@@ -28,7 +28,7 @@ function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Floating Bottom Navigation - Glassmorphism Style */}
-      <nav className="fixed left-1/2 -translate-x-1/2 bottom-5 z-50">
+      <nav className="fixed left-1/2 -translate-x-1/2 bottom-5 z-50 rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] px-4 py-2">
         <div className="flex items-center justify-center gap-4 animate-fade-in-up delay-400">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;

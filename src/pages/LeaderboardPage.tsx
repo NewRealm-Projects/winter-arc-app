@@ -129,7 +129,7 @@ function LeaderboardPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 -mt-4 pb-20 space-y-4">
+      <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-6 pb-20 space-y-4">
         {/* Filter Tabs */}
         <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-2 flex gap-2">
           {[
@@ -362,7 +362,7 @@ function LeaderboardPage() {
                   }
                 >
                   <div className="flex items-center gap-4">
-                    {/* Profile Picture - only show if user allows sharing or it's the current user */}
+                    {/* Avatar (Photo or Default) */}
                     {(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? (
                       <img
                         src={entry.photoURL}
@@ -370,28 +370,27 @@ function LeaderboardPage() {
                         referrerPolicy="no-referrer"
                         className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-600 object-cover flex-shrink-0"
                         onError={(e) => {
+                          // If image fails to load, hide it and show default avatar
                           const target = e.target as HTMLImageElement;
                           target.style.display = 'none';
-                          const badge = target.nextElementSibling as HTMLElement;
-                          if (badge) badge.style.display = 'flex';
+                          const defaultAvatar = target.nextElementSibling as HTMLElement;
+                          if (defaultAvatar) defaultAvatar.style.display = 'flex';
                         }}
                       />
                     ) : null}
-                    {/* Rank Badge - fallback if no photo or photo not shared */}
+                    {/* Default Avatar - show if no photo or photo not shared */}
                     <div
-                      className={`w-12 h-12 rounded-full ${getRankColor(
-                        rank
-                      )} ${(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? 'hidden' : 'flex'} items-center justify-center text-white font-bold text-lg flex-shrink-0`}
+                      className={`w-12 h-12 rounded-full bg-gradient-to-br from-winter-400 to-winter-600 ${(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? 'hidden' : 'flex'} items-center justify-center text-white font-bold text-lg flex-shrink-0`}
                     >
-                      #{rank}
+                      {entry.nickname.charAt(0).toUpperCase()}
                     </div>
 
                     {/* User Info */}
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                        {entry.nickname}
+                        <span>{entry.nickname}</span>
                         {isCurrentUser && (
-                          <span className="text-xs bg-winter-500 text-white px-2 py-0.5 rounded">
+                          <span className="text-xs bg-winter-500 text-white px-2 py-0.5 rounded ml-1">
                             {t('group.you')}
                           </span>
                         )}
@@ -403,16 +402,14 @@ function LeaderboardPage() {
                       </div>
                     </div>
 
-                    {/* Rank Badge on the right */}
-                    {(entry.shareProfilePicture || isCurrentUser) && entry.photoURL && (
-                      <div
-                        className={`w-10 h-10 rounded-full ${getRankColor(
-                          rank
-                        )} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}
-                      >
-                        #{rank}
-                      </div>
-                    )}
+                    {/* Rank Badge - Always on the right */}
+                    <div
+                      className={`w-10 h-10 rounded-full ${getRankColor(
+                        rank
+                      )} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}
+                    >
+                      #{rank}
+                    </div>
                   </div>
 
                   {/* Expanded Details */}

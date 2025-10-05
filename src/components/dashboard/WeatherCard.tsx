@@ -1,3 +1,5 @@
+import { useTranslation } from '../../hooks/useTranslation';
+
 type WeatherCondition = "sunny" | "cloudy" | "rain" | "snow" | "partly";
 
 interface WeatherCardProps {
@@ -15,15 +17,8 @@ const weatherIcons: Record<WeatherCondition, string> = {
   partly: '⛅',
 };
 
-const weatherLabels: Record<WeatherCondition, string> = {
-  sunny: 'Sonnig',
-  cloudy: 'Bewölkt',
-  rain: 'Regen',
-  snow: 'Schnee',
-  partly: 'Teils bewölkt',
-};
-
 export default function WeatherCard({ tempC, condition, location = "Aachen", loading = false }: WeatherCardProps) {
+  const { t } = useTranslation();
   if (loading) {
     return (
       <div className="rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] p-4 h-[88px] sm:h-[76px] lg:h-[88px] flex items-center justify-center">
@@ -51,7 +46,7 @@ export default function WeatherCard({ tempC, condition, location = "Aachen", loa
           {tempC}°C
         </div>
         <div className="text-xs text-white/70 font-medium truncate">
-          {weatherLabels[condition]}
+          {t(`weather.${condition}`)}
         </div>
       </div>
 

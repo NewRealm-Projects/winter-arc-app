@@ -139,7 +139,7 @@ function PushupTrainingPage() {
 
     return (
   <div className="min-h-screen glass-dark rounded-2xl safe-area-inset-top">
-  <div className="glass-dark rounded-2xl text-white p-6 pb-8">
+  <div className="glass-dark rounded-2xl text-white p-6 pb-8 pt-4 md:pt-6">
           <div className="max-w-7xl mx-auto">
             <button
               onClick={() => navigate(-1)}
@@ -209,7 +209,7 @@ function PushupTrainingPage() {
                   : '💪 Weiter so! Morgen wird noch besser!'}
               </p>
               <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-2">
-                Nächstes Mal sind {plannedReps + 1} Wiederholungen geplant.
+                Nächstes Mal sind {totalReps + 1} Wiederholungen geplant.
               </p>
             </div>
 
@@ -245,7 +245,7 @@ function PushupTrainingPage() {
   return (
   <div className="min-h-screen glass-dark rounded-2xl safe-area-inset-top overflow-hidden">
       {/* Header */}
-  <div className="glass-dark rounded-2xl text-white p-6 pb-8">
+  <div className="glass-dark rounded-2xl text-white p-6 pb-8 pt-4 md:pt-6">
         <div className="max-w-7xl mx-auto">
           <button
             onClick={() => navigate(-1)}

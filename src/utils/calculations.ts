@@ -73,11 +73,14 @@ export function calculateStreak(tracking: Record<string, { pushups?: { total?: n
     if (i === 0) {
       // First iteration - check if it's today or yesterday
       const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+
+      // Count this day as the start of the streak
+      streak = 1;
+
       if (diffDays > 1) {
-        // Gap detected - no current streak
+        // Gap detected - this is an old streak, not current
         break;
       }
-      streak = 1;
     } else {
       const prevDate = new Date(dates[i - 1]);
       prevDate.setHours(0, 0, 0, 0);

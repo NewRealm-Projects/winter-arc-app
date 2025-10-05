@@ -34,6 +34,9 @@ function PushupTile() {
     ? t('tracking.today')
     : format(new Date(activeDate), 'dd.MM.');
 
+  // Check if today's workout is complete (5 sets done)
+  const isWorkoutComplete = currentPushups?.workout?.reps?.length === 5;
+
   // Generiere Plan basierend auf Historie
   const lastTotal = getLastPushupTotal(tracking);
   const daysCompleted = countPushupDays(tracking);
@@ -84,7 +87,7 @@ function PushupTile() {
           className="p-2 bg-winter-50 dark:bg-winter-900/30 rounded-lg border border-winter-200 dark:border-winter-700 hover:shadow-md transition-all cursor-pointer text-center"
         >
           <div className="text-xs font-semibold text-winter-700 dark:text-winter-300 mb-1">
-            📊 {t('tracking.todaysPlan')}
+            📊 {isWorkoutComplete ? t('tracking.tomorrowsPlan') : t('tracking.todaysPlan')}
           </div>
           <div className="text-xs text-gray-900 dark:text-white mb-1">
             <span className="font-medium">{t('tracking.sets')}:</span> {todayPlan.join(' • ')} = {plannedTotal} {t('tracking.reps')}

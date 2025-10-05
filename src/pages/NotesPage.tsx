@@ -53,7 +53,7 @@ function NotesPage() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 pb-20 space-y-4">
+      <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-6 pb-20 space-y-4">
         <div className="glass dark:glass-dark rounded-[20px] p-6">
           <textarea
             value={notes}

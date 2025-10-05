@@ -3,7 +3,6 @@ import PushupTile from '../components/PushupTile';
 import SportTile from '../components/SportTile';
 import WaterTile from '../components/WaterTile';
 import ProteinTile from '../components/ProteinTile';
-import WeightTile from '../components/WeightTile';
 import StreakMiniCard from '../components/dashboard/StreakMiniCard';
 import WeatherCard from '../components/dashboard/WeatherCard';
 import WeekCompactCard from '../components/dashboard/WeekCompactCard';
@@ -68,11 +67,11 @@ function DashboardPage() {
   }, []);
 
   return (
-    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto">
+    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe">
       {/* Content */}
-      <div className="mobile-container safe-pb px-3 pt-4 md:px-6 md:pt-8 max-h-[calc(100vh-5rem)]">
-        {/* Top Grid: Streak + Weather */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 lg:gap-4 mb-3 animate-fade-in-up">
+      <div className="mobile-container safe-pb px-3 pt-4 md:px-6 md:pt-8 max-h-[calc(100vh-5rem)] viewport-safe">
+        {/* Top Grid: Streak + Weather - Always side-by-side */}
+        <div className="grid grid-cols-2 gap-2 lg:gap-4 mb-3 animate-fade-in-up">
           {/* Streak Card */}
           <div>
             <StreakMiniCard days={streak} />
@@ -94,8 +93,8 @@ function DashboardPage() {
           </div>
         </div>
 
-        {/* Week Compact Card */}
-        <div className="animate-fade-in-up delay-100 mb-3">
+        {/* Week Compact Card - Now includes weight tracking */}
+        <div className="mb-3 animate-fade-in-up delay-100">
           <WeekCompactCard />
         </div>
 
@@ -112,9 +111,6 @@ function DashboardPage() {
             <WaterTile />
             <ProteinTile />
           </div>
-
-          {/* Weight */}
-          <WeightTile />
         </div>
       </div>
     </div>

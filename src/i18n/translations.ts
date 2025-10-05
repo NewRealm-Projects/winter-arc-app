@@ -16,12 +16,22 @@ export const translations = {
       days: 'Tage',
       completed: 'abgeschlossen',
       streak: 'Tage Streak',
+      streakDays: 'Tage Streak',
       streakInfo: 'Mind. 3 Aufgaben für Streak',
       tasks: 'Aufgaben',
       pushupsToday: 'Liegestütze heute',
       tapToEdit: 'Tippe auf einen Tag, um ihn zu bearbeiten',
       selectedDay: 'Ausgewählter Tag: {{day}}',
       waterProgress: 'Wasserfortschritt: {{percent}}% ({{day}})',
+      minTasks: 'Mind. {{minTasks}} Aufgaben ({{totalTasksDone}}/35 {{tasks}})',
+    },
+    // Weather
+    weather: {
+      sunny: 'Sonnig',
+      cloudy: 'Bewölkt',
+      rain: 'Regen',
+      snow: 'Schnee',
+      partly: 'Teils bewölkt',
     },
     // Tracking
     tracking: {
@@ -46,6 +56,7 @@ export const translations = {
       plan: 'Plan',
       total: 'total',
       todaysPlan: 'Heutiger Trainingsplan',
+      tomorrowsPlan: 'Morgiger Trainingsplan',
       startWorkout: 'Training starten',
       reps: 'Wdh',
       sets: 'Sätze',
@@ -103,6 +114,8 @@ export const translations = {
     settings: {
       title: 'Einstellungen',
       subtitle: 'Passe dein Profil an',
+      weatherCity: 'Wetter-Stadt',
+      weatherCityDesc: 'Stadt für Wetterdaten auswählen',
       profile: 'Profil',
       editProfile: 'Profil bearbeiten',
       saveChanges: 'Änderungen speichern',
@@ -224,12 +237,22 @@ export const translations = {
       days: 'days',
       completed: 'completed',
       streak: 'Day Streak',
+      streakDays: 'Day Streak',
       streakInfo: 'Min. 3 tasks for streak',
       tasks: 'tasks',
       pushupsToday: 'Pushups today',
       tapToEdit: 'Tap a day to edit or update',
       selectedDay: 'Selected day: {{day}}',
       waterProgress: 'Water progress: {{percent}}% ({{day}})',
+      minTasks: 'Min. {{minTasks}} tasks ({{totalTasksDone}}/35 {{tasks}})',
+    },
+    // Weather
+    weather: {
+      sunny: 'Sunny',
+      cloudy: 'Cloudy',
+      rain: 'Rain',
+      snow: 'Snow',
+      partly: 'Partly Cloudy',
     },
     // Tracking
     tracking: {
@@ -254,6 +277,7 @@ export const translations = {
       plan: 'Plan',
       total: 'total',
       todaysPlan: 'Today\'s Training Plan',
+      tomorrowsPlan: 'Tomorrow\'s Training Plan',
       startWorkout: 'Start Workout',
       reps: 'reps',
       sets: 'Sets',
@@ -311,6 +335,8 @@ export const translations = {
     settings: {
       title: 'Settings',
       subtitle: 'Customize your profile',
+      weatherCity: 'Weather City',
+      weatherCityDesc: 'Select city for weather data',
       profile: 'Profile',
       editProfile: 'Edit Profile',
       saveChanges: 'Save Changes',
