@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
+import FloatingActionButton from './FloatingActionButton';
 
 interface LayoutProps {
   children: ReactNode;
@@ -55,6 +56,9 @@ function Layout({ children }: LayoutProps) {
           })}
         </div>
       </nav>
+
+      {/* Floating Action Button with Radial Menu */}
+      <FloatingActionButton />
     </div>
   );
 }

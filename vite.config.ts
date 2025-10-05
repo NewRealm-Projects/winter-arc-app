@@ -5,6 +5,14 @@ import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig({
   base: '/',
+  server: {
+    // Fallback to index.html for SPA routing in dev
+    open: true,
+  },
+  preview: {
+    // Fallback to index.html for SPA routing in preview
+    open: true,
+  },
   plugins: [
     react(),
     VitePWA({

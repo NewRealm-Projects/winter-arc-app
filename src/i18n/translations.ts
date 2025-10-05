@@ -207,6 +207,7 @@ export const translations = {
       placeholder: 'Schreibe deine Gedanken, Ziele oder Trainingsnotizen hier...',
       saved: 'Notizen gespeichert!',
       saveError: 'Fehler beim Speichern der Notizen',
+      autoSave: 'Notizen werden automatisch beim Verlassen der Seite gespeichert',
     },
     // Common
     common: {
@@ -428,6 +429,7 @@ export const translations = {
       placeholder: 'Write your thoughts, goals, or workout notes here...',
       saved: 'Notes saved!',
       saveError: 'Error saving notes',
+      autoSave: 'Notes are automatically saved when you leave the page',
     },
     // Common
     common: {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import { useTranslation } from '../hooks/useTranslation';
 import { getNotes, saveNotes } from '../services/firestoreService';
@@ -7,8 +7,13 @@ function NotesPage() {
   const { t } = useTranslation();
   const user = useStore((state) => state.user);
   const [notes, setNotes] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const notesRef = useRef(notes);
+  const initialNotesRef = useRef('');
+
+  // Update ref when notes change
+  useEffect(() => {
+    notesRef.current = notes;
+  }, [notes]);
 
   // Load notes on mount
   useEffect(() => {
@@ -17,28 +22,47 @@ function NotesPage() {
       const result = await getNotes(user.id);
       if (result.success && result.data) {
         setNotes(result.data);
+        initialNotesRef.current = result.data;
       }
     };
     loadNotes();
   }, [user]);
 
-  const handleSave = async () => {
+  // Auto-save function (without UI feedback)
+  const autoSave = async () => {
     if (!user) return;
-    setIsSaving(true);
-    setSaveStatus('idle');
+    const currentNotes = notesRef.current;
 
-    const result = await saveNotes(user.id, notes);
-
-    if (result.success) {
-      setSaveStatus('success');
-      setTimeout(() => setSaveStatus('idle'), 3000);
-    } else {
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 3000);
+    // Only save if notes have changed
+    if (currentNotes !== initialNotesRef.current) {
+      const result = await saveNotes(user.id, currentNotes);
+      if (result.success) {
+        initialNotesRef.current = currentNotes;
+      }
     }
-
-    setIsSaving(false);
   };
+
+  // Auto-save on unmount (when navigating away)
+  useEffect(() => {
+    return () => {
+      autoSave();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  // Auto-save on beforeunload (when closing tab/refreshing)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (notesRef.current !== initialNotesRef.current && user) {
+        // Call autoSave - browsers will wait briefly for async operations
+        autoSave();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   return (
     <div className="min-h-screen safe-area-inset-top">
@@ -62,27 +86,9 @@ function NotesPage() {
             className="w-full h-96 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none resize-none"
           />
 
-          <div className="mt-4 flex items-center gap-4">
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="px-6 py-3 bg-winter-600 text-white rounded-lg hover:bg-winter-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSaving ? t('common.loading') : t('common.save')}
-            </button>
-
-            {saveStatus === 'success' && (
-              <span className="text-green-600 dark:text-green-400 font-medium">
-                ✓ {t('notes.saved')}
-              </span>
-            )}
-
-            {saveStatus === 'error' && (
-              <span className="text-red-600 dark:text-red-400 font-medium">
-                ✗ {t('notes.saveError')}
-              </span>
-            )}
-          </div>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 italic">
+            {t('notes.autoSave')}
+          </p>
         </div>
       </div>
     </div>

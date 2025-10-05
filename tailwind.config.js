@@ -21,13 +21,22 @@ export default {
           900: '#0c4a6e',
         }
       },
+      zIndex: {
+        '60': '60',
+        '70': '70',
+      },
       animation: {
         'slide-up': 'slideUp 0.3s ease-out',
+        'pop-out': 'popOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
       },
       keyframes: {
         slideUp: {
           '0%': { transform: 'translateY(100%)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        popOut: {
+          '0%': { transform: 'scale(0)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
         }
       }
     },

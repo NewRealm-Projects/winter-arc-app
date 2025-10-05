@@ -54,14 +54,18 @@ function WaterTile() {
       </div>
 
       <div className="grid grid-cols-3 gap-1.5 text-center">
-        {[250, 500, 1000].map((amount) => (
+        {[
+          { amount: 250, label: '250ml' },
+          { amount: 500, label: '500ml' },
+          { amount: 1000, label: '1L' },
+        ].map((item) => (
           <button
-            key={amount}
+            key={item.amount}
             type="button"
-            onClick={() => addWater(amount)}
+            onClick={() => addWater(item.amount)}
             className="px-2 py-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium text-xs"
           >
-            +{amount}
+            +{item.label}
           </button>
         ))}
       </div>
