@@ -9,6 +9,7 @@ export function useAuth() {
   const setUser = useStore((state) => state.setUser);
   const setIsOnboarded = useStore((state) => state.setIsOnboarded);
   const setTracking = useStore((state) => state.setTracking);
+  const setAuthLoading = useStore((state) => state.setAuthLoading);
 
   useEffect(() => {
     console.log('👤 Setting up auth state listener...');
@@ -57,11 +58,14 @@ export function useAuth() {
         } catch {
           setUser(null);
           setIsOnboarded(false);
+        } finally {
+          setAuthLoading(false);
         }
       } else {
         setUser(null);
         setIsOnboarded(false);
         setTracking({});
+        setAuthLoading(false);
         try {
           document.cookie.split(';').forEach((c) => {
             document.cookie = c
@@ -77,5 +81,5 @@ export function useAuth() {
       }
     });
     return () => unsubscribe();
-  }, [setUser, setIsOnboarded, setTracking]);
+  }, [setUser, setIsOnboarded, setTracking, setAuthLoading]);
 }

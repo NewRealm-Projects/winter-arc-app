@@ -26,9 +26,12 @@ function WaterTile() {
   const progress = Math.min((currentWater / waterGoal) * 100, 100);
   const liters = (currentWater / 1000).toFixed(2);
   const goalLiters = (waterGoal / 1000).toFixed(2);
+  const isTracked = currentWater >= 1000; // mindestens 1L
 
   return (
-    <div className="rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] transition-all duration-200 p-3 text-white">
+    <div className={`rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 transition-all duration-200 p-3 text-white ${
+      isTracked ? 'tile-tracked' : 'tile-untracked'
+    }`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <div className="text-xl">💧</div>

@@ -58,12 +58,16 @@ function PushupTile() {
     }
   };
 
+  const isTracked = pushupsForDay > 0;
+
   return (
     <>
       <button
         type="button"
         onClick={() => setShowModal(true)}
-        className="w-full rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] transition-all duration-200 hover:bg-white/8 p-3 text-left text-white"
+        className={`w-full rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 transition-all duration-200 hover:bg-white/8 p-3 text-left text-white ${
+          isTracked ? 'tile-tracked' : 'tile-untracked'
+        }`}
       >
         {/* Header with Icon and Count */}
         <div className="flex items-center justify-between mb-2">

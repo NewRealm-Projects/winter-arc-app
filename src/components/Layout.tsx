@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
+import { auth } from '../firebase/config';
 
 interface LayoutProps {
   children: ReactNode;
@@ -9,12 +10,13 @@ interface LayoutProps {
 function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const { t } = useTranslation();
+  const photoURL = auth.currentUser?.photoURL;
 
   const navItems = [
     { path: '/', labelKey: 'nav.dashboard', icon: '🏠' },
     { path: '/leaderboard', labelKey: 'nav.group', icon: '👥' },
     { path: '/notes', labelKey: 'nav.notes', icon: '📝' },
-    { path: '/settings', labelKey: 'nav.settings', icon: '⚙️' },
+    { path: '/settings', labelKey: 'nav.settings', icon: photoURL ? null : '⚙️', image: photoURL },
   ];
 
   return (
@@ -43,13 +45,23 @@ function Layout({ children }: LayoutProps) {
                 }`}
                 aria-label={t(item.labelKey)}
               >
-                <span
-                  className={`text-2xl flex items-center justify-center transition-transform duration-200 ${
-                    isActive ? 'scale-110' : ''
-                  }`}
-                >
-                  {item.icon}
-                </span>
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt="Profile"
+                    className={`w-8 h-8 rounded-full object-cover transition-transform duration-200 ${
+                      isActive ? 'scale-110' : ''
+                    }`}
+                  />
+                ) : (
+                  <span
+                    className={`text-2xl flex items-center justify-center transition-transform duration-200 ${
+                      isActive ? 'scale-110' : ''
+                    }`}
+                  >
+                    {item.icon}
+                  </span>
+                )}
               </Link>
             );
           })}

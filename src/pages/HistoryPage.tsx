@@ -16,6 +16,7 @@ import { de, enUS } from 'date-fns/locale';
 import { useStore } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
+import { countActiveSports } from '../utils/sports';
 
 function HistoryPage() {
   const navigate = useNavigate();
@@ -113,11 +114,11 @@ function HistoryPage() {
                       </div>
                     )}
 
-                    {entry.sports && (Object.values(entry.sports).some(Boolean)) && (
+                    {entry.sports && countActiveSports(entry.sports) > 0 && (
                       <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
                         <div className="text-2xl mb-1">🏃</div>
                         <div className="text-lg font-bold text-gray-900 dark:text-white">
-                          {Object.values(entry.sports).filter(Boolean).length}
+                          {countActiveSports(entry.sports)}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
                           {t('tracking.sportSessions')}

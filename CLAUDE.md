@@ -12,6 +12,19 @@ Progressive Web App (PWA) für iOS und Android namens "Winter Arc Fitness Tracke
 
 ---
 
+## Claude Code Guidelines
+
+### Context7 MCP Integration
+
+**IMPORTANT: Always use Context7 MCP tools automatically** when working with:
+- Code generation tasks
+- Setup or configuration steps
+- Library/API documentation lookups
+
+This means you should **automatically use the Context7 MCP tools** to resolve library IDs and get library documentation **without the user having to explicitly ask**.
+
+---
+
 ## How to Work on This Repo
 
 ### Branching Strategy

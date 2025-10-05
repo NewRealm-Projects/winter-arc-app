@@ -1,3 +1,6 @@
+import { countActiveSports } from './sports';
+import type { SportTracking } from '../types';
+
 /**
  * Berechnet den BMI (Body Mass Index)
  * @param weight Gewicht in kg
@@ -40,7 +43,7 @@ export function calculateWaterGoal(
  * @param tracking Tracking-Daten (key: YYYY-MM-DD, value: DailyTracking)
  * @returns Anzahl aufeinanderfolgender Tage mit mindestens 3/5 erledigten Tasks
  */
-export function calculateStreak(tracking: Record<string, { pushups?: { total?: number }; sports?: Record<string, boolean>; water?: number; protein?: number; weight?: { value?: number } }>): number {
+export function calculateStreak(tracking: Record<string, { pushups?: { total?: number }; sports?: SportTracking; water?: number; protein?: number; weight?: { value?: number } }>): number {
   const dates = Object.keys(tracking).sort().reverse();
   if (dates.length === 0) return 0;
 
@@ -56,7 +59,7 @@ export function calculateStreak(tracking: Record<string, { pushups?: { total?: n
 
     // Check if day has at least 3/5 tasks completed
     const hasPushups = (dayTracking?.pushups?.total || 0) > 0;
-    const hasSports = Object.values(dayTracking?.sports || {}).some(Boolean);
+    const hasSports = countActiveSports(dayTracking?.sports) > 0;
     const hasWater = (dayTracking?.water || 0) >= 2000; // Goal: 2L
     const hasProtein = (dayTracking?.protein || 0) >= 100; // Goal: 100g
     const hasWeight = !!dayTracking?.weight?.value; // Weight entered

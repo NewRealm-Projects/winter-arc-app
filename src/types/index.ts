@@ -4,6 +4,16 @@ export type Language = 'de' | 'en';
 
 export type WorkoutStatus = 'pass' | 'hold' | 'fail';
 
+export type SportKey = 'hiit' | 'cardio' | 'gym' | 'schwimmen' | 'soccer' | 'rest';
+
+export interface SportEntry {
+  active: boolean;
+  duration?: number;
+  intensity?: number;
+}
+
+export type SportTracking = Record<SportKey, boolean | SportEntry>;
+
 export interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
@@ -44,14 +54,7 @@ export interface DailyTracking {
     total?: number;
     workout?: PushupWorkout;
   };
-  sports: {
-    hiit: boolean;
-    cardio: boolean;
-    gym: boolean;
-    schwimmen: boolean;
-    soccer: boolean;
-    rest: boolean;
-  };
+  sports: SportTracking;
   water: number; // ml
   protein: number; // g
   weight?: {

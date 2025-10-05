@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { DailyTracking } from '../types';
 import { calculateStreak } from '../utils/calculations';
+import { countActiveSports } from '../utils/sports';
 
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || '');
 
@@ -30,7 +31,7 @@ function analyzeTrackingData(tracking: Record<string, DailyTracking>): UserTrack
   );
 
   const sportSessions = Object.values(tracking).reduce(
-    (sum, day) => sum + Object.values(day.sports || {}).filter(Boolean).length,
+    (sum, day) => sum + countActiveSports(day.sports),
     0
   );
 

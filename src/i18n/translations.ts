@@ -82,6 +82,10 @@ export const translations = {
       week: 'Woche',
       month: 'Monat',
       allTime: 'Alle',
+      duration: 'Dauer',
+      intensity: 'Intensität',
+      minutes: 'Minuten',
+      remove: 'Entfernen',
     },
     // Group/Leaderboard
     group: {
@@ -303,6 +307,10 @@ export const translations = {
       week: 'Week',
       month: 'Month',
       allTime: 'All Time',
+      duration: 'Duration',
+      intensity: 'Intensity',
+      minutes: 'Minutes',
+      remove: 'Remove',
     },
     // Group/Leaderboard
     group: {

@@ -1,6 +1,7 @@
 import { doc, setDoc, getDoc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { User, DailyTracking, GroupMember, TrackingRecord } from '../types';
+import { countActiveSports } from '../utils/sports';
 
 // User operations
 export async function saveUser(userId: string, userData: Omit<User, 'id'>) {
@@ -187,7 +188,7 @@ export async function getGroupMembers(groupCode: string, startDate?: Date, endDa
           // Sport sessions in the filtered period
           const sportSessions = Object.values(trackingData).reduce(
             (sum: number, day: DailyTracking) =>
-              sum + Object.values(day.sports || {}).filter(Boolean).length,
+              sum + countActiveSports(day.sports),
             0
           );
 

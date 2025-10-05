@@ -3,6 +3,7 @@ import { de, enUS } from 'date-fns/locale';
 import { useStore } from '../store/useStore';
 import { useTranslation } from '../hooks/useTranslation';
 import { calculateStreak } from '../utils/calculations';
+import { countActiveSports } from '../utils/sports';
 
 function WeekOverview() {
   const { t, language } = useTranslation();
@@ -28,7 +29,7 @@ function WeekOverview() {
 
     // Check what's completed
     const hasPushups = (dayTracking?.pushups?.total || 0) > 0;
-    const hasSports = Object.values(dayTracking?.sports || {}).some(Boolean);
+    const hasSports = countActiveSports(dayTracking?.sports) > 0;
     const hasWater = (dayTracking?.water || 0) >= 2000; // Goal: 2L
     const hasProtein = (dayTracking?.protein || 0) >= 100; // Goal: 100g
     const hasWeight = !!dayTracking?.weight?.value; // Weight entered

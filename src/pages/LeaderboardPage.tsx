@@ -4,6 +4,7 @@ import { de, enUS } from 'date-fns/locale';
 import { useStore } from '../store/useStore';
 import { getGroupMembers } from '../services/firestoreService';
 import { calculateStreak } from '../utils/calculations';
+import { countActiveSports } from '../utils/sports';
 import { useTranslation } from '../hooks/useTranslation';
 import type { GroupMember } from '../types';
 
@@ -27,7 +28,7 @@ function LeaderboardPage() {
     const sportSessions = Object.values(tracking).reduce(
       (sum, day) =>
         sum +
-        Object.values(day.sports || {}).filter(Boolean).length,
+        countActiveSports(day.sports),
       0
     );
     const streak = calculateStreak(tracking);
@@ -164,7 +165,7 @@ function LeaderboardPage() {
                 const isCurrentDay = isToday(day);
                 // Calculate progress percentage
                 const pushups = dayTracking?.pushups?.total || 0;
-                const sports = Object.values(dayTracking?.sports || {}).filter(Boolean).length;
+                const sports = countActiveSports(dayTracking?.sports);
                 const water = dayTracking?.water || 0;
                 const protein = dayTracking?.protein || 0;
                 const weight = dayTracking?.weight?.value || 0;
@@ -256,7 +257,7 @@ function LeaderboardPage() {
 
               // Calculate progress percentage
               const pushups = dayTracking?.pushups?.total || 0;
-              const sports = Object.values(dayTracking?.sports || {}).filter(Boolean).length;
+              const sports = countActiveSports(dayTracking?.sports);
               const water = dayTracking?.water || 0;
               const protein = dayTracking?.protein || 0;
               const weight = dayTracking?.weight?.value || 0;

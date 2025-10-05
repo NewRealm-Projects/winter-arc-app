@@ -48,6 +48,9 @@ function WeightTile() {
   // Generate chart data
   const chartData = [];
 
+  // Use selected date as reference point for the graph
+  const referenceDate = new Date(activeDate);
+
   // Add onboarding weight as the first data point if available and within the date range
   if (user?.weight && user?.createdAt) {
     try {
@@ -69,10 +72,10 @@ function WeightTile() {
       // Validate the date
       if (!isNaN(createdAtDate.getTime())) {
         const createdDate = format(createdAtDate, 'yyyy-MM-dd');
-        const oldestDateInRange = format(subDays(new Date(), days - 1), 'yyyy-MM-dd');
+        const oldestDateInRange = format(subDays(referenceDate, days - 1), 'yyyy-MM-dd');
 
         // Include onboarding weight if it's within the selected date range
-        if (createdDate >= oldestDateInRange) {
+        if (createdDate >= oldestDateInRange && createdDate <= activeDate) {
           chartData.push({
             date: format(createdAtDate, 'dd.MM'),
             weight: user.weight,
@@ -87,7 +90,7 @@ function WeightTile() {
 
   // Add tracked weights
   for (let i = days - 1; i >= 0; i--) {
-    const date = format(subDays(new Date(), i), 'yyyy-MM-dd');
+    const date = format(subDays(referenceDate, i), 'yyyy-MM-dd');
     const dayTracking = tracking[date];
     if (dayTracking?.weight) {
       chartData.push({

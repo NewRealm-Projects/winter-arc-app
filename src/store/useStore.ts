@@ -5,6 +5,9 @@ interface AppState {
   user: User | null;
   setUser: (user: User | null) => void;
 
+  authLoading: boolean;
+  setAuthLoading: (loading: boolean) => void;
+
   tracking: Record<string, DailyTracking>;
   setTracking: (tracking: Record<string, DailyTracking>) => void;
   updateDayTracking: (date: string, data: Partial<DailyTracking>) => void;
@@ -45,6 +48,9 @@ const getInitialDarkMode = (): boolean => {
 export const useStore = create<AppState>((set) => ({
   user: null,
   setUser: (user) => set({ user }),
+
+  authLoading: true,
+  setAuthLoading: (loading) => set({ authLoading: loading }),
 
   tracking: {},
   setTracking: (tracking) => set({ tracking }),
