@@ -1,11 +1,8 @@
 name: Deploy to GitHub Pages
 
 on:
-  workflow_run:
-    workflows: ["Lighthouse CI"]
-    types:
-      - completed
-    branches: [main]
+  push:
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -20,8 +17,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Only deploy if CI and Lighthouse CI succeeded
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
