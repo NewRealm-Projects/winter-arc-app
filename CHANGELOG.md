@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.5] - 2025-10-06
+
+### Chore
+- 🔧 **Archive GitHub Actions Workflows** - Moved CI/CD workflows to `.github/workflows-archived/`
+  - Archived `ci.yml` (CI tests: TypeScript, ESLint, Playwright, hygiene scans)
+  - Archived `deploy.yml` (GitHub Pages deployment)
+  - Archived `lighthouse-ci.yml` (Lighthouse CI and mobile device tests)
+  - Workflows can be restored by moving files back to `.github/workflows/`
+
 ## [0.0.4] - 2025-10-04
 
 ### Removed
