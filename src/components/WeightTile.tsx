@@ -115,25 +115,13 @@ function WeightTile() {
 
   return (
     <div className={`${glassCardClasses} ${designTokens.padding.compact} text-white`}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <div className="text-xl">⚖️</div>
-          <div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-              {t('tracking.weight')}
-            </h3>
-            <div className="text-[10px] text-gray-500 dark:text-gray-400">{displayDayLabel}</div>
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-            {latestWeight}kg
-          </div>
-          {latestBMI && (
-            <div className="text-[10px] text-gray-500 dark:text-gray-400">
-              {t('tracking.bmi')}: {latestBMI}
-            </div>
-          )}
+      <div className="flex items-center gap-2 mb-2">
+        <div className="text-xl">⚖️</div>
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+            {t('tracking.weight')}
+          </h3>
+          <div className="text-[10px] text-gray-500 dark:text-gray-400">{displayDayLabel}</div>
         </div>
       </div>
 
@@ -237,6 +225,20 @@ function WeightTile() {
           </p>
         </div>
       )}
+
+      <div className="mt-3 mb-2 text-center">
+        <div className="text-[11px] font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+          {t('tracking.weight')}
+        </div>
+        <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+          {latestWeight}kg
+        </div>
+        {latestBMI && (
+          <div className="text-[11px] text-gray-600 dark:text-gray-400">
+            {t('tracking.bmi')}: {latestBMI}
+          </div>
+        )}
+      </div>
 
       {/* Input */}
       <div className="text-center">
