@@ -5,6 +5,7 @@ import { useStore } from '../store/useStore';
 import { useTranslation } from '../hooks/useTranslation';
 import type { SportEntry, SportKey } from '../types';
 import { countActiveSports, normalizeSports } from '../utils/sports';
+import { getTileClasses, designTokens } from '../theme/tokens';
 
 const SPORT_OPTION_CONFIG: Array<{ key: SportKey; labelKey: string; icon: string }> = [
   { key: 'hiit', labelKey: 'tracking.hiit', icon: '🔥' },
@@ -110,9 +111,7 @@ function SportTile() {
 
   return (
     <div
-      className={`rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 transition-all duration-200 p-3 text-white ${
-        isTracked ? 'tile-tracked' : 'tile-untracked'
-      }`}
+      className={`${getTileClasses(isTracked)} ${designTokens.padding.compact} text-white`}
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">

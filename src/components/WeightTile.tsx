@@ -4,6 +4,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { useStore } from '../store/useStore';
 import { calculateBMI } from '../utils/calculations';
 import { useTranslation } from '../hooks/useTranslation';
+import { glassCardClasses, designTokens } from '../theme/tokens';
 
 function WeightTile() {
   const { t } = useTranslation();
@@ -113,7 +114,7 @@ function WeightTile() {
   const latestBMI = activeTracking?.weight?.bmi;
 
   return (
-    <div className="rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] transition-all duration-200 p-3 text-white">
+    <div className={`${glassCardClasses} ${designTokens.padding.compact} text-white`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <div className="text-xl">⚖️</div>
