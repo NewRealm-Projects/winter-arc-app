@@ -3,6 +3,7 @@ import PushupTile from '../components/PushupTile';
 import SportTile from '../components/SportTile';
 import WaterTile from '../components/WaterTile';
 import ProteinTile from '../components/ProteinTile';
+import WeightTile from '../components/WeightTile';
 import StreakMiniCard from '../components/dashboard/StreakMiniCard';
 import WeatherCard from '../components/dashboard/WeatherCard';
 import WeekCompactCard from '../components/dashboard/WeekCompactCard';
@@ -93,9 +94,10 @@ function DashboardPage() {
           </div>
         </div>
 
-        {/* Week Compact Card - Now includes weight tracking */}
-        <div className="mb-3 animate-fade-in-up delay-100">
+        {/* Week Compact Card + Weight Tile */}
+        <div className="tile-grid-2 mb-3 animate-fade-in-up delay-100">
           <WeekCompactCard />
+          <WeightTile />
         </div>
 
         {/* Tracking Tiles */}

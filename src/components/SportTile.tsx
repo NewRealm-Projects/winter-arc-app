@@ -7,12 +7,12 @@ import type { SportEntry, SportKey } from '../types';
 import { countActiveSports, normalizeSports } from '../utils/sports';
 
 const SPORT_OPTION_CONFIG: Array<{ key: SportKey; labelKey: string; icon: string }> = [
-  { key: 'hiit', labelKey: 'tracking.hiit', icon: '??' },
-  { key: 'cardio', labelKey: 'tracking.cardio', icon: '??' },
-  { key: 'gym', labelKey: 'tracking.gym', icon: '???' },
-  { key: 'schwimmen', labelKey: 'tracking.swimming', icon: '??' },
-  { key: 'soccer', labelKey: 'tracking.soccer', icon: '?' },
-  { key: 'rest', labelKey: 'tracking.rest', icon: '??' },
+  { key: 'hiit', labelKey: 'tracking.hiit', icon: '🔥' },
+  { key: 'cardio', labelKey: 'tracking.cardio', icon: '🏃' },
+  { key: 'gym', labelKey: 'tracking.gym', icon: '🏋️' },
+  { key: 'schwimmen', labelKey: 'tracking.swimming', icon: '🏊' },
+  { key: 'soccer', labelKey: 'tracking.soccer', icon: '⚽' },
+  { key: 'rest', labelKey: 'tracking.rest', icon: '😴' },
 ];
 
 function SportTile() {
@@ -116,7 +116,7 @@ function SportTile() {
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <div className="text-xl">??</div>
+          <div className="text-xl">🏃</div>
           <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400">
             {t('tracking.sport')}
           </h3>
@@ -169,7 +169,7 @@ function SportTile() {
                   onClick={() => setShowModal(false)}
                   className="text-white/60 hover:text-white transition-colors"
                 >
-                  ?
+                  ✕
                 </button>
               </div>
 
