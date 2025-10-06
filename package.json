@@ -22,6 +22,9 @@
     "lhci:assert": "lhci assert",
     "lhci:upload": "lhci upload",
     "lhci:run": "npm run build && npm run preview -- --port 4173 & sleep 3 && lhci autorun && kill $!",
+    "agent:lighthouse": "node .agent/scripts/run-lighthouse.mjs",
+    "agent:bundle": "node .agent/scripts/bundle-report.mjs",
+    "agent:artifacts": "node .agent/scripts/prepare-artifacts.mjs",
     "prepare": "husky"
   },
   "dependencies": {
