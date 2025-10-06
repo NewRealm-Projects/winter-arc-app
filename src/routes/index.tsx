@@ -4,12 +4,12 @@ import { useStore } from '../store/useStore';
 import Layout from '../components/Layout';
 import { CardSkeleton } from '../components/ui/Skeleton';
 
-// Eager load critical pages
+// Eager load critical pages (immediate user access)
 import LoginPage from '../pages/LoginPage';
 import OnboardingPage from '../pages/OnboardingPage';
-import DashboardPage from '../pages/DashboardPage';
 
-// Lazy load non-critical pages
+// Lazy load all authenticated pages (route-based code splitting)
+const DashboardPage = lazy(() => import('../pages/DashboardPage'));
 const LeaderboardPage = lazy(() => import('../pages/LeaderboardPage'));
 const SettingsPage = lazy(() => import('../pages/SettingsPage'));
 // const HistoryPage = lazy(() => import('../pages/HistoryPage')); // ARCHIVED 2025-10-04
