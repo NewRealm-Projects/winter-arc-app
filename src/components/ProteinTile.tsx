@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
 import { calculateProteinGoal } from '../utils/calculations';
 import { useTranslation } from '../hooks/useTranslation';
+import { getTileClasses, designTokens } from '../theme/tokens';
 
 function ProteinTile() {
   const { t } = useTranslation();
@@ -36,9 +37,7 @@ function ProteinTile() {
   const isTracked = currentProtein > 0;
 
   return (
-    <div className={`rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 transition-all duration-200 p-3 text-white ${
-      isTracked ? 'tile-tracked' : 'tile-untracked'
-    }`}>
+    <div className={`${getTileClasses(isTracked)} ${designTokens.padding.compact} text-white`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <div className="text-xl">🥩</div>

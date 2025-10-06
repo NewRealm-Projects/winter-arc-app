@@ -7,6 +7,87 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2025-10-06
+
+### 🎉 Features
+
+- **Agentisches Entwicklungs-Setup** - Strukturiertes Agent-System für Qualitätssicherung
+  - 4 spezialisierte Agents: UI-Refactor, PWA/Performance, Test/Guard, Docs/Changelog
+  - Agent-Specs in `.agent/` Verzeichnis
+  - Agent-Policies und PR-Templates
+  - Agent-spezifische Scripts (Lighthouse, Bundle Analysis, Artifacts)
+
+- **Design Token System** - Zentralisierte Design-Variablen
+  - Design Tokens in `src/theme/tokens.ts`
+  - Glass/Blur Presets (glassCardClasses, trackedTileClasses, etc.)
+  - Spacing, Radius, Shadow, Blur Tokens
+  - Helper Functions: `getTileClasses(isTracked)`
+
+- **CI/CD Pipeline** - Automatisierte Quality Gates
+  - GitHub Actions Workflow (`.github/workflows/ci.yml`)
+  - ESLint, TypeScript, Unit Tests, E2E Tests, Build, Lighthouse CI
+  - Parallel job execution für schnellere Builds
+  - Quality Gates: Lint=0, TS=0, Tests pass, Lighthouse≥90
+
+### ⚡ Performance
+
+- **Lazy Loading Optimization** - Route-based Code Splitting erweitert
+  - DashboardPage von eager zu lazy loading migriert
+  - Nur kritische Auth-Pages eager: LoginPage, OnboardingPage
+  - Main Bundle Size: 86 KB (vorher: ~110 KB)
+  - Performance Report in `artifacts/performance/PERFORMANCE.md`
+
+- **Bundle Analysis** - Detaillierte Bundle-Size-Reports
+  - Total JS Size: 1204 KB (Firebase: 448 KB, Recharts: 376 KB)
+  - Bundle Visualizer: `artifacts/bundle/stats.html`
+  - Bundle Summary: `artifacts/bundle/bundle-summary.md`
+
+### 🧪 Tests
+
+- **E2E Test Specifications** - Playwright Test-Suites (26 Tests total)
+  - Tracking Flow: 8 Tests (`tests/e2e/tracking.spec.ts`)
+  - Navigation Flow: 9 Tests (`tests/e2e/navigation.spec.ts`)
+  - Training Flow: 9 Tests (`tests/e2e/training.spec.ts`)
+  - Test README mit Firebase Auth Emulator Setup-Anleitung
+  - Status: Spezifikationen fertig, Emulator Setup ausstehend
+
+### 📚 Documentation
+
+- **README.md** - Umfassende Projekt-Dokumentation
+  - Agent-System Erklärung
+  - Performance-Metriken Tabelle
+  - Testing Strategy mit Coverage-Zielen
+  - Tech Stack detailliert
+  - Development Scripts vollständig
+
+- **CONTRIBUTING.md** - Beitrags-Guidelines
+  - Branching-Strategie (main → dev → feat/*)
+  - Commit-Konventionen (Conventional Commits)
+  - PR-Prozess mit Template
+  - Definition of Done
+  - Code Quality Gates
+  - Semantic Versioning Regeln
+
+- **CLAUDE.md** - Agent-System Abschnitt
+  - 4 Agents dokumentiert mit Triggern
+  - Agent-Workflow erklärt
+  - Policies referenziert
+
+### 🔧 Chore
+
+- **gitignore** - Auto-generierte Dateien ignorieren
+  - `*.tsbuildinfo` (TypeScript Cache)
+  - `stats.html` (Bundle Visualizer)
+
+### 🏆 Agent PRs
+
+- **PR #27**: Agent Infrastructure Setup
+- **PR #28**: UI-Refactor Agent - Design Token Migration
+- **PR #29**: Test/Guard Agent - E2E Test Specifications
+- **PR #30**: PWA/Performance Agent - Lazy Loading & Bundle Optimization
+
+---
+
 ## [0.0.5] - 2025-10-06
 
 ### Chore

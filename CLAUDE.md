@@ -73,6 +73,114 @@ npm run lhci:collect     # Collect Lighthouse CI metrics
 npm run lhci:assert      # Assert Lighthouse CI thresholds
 npm run lhci:upload      # Upload Lighthouse CI results
 npm run lhci:run         # Run full Lighthouse CI workflow
+
+# Agent-Specific Scripts
+npm run agent:lighthouse # Run Lighthouse audits for all key pages
+npm run agent:bundle     # Generate bundle analysis report
+npm run agent:artifacts  # Collect agent artifacts into structured directories
+```
+
+### Agentisches Entwicklungs-Setup
+
+Dieses Projekt nutzt ein **strukturiertes Agent-System** (`.agent/`) zur Qualitätssicherung. Jeder Agent ist spezialisiert auf einen bestimmten Bereich und arbeitet in isolierten Feature Branches.
+
+#### 4 Spezialisierte Agents
+
+1. **UI-Refactor Agent** ([`.agent/ui-refactor.agent.md`](.agent/ui-refactor.agent.md))
+   - **Trigger**: Inkonsistentes Glass/Blur Design, fehlende Mobile-Optimierung, veraltete Tile-Styles
+   - **Fokus**: Design Token System, Mobile-First One-Screen-Regel, Glassmorphism-Konsistenz
+   - **Output**: Migrierte Tiles, Design Token System, Mobile Layouts
+   - **Quality Gates**: Visual Regression Tests (Light/Dark), Responsive Tests
+
+2. **PWA/Performance Agent** ([`.agent/pwa-perf.agent.md`](.agent/pwa-perf.agent.md))
+   - **Trigger**: Lighthouse Score < 90, Bundle Size > 600 KB, TTI > 2s
+   - **Fokus**: Lazy Loading, Bundle-Optimierung, Service Worker, Image Optimization
+   - **Output**: Performance Report, Bundle Analysis, Lighthouse Audits
+   - **Quality Gates**: Lighthouse ≥ 90, Bundle < 600 KB Main Chunk
+
+3. **Test/Guard Agent** ([`.agent/test-guard.agent.md`](.agent/test-guard.agent.md))
+   - **Trigger**: Coverage < 70%, fehlende E2E Tests, keine Visual Regression Tests
+   - **Fokus**: Unit Tests (Vitest), E2E Tests (Playwright), Visual Regression, Dead Code Detection
+   - **Output**: Test Suites, Coverage Reports, Visual Regression Baselines
+   - **Quality Gates**: Coverage ≥ 70%, E2E Tests für kritische Flows
+
+4. **Docs/Changelog Agent** ([`.agent/docs-changelog.agent.md`](.agent/docs-changelog.agent.md))
+   - **Trigger**: Veraltete Docs, fehlende CHANGELOG-Einträge, inkonsistente Version
+   - **Fokus**: README, CLAUDE.md, CONTRIBUTING.md, CHANGELOG.md, Screenshots, Versioning
+   - **Output**: Aktualisierte Markdown-Dateien, Screenshots, Version Bump
+   - **Quality Gates**: Links funktionieren, Screenshots aktuell, Version korrekt
+
+#### Agent-Workflow
+
+```bash
+# 1. Agent-Spec lesen
+cat .agent/<agent-name>.agent.md
+
+# 2. Branch erstellen (von dev)
+git checkout dev
+git pull origin dev
+git checkout -b feat/<agent>-<topic>
+
+# 3. Schritte aus Agent-Spec abarbeiten
+# - Inventar erstellen
+# - Änderungen durchführen
+# - Tests ausführen
+# - Artefakte generieren
+
+# 4. Alle Tests lokal ausführen
+npm run test:all
+
+# 5. PR gegen dev erstellen
+gh pr create --base dev --title "[Agent] ..." --body "..."
+
+# 6. Nach Merge: Branch löschen
+gh pr merge <pr-number> --squash --delete-branch
+```
+
+#### Agent-Policies
+
+Siehe [`.agent/policies.md`](.agent/policies.md) für vollständige Regeln:
+
+- **Branching**: Immer von `dev` abzweigen, PRs gegen `dev` (nie `main`)
+- **PR Size**: ≤ 300 Zeilen Diff (empfohlen)
+- **Quality Gates**: ESLint=0, TS=0, Tests pass, Lighthouse≥90
+- **Artifacts**: Strukturiert in `artifacts/<agent>/` ablegen
+- **Squash Merge**: PRs werden squash-merged für saubere Git-Historie
+
+#### Wann welchen Agent triggern?
+
+| Situation | Agent | Beispiel |
+|-----------|-------|----------|
+| Tiles haben unterschiedliche Styles | UI-Refactor | WaterTile nutzt andere Klassen als PushupTile |
+| Lighthouse Score < 90 | PWA/Performance | Performance-Score auf 85 gesunken |
+| Bundle > 600 KB | PWA/Performance | Main Chunk ist 750 KB |
+| Coverage < 70% | Test/Guard | Nur 55% Coverage nach neuem Feature |
+| Fehlende E2E Tests | Test/Guard | Pushup Training Flow nicht getestet |
+| README veraltet | Docs/Changelog | Screenshots zeigen alte UI |
+| CHANGELOG nicht aktualisiert | Docs/Changelog | Letzte 3 PRs nicht dokumentiert |
+| Version nicht gebumpt | Docs/Changelog | package.json zeigt alte Version |
+
+#### Agent-Artefakte
+
+Alle Agent-Outputs landen in `artifacts/`:
+
+```
+artifacts/
+├── bundle/              # PWA/Performance Agent
+│   ├── bundle-summary.md
+│   └── stats.html
+├── lighthouse/          # PWA/Performance Agent
+│   ├── home.html
+│   ├── leaderboard.html
+│   └── notes.html
+├── performance/         # PWA/Performance Agent
+│   └── PERFORMANCE.md
+├── tests/               # Test/Guard Agent
+│   ├── coverage/
+│   └── screenshots/
+└── docs/                # Docs/Changelog Agent
+    ├── screenshots/
+    └── *.md
 ```
 
 ### Definition of Ready (DoR)

@@ -42,3 +42,9 @@ playwright-report/
 preview/
 preview-screenshots/
 test-results/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Bundle analysis
+stats.html
