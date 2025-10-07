@@ -110,7 +110,7 @@ export default function WeekCompactCard() {
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(displayedWeekStart, i);
     const dateStr = format(date, 'yyyy-MM-dd');
-    const dayTracking = combinedTracking[dateStr];
+    const dayTracking = combinedTracking[dateStr] || {};
     const isToday = isSameDay(date, today);
     const isSelected = dateStr === activeDate;
 
