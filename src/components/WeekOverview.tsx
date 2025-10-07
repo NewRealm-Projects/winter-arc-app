@@ -9,6 +9,7 @@ import { useCombinedTracking } from '../hooks/useCombinedTracking';
 function WeekOverview() {
   const { t, language } = useTranslation();
   const combinedTracking = useCombinedTracking();
+  const user = useStore((state) => state.user);
   const selectedDate = useStore((state) => state.selectedDate);
   const setSelectedDate = useStore((state) => state.setSelectedDate);
 
@@ -18,28 +19,39 @@ function WeekOverview() {
   const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Monday
   const locale = language === 'de' ? de : enUS;
 
-  // Calculate streak
-  const streak = calculateStreak(combinedTracking);
+  const enabledActivities = user?.enabledActivities || ['pushups', 'sports', 'water', 'protein'];
+
+  const totalTasks = enabledActivities.length + 1; // +1 for weight
+  const requiredTasks = Math.ceil(totalTasks * 0.6);
+
+  const streak = calculateStreak(combinedTracking, enabledActivities);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(weekStart, i);
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayTracking = Object.prototype.hasOwnProperty.call(combinedTracking, dateStr)
-      const dayTracking = Object.prototype.hasOwnProperty.call(combinedTracking, dateStr) ? combinedTracking[dateStr] : null;
-      : null;
+      ? combinedTracking[dateStr]
+      : undefined;
     const isToday = isSameDay(date, today);
     const isSelected = dateStr === activeDate;
 
-    // Check what's completed
-    const hasPushups = (dayTracking?.pushups?.total || 0) > 0;
-    const hasSports = countActiveSports(dayTracking?.sports) > 0;
-    const hasWater = (dayTracking?.water || 0) >= 2000; // Goal: 2L
-    const hasProtein = (dayTracking?.protein || 0) >= 100; // Goal: 100g
-    const hasWeight = !!dayTracking?.weight?.value; // Weight entered
+    const completedList: string[] = [];
 
-    const tasksCompleted = [hasPushups, hasSports, hasWater, hasProtein, hasWeight].filter(Boolean).length;
-    const isCompleted = tasksCompleted >= 3; // At least 3 tasks for streak
-    const isPartial = tasksCompleted > 0 && tasksCompleted < 3; // Some tasks done but not enough
+    const hasPushups = enabledActivities.includes('pushups') && (dayTracking?.pushups?.total || 0) > 0;
+    const hasSports = enabledActivities.includes('sports') && countActiveSports(dayTracking?.sports) > 0;
+    const hasWater = enabledActivities.includes('water') && (dayTracking?.water || 0) >= 2000;
+    const hasProtein = enabledActivities.includes('protein') && (dayTracking?.protein || 0) >= 100;
+    const hasWeight = !!dayTracking?.weight?.value;
+
+    if (hasPushups) completedList.push('pushups');
+    if (hasSports) completedList.push('sports');
+    if (hasWater) completedList.push('water');
+    if (hasProtein) completedList.push('protein');
+    if (hasWeight) completedList.push('weight');
+
+    const tasksCompleted = completedList.length;
+    const isCompleted = tasksCompleted >= requiredTasks;
+    const isPartial = tasksCompleted > 0 && tasksCompleted < requiredTasks;
 
     return {
       date,
@@ -58,8 +70,6 @@ function WeekOverview() {
       tasksCompleted,
     };
   });
-
-
 
   return (
     <div className="glass-dark touchable p-6 text-white">
@@ -86,7 +96,7 @@ function WeekOverview() {
       </div>
 
       <div className="mb-4 text-xs text-gray-500 dark:text-gray-400 text-center">
-        {t('dashboard.streakInfo')} (3/5 {t('dashboard.tasks')})
+        {t('dashboard.streakInfo')} ({requiredTasks}/{totalTasks} {t('dashboard.tasks')})
       </div>
 
       {/* Week Days Grid */}

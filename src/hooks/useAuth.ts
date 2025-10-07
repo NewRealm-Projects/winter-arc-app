@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 import { useStore } from '../store/useStore';
-import type { User, DailyTracking } from '../types';
+import type { User, DailyTracking, Activity } from '../types';
 
 export function useAuth() {
   const setUser = useStore((state) => state.setUser);
@@ -27,10 +27,27 @@ export function useAuth() {
           const userDoc = await getDoc(userDocRef);
           if (userDoc.exists()) {
             const userData = userDoc.data() as Omit<User, 'id'>;
-            setUser({
-              id: firebaseUser.uid,
-              ...userData,
-            });
+
+            // Backward compatibility: Migrate existing users without enabledActivities
+            if (!userData.enabledActivities) {
+              const defaultActivities: Activity[] = ['pushups', 'sports', 'water', 'protein'];
+              console.log('🔄 Migrating existing user to have default enabledActivities');
+
+              // Update Firestore with default activities
+              await setDoc(userDocRef, { enabledActivities: defaultActivities }, { merge: true });
+
+              // Update local state with migrated data
+              setUser({
+                id: firebaseUser.uid,
+                ...userData,
+                enabledActivities: defaultActivities,
+              });
+            } else {
+              setUser({
+                id: firebaseUser.uid,
+                ...userData,
+              });
+            }
             setIsOnboarded(!!userData.birthday);
           } else {
             setUser({

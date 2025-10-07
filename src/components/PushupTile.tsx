@@ -17,6 +17,7 @@ function PushupTile() {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [isSetMode, setIsSetMode] = useState(false); // false = add, true = set exact
 
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
@@ -49,15 +50,16 @@ function PushupTile() {
 
   const handleSave = () => {
     const amount = parseInt(inputValue);
-    if (!isNaN(amount) && amount > 0) {
+    if (!isNaN(amount) && amount >= 0) {
       updateDayTracking(activeDate, {
         pushups: {
           ...currentPushups,
-          total: (currentPushups?.total ?? 0) + amount,
+          total: isSetMode ? amount : (currentPushups?.total ?? 0) + amount,
         },
       });
       setInputValue('');
       setShowModal(false);
+      setIsSetMode(false);
     }
   };
 
@@ -113,27 +115,59 @@ function PushupTile() {
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               {t('tracking.howMany')} ({displayDayLabel})
             </p>
+
+            {/* Mode Toggle */}
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setIsSetMode(false)}
+                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  !isSetMode
+                    ? 'bg-winter-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+              >
+                ➕ {t('tracking.add')}
+              </button>
+              <button
+                onClick={() => setIsSetMode(true)}
+                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isSetMode
+                    ? 'bg-winter-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+              >
+                ✏️ {t('tracking.setExact')}
+              </button>
+            </div>
+
+            {!isSetMode && pushupsForDay > 0 && (
+              <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm text-blue-700 dark:text-blue-300">
+                💡 {t('tracking.currentTotal')}: {pushupsForDay}
+              </div>
+            )}
+
             <input
               type="number"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-              placeholder={t('tracking.enterAmount')}
+              placeholder={isSetMode ? t('tracking.totalAmount') : t('tracking.enterAmount')}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none mb-4"
               autoFocus
             />
             <div className="flex gap-2">
               <button
                 onClick={handleSave}
-                disabled={!inputValue || parseInt(inputValue) <= 0}
+                disabled={!inputValue || parseInt(inputValue) < 0}
                 className="flex-1 px-4 py-3 bg-winter-600 text-white rounded-lg font-semibold hover:bg-winter-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {t('tracking.add')}
+                {t('tracking.save')}
               </button>
               <button
                 onClick={() => {
                   setShowModal(false);
                   setInputValue('');
+                  setIsSetMode(false);
                 }}
                 className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >

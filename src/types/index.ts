@@ -2,6 +2,8 @@ export type Gender = 'male' | 'female' | 'diverse';
 
 export type Language = 'de' | 'en';
 
+export type Activity = 'pushups' | 'sports' | 'water' | 'protein';
+
 export type WorkoutStatus = 'pass' | 'hold' | 'fail';
 
 export type SportKey = 'hiit' | 'cardio' | 'gym' | 'schwimmen' | 'soccer' | 'rest';
@@ -32,6 +34,7 @@ export interface User {
   birthday?: string; // YYYY-MM-DD
   photoURL?: string; // Profile picture URL (Firebase Storage)
   shareProfilePicture?: boolean; // Allow profile picture to be visible in leaderboard
+  enabledActivities?: Activity[]; // Activities user wants to track (default: all)
   createdAt: Date;
   pushupState: PushupState;
 }
