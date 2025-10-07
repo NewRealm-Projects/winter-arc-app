@@ -212,7 +212,7 @@ export async function updateSmartNote(noteId: string, rawInput: string) {
   }
 
   const autoTrackingEnabled =
-    const autoTrackingEnabled = existing.pending === true || existing.summary !== existing.raw || (existing.events?.length > 0);
+    existing.pending === true || existing.summary !== existing.raw || (existing.events.length > 0);
 
   if (!autoTrackingEnabled) {
     await noteStore.update(noteId, {
