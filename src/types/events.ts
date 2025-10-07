@@ -73,6 +73,12 @@ export type Event =
   | BfpEvent
   | FoodEvent;
 
+export type SmartNoteAttachment = {
+  id: string;
+  url: string;
+  type: 'image';
+};
+
 export interface SmartNote {
   id: string;
   ts: number;
@@ -80,6 +86,7 @@ export interface SmartNote {
   summary: string;
   events: Event[];
   pending?: boolean;
+  attachments?: SmartNoteAttachment[];
 }
 
 export type SmartNoteInput = {
