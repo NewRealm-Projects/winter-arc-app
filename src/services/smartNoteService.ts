@@ -24,6 +24,16 @@ type FetchOptions = {
   cursor?: number;
 };
 
+const FORBIDDEN_FIRESTORE_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+
+function isValidKey(key: string): boolean {
+  if (key.trim() === '') {
+    return false;
+  }
+
+  return !FORBIDDEN_FIRESTORE_KEYS.has(key);
+}
+
 function sanitizeForFirestore<T>(value: T): T {
   if (value === null || value === undefined) {
     return value;

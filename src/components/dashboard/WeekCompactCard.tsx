@@ -241,7 +241,9 @@ export default function WeekCompactCard() {
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-7">
+      <div
+        className="mt-4 flex flex-nowrap items-center justify-center gap-3 overflow-x-auto scroll-smooth no-scrollbar sm:grid sm:grid-cols-7 sm:items-stretch sm:justify-start sm:overflow-visible"
+      >
         {weekDays.map((day) => (
           <WeekDayCircle
             key={day.date}
