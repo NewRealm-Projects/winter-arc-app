@@ -26,18 +26,21 @@ describe('getDayCompletion', () => {
         water: 1000,
         protein: 120,
         sports: { hiit: { active: true } } as SportTracking,
+        weight: { value: 72 },
       },
       user: {
         weight: 70,
         hydrationGoalLiters: 2.5,
         proteinGoalGrams: 150,
       },
-      enabledActivities: ['water', 'protein', 'sports'],
+      enabledActivities: ['water', 'protein', 'sports', 'weight'],
     });
 
-    expect(result.percent).toBe(68);
+    expect(result.percent).toBe(73);
     expect(result.movement.sportsCount).toBeGreaterThan(0);
     expect(result.movement.pushupsDone).toBe(false);
+    expect(result.weight.logged).toBe(true);
+    expect(result.weights.weight).toBeCloseTo(1 / 6, 3);
   });
 
   it('re-normalizes weights when activities are disabled', () => {
@@ -48,6 +51,26 @@ describe('getDayCompletion', () => {
     });
 
     expect(result.percent).toBe(50);
+  });
+
+  it('reduces completion when weight tracking is enabled but not logged', () => {
+    const result = getDayCompletion({
+      tracking: {
+        water: 2500,
+        protein: 150,
+        sports: { hiit: { active: true } } as SportTracking,
+      },
+      user: {
+        weight: 80,
+        hydrationGoalLiters: 2.5,
+        proteinGoalGrams: 150,
+      },
+      enabledActivities: ['water', 'protein', 'sports', 'weight'],
+    });
+
+    expect(result.percent).toBe(83);
+    expect(result.ratios.weight).toBe(0);
+    expect(result.weight.logged).toBe(false);
   });
 });
 
@@ -69,13 +92,14 @@ describe('calculateCompletionStreak', () => {
           water: offset === 4 ? 0 : 2500,
           protein: offset === 4 ? 0 : 150,
           sports: { hiit: { active: offset !== 4 } } as SportTracking,
+          weight: offset === 4 ? undefined : { value: 80 },
         };
       }
 
       const streak = calculateCompletionStreak(
         tracking,
         { weight: 80, hydrationGoalLiters: 2.5, proteinGoalGrams: 150 },
-        ['water', 'protein', 'sports']
+        ['water', 'protein', 'sports', 'weight']
       );
 
       expect(streak).toBe(3);
@@ -92,24 +116,34 @@ describe('calculateCompletionStreak', () => {
     vi.setSystemTime(today);
 
     try {
-      const createEntry = (offset: number, water: number) => {
+      const createEntry = (offset: number, water: number, loggedWeight: boolean) => {
         const date = new Date(today);
         date.setDate(today.getDate() - offset);
         const key = date.toISOString().split('T')[0];
-        if (key.match(/^\d{4}-\d{2}-\d{2}$/) && !Object.prototype.hasOwnProperty.call(tracking, key) && !isNaN(Date.parse(key)) && key === new Date(key).toISOString().split('T')[0]) tracking[key] = { water };
+        if (
+          key.match(/^\d{4}-\d{2}-\d{2}$/) &&
+          !Object.prototype.hasOwnProperty.call(tracking, key) &&
+          !Number.isNaN(Date.parse(key)) &&
+          key === new Date(key).toISOString().split('T')[0]
+        ) {
+          tracking[key] = {
+            water,
+            weight: loggedWeight ? { value: 80 } : undefined,
+          };
+        }
       };
 
-      createEntry(0, 1500); // exactly 50% of 3L goal
-      createEntry(1, 2000); // above threshold
-      createEntry(2, 1000); // below threshold, should break streak
+      createEntry(0, 1500, true); // weight logged keeps completion above threshold
+      createEntry(1, 2000, false); // missing weight should end streak
+      createEntry(2, 1000, false); // below threshold, should break streak
 
       const streak = calculateCompletionStreak(
         tracking,
         { hydrationGoalLiters: 3, weight: 80 },
-        ['water']
+        ['water', 'weight']
       );
 
-      expect(streak).toBe(2);
+      expect(streak).toBe(1);
     } finally {
       vi.useRealTimers();
     }

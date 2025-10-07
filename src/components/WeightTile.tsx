@@ -4,7 +4,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { useStore } from '../store/useStore';
 import { calculateBMI } from '../utils/calculations';
 import { useTranslation } from '../hooks/useTranslation';
-import { glassCardClasses, designTokens } from '../theme/tokens';
+import { getTileClasses, designTokens } from '../theme/tokens';
 import { useCombinedTracking, useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 
 function WeightTile() {
@@ -127,9 +127,10 @@ function WeightTile() {
 
   const latestWeight = combinedDaily?.weight?.value ?? activeTracking?.weight?.value ?? user?.weight ?? 0;
   const latestBMI = activeTracking?.weight?.bmi ?? combinedDaily?.weight?.bmi;
+  const isTracked = Boolean(combinedDaily?.weight?.value ?? activeTracking?.weight?.value);
 
   return (
-    <div className={`${glassCardClasses} ${designTokens.padding.compact} text-white`}>
+    <div className={`${getTileClasses(isTracked)} ${designTokens.padding.compact} text-white`}>
       <div className="flex items-center gap-2 mb-2">
         <div className="text-xl">⚖️</div>
         <div>
