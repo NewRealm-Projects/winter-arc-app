@@ -1,7 +1,7 @@
-import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from '../hooks/useTranslation';
-import { SmartNote, Event } from '../types/events';
+import { SmartNote, Event, SmartNoteAttachment } from '../types/events';
 import { noteStore } from '../store/noteStore';
 import { processSmartNote, retrySmartNote } from '../features/notes/pipeline';
 
@@ -168,6 +168,18 @@ function NoteCard({ note }: { note: SmartNote }) {
         )}
       </div>
       <EventBadges events={note.events} />
+      {note.attachments && note.attachments.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-3">
+          {note.attachments.map((attachment) => (
+            <img
+              key={attachment.id}
+              src={attachment.url}
+              alt="Notizanhang"
+              className="h-20 w-20 object-cover rounded-xl border border-gray-200 dark:border-gray-700"
+            />
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -181,6 +193,55 @@ function NotesPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const limitRef = useRef(PAGE_SIZE);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [attachments, setAttachments] = useState<SmartNoteAttachment[]>([]);
+
+  const createAttachmentId = useCallback(() => {
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+      return crypto.randomUUID();
+    }
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }, []);
+
+  const handleAttachmentChange = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (!files || files.length === 0) return;
+
+      const readers = Array.from(files).map(
+        (file) =>
+          new Promise<SmartNoteAttachment | null>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              if (typeof reader.result === 'string') {
+                resolve({ id: createAttachmentId(), url: reader.result, type: 'image' });
+              } else {
+                resolve(null);
+              }
+            };
+            reader.onerror = () => {
+              console.error('Failed to read attachment file');
+              resolve(null);
+            };
+            reader.readAsDataURL(file);
+          })
+      );
+
+      const nextAttachments = (await Promise.all(readers)).filter(
+        (attachment): attachment is SmartNoteAttachment => Boolean(attachment)
+      );
+      if (nextAttachments.length) {
+        setAttachments((prev) => [...prev, ...nextAttachments]);
+      }
+
+      event.target.value = '';
+    },
+    [createAttachmentId]
+  );
+
+  const handleAttachmentRemove = useCallback((id: string) => {
+    setAttachments((prev) => prev.filter((attachment) => attachment.id !== id));
+  }, []);
 
   const loadNotes = useCallback(async (limit = limitRef.current) => {
     const { notes: fetched, hasMore: more } = await noteStore.list({ limit });
@@ -203,15 +264,16 @@ function NotesPage() {
       if (!input.trim()) return;
       setIsSubmitting(true);
       try {
-        await processSmartNote(input, { autoTracking });
+        await processSmartNote(input, { autoTracking, attachments: attachments.length ? attachments : undefined });
         setInput('');
+        setAttachments([]);
       } catch (error) {
         console.error('Failed to process note', error);
       } finally {
         setIsSubmitting(false);
       }
     },
-    [input, autoTracking]
+    [input, autoTracking, attachments]
   );
 
   const handleLoadMore = useCallback(async () => {
@@ -233,13 +295,54 @@ function NotesPage() {
 
       <div className="max-w-[700px] mx-auto px-4 pt-4 md:pt-6 pb-20 space-y-6">
         <form onSubmit={onSubmit} className="glass dark:glass-dark rounded-2xl p-5 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Kurz notieren…"
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none"
-            disabled={isSubmitting}
-          />
+          <div className="flex-1 w-full">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Kurz notieren…"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none"
+              disabled={isSubmitting}
+            />
+            {attachments.length > 0 ? (
+              <div className="mt-3 flex flex-wrap gap-3">
+                {attachments.map((attachment) => (
+                  <div key={attachment.id} className="relative">
+                    <img
+                      src={attachment.url}
+                      alt="Ausgewählter Anhang"
+                      className="h-20 w-20 object-cover rounded-xl border border-gray-200 dark:border-gray-700"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { handleAttachmentRemove(attachment.id); }}
+                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-black/70 text-white text-xs flex items-center justify-center"
+                      aria-label="Anhang entfernen"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+            <div className="mt-3 flex flex-wrap gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={() => handleAttachmentChange(event)}
+                className="hidden"
+                multiple
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-4 py-2 rounded-xl border border-dashed border-winter-400 text-sm text-winter-600 hover:bg-winter-50 dark:border-winter-500/60 dark:text-winter-200 dark:hover:bg-winter-900/50"
+              >
+                📷 Foto aufnehmen oder wählen
+              </button>
+            </div>
+          </div>
           <button
             type="submit"
             disabled={isSubmitting || !input.trim()}

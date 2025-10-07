@@ -121,7 +121,15 @@ function createOptimisticSummary(raw: string) {
   return `${raw.slice(0, 117)}...`;
 }
 
-export async function processSmartNote(rawInput: string, options: { autoTracking: boolean } = { autoTracking: true }) {
+type ProcessSmartNoteOptions = {
+  autoTracking: boolean;
+  attachments?: SmartNote['attachments'];
+};
+
+export async function processSmartNote(
+  rawInput: string,
+  options: ProcessSmartNoteOptions = { autoTracking: true }
+) {
   const raw = rawInput.trim();
   if (!raw) {
     throw new Error('Empty input');
@@ -129,6 +137,7 @@ export async function processSmartNote(rawInput: string, options: { autoTracking
 
   const ts = Date.now();
   const noteId = createEventId();
+  const attachments = options.attachments?.length ? options.attachments : undefined;
 
   if (!options.autoTracking) {
     const note: SmartNote = {
@@ -137,6 +146,7 @@ export async function processSmartNote(rawInput: string, options: { autoTracking
       raw,
       summary: raw,
       events: [],
+      attachments,
     };
     await noteStore.add(note);
     return { noteId };
@@ -152,6 +162,7 @@ export async function processSmartNote(rawInput: string, options: { autoTracking
     summary: createOptimisticSummary(raw),
     events: optimisticEvents,
     pending: true,
+    attachments,
   };
 
   await noteStore.add(optimisticNote);
