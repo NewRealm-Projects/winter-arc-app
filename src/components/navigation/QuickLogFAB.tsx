@@ -85,7 +85,7 @@ export function QuickLogFAB() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[var(--z-fab)]"
-              onClick={() => setIsOpen(false)}
+              onClick={() => { setIsOpen(false); }}
             />
 
             {/* Action Buttons */}
@@ -111,7 +111,7 @@ export function QuickLogFAB() {
                     x: 20,
                     transition: { delay: (quickActions.length - index) * 0.03 },
                   }}
-                  onClick={() => handleActionClick(action.action)}
+                  onClick={() => { handleActionClick(action.action); }}
                   className="
                     touch-target flex items-center gap-3 px-4 py-3
                     bg-white dark:bg-gray-800 text-gray-900 dark:text-white
@@ -131,7 +131,7 @@ export function QuickLogFAB() {
 
       {/* FAB Button */}
       <motion.button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => { setIsOpen(!isOpen); }}
         className="
           fixed right-4 bottom-20 z-[var(--z-fab)]
           w-14 h-14 rounded-full

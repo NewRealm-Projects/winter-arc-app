@@ -91,7 +91,7 @@ function LeaderboardPage() {
       }
     };
 
-    loadLeaderboard();
+    void loadLeaderboard();
   }, [user?.groupCode, filter]);
 
   const sortedLeaderboardData = useMemo(() => {
@@ -213,7 +213,7 @@ function LeaderboardPage() {
             ].map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setFilter(tab.key)}
+              onClick={() => { setFilter(tab.key); }}
                 className={`flex-1 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
                   filter === tab.key
                     ? 'bg-gradient-to-r from-winter-500/80 to-sky-500/80 text-white shadow-[0_8px_24px_rgba(59,130,246,0.45)]'

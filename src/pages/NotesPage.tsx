@@ -251,7 +251,7 @@ function NotesPage() {
   }, []);
 
   useEffect(() => {
-    loadNotes();
+    void loadNotes();
     const unsubscribe = noteStore.subscribe(() => {
       loadNotes();
     });
@@ -362,7 +362,7 @@ function NotesPage() {
             <input
               type="checkbox"
               checked={autoTracking}
-              onChange={(event) => setAutoTracking(event.target.checked)}
+              onChange={(event) => { setAutoTracking(event.target.checked); }}
             />
             Auto-Tracking aktiv
           </label>

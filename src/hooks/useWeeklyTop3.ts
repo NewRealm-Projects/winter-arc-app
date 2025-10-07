@@ -63,11 +63,11 @@ export function useWeeklyTop3() {
     };
 
     // Check immediately on mount
-    checkAndSaveWeeklyTop3();
+    void checkAndSaveWeeklyTop3();
 
     // Set up interval to check every minute
     const interval = setInterval(checkAndSaveWeeklyTop3, 60 * 1000);
 
-    return () => clearInterval(interval);
+    return () => { clearInterval(interval); };
   }, [user?.groupCode]);
 }

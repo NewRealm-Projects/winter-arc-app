@@ -132,7 +132,7 @@ export function getLastPushupTotal(tracking: TrackingRecord): number {
 
   for (const date of dates) {
     const dayData = tracking[date];
-    if (dayData?.pushups?.total && dayData.pushups.total > 0) {
+    if (dayData.pushups?.total && dayData.pushups.total > 0) {
       return dayData.pushups.total;
     }
   }
@@ -147,6 +147,6 @@ export function getLastPushupTotal(tracking: TrackingRecord): number {
  */
 export function countPushupDays(tracking: TrackingRecord): number {
   return Object.values(tracking).filter(
-    (day: DailyTracking) => day?.pushups?.total && day.pushups.total > 0
+    (day: DailyTracking) => day.pushups?.total && day.pushups.total > 0
   ).length;
 }

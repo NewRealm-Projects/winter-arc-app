@@ -58,7 +58,7 @@ export default defineConfig({
       filename: 'stats.html',
       gzipSize: true,
       brotliSize: true,
-    }) as any,
+    }) as unknown,
   ],
   build: {
     rollupOptions: {
