@@ -35,12 +35,12 @@ function analyzeTrackingData(tracking: Record<string, DailyTracking>): UserTrack
     0
   );
 
-  const waterEntries = Object.values(tracking).filter(day => day.water > 0);
+  const waterEntries = Object.values(tracking).filter((day) => day.water > 0);
   const avgWater = waterEntries.length > 0
     ? waterEntries.reduce((sum, day) => sum + day.water, 0) / waterEntries.length
     : 0;
 
-  const proteinEntries = Object.values(tracking).filter(day => day.protein > 0);
+  const proteinEntries = Object.values(tracking).filter((day) => day.protein > 0);
   const avgProtein = proteinEntries.length > 0
     ? proteinEntries.reduce((sum, day) => sum + day.protein, 0) / proteinEntries.length
     : 0;
@@ -56,7 +56,7 @@ function analyzeTrackingData(tracking: Record<string, DailyTracking>): UserTrack
   const recentWeight = weightEntries.length > 0 ? weightEntries[0][1].weight?.value : undefined;
   const lastWorkoutDate = trackingDates.length > 0 ? trackingDates[trackingDates.length - 1] : undefined;
   const todayEntry = Object.prototype.hasOwnProperty.call(tracking, today)
-    const todayEntry = Object.prototype.hasOwnProperty.call(tracking, today) && typeof today === 'string' ? tracking[today] : undefined;
+    ? tracking[today]
     : undefined;
   const completedToday = todayEntry?.completed || false;
 
@@ -81,7 +81,7 @@ export async function generateDailyMotivation(
   try {
     // Nur Tracking-Daten der letzten 7 Tage verwenden
     const today = new Date();
-    const last7Days = Array.from({ length: 7 }).map((_, i) => {
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(today);
       d.setDate(today.getDate() - i);
       return d.toISOString().split('T')[0];
@@ -105,7 +105,7 @@ export async function generateDailyMotivation(
     const stats = analyzeTrackingData(trackingLast7);
     const todayKey = now.toISOString().split('T')[0];
     const todayTrackingEntry = Object.prototype.hasOwnProperty.call(trackingLast7, todayKey)
-      const todayTrackingEntry = todayKey in trackingLast7 ? trackingLast7[todayKey] : undefined;
+      ? trackingLast7[todayKey]
       : undefined;
     const todayReps = todayTrackingEntry?.pushups?.workout?.reps;
 
