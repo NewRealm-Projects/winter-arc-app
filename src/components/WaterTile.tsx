@@ -22,6 +22,10 @@ function WaterTile() {
   const combinedTracking = useCombinedDailyTracking(activeDate);
   const manualWater = activeTracking?.water || 0;
   const totalWater = combinedTracking?.water ?? manualWater;
+  const smartWater = Math.max(0, totalWater - manualWater);
+
+  const [showAdjustInput, setShowAdjustInput] = useState(false);
+  const [inputValue, setInputValue] = useState('');
 
   const waterGoal = user?.weight ? calculateWaterGoal(user.weight) : 3000;
 
@@ -46,6 +50,30 @@ function WaterTile() {
   const liters = (totalWater / 1000).toFixed(2);
   const goalLiters = (waterGoal / 1000).toFixed(2);
   const isTracked = totalWater >= 1000; // mindestens 1L
+
+  const openAdjust = () => {
+    setInputValue(totalWater ? String(Math.round(totalWater)) : '');
+    setShowAdjustInput(true);
+  };
+
+  const saveAdjust = () => {
+    const parsed = Math.round(Number.parseFloat(inputValue));
+    if (Number.isNaN(parsed) || parsed < 0) {
+      return;
+    }
+
+    const nextManual = Math.max(0, parsed - smartWater);
+    updateDayTracking(activeDate, {
+      water: nextManual,
+    });
+    setShowAdjustInput(false);
+    setInputValue('');
+  };
+
+  const cancelAdjust = () => {
+    setShowAdjustInput(false);
+    setInputValue('');
+  };
 
   return (
     <>
@@ -73,6 +101,10 @@ function WaterTile() {
             {Math.round(progress)}% / {goalLiters}L
           </div>
         </div>
+        <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          {displayedPercent}% / {goalLiters}L
+        </div>
+      </div>
 
         <div className="space-y-1.5">
           <div className="grid grid-cols-3 gap-1.5 text-center">

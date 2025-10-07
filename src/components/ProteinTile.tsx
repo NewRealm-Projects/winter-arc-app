@@ -8,8 +8,8 @@ import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 
 function ProteinTile() {
   const { t } = useTranslation();
-  const [showModal, setShowModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [inputMode, setInputMode] = useState<'add' | 'set' | null>(null);
 
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
@@ -22,21 +22,59 @@ function ProteinTile() {
   const combinedTracking = useCombinedDailyTracking(activeDate);
   const manualProtein = activeTracking?.protein || 0;
   const totalProtein = combinedTracking?.protein ?? manualProtein;
+  const smartProtein = Math.max(0, totalProtein - manualProtein);
 
   const proteinGoal = user?.weight ? calculateProteinGoal(user.weight) : 150;
 
-  const saveProtein = () => {
-    const amount = parseInt(inputValue, 10);
-    if (!Number.isNaN(amount) && amount >= 0) {
-      updateDayTracking(activeDate, {
-        protein: amount,
-      });
-      setInputValue('');
-      setShowModal(false);
-    }
+  const addProtein = (amount: number) => {
+    updateDayTracking(activeDate, {
+      protein: manualProtein + amount,
+    });
   };
 
-  const progress = Math.min((totalProtein / proteinGoal) * 100, 100);
+  const setProteinTotal = (amount: number) => {
+    const nextManual = Math.max(0, amount - smartProtein);
+    updateDayTracking(activeDate, {
+      protein: nextManual,
+    });
+  };
+
+  const confirmInput = () => {
+    if (!inputMode) return;
+
+    const parsed = Math.round(Number.parseFloat(inputValue));
+    if (Number.isNaN(parsed) || parsed < 0) {
+      return;
+    }
+
+    if (inputMode === 'add') {
+      addProtein(parsed);
+    } else {
+      setProteinTotal(parsed);
+    }
+
+    setInputValue('');
+    setInputMode(null);
+  };
+
+  const cancelInput = () => {
+    setInputValue('');
+    setInputMode(null);
+  };
+
+  const openAddInput = () => {
+    setInputValue('');
+    setInputMode('add');
+  };
+
+  const openAdjustInput = () => {
+    setInputValue(totalProtein ? String(Math.round(totalProtein)) : '');
+    setInputMode('set');
+  };
+
+  const progressPercent = proteinGoal ? (totalProtein / proteinGoal) * 100 : 0;
+  const progress = Math.min(progressPercent, 100);
+  const displayedPercent = Number.isFinite(progressPercent) ? Math.round(progressPercent) : 0;
   const isTracked = totalProtein > 0;
 
   return (
