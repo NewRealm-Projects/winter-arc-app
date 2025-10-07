@@ -100,10 +100,11 @@ function WeekOverview() {
       </div>
 
       {/* Week Days Grid */}
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-1 sm:gap-2">
         {weekDays.map((day) => {
           // Circle styling based on status
-          let circleClasses = 'h-10 w-10 rounded-full flex items-center justify-center font-bold transition-all cursor-pointer';
+          let circleClasses =
+            'h-8 w-8 md:h-10 md:w-10 rounded-full flex items-center justify-center font-bold transition-all cursor-pointer text-sm md:text-base';
 
           if (day.isCompleted) {
             circleClasses += ' bg-emerald-500 text-white shadow-[0_0_12px_2px_rgba(16,185,129,0.6)]';
@@ -124,7 +125,7 @@ function WeekOverview() {
               onClick={() => setSelectedDate(day.dateStr)}
               className="flex flex-col items-center gap-1"
             >
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+              <span className="text-[10px] font-medium text-gray-600 dark:text-gray-400 md:text-xs">
                 {day.dayName}
               </span>
               <div className={circleClasses}>
