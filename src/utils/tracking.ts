@@ -15,11 +15,11 @@ function mergeSports(
     if (!entry) continue;
     if (!entry.active) continue;
 
-    const manualEntry = manual[key as keyof typeof manual];
+    const manualEntry = manual?.[key as keyof typeof manual];
     merged[key] = {
       active: true,
       duration: entry.duration ?? manualEntry?.duration,
-      intensity: entry.intensity ?? manualEntry.intensity,
+      intensity: entry.intensity ?? manualEntry?.intensity,
     };
   }
 
@@ -57,14 +57,14 @@ export function combineTrackingWithSmart(
     const weight = (() => {
       const value = manual?.weight?.value ?? smart?.weight?.value;
       const bodyFat = manual?.weight?.bodyFat ?? smart?.weight?.bodyFat;
-      const bmi = manual.weight?.bmi;
+      const bmi = manual?.weight?.bmi;
 
       if (value === undefined && bodyFat === undefined && bmi === undefined) {
         return undefined;
       }
 
       return {
-        ...(manual.weight ?? {}),
+        ...(manual?.weight ?? {}),
         value: value ?? manual?.weight?.value ?? 0,
         bodyFat,
         bmi,
