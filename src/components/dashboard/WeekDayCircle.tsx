@@ -43,7 +43,7 @@ function WeekDayCircleComponent({
   return (
     <button
       type="button"
-      className={`group relative flex flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 ${
+      className={`group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 ${
         isSelected ? 'scale-[1.04]' : 'scale-100'
       }`}
       onClick={onClick}

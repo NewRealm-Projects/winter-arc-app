@@ -26,7 +26,30 @@ export function useAuth() {
           const userDocRef = doc(db, 'users', firebaseUser.uid);
           const userDoc = await getDoc(userDocRef);
           if (userDoc.exists()) {
-            const userData = userDoc.data() as Omit<User, 'id'>;
+            let userData = userDoc.data() as Omit<User, 'id'>;
+
+            const shouldUploadGooglePhoto =
+              !userData.photoURL && !!firebaseUser.photoURL;
+
+            if (shouldUploadGooglePhoto) {
+              const { uploadProfilePictureFromUrl } = await import('../services/storageService');
+              const uploadResult = await uploadProfilePictureFromUrl(firebaseUser.photoURL, firebaseUser.uid);
+
+              if (uploadResult.success && uploadResult.url) {
+                const updates: Partial<Omit<User, 'id'>> = {
+                  photoURL: uploadResult.url,
+                  shareProfilePicture: userData.shareProfilePicture ?? true,
+                };
+
+                await setDoc(userDocRef, updates, { merge: true });
+                userData = { ...userData, ...updates };
+              }
+            }
+
+            if (userData.shareProfilePicture === undefined) {
+              await setDoc(userDocRef, { shareProfilePicture: true }, { merge: true });
+              userData = { ...userData, shareProfilePicture: true };
+            }
 
             // Backward compatibility: Migrate existing users without enabledActivities
             if (!userData.enabledActivities) {
@@ -50,6 +73,16 @@ export function useAuth() {
             }
             setIsOnboarded(!!userData.birthday);
           } else {
+            let uploadedPhotoUrl: string | undefined;
+
+            if (firebaseUser.photoURL) {
+              const { uploadProfilePictureFromUrl } = await import('../services/storageService');
+              const uploadResult = await uploadProfilePictureFromUrl(firebaseUser.photoURL, firebaseUser.uid);
+              if (uploadResult.success && uploadResult.url) {
+                uploadedPhotoUrl = uploadResult.url;
+              }
+            }
+
             setUser({
               id: firebaseUser.uid,
               language: 'de',
@@ -59,6 +92,8 @@ export function useAuth() {
               weight: 0,
               maxPushups: 0,
               groupCode: '',
+              photoURL: uploadedPhotoUrl,
+              shareProfilePicture: true,
               createdAt: new Date(),
               pushupState: { baseReps: 0, sets: 5, restTime: 90 },
             });
