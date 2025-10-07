@@ -80,7 +80,7 @@ function SportTile() {
       return;
     }
 
-    const sportData = currentSports[selectedSport];
+    const sportData = Object.prototype.hasOwnProperty.call(currentSports, selectedSport) ? currentSports[selectedSport] : null;
     if (!sportData || selectedSport === 'rest') {
       return;
     }
