@@ -1,46 +1,59 @@
 import { useState, useEffect, useMemo } from 'react';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
+import type { JSX } from 'react';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameMonth,
+  isToday,
+} from 'date-fns';
 import { de, enUS } from 'date-fns/locale';
 import { useStore } from '../store/useStore';
 import { getGroupMembers } from '../services/firestoreService';
 import { calculateStreak } from '../utils/calculations';
 import { countActiveSports } from '../utils/sports';
 import { useTranslation } from '../hooks/useTranslation';
-import type { GroupMember } from '../types';
+import type { Activity, GroupMember } from '../types';
 import { useCombinedTracking } from '../hooks/useCombinedTracking';
 import { glassCardClasses, glassCardHoverClasses, designTokens } from '../theme/tokens';
 
 function LeaderboardPage() {
   const { t, language } = useTranslation();
-  const [filter, setFilter] = useState<'week' | 'month' | 'all'>('month');
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [leaderboardData, setLeaderboardData] = useState<GroupMember[]>([]);
   const [loading, setLoading] = useState(false);
 
   const user = useStore((state) => state.user);
   const combinedTracking = useCombinedTracking();
+  const filter = useStore((state) => state.leaderboardFilter);
+  const setFilter = useStore((state) => state.setLeaderboardFilter);
   const locale = language === 'de' ? de : enUS;
 
-  // Calculate current user stats
+  const enabledActivities = useMemo<Activity[]>(
+    () => user?.enabledActivities || ['pushups', 'sports', 'water', 'protein'],
+    [user?.enabledActivities]
+  );
+
   const userStats = useMemo(() => {
     const totalPushups = Object.values(combinedTracking).reduce(
       (sum, day) => sum + (day.pushups?.total || 0),
       0
     );
     const sportSessions = Object.values(combinedTracking).reduce(
-      (sum, day) =>
-        sum +
-        countActiveSports(day.sports),
+      (sum, day) => sum + countActiveSports(day.sports),
       0
     );
-    const streak = calculateStreak(combinedTracking);
+    const streak = calculateStreak(combinedTracking, enabledActivities);
 
     return {
       totalPushups,
       sportSessions,
       streak,
     };
-  }, [combinedTracking]);
+  }, [combinedTracking, enabledActivities]);
 
   useEffect(() => {
     const loadLeaderboard = async () => {
@@ -54,15 +67,14 @@ function LeaderboardPage() {
 
         switch (filter) {
           case 'week':
-            startDate = startOfWeek(now, { weekStartsOn: 1 }); // Monday
-            endDate = endOfWeek(now, { weekStartsOn: 1 }); // Sunday
+            startDate = startOfWeek(now, { weekStartsOn: 1 });
+            endDate = endOfWeek(now, { weekStartsOn: 1 });
             break;
           case 'month':
             startDate = startOfMonth(now);
             endDate = endOfMonth(now);
             break;
           case 'all':
-            // Don't pass date range for all-time stats
             startDate = undefined;
             endDate = undefined;
             break;
@@ -82,11 +94,9 @@ function LeaderboardPage() {
     loadLeaderboard();
   }, [user?.groupCode, filter]);
 
-  // Sort leaderboard data
   const sortedLeaderboardData = useMemo(() => {
     if (!leaderboardData.length) return [];
 
-    // Sort by total pushups in the filtered period, then by streak
     return [...leaderboardData].sort((a, b) => {
       if (b.totalPushups !== a.totalPushups) return b.totalPushups - a.totalPushups;
       return b.streak - a.streak;
@@ -94,18 +104,12 @@ function LeaderboardPage() {
   }, [leaderboardData]);
 
   const now = new Date();
-
-  // Week data
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(now, { weekStartsOn: 1 });
   const daysInWeek = eachDayOfInterval({ start: weekStart, end: weekEnd });
-
-  // Month data
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-  // Calculate offset for first day (0 = Monday, 6 = Sunday)
   const firstDayOffset = (monthStart.getDay() + 6) % 7;
 
   const getRankColor = (rank: number) => {
@@ -119,6 +123,31 @@ function LeaderboardPage() {
       default:
         return 'bg-white/10 border border-white/20';
     }
+  };
+
+  const calculateDayProgress = (dateStr: string) => {
+    const dayTracking = combinedTracking[dateStr];
+    const totalTasksForProgress = enabledActivities.length + 1; // +1 for weight
+    const pointsPerTask = 100 / totalTasksForProgress;
+
+    let progress = 0;
+    if (enabledActivities.includes('pushups') && (dayTracking.pushups?.total || 0) > 0) {
+      progress += pointsPerTask;
+    }
+    if (enabledActivities.includes('sports') && countActiveSports(dayTracking?.sports) > 0) {
+      progress += pointsPerTask;
+    }
+    if (enabledActivities.includes('water') && (dayTracking.water || 0) >= 2000) {
+      progress += pointsPerTask;
+    }
+    if (enabledActivities.includes('protein') && (dayTracking?.protein || 0) >= 100) {
+      progress += pointsPerTask;
+    }
+    if (dayTracking.weight?.value) {
+      progress += pointsPerTask;
+    }
+
+    return progress;
   };
 
   return (
@@ -204,19 +233,8 @@ function LeaderboardPage() {
               <div className="grid grid-cols-7 gap-2">
                 {daysInWeek.map((day) => {
                   const dateStr = format(day, 'yyyy-MM-dd');
-                  const dayTracking = combinedTracking[dateStr] || {};
+                  const progress = calculateDayProgress(dateStr);
                   const isCurrentDay = isToday(day);
-                  const pushups = dayTracking?.pushups?.total || 0;
-                  const sports = countActiveSports(dayTracking?.sports);
-                  const water = dayTracking?.water || 0;
-                  const protein = dayTracking?.protein || 0;
-                  const weight = dayTracking?.weight?.value || 0;
-                  const progress =
-                    (pushups > 0 ? 20 : 0) +
-                    (sports > 0 ? 20 : 0) +
-                    (water >= 2000 ? 20 : 0) +
-                    (protein >= 100 ? 20 : 0) +
-                    (weight > 0 ? 20 : 0);
 
                   return (
                     <div key={`week-${dateStr}`} className="flex flex-col items-center gap-1">
@@ -281,21 +299,8 @@ function LeaderboardPage() {
                 ))}
                 {daysInMonth.map((day) => {
                   const dateStr = format(day, 'yyyy-MM-dd');
-                  const dayTracking = combinedTracking[dateStr];
+                  const progress = calculateDayProgress(dateStr);
                   const isCurrentDay = isToday(day);
-
-                  const pushups = dayTracking?.pushups?.total || 0;
-                  const sports = countActiveSports(dayTracking?.sports);
-                  const water = dayTracking?.water || 0;
-                  const protein = dayTracking?.protein || 0;
-                  const weight = dayTracking?.weight?.value || 0;
-
-                  const progress =
-                    (pushups > 0 ? 20 : 0) +
-                    (sports > 0 ? 20 : 0) +
-                    (water >= 2000 ? 20 : 0) +
-                    (protein >= 100 ? 20 : 0) +
-                    (weight > 0 ? 20 : 0);
 
                   return (
                     <div key={`month-${dateStr}`} className="aspect-square flex items-center justify-center relative">
@@ -339,30 +344,34 @@ function LeaderboardPage() {
             </section>
           )}
 
-          <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">{t('group.rankings')}</h2>
-            </div>
+          <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+              {t('group.rankings')}
+            </h2>
             {loading ? (
-              <div className="text-center py-8 text-white/70">{t('common.loading')}</div>
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                {t('common.loading')}
+              </div>
             ) : leaderboardData.length === 0 ? (
-              <div className="text-center py-8 text-white/70">{t('group.noMembers')}</div>
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                {t('group.noMembers')}
+              </div>
             ) : (
-              <div className="flex flex-col gap-3">
+              <div className="space-y-3">
                 {sortedLeaderboardData.map((entry, index) => {
                   const rank = index + 1;
                   const isCurrentUser = user?.nickname === entry.nickname;
-                  const entryId = entry.id;
+                  const key = entry.id || `entry-${index}`;
 
                   return (
                     <div
-                      key={entryId}
-                      className={`p-4 rounded-2xl transition-all cursor-pointer border border-white/10 ${
+                      key={key}
+                      className={`p-4 rounded-xl transition-all cursor-pointer ${
                         isCurrentUser
-                          ? 'bg-gradient-to-r from-winter-500/60 to-sky-500/40 text-white'
-                          : 'bg-white/10 text-white/80 hover:bg-white/20'
+                          ? 'bg-winter-100 dark:bg-winter-900 ring-2 ring-winter-500'
+                          : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
                       }`}
-                      onClick={() => { setSelectedUser(selectedUser === entryId ? null : entryId); }}
+                      onClick={() => { setSelectedUser(selectedUser === entry.id ? null : entry.id); }}
                     >
                       <div className="flex items-center gap-4">
                         {(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? (
@@ -370,7 +379,7 @@ function LeaderboardPage() {
                             src={entry.photoURL}
                             alt={entry.nickname}
                             referrerPolicy="no-referrer"
-                            className="w-12 h-12 rounded-full border-2 border-white/30 object-cover flex-shrink-0"
+                            className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-600 object-cover flex-shrink-0"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.style.display = 'none';
@@ -380,30 +389,24 @@ function LeaderboardPage() {
                           />
                         ) : null}
                         <div
-                          className={`w-12 h-12 rounded-full bg-gradient-to-br from-winter-400 to-winter-600 ${
-                            (entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? 'hidden' : 'flex'
-                          } items-center justify-center text-white font-bold text-lg flex-shrink-0`}
+                          className={`w-12 h-12 rounded-full bg-gradient-to-br from-winter-400 to-winter-600 ${(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? 'hidden' : 'flex'} items-center justify-center text-white font-bold text-lg flex-shrink-0`}
                         >
                           {entry.nickname.charAt(0).toUpperCase()}
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold flex items-center gap-2 text-white">
-                            <span className="truncate">{entry.nickname}</span>
+                          <div className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                            <span>{entry.nickname}</span>
                             {isCurrentUser && (
-                              <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
+                              <span className="text-xs bg-winter-500 text-white px-2 py-0.5 rounded ml-1">
                                 {t('group.you')}
                               </span>
                             )}
                           </div>
-                          <div className="text-sm text-white/70 flex items-center gap-2">
-                            <span>
-                              {entry.streak} {t('group.daysStreak')} 🔥
-                            </span>
-                            <span aria-hidden="true">•</span>
-                            <span>
-                              💪 {entry.dailyPushups || 0} {t('group.today')}
-                            </span>
+                          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                            <span>{entry.streak} {t('group.daysStreak')} 🔥</span>
+                            <span>•</span>
+                            <span>💪 {entry.dailyPushups || 0} {t('group.today')}</span>
                           </div>
                         </div>
 
@@ -414,30 +417,72 @@ function LeaderboardPage() {
                         </div>
                       </div>
 
-                      {selectedUser === entryId && (
-                        <div className="mt-4 pt-4 border-t border-white/10">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-white">
-                            <div>
-                              <div className="text-2xl mb-1">💪</div>
-                              <div className="text-lg font-semibold">{entry.totalPushups}</div>
-                              <div className="text-xs text-white/70">{t('group.pushups')}</div>
-                            </div>
-                            <div>
-                              <div className="text-2xl mb-1">🏃</div>
-                              <div className="text-lg font-semibold">{entry.sportSessions}</div>
-                              <div className="text-xs text-white/70">{t('group.sportSessions')}</div>
-                            </div>
-                            <div>
-                              <div className="text-2xl mb-1">💧</div>
-                              <div className="text-lg font-semibold">{(entry.avgWater / 1000).toFixed(1)}L</div>
-                              <div className="text-xs text-white/70">{t('group.avgWater')}</div>
-                            </div>
-                            <div>
-                              <div className="text-2xl mb-1">🥩</div>
-                              <div className="text-lg font-semibold">{entry.avgProtein}g</div>
-                              <div className="text-xs text-white/70">{t('group.avgProtein')}</div>
-                            </div>
-                          </div>
+                      {selectedUser === entry.id && (
+                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                          {(() => {
+                            const userEnabledActivities = entry.enabledActivities || ['pushups', 'sports', 'water', 'protein'];
+                            const stats = [] as JSX.Element[];
+
+                            if (userEnabledActivities.includes('pushups')) {
+                              stats.push(
+                                <div key="pushups">
+                                  <div className="text-2xl mb-1">💪</div>
+                                  <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                    {entry.totalPushups}
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    {t('group.pushups')}
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            if (userEnabledActivities.includes('sports')) {
+                              stats.push(
+                                <div key="sports">
+                                  <div className="text-2xl mb-1">🏃</div>
+                                  <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                    {entry.sportSessions}
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    {t('group.sportSessions')}
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            if (userEnabledActivities.includes('water')) {
+                              stats.push(
+                                <div key="water">
+                                  <div className="text-2xl mb-1">💧</div>
+                                  <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                    {(entry.avgWater / 1000).toFixed(1)}L
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    {t('group.avgWater')}
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            if (userEnabledActivities.includes('protein')) {
+                              stats.push(
+                                <div key="protein">
+                                  <div className="text-2xl mb-1">🥩</div>
+                                  <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                    {entry.avgProtein}g
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    {t('group.avgProtein')}
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            const gridClass = stats.length <= 2 ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4';
+
+                            return <div className={`grid ${gridClass} gap-4`}>{stats}</div>;
+                          })()}
                         </div>
                       )}
                     </div>
@@ -445,31 +490,7 @@ function LeaderboardPage() {
                 })}
               </div>
             )}
-          </section>
-
-          <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
-            <h2 className="text-lg font-semibold mb-4">🏅 {t('group.achievements')}</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                { icon: '🔥', label: t('group.achievement7Days'), locked: userStats.streak < 7 },
-                { icon: '💪', label: t('group.achievement1000'), locked: userStats.totalPushups < 1000 },
-                { icon: '🏃', label: t('group.achievement20Workouts'), locked: userStats.sportSessions < 20 },
-                { icon: '⭐', label: t('group.achievementTop3'), locked: true },
-              ].map((achievement) => (
-                <div
-                  key={achievement.label}
-                  className={`p-4 rounded-2xl text-center transition-all ${
-                    achievement.locked
-                      ? 'bg-white/10 border border-white/10 text-white/50'
-                      : 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-lg'
-                  }`}
-                >
-                  <div className="text-3xl mb-2">{achievement.icon}</div>
-                  <div className="text-xs font-medium">{achievement.label}</div>
-                </div>
-              ))}
-            </div>
-          </section>
+          </div>
         </div>
       </div>
     </div>

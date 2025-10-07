@@ -20,6 +20,7 @@ import { useCombinedTracking } from '../../hooks/useCombinedTracking';
 export default function WeekCompactCard() {
   const { t, language } = useTranslation();
   const combinedTracking = useCombinedTracking();
+  const user = useStore((state) => state.user);
   const selectedDate = useStore((state) => state.selectedDate);
   const setSelectedDate = useStore((state) => state.setSelectedDate);
 
@@ -107,6 +108,10 @@ export default function WeekCompactCard() {
     setSelectedDate(format(safeTargetDate, 'yyyy-MM-dd'));
   };
 
+  const enabledActivities = user?.enabledActivities || ['pushups', 'sports', 'water', 'protein'];
+  const totalTasks = enabledActivities.length + 1; // +1 for weight
+  const requiredTasks = Math.ceil(totalTasks * 0.6);
+
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(displayedWeekStart, i);
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -114,14 +119,28 @@ export default function WeekCompactCard() {
     const isToday = isSameDay(date, today);
     const isSelected = dateStr === activeDate;
 
-    // Check what's completed
-    const hasPushups = (dayTracking?.pushups?.total || 0) > 0;
-    const hasSports = countActiveSports(dayTracking?.sports) > 0;
-    const hasWater = (dayTracking?.water || 0) >= 2000;
-    const hasProtein = (dayTracking?.protein || 0) >= 100;
+    // Check what's completed based on enabled activities
+    const completedList = [];
 
-    const tasksCompleted = [hasPushups, hasSports, hasWater, hasProtein].filter(Boolean).length;
-    const isDone = tasksCompleted >= 3;
+    if (enabledActivities.includes('pushups') && (dayTracking?.pushups?.total || 0) > 0) {
+      completedList.push('pushups');
+    }
+    if (enabledActivities.includes('sports') && countActiveSports(dayTracking.sports) > 0) {
+      completedList.push('sports');
+    }
+    if (enabledActivities.includes('water') && (dayTracking.water || 0) >= 2000) {
+      completedList.push('water');
+    }
+    if (enabledActivities.includes('protein') && (dayTracking?.protein || 0) >= 100) {
+      completedList.push('protein');
+    }
+    // Weight is always tracked
+    if (dayTracking.weight?.value) {
+      completedList.push('weight');
+    }
+
+    const tasksCompleted = completedList.length;
+    const isDone = tasksCompleted >= requiredTasks;
 
     return {
       label: format(date, 'EEE', { locale }),
@@ -194,16 +213,71 @@ export default function WeekCompactCard() {
             chipClasses += ' scale-105';
           }
 
-          return (
-            <button
-              key={day.date}
-              type="button"
-              onClick={() => setSelectedDate(day.date)}
-              className={chipClasses}
-              title={`${day.label} - ${day.tasksCompleted}/4 ${t('dashboard.tasks')}`}
+      return (
+        <button
+          key={day.date}
+          type="button"
+          onClick={() => setSelectedDate(day.date)}
+          className={chipClasses}
+              title={`${day.label} - ${day.tasksCompleted}/${totalTasks} ${t('dashboard.tasks')}`}
             >
               {day.label}
             </button>
+          );
+        })}
+      </div>
+
+      {/* Week Progress Circles */}
+      <div className="mt-3 grid grid-cols-7 gap-1">
+        {weekDays.map((day) => {
+          const progress = (day.tasksCompleted / totalTasks) * 100; // Dynamic total tasks
+
+          return (
+            <div key={day.date} className="flex flex-col items-center gap-0.5">
+              {/* Progress Circle */}
+              <div className="w-8 h-8 relative">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                  {/* Background circle */}
+                  <circle
+                    cx="18"
+                    cy="18"
+                    r="16"
+                    fill="none"
+                    className="stroke-white/20"
+                    strokeWidth="3"
+                  />
+                  {/* Progress circle */}
+                  {progress > 0 && (
+                    <circle
+                      cx="18"
+                      cy="18"
+                      r="16"
+                      fill="none"
+                      className={`${
+                        day.done
+                          ? 'stroke-emerald-400'
+                          : day.tasksCompleted > 0
+                          ? 'stroke-amber-400'
+                          : 'stroke-white/40'
+                      } ${day.isToday ? 'drop-shadow-[0_0_4px_rgba(96,165,250,0.8)]' : ''}`}
+                      strokeWidth="3"
+                      strokeDasharray={`${progress} 100`}
+                      strokeLinecap="round"
+                    />
+                  )}
+                </svg>
+                {/* Task count */}
+                <div
+                  className={`absolute inset-0 flex items-center justify-center text-[10px] font-semibold ${
+                    day.isToday
+                      ? 'text-sky-400'
+                      : 'text-white'
+                  }`}
+                >
+                  {day.tasksCompleted}
+                </div>
+              </div>
+            </div>
           );
         })}
       </div>

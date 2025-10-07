@@ -123,7 +123,7 @@ function WeightTile() {
       weight: entry.weight,
       bodyFat: entry.bodyFat,
     }));
-  }, [activeDate, range, tracking, user?.bodyFat, user?.createdAt, user?.weight]);
+  }, [activeDate, combinedTracking, range, user?.bodyFat, user?.createdAt, user?.weight]);
 
   const latestWeight = combinedDaily?.weight?.value ?? activeTracking?.weight?.value ?? user?.weight ?? 0;
   const latestBMI = activeTracking?.weight?.bmi ?? combinedDaily?.weight?.bmi;
@@ -245,8 +245,25 @@ function WeightTile() {
         <div className="text-[11px] font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
           {t('tracking.weight')}
         </div>
-        <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-          {latestWeight}kg
+        <div className="flex items-center justify-center gap-2">
+          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+            {latestWeight}kg
+          </div>
+          {activeTracking?.weight?.value && (
+            <button
+              onClick={() => {
+                if (activeTracking?.weight) {
+                  setWeight(activeTracking.weight.value.toString());
+                  setBodyFat(activeTracking.weight.bodyFat?.toString() || '');
+                  setShowInput(true);
+                }
+              }}
+              className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+              title={t('tracking.edit')}
+            >
+              ✏️
+            </button>
+          )}
         </div>
         {latestBMI && (
           <div className="text-[11px] text-gray-600 dark:text-gray-400">
@@ -257,16 +274,32 @@ function WeightTile() {
 
       {/* Input */}
       <div className="text-center">
-        {showInput ? (
-          <div className="space-y-1.5">
-            <div className="flex gap-1.5">
+        <button
+          onClick={() => setShowInput(true)}
+          className="w-full px-3 py-2 text-sm bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium"
+        >
+          {t('tracking.addWeight')}
+        </button>
+      </div>
+
+      {/* Weight Modal */}
+      {showInput && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              ⚖️ {t('tracking.weight')}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              {t('tracking.setExactAmount')}
+            </p>
+            <div className="space-y-3 mb-4">
               <input
                 type="number"
                 step="0.1"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
-                placeholder="Gewicht (kg)"
-                className="flex-1 px-2 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+                placeholder={t('tracking.weightPlaceholder')}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
                 autoFocus
               />
               <input
@@ -274,16 +307,17 @@ function WeightTile() {
                 step="0.1"
                 value={bodyFat}
                 onChange={(e) => setBodyFat(e.target.value)}
-                placeholder="KFA (%)"
-                className="w-20 px-2 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+                placeholder={t('tracking.bodyFatPlaceholder')}
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
               />
             </div>
-            <div className="flex gap-1.5">
+            <div className="flex gap-2">
               <button
                 onClick={saveWeight}
-                className="flex-1 px-3 py-1.5 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                disabled={!weight || parseFloat(weight) <= 0}
+                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Speichern
+                {t('tracking.save')}
               </button>
               <button
                 onClick={() => {
@@ -291,21 +325,14 @@ function WeightTile() {
                   setWeight('');
                   setBodyFat('');
                 }}
-                className="px-3 py-1.5 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
-                Abbrechen
+                {t('tracking.cancel')}
               </button>
             </div>
           </div>
-        ) : (
-          <button
-            onClick={() => setShowInput(true)}
-            className="w-full px-3 py-2 text-sm bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium"
-          >
-            {t('tracking.addWeight')}
-          </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
