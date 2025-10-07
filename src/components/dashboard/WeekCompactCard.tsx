@@ -1,21 +1,30 @@
 import {
-  format,
-  startOfWeek,
   addDays,
-  isSameDay,
   addWeeks,
-  differenceInCalendarWeeks,
-  parseISO,
-  isValid,
   differenceInCalendarDays,
+  differenceInCalendarWeeks,
+  format,
   isAfter,
+  isSameDay,
+  isValid,
+  parseISO,
+  startOfWeek,
 } from 'date-fns';
 import { de, enUS } from 'date-fns/locale';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import WeekDayCircle from './WeekDayCircle';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
-import { countActiveSports } from '../../utils/sports';
 import { useCombinedTracking } from '../../hooks/useCombinedTracking';
+import type { Activity } from '../../types';
+import {
+  calculateCompletionStreak,
+  formatGrams,
+  formatMl,
+  getDayCompletion,
+} from '../../utils/progress';
+
+const DEFAULT_ACTIVITIES: Activity[] = ['pushups', 'sports', 'water', 'protein'];
 
 export default function WeekCompactCard() {
   const { t, language } = useTranslation();
@@ -24,10 +33,11 @@ export default function WeekCompactCard() {
   const selectedDate = useStore((state) => state.selectedDate);
   const setSelectedDate = useStore((state) => state.setSelectedDate);
 
-  const today = new Date();
-  const todayKey = format(today, 'yyyy-MM-dd');
+  const todayKey = format(new Date(), 'yyyy-MM-dd');
+  const today = useMemo(() => parseISO(todayKey), [todayKey]);
   const activeDate = selectedDate || todayKey;
   const locale = language === 'de' ? de : enUS;
+  const localeCode = language === 'de' ? 'de-DE' : 'en-US';
 
   const parseActiveDate = () => {
     if (!activeDate) {
@@ -108,61 +118,99 @@ export default function WeekCompactCard() {
     setSelectedDate(format(safeTargetDate, 'yyyy-MM-dd'));
   };
 
-  const enabledActivities = user?.enabledActivities || ['pushups', 'sports', 'water', 'protein'];
-  const totalTasks = enabledActivities.length + 1; // +1 for weight
-  const requiredTasks = Math.ceil(totalTasks * 0.6);
+  const enabledActivities = useMemo(
+    () => user?.enabledActivities ?? DEFAULT_ACTIVITIES,
+    [user?.enabledActivities]
+  );
 
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const date = addDays(displayedWeekStart, i);
-    const dateStr = format(date, 'yyyy-MM-dd');
-    const dayTracking = combinedTracking[dateStr] || {};
-    const isToday = isSameDay(date, today);
-    const isSelected = dateStr === activeDate;
+  const completionStreak = useMemo(
+    () => calculateCompletionStreak(combinedTracking, user, enabledActivities),
+    [combinedTracking, enabledActivities, user]
+  );
 
-    // Check what's completed based on enabled activities
-    const completedList = [];
+  const weekDays = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const date = addDays(displayedWeekStart, i);
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const dayTracking = combinedTracking[dateStr];
+      const isToday = isSameDay(date, today);
+      const isSelected = dateStr === activeDate;
 
-    if (enabledActivities.includes('pushups') && (dayTracking?.pushups?.total || 0) > 0) {
-      completedList.push('pushups');
-    }
-    if (enabledActivities.includes('sports') && countActiveSports(dayTracking.sports) > 0) {
-      completedList.push('sports');
-    }
-    if (enabledActivities.includes('water') && (dayTracking.water || 0) >= 2000) {
-      completedList.push('water');
-    }
-    if (enabledActivities.includes('protein') && (dayTracking?.protein || 0) >= 100) {
-      completedList.push('protein');
-    }
-    // Weight is always tracked
-    if (dayTracking.weight?.value) {
-      completedList.push('weight');
-    }
+      const completion = getDayCompletion({
+        tracking: dayTracking,
+        user,
+        enabledActivities,
+      });
 
-    const tasksCompleted = completedList.length;
-    const isDone = tasksCompleted >= requiredTasks;
+      const summaryParts: string[] = [];
 
-    return {
-      label: format(date, 'EEE', { locale }),
-      date: dateStr,
-      isToday,
-      done: isDone,
-      tasksCompleted,
-      isSelected,
-    };
-  });
+      if (completion.goals.water > 0) {
+        summaryParts.push(
+          `💧 ${formatMl(completion.totals.water, {
+            locale: localeCode,
+            maximumFractionDigits: 1,
+          })}/${formatMl(completion.goals.water, {
+            locale: localeCode,
+            maximumFractionDigits: 1,
+          })}L`
+        );
+      }
+
+      if (completion.goals.protein > 0) {
+        summaryParts.push(
+          `🥩 ${formatGrams(completion.totals.protein, {
+            locale: localeCode,
+          })}/${formatGrams(completion.goals.protein, {
+            locale: localeCode,
+          })}g`
+        );
+      }
+
+      if (completion.movement.pushupsDone) {
+        summaryParts.push('💪');
+      }
+      if (completion.movement.sportsCount > 0) {
+        summaryParts.push('🏃');
+      }
+      if (!completion.movement.pushupsDone && completion.movement.sportsCount === 0) {
+        summaryParts.push('💤');
+      }
+
+      const tooltipSummary = summaryParts.join(' · ');
+      const tooltipLabel = `${format(date, 'EEEE', { locale })} · ${completion.percent}%${
+        tooltipSummary ? `\n${tooltipSummary}` : ''
+      }`;
+
+      return {
+        label: format(date, 'EEE', { locale }),
+        dayNumber: format(date, 'd'),
+        date: dateStr,
+        percent: completion.percent,
+        isToday,
+        isSelected,
+        isStreak: completion.percent >= 100,
+        tooltip: tooltipLabel,
+      };
+    });
+  }, [
+    activeDate,
+    combinedTracking,
+    displayedWeekStart,
+    enabledActivities,
+    locale,
+    localeCode,
+    today,
+    user,
+  ]);
 
   return (
     <div className="rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] p-4 lg:p-5 transition-all duration-200">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3 gap-4">
+      <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h2 className="text-lg lg:text-xl font-semibold text-white mb-0.5">
             {headingLabel}
           </h2>
-          <p className="text-xs text-white/70">
-            {t('dashboard.tapToEdit')}
-          </p>
+          <p className="text-xs text-white/70">{t('dashboard.tapToEdit')}</p>
           <p className="text-xs text-white/50 mt-1">
             {t('dashboard.weekRangeLabel', { range: weekRangeLabel })}
           </p>
@@ -170,7 +218,9 @@ export default function WeekCompactCard() {
         <div className="flex items-center gap-2 pt-1">
           <button
             type="button"
-            onClick={() => { handleWeekChange('previous'); }}
+            onClick={() => {
+              handleWeekChange('previous');
+            }}
             className="p-2 rounded-full border border-white/10 text-white/70 hover:text-white hover:border-white/30 transition-colors"
             aria-label={t('dashboard.previousWeek')}
           >
@@ -178,7 +228,9 @@ export default function WeekCompactCard() {
           </button>
           <button
             type="button"
-            onClick={() => { handleWeekChange('next'); }}
+            onClick={() => {
+              handleWeekChange('next');
+            }}
             disabled={disableNextWeek}
             className="p-2 rounded-full border border-white/10 text-white/70 hover:text-white hover:border-white/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label={t('dashboard.nextWeek')}
@@ -188,98 +240,30 @@ export default function WeekCompactCard() {
         </div>
       </div>
 
-      {/* Week Days Chips - Grid Layout (7 equal columns) */}
-      <div className="grid grid-cols-7 gap-1 lg:gap-1.5">
-        {weekDays.map((day) => {
-          let chipClasses = 'flex items-center justify-center h-9 rounded-full border text-xs sm:text-sm font-medium transition-all cursor-pointer select-none';
-
-          if (day.done) {
-            // Completed: glow effect
-            chipClasses += ' bg-emerald-500/20 border-emerald-400/70 text-emerald-100 shadow-[inset_0_0_14px_rgba(16,185,129,0.45)]';
-          } else if (day.tasksCompleted > 0) {
-            // Partial: amber ring
-            chipClasses += ' bg-white/6 border-amber-400/60 text-amber-200';
-          } else {
-            // Empty
-            chipClasses += ' bg-white/6 border-white/10 text-white/60';
-          }
-
-          if (day.isToday) {
-            // Today: accent ring
-            chipClasses += ' ring-2 ring-sky-400/70 ring-offset-2 ring-offset-transparent';
-          }
-
-          if (day.isSelected) {
-            chipClasses += ' scale-105';
-          }
-
-      return (
-        <button
-          key={day.date}
-          type="button"
-          onClick={() => setSelectedDate(day.date)}
-          className={chipClasses}
-              title={`${day.label} - ${day.tasksCompleted}/${totalTasks} ${t('dashboard.tasks')}`}
-            >
-              {day.label}
-            </button>
-          );
-        })}
+      <div className="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-7">
+        {weekDays.map((day) => (
+          <WeekDayCircle
+            key={day.date}
+            percent={day.percent}
+            isStreak={day.isStreak}
+            label={day.label}
+            dayNumber={day.dayNumber}
+            isToday={day.isToday}
+            isSelected={day.isSelected}
+            tooltip={day.tooltip}
+            onClick={() => setSelectedDate(day.date)}
+          />
+        ))}
       </div>
 
-      {/* Week Progress Circles */}
-      <div className="mt-3 grid grid-cols-7 gap-1">
-        {weekDays.map((day) => {
-          const progress = (day.tasksCompleted / totalTasks) * 100; // Dynamic total tasks
-
-          return (
-            <div key={day.date} className="flex flex-col items-center gap-0.5">
-              {/* Progress Circle */}
-              <div className="w-8 h-8 relative">
-                <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                  {/* Background circle */}
-                  <circle
-                    cx="18"
-                    cy="18"
-                    r="16"
-                    fill="none"
-                    className="stroke-white/20"
-                    strokeWidth="3"
-                  />
-                  {/* Progress circle */}
-                  {progress > 0 && (
-                    <circle
-                      cx="18"
-                      cy="18"
-                      r="16"
-                      fill="none"
-                      className={`${
-                        day.done
-                          ? 'stroke-emerald-400'
-                          : day.tasksCompleted > 0
-                          ? 'stroke-amber-400'
-                          : 'stroke-white/40'
-                      } ${day.isToday ? 'drop-shadow-[0_0_4px_rgba(96,165,250,0.8)]' : ''}`}
-                      strokeWidth="3"
-                      strokeDasharray={`${progress} 100`}
-                      strokeLinecap="round"
-                    />
-                  )}
-                </svg>
-                {/* Task count */}
-                <div
-                  className={`absolute inset-0 flex items-center justify-center text-[10px] font-semibold ${
-                    day.isToday
-                      ? 'text-sky-400'
-                      : 'text-white'
-                  }`}
-                >
-                  {day.tasksCompleted}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      <div className="mt-4 flex items-center justify-between text-[11px] text-white/60">
+        <span className="flex items-center gap-1">
+          <span aria-hidden="true">🔥</span>
+          <span>
+            {completionStreak} {t('dashboard.streakDays')}
+          </span>
+        </span>
+        <span>{t('dashboard.streakInfo')}</span>
       </div>
     </div>
   );

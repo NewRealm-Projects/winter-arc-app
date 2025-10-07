@@ -28,6 +28,8 @@ export interface User {
   gender: Gender;
   height: number; // cm
   weight: number; // kg
+  hydrationGoalLiters?: number;
+  proteinGoalGrams?: number;
   bodyFat?: number; // %
   maxPushups: number;
   groupCode: string;
