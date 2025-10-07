@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
@@ -24,7 +24,7 @@ function SportTile() {
   const selectedDate = useStore((state) => state.selectedDate);
 
   const [showModal, setShowModal] = useState(false);
-  const [selectedSport, setSelectedSport] = useState<SportKey | null>(null);
+  const [selectedSport, setSelectedSport] = useState<SportKey>('hiit');
   const [duration, setDuration] = useState<number>(60);
   const [intensity, setIntensity] = useState<number>(5);
 
@@ -41,6 +41,15 @@ function SportTile() {
     [combinedDaily?.sports]
   );
 
+  const sportOptions = useMemo(
+    () =>
+      SPORT_OPTION_CONFIG.map((config) => ({
+        ...config,
+        label: t(config.labelKey),
+      })),
+    [t]
+  );
+
   const toggleRest = (sport: SportKey) => {
     const previous = toSportEntry(activeTracking?.sports?.[sport] ? activeTracking.sports[sport] : currentSports[sport]);
 
@@ -55,21 +64,37 @@ function SportTile() {
     });
   };
 
-  const openSportModal = (sport: SportKey) => {
-    if (sport === 'rest') {
-      toggleRest(sport);
-      return;
-    }
+  const activeSportOptions = useMemo(
+    () => sportOptions.filter((option) => displaySports[option.key].active),
+    [displaySports, sportOptions]
+  );
 
-    setSelectedSport(sport);
-    const sportData = currentSports[sport];
-    setDuration(sportData.duration ?? 60);
-    setIntensity(sportData.intensity ?? 5);
+  const openSportManager = (sport?: SportKey) => {
+    const fallbackSport = sport ?? activeSportOptions[0]?.key ?? 'hiit';
+    setSelectedSport(fallbackSport);
     setShowModal(true);
   };
 
+  useEffect(() => {
+    if (!showModal) {
+      return;
+    }
+
+    const sportData = currentSports[selectedSport];
+    if (!sportData || selectedSport === 'rest') {
+      return;
+    }
+
+    setDuration(sportData.duration ?? 60);
+    setIntensity(sportData.intensity ?? 5);
+  }, [showModal, selectedSport, currentSports]);
+
   const saveSport = () => {
-    if (!selectedSport) return;
+    if (selectedSport === 'rest') {
+      toggleRest('rest');
+      setShowModal(false);
+      return;
+    }
 
     updateDayTracking(activeDate, {
       sports: {
@@ -82,12 +107,9 @@ function SportTile() {
       },
     });
     setShowModal(false);
-    setSelectedSport(null);
   };
 
   const removeSport = () => {
-    if (!selectedSport) return;
-
     updateDayTracking(activeDate, {
       sports: {
         ...activeTracking?.sports,
@@ -95,21 +117,13 @@ function SportTile() {
       },
     });
     setShowModal(false);
-    setSelectedSport(null);
   };
-
-  const sportOptions = useMemo(
-    () =>
-      SPORT_OPTION_CONFIG.map((config) => ({
-        ...config,
-        label: t(config.labelKey),
-      })),
-    [t]
-  );
 
   const completedCount = countActiveSports(displaySports);
   const isTracked = completedCount > 0;
   const modalSport = sportOptions.find((option) => option.key === selectedSport);
+  const selectedIsActive = displaySports[selectedSport].active;
+  const hasActiveSports = activeSportOptions.length > 0;
 
   return (
     <div
@@ -127,32 +141,35 @@ function SportTile() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-1.5 text-center">
-        {sportOptions.map((sport) => {
-          const isChecked = displaySports[sport.key].active || false;
-
-          return (
+      <div className="flex flex-wrap items-center gap-2 min-h-[40px]">
+        {hasActiveSports ? (
+          activeSportOptions.map((sport) => (
             <button
               key={sport.key}
               type="button"
-              onClick={() => { openSportModal(sport.key); }}
-              className={`p-2 rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-1 ${
-                isChecked
-                  ? 'bg-blue-600/20 dark:bg-blue-600/30 border-2 border-blue-400 shadow-inner'
-                  : 'bg-gray-50 dark:bg-gray-700 border-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600'
-              }`}
+              onClick={() => { openSportManager(sport.key); }}
+              className="text-2xl leading-none transition-transform hover:scale-110"
               title={sport.label}
             >
-              <div className="text-xl">{sport.icon}</div>
-              <div className="text-xs text-gray-700 dark:text-gray-300 font-medium">
-                {sport.label}
-              </div>
+              {sport.icon}
             </button>
-          );
-        })}
+          ))
+        ) : (
+          <span className="text-xs text-gray-600 dark:text-gray-300">
+            {t('tracking.noSportsTracked')}
+          </span>
+        )}
       </div>
 
-      {showModal && selectedSport && modalSport &&
+      <button
+        type="button"
+        onClick={() => { openSportManager(); }}
+        className="mt-3 w-full rounded-xl bg-blue-600/20 border border-blue-500/40 text-blue-100 text-sm font-medium py-2 hover:bg-blue-600/30 transition-colors"
+      >
+        {t('tracking.manageSports')}
+      </button>
+
+      {showModal && modalSport &&
         createPortal(
           <div
             className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"
@@ -177,69 +194,126 @@ function SportTile() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-xs text-white/70 mb-2">
-                    {t('tracking.duration')} ({t('tracking.minutes')})
+                    {t('tracking.chooseSport')}
                   </label>
-                  <div className="flex gap-2 mb-2">
-                    {[30, 60, 90].map((min) => (
-                      <button
-                        key={min}
-                        onClick={() => { setDuration(min); }}
-                        className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                          duration === min
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-white/10 text-white/70 hover:bg-white/20'
-                        }`}
-                      >
-                        {min} min
-                      </button>
-                    ))}
-                  </div>
-                  <input
-                    type="number"
-                    value={duration}
-                    onChange={(e) => { setDuration(Number(e.target.value)); }}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-white/20 bg-white/5 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-400 outline-none"
-                    placeholder="Custom"
-                  />
-                </div>
+                  <div className="grid grid-cols-3 gap-1.5 text-center">
+                    {sportOptions.map((sport) => {
+                      const isSelected = sport.key === selectedSport;
+                      const isActive = displaySports[sport.key].active || false;
 
-                <div>
-                  <label className="block text-xs text-white/70 mb-2">
-                    {t('tracking.intensity')} (1-10)
-                  </label>
-                  <div className="grid grid-cols-5 gap-1.5">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
-                      <button
-                        key={level}
-                        onClick={() => { setIntensity(level); }}
-                        className={`px-2 py-2 rounded-lg text-sm font-medium transition-all ${
-                          intensity === level
-                            ? 'bg-gradient-to-br from-orange-500 to-red-500 text-white scale-110'
-                            : 'bg-white/10 text-white/70 hover:bg-white/20'
-                        }`}
-                      >
-                        {level}
-                      </button>
-                    ))}
+                      return (
+                        <button
+                          key={sport.key}
+                          type="button"
+                          onClick={() => { setSelectedSport(sport.key); }}
+                          className={`p-2 rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-1 border ${
+                            isSelected
+                              ? 'border-blue-400 bg-blue-600/30 shadow-inner'
+                              : 'border-transparent bg-white/5 hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="text-xl">{sport.icon}</div>
+                          <div className="text-xs text-white/80 font-medium">
+                            {sport.label}
+                          </div>
+                          {isActive && (
+                            <span className="text-[10px] uppercase tracking-wide text-blue-200">
+                              {t('tracking.trackedLabel')}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                <div className="flex gap-2 pt-2">
-                  {currentSports[selectedSport].active && (
+                {selectedSport === 'rest' ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-white/70">
+                      {t('tracking.restDescription')}
+                    </p>
                     <button
-                      onClick={removeSport}
-                      className="flex-1 px-4 py-2 text-sm bg-red-600/30 text-red-200 rounded-lg hover:bg-red-600/50 transition-colors"
+                      onClick={() => {
+                        toggleRest('rest');
+                        setShowModal(false);
+                      }}
+                      className={`w-full px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
+                        selectedIsActive
+                          ? 'bg-red-500/30 text-red-100 hover:bg-red-500/40'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}
                     >
-                      {t('tracking.remove')}
+                      {selectedIsActive ? t('tracking.unsetRestDay') : t('tracking.setRestDay')}
                     </button>
-                  )}
-                  <button
-                    onClick={saveSport}
-                    className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
-                    {t('tracking.save')}
-                  </button>
-                </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-white/70 mb-2">
+                        {t('tracking.duration')} ({t('tracking.minutes')})
+                      </label>
+                      <div className="flex gap-2 mb-2">
+                        {[30, 60, 90].map((min) => (
+                          <button
+                            key={min}
+                            onClick={() => { setDuration(min); }}
+                            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              duration === min
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-white/10 text-white/70 hover:bg-white/20'
+                            }`}
+                          >
+                            {min} min
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="number"
+                        value={duration}
+                        onChange={(e) => { setDuration(Number(e.target.value)); }}
+                        className="w-full px-3 py-2 text-sm rounded-lg border border-white/20 bg-white/5 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-400 outline-none"
+                        placeholder="Custom"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-white/70 mb-2">
+                        {t('tracking.intensity')} (1-10)
+                      </label>
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
+                          <button
+                            key={level}
+                            onClick={() => { setIntensity(level); }}
+                            className={`px-2 py-2 rounded-lg text-sm font-medium transition-all ${
+                              intensity === level
+                                ? 'bg-gradient-to-br from-orange-500 to-red-500 text-white scale-110'
+                                : 'bg-white/10 text-white/70 hover:bg-white/20'
+                            }`}
+                          >
+                            {level}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      {currentSports[selectedSport].active && (
+                        <button
+                          onClick={removeSport}
+                          className="flex-1 px-4 py-2 text-sm bg-red-600/30 text-red-200 rounded-lg hover:bg-red-600/50 transition-colors"
+                        >
+                          {t('tracking.remove')}
+                        </button>
+                      )}
+                      <button
+                        onClick={saveSport}
+                        className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        {t('tracking.save')}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>,
