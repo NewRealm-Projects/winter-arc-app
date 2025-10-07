@@ -65,7 +65,7 @@ function SportTile() {
     const sportData = currentSports[sport];
     const combinedSportData = displaySports[sport];
     setDuration(sportData?.duration ?? combinedSportData?.duration ?? 60);
-    setIntensity(sportData?.intensity ?? combinedSportData?.intensity ?? 5);
+    setIntensity(sportData.intensity ?? combinedSportData?.intensity ?? 5);
     setShowModal(true);
   };
 
