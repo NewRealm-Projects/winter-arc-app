@@ -151,7 +151,7 @@ function NoteCard({ note }: { note: SmartNote }) {
   const createdAgo = formatDistanceToNow(note.ts, { addSuffix: true });
 
   return (
-    <div className={`${glassCardHoverClasses} ${designTokens.padding.compact} text-white space-y-3`}>
+    <div className={`${glassCardHoverClasses} ${designTokens.padding.compact} text-white space-y-3 w-full`}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-[10px] uppercase tracking-[0.35em] text-white/50">{createdAgo}</div>
@@ -391,30 +391,36 @@ function NotesPage() {
                 Auto-Tracking aktiv
               </label>
             </div>
-
-            <div className="relative">
-              <div className="space-y-3 max-h-[min(60vh,28rem)] overflow-y-auto pr-1">
-                {notes.length === 0 ? (
-                  <div className="text-sm text-white/60 text-center py-10">
-                    Noch keine Smart Notes vorhanden.
-                  </div>
-                ) : (
-                  notes.map((note) => <NoteCard key={note.id} note={note} />)
-                )}
-              </div>
-            </div>
-
-            {hasMore && (
-              <button
-                type="button"
-                onClick={handleLoadMore}
-                className={['inline-flex w-full items-center justify-center rounded-2xl border border-white/15 px-4 py-3', 'text-sm font-semibold text-white/80 transition-colors', 'hover:bg-white/10'].join(' ')}
-                disabled={loadingMore}
-              >
-                {loadingMore ? 'Lädt…' : 'Mehr laden'}
-              </button>
-            )}
           </section>
+
+          {notes.length === 0 ? (
+            <div
+              className={[
+                glassCardClasses,
+                designTokens.padding.spacious,
+                'text-white text-center animate-fade-in-up delay-300',
+              ].join(' ')}
+            >
+              <p className="text-sm text-white/60">Noch keine Smart Notes vorhanden.</p>
+            </div>
+          ) : (
+            notes.map((note) => <NoteCard key={note.id} note={note} />)
+          )}
+
+          {hasMore && (
+            <button
+              type="button"
+              onClick={handleLoadMore}
+              className={[
+                'inline-flex w-full items-center justify-center rounded-2xl border border-white/15 px-4 py-3',
+                'text-sm font-semibold text-white/80 transition-colors',
+                'hover:bg-white/10',
+              ].join(' ')}
+              disabled={loadingMore}
+            >
+              {loadingMore ? 'Lädt…' : 'Mehr laden'}
+            </button>
+          )}
         </div>
       </div>
     </div>
