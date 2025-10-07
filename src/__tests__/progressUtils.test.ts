@@ -96,7 +96,7 @@ describe('calculateCompletionStreak', () => {
         const date = new Date(today);
         date.setDate(today.getDate() - offset);
         const key = date.toISOString().split('T')[0];
-        tracking[key] = { water };
+        if (key.match(/^\d{4}-\d{2}-\d{2}$/)) tracking[key] = { water };
       };
 
       createEntry(0, 1500); // exactly 50% of 3L goal
