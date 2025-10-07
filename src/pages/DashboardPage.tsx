@@ -99,10 +99,9 @@ function DashboardPage() {
           </div>
         </div>
 
-        {/* Week Compact Card + Weight Tile */}
-        <div className="tile-grid-2 mb-3 animate-fade-in-up delay-100">
+        {/* Week Compact Card */}
+        <div className="mb-3 animate-fade-in-up delay-100">
           <WeekCompactCard />
-          <WeightTile />
         </div>
 
         {/* Tracking Tiles - Dynamically rendered based on enabled activities */}
@@ -127,6 +126,10 @@ function DashboardPage() {
             }
             return tileGroups;
           })()}
+        </div>
+
+        <div className="mt-3 animate-fade-in-up delay-500">
+          <WeightTile />
         </div>
       </div>
     </div>
