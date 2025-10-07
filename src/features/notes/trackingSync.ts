@@ -82,7 +82,7 @@ function buildContributionFromEvent(event: Event, contribution: SmartTrackingCon
         duration: event.durationMin,
         intensity: event.intensity ? WORKOUT_INTENSITY_MAP[event.intensity] : undefined,
       };
-      if (isValidSportKey(sportKey)) { sports[sportKey] = mergeSportEntries(sports[sportKey], entry); }
+      sports[sportKey] = mergeSportEntries(sports[sportKey], entry);
       contribution.sports = sports;
       break;
     }
