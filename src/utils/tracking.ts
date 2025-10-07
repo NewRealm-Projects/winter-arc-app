@@ -64,7 +64,7 @@ export function combineTrackingWithSmart(
       }
 
       return {
-        ...(manual?.weight ?? {}),
+        ...(manual.weight ?? {}),
         value: value ?? manual?.weight?.value ?? 0,
         bodyFat,
         bmi,
