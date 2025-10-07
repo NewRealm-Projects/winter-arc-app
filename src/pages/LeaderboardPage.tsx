@@ -137,20 +137,22 @@ function LeaderboardPage() {
       return 0;
     }
 
+    const { pushups, sports, water = 0, protein = 0, weight } = dayTracking;
+
     let progress = 0;
-    if (enabledActivities.includes('pushups') && (dayTracking.pushups?.total || 0) > 0) {
+    if (enabledActivities.includes('pushups') && (pushups?.total || 0) > 0) {
       progress += pointsPerTask;
     }
-    if (enabledActivities.includes('sports') && countActiveSports(dayTracking?.sports) > 0) {
+    if (enabledActivities.includes('sports') && countActiveSports(sports) > 0) {
       progress += pointsPerTask;
     }
-    if (enabledActivities.includes('water') && (dayTracking.water || 0) >= 2000) {
+    if (enabledActivities.includes('water') && water >= 2000) {
       progress += pointsPerTask;
     }
-    if (enabledActivities.includes('protein') && (dayTracking?.protein || 0) >= 100) {
+    if (enabledActivities.includes('protein') && protein >= 100) {
       progress += pointsPerTask;
     }
-    if (dayTracking.weight?.value) {
+    if (weight?.value) {
       progress += pointsPerTask;
     }
 

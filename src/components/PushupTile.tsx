@@ -119,7 +119,7 @@ function PushupTile() {
             {/* Mode Toggle */}
             <div className="flex gap-2 mb-4">
               <button
-                onClick={() => setIsSetMode(false)}
+                onClick={() => { setIsSetMode(false); }}
                 className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   !isSetMode
                     ? 'bg-winter-600 text-white'
@@ -129,7 +129,7 @@ function PushupTile() {
                 ➕ {t('tracking.add')}
               </button>
               <button
-                onClick={() => setIsSetMode(true)}
+                onClick={() => { setIsSetMode(true); }}
                 className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   isSetMode
                     ? 'bg-winter-600 text-white'

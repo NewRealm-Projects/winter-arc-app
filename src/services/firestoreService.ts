@@ -206,8 +206,14 @@ export async function getGroupMembers(groupCode: string, startDate?: Date, endDa
           // Calculate statistics
 
           // Today's pushups
-          const dailyPushups = allTrackingData[today]?.pushups?.total ||
-            (allTrackingData[today]?.pushups?.workout?.reps?.reduce((sum: number, reps: number) => sum + reps, 0)) || 0;
+          const todaysTracking = Object.prototype.hasOwnProperty.call(allTrackingData, today)
+            ? allTrackingData[today]
+            : undefined;
+          const workoutRepsSum = todaysTracking?.pushups?.workout?.reps?.reduce(
+            (sum: number, reps: number) => sum + reps,
+            0
+          ) ?? 0;
+          const dailyPushups = todaysTracking?.pushups?.total ?? workoutRepsSum;
 
           // Total pushups in the filtered period
           const totalPushups = Object.values(trackingData).reduce(

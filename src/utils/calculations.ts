@@ -63,26 +63,30 @@ export function calculateStreak(
   for (let i = 0; i < dates.length; i++) {
     const dateStr = dates[i];
     const dayTracking = tracking[dateStr];
+    if (!dayTracking) {
+      continue;
+    }
+    const { sports, water = 0, protein = 0, pushups, weight } = dayTracking;
     const date = new Date(dateStr);
     date.setHours(0, 0, 0, 0);
 
     // Count completed tasks based on enabled activities
     const completedTasks = [];
 
-    if (enabledActivities.includes('pushups') && (dayTracking.pushups?.total || 0) > 0) {
+    if (enabledActivities.includes('pushups') && (pushups?.total || 0) > 0) {
       completedTasks.push('pushups');
     }
-    if (enabledActivities.includes('sports') && countActiveSports(dayTracking?.sports) > 0) {
+    if (enabledActivities.includes('sports') && countActiveSports(sports) > 0) {
       completedTasks.push('sports');
     }
-    if (enabledActivities.includes('water') && (dayTracking?.water || 0) >= 2000) {
+    if (enabledActivities.includes('water') && water >= 2000) {
       completedTasks.push('water');
     }
-    if (enabledActivities.includes('protein') && (dayTracking.protein || 0) >= 100) {
+    if (enabledActivities.includes('protein') && protein >= 100) {
       completedTasks.push('protein');
     }
     // Weight is always checked (mandatory)
-    if (dayTracking.weight?.value) {
+    if (weight?.value) {
       completedTasks.push('weight');
     }
 

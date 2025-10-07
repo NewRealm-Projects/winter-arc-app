@@ -255,7 +255,7 @@ function NotesPage() {
   useEffect(() => {
     void loadNotes();
     const unsubscribe = noteStore.subscribe(() => {
-      loadNotes();
+      void loadNotes();
     });
     return unsubscribe;
   }, [loadNotes]);
@@ -307,7 +307,7 @@ function NotesPage() {
             <div className="flex-1 w-full">
               <input
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => { setInput(e.target.value); }}
                 placeholder="Kurz notieren…"
                 className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-white/50 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/40"
                 disabled={isSubmitting}
@@ -324,7 +324,7 @@ function NotesPage() {
                       />
                       <button
                         type="button"
-                        onClick={() => handleAttachmentRemove(attachment.id)}
+                        onClick={() => { handleAttachmentRemove(attachment.id); }}
                         className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-xs text-white"
                         aria-label="Anhang entfernen"
                       >
