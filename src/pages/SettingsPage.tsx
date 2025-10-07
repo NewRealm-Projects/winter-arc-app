@@ -4,7 +4,7 @@ import { signOut } from 'firebase/auth';
 import * as Sentry from '@sentry/react';
 import { auth } from '../firebase/config';
 import { useStore } from '../store/useStore';
-import { Language } from '../types';
+import { Language, Activity } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 
@@ -268,6 +268,79 @@ function SettingsPage() {
               <option key={city} value={city}>{city}</option>
             ))}
           </select>
+        </div>
+
+        {/* Activities Selection */}
+        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            ✅ {t('settings.activities')}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            {t('settings.activitiesDesc')}
+          </p>
+          <div className="space-y-3">
+            {([
+              { value: 'pushups' as Activity, label: t('tracking.pushups'), icon: '💪' },
+              { value: 'sports' as Activity, label: t('tracking.sport'), icon: '🏃' },
+              { value: 'water' as Activity, label: t('tracking.water'), icon: '💧' },
+              { value: 'protein' as Activity, label: t('tracking.protein'), icon: '🥩' },
+            ]).map((activity) => (
+              <div key={activity.value} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{activity.icon}</span>
+                  <div>
+                    <div className="font-semibold text-gray-900 dark:text-white">
+                      {activity.label}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={async () => {
+                    if (!user) return;
+                    const currentActivities = user.enabledActivities || ['pushups', 'sports', 'water', 'protein'];
+                    let newActivities: Activity[];
+
+                    if (currentActivities.includes(activity.value)) {
+                      // Ensure at least one activity remains
+                      if (currentActivities.length === 1) {
+                        alert(t('common.error') + ': ' + (user.language === 'de'
+                          ? 'Mindestens eine Aktivität muss aktiviert bleiben'
+                          : 'At least one activity must remain enabled'));
+                        return;
+                      }
+                      newActivities = currentActivities.filter(a => a !== activity.value);
+                    } else {
+                      newActivities = [...currentActivities, activity.value];
+                    }
+
+                    const { updateUser } = await import('../services/firestoreService');
+                    const result = await updateUser(user.id, { enabledActivities: newActivities });
+                    if (result.success) {
+                      setUser({ ...user, enabledActivities: newActivities });
+                    }
+                  }}
+                  className={`relative w-14 h-8 rounded-full transition-colors ${
+                    (user?.enabledActivities || ['pushups', 'sports', 'water', 'protein']).includes(activity.value)
+                      ? 'bg-winter-600'
+                      : 'bg-gray-300'
+                  }`}
+                >
+                  <div
+                    className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
+                      (user?.enabledActivities || ['pushups', 'sports', 'water', 'protein']).includes(activity.value)
+                        ? 'translate-x-6'
+                        : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+            {user?.language === 'de'
+              ? '💡 Gewicht wird immer getrackt und kann nicht deaktiviert werden'
+              : '💡 Weight is always tracked and cannot be disabled'}
+          </p>
         </div>
         {/* Profile Section */}
         <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">

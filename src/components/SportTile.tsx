@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
 import { useTranslation } from '../hooks/useTranslation';
 import type { SportEntry, SportKey } from '../types';
-import { countActiveSports, normalizeSports } from '../utils/sports';
+import { countActiveSports, normalizeSports, toSportEntry } from '../utils/sports';
 import { getTileClasses, designTokens } from '../theme/tokens';
 import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 
@@ -42,16 +42,16 @@ function SportTile() {
   );
 
   const toggleRest = (sport: SportKey) => {
-    const nextSports: Record<SportKey, SportEntry> = {
-      ...currentSports,
-      [sport]: {
-        ...currentSports[sport],
-        active: !currentSports[sport].active,
-      },
-    };
+    const previous = toSportEntry(activeTracking?.sports?.[sport] ? activeTracking.sports[sport] : currentSports[sport]);
 
     updateDayTracking(activeDate, {
-      sports: nextSports,
+      sports: {
+        ...activeTracking?.sports,
+        [sport]: {
+          ...previous,
+          active: !previous.active,
+        },
+      },
     });
   };
 
@@ -71,17 +71,15 @@ function SportTile() {
   const saveSport = () => {
     if (!selectedSport) return;
 
-    const nextSports: Record<SportKey, SportEntry> = {
-      ...currentSports,
-      [selectedSport]: {
-        active: true,
-        duration,
-        intensity,
-      },
-    };
-
     updateDayTracking(activeDate, {
-      sports: nextSports,
+      sports: {
+        ...activeTracking?.sports,
+        [selectedSport]: {
+          active: true,
+          duration,
+          intensity,
+        },
+      },
     });
     setShowModal(false);
     setSelectedSport(null);
@@ -90,13 +88,11 @@ function SportTile() {
   const removeSport = () => {
     if (!selectedSport) return;
 
-    const nextSports: Record<SportKey, SportEntry> = {
-      ...currentSports,
-      [selectedSport]: { active: false },
-    };
-
     updateDayTracking(activeDate, {
-      sports: nextSports,
+      sports: {
+        ...activeTracking?.sports,
+        [selectedSport]: { active: false },
+      },
     });
     setShowModal(false);
     setSelectedSport(null);
