@@ -162,7 +162,7 @@ function LeaderboardPage() {
             <div className="grid grid-cols-7 gap-2">
               {daysInWeek.map((day) => {
                 const dateStr = format(day, 'yyyy-MM-dd');
-                const dayTracking = combinedTracking[dateStr];
+                const dayTracking = combinedTracking[dateStr] || {};
                 const isCurrentDay = isToday(day);
                 // Calculate progress percentage
                 const pushups = dayTracking?.pushups?.total || 0;
