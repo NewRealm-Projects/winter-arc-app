@@ -11,7 +11,8 @@ interface WeekDayCircleProps {
   onClick: () => void;
 }
 
-const CIRCUMFERENCE = 2 * Math.PI * 22;
+const PROGRESS_RADIUS = 21;
+const CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RADIUS;
 
 function getProgressStroke(percent: number): string {
   if (percent >= 100) {
@@ -63,7 +64,7 @@ function WeekDayCircleComponent({
           <circle
             cx="24"
             cy="24"
-            r="22"
+            r={PROGRESS_RADIUS}
             fill="none"
             className="stroke-white/10"
             strokeWidth="4"
@@ -71,7 +72,7 @@ function WeekDayCircleComponent({
           <circle
             cx="24"
             cy="24"
-            r="22"
+            r={PROGRESS_RADIUS}
             fill="none"
             className={`${progressStroke} transition-all duration-300 ease-out`}
             strokeWidth="4"
