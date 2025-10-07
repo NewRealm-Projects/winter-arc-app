@@ -200,6 +200,69 @@ export async function processSmartNote(
   return { noteId };
 }
 
+export async function updateSmartNote(noteId: string, rawInput: string) {
+  const existing = await noteStore.get(noteId);
+  if (!existing) {
+    return;
+  }
+
+  const raw = rawInput.trim();
+  if (!raw) {
+    throw new Error('Empty input');
+  }
+
+  const autoTrackingEnabled =
+    existing.pending === true || existing.summary !== existing.raw || (existing.events?.length ?? 0) > 0;
+
+  if (!autoTrackingEnabled) {
+    await noteStore.update(noteId, {
+      raw,
+      summary: raw,
+      events: [],
+      pending: undefined,
+    });
+    return;
+  }
+
+  const heuristic = parseHeuristic(raw);
+  const heuristicEvents = heuristic.candidates.map((candidate) => normalizeEvent(candidate, existing.ts, 'heuristic'));
+  const optimisticSummary = createOptimisticSummary(raw);
+
+  await noteStore.update(noteId, {
+    raw,
+    summary: optimisticSummary,
+    events: heuristicEvents,
+    pending: true,
+  });
+
+  const recentNotes = await noteStore.getRecent(RECENT_LIMIT + 1);
+
+  try {
+    const result = await summarizeAndValidate({
+      raw,
+      recentNotes,
+      candidates: heuristicEvents,
+    });
+    const llmEvents = Array.isArray(result.events)
+      ? result.events.map((event) => normalizeEvent(event, existing.ts, 'llm'))
+      : [];
+    const mergedEvents = mergeEvents(heuristicEvents, llmEvents).map((event) => ({
+      ...event,
+      ts: existing.ts,
+    }));
+    await noteStore.update(noteId, {
+      summary: result.summary || optimisticSummary,
+      events: mergedEvents,
+      pending: false,
+    });
+  } catch (error) {
+    console.error('Gemini update failed', error);
+    await noteStore.update(noteId, {
+      pending: true,
+    });
+  }
+}
+
 export async function retrySmartNote(noteId: string) {
   const existing = await noteStore.get(noteId);
   if (!existing) return;
