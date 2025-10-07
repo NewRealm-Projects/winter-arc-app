@@ -1,6 +1,6 @@
 declare module 'dexie' {
   export class Table<T, Key = string> {
-    put(item: T): Promise<Key | void>;
+    put(item: T): Promise<Key>;
     get(key: Key): Promise<T | undefined>;
     delete(key: Key): Promise<void>;
     where(index: string): {
