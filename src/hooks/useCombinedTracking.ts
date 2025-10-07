@@ -17,5 +17,5 @@ export function useCombinedDailyTracking(dateKey?: string) {
   if (!dateKey) {
     return undefined;
   }
-  return dateKey in combined ? combined[dateKey] : undefined;
+  return combined.hasOwnProperty(dateKey) ? combined[dateKey] : undefined;
 }
