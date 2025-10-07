@@ -80,7 +80,7 @@ function SportTile() {
       return;
     }
 
-    const sportData = (selectedSport in currentSports) ? currentSports[selectedSport] : null;
+    const sportData = currentSports[selectedSport as keyof typeof currentSports] || null;
     if (selectedSport === 'rest') {
       return;
     }
