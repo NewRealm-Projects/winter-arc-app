@@ -114,6 +114,14 @@ VITE_FIREBASE_APP_ID=your_app_id
 VITE_RECAPTCHA_SITE_KEY=your_recaptcha_site_key
 ```
 
+#### Gemini Smart Notes API Key
+
+Die Smart-Notes-Pipeline spricht direkt die Google Generative Language API (`gemini-2.0-flash-exp`) an. Hinterlege dafür in deiner `.env` den archivierten Schlüssel `VITE_GEMINI_API_KEY` (siehe Kommentar in `CLAUDE.md`, Abschnitt „Gemini AI for Personalized Quotes“).
+
+Der Client ruft `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=...` per `POST` auf und sendet den System-Prompt sowie die heuristisch erkannten Events. Die Antwort MUSS ein JSON der Form `{ summary: string; events: Event[] }` enthalten.
+
+Ein `401` oder `403` deutet auf einen fehlenden/ungültigen Schlüssel hin. Stelle sicher, dass der Key aktiv ist und in deiner `.env` verfügbar gemacht wird (`VITE_GEMINI_API_KEY=...`).
+
 **Firebase Setup**:
 1. Gehe zu [Firebase Console](https://console.firebase.google.com/)
 2. Erstelle neues Projekt
