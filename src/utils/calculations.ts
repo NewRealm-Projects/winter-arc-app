@@ -82,7 +82,7 @@ export function calculateStreak(
       completedTasks.push('protein');
     }
     // Weight is always checked (mandatory)
-    if (dayTracking?.weight?.value) {
+    if (dayTracking.weight?.value) {
       completedTasks.push('weight');
     }
 
