@@ -16,7 +16,7 @@ function sanitizeNote(note: SmartNote) {
     ts: note.ts,
     raw: note.raw,
     summary: note.summary,
-    events: note.events?.map((event) => ({
+    events: note.events?.map((event) => ({ ...event })) || [],
       ...event,
     })) ?? [],
   };
