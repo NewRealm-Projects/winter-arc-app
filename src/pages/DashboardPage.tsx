@@ -12,22 +12,27 @@ import { calculateStreak } from '../utils/calculations';
 import { useTracking } from '../hooks/useTracking';
 import { useWeeklyTop3 } from '../hooks/useWeeklyTop3';
 import { useCombinedTracking } from '../hooks/useCombinedTracking';
+import { useStore } from '../store/useStore';
 
 type WeatherCondition = "sunny" | "cloudy" | "rain" | "snow" | "partly";
 
 function DashboardPage() {
   const combinedTracking = useCombinedTracking();
+  const user = useStore((state) => state.user);
 
   // Auto-save tracking data to Firebase
   useTracking();
   // Check and save weekly Top 3 snapshots
   useWeeklyTop3();
 
+  // Get enabled activities (default: all activities)
+  const enabledActivities = user?.enabledActivities || ['pushups', 'sports', 'water', 'protein'];
+
   const [weather, setWeather] = useState<{ tempC: number; condition: WeatherCondition; location: string } | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
 
   // Calculate streak
-  const streak = calculateStreak(combinedTracking);
+  const streak = calculateStreak(combinedTracking, enabledActivities);
 
 
 
@@ -64,7 +69,7 @@ function DashboardPage() {
         setWeatherLoading(false);
       }
     };
-    loadWeather();
+    void loadWeather();
   }, []);
 
   return (
@@ -94,29 +99,34 @@ function DashboardPage() {
           </div>
         </div>
 
-        {/* Week Compact Card */}
+        {/* Week Compact Card + Weight Tile */}
         <div className="tile-grid-2 mb-3 animate-fade-in-up delay-100">
-          <div className="col-span-full">
-            <WeekCompactCard />
-          </div>
+          <WeekCompactCard />
+          <WeightTile />
         </div>
 
-        {/* Tracking Tiles */}
+        {/* Tracking Tiles - Dynamically rendered based on enabled activities */}
         <div className="mobile-stack animate-fade-in-up delay-300">
-          {/* Pushups & Sport Side by Side on desktop */}
-          <div className="tile-grid-2">
-            <PushupTile />
-            <SportTile />
-          </div>
+          {/* Render tiles in pairs for desktop 2-column layout */}
+          {(() => {
+            const tiles = [];
+            if (enabledActivities.includes('pushups')) tiles.push(<PushupTile key="pushups" />);
+            if (enabledActivities.includes('sports')) tiles.push(<SportTile key="sports" />);
+            if (enabledActivities.includes('water')) tiles.push(<WaterTile key="water" />);
+            if (enabledActivities.includes('protein')) tiles.push(<ProteinTile key="protein" />);
 
-          {/* Water & Protein Grid */}
-          <div className="tile-grid-2">
-            <WaterTile />
-            <ProteinTile />
-          </div>
-
-          {/* Weight Tile */}
-          <WeightTile />
+            // Group tiles into pairs for tile-grid-2 layout
+            const tileGroups = [];
+            for (let i = 0; i < tiles.length; i += 2) {
+              const group = tiles.slice(i, i + 2);
+              tileGroups.push(
+                <div key={`group-${i}`} className="tile-grid-2">
+                  {group}
+                </div>
+              );
+            }
+            return tileGroups;
+          })()}
         </div>
       </div>
     </div>

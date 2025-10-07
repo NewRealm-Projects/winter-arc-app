@@ -20,7 +20,7 @@ function PWAInstallPrompt() {
     };
 
     window.addEventListener('beforeinstallprompt', handler as EventListener);
-    return () => window.removeEventListener('beforeinstallprompt', handler as EventListener);
+    return () => { window.removeEventListener('beforeinstallprompt', handler as EventListener); };
   }, [setPwaInstallPrompt]);
 
   useEffect(() => {

@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Gender, Language } from '../types';
+import { Gender, Language, Activity } from '../types';
 import { useStore } from '../store/useStore';
 import { initPushupPlan } from '../utils/pushupAlgorithm';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface OnboardingPageProps {
   birthdayOnly?: boolean; // If true, only ask for birthday
 }
 
 function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [language, setLanguage] = useState<Language>('de');
   const [nickname, setNickname] = useState('');
@@ -15,13 +17,14 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   const [height, setHeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
   const [maxPushups, setMaxPushups] = useState('');
+  const [enabledActivities, setEnabledActivities] = useState<Activity[]>(['pushups', 'sports', 'water', 'protein']);
   const [birthday, setBirthday] = useState('');
 
   const user = useStore((state) => state.user);
   const setUser = useStore((state) => state.setUser);
   const setIsOnboarded = useStore((state) => state.setIsOnboarded);
 
-  const totalSteps = birthdayOnly ? 1 : 7;
+  const totalSteps = birthdayOnly ? 1 : 8;
 
   const handleNext = () => {
     if (step < totalSteps) {
@@ -75,6 +78,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
         groupCode: '',
         photoURL: user?.photoURL || undefined, // photoURL already uploaded in useAuth
         shareProfilePicture: true, // Default to sharing
+        enabledActivities,
         createdAt: new Date(),
         pushupState,
       };
@@ -114,6 +118,8 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
       case 6:
         return maxPushups && parseInt(maxPushups) > 0;
       case 7:
+        return enabledActivities.length > 0; // at least one activity required
+      case 8:
         return true; // birthday is optional
       default:
         return false;
@@ -155,7 +161,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                 <input
                   type="date"
                   value={birthday}
-                  onChange={(e) => setBirthday(e.target.value)}
+                  onChange={(e) => { setBirthday(e.target.value); }}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
                   autoFocus
                 />
@@ -177,7 +183,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                   ].map((option) => (
                     <button
                       key={option.value}
-                      onClick={() => setLanguage(option.value)}
+                      onClick={() => { setLanguage(option.value); }}
                       className={`w-full px-6 py-4 rounded-lg border-2 transition-all flex items-center gap-4 ${
                         language === option.value
                           ? 'border-winter-600 dark:border-winter-400 bg-winter-50 dark:bg-winter-900 text-winter-600 dark:text-winter-400'
@@ -203,7 +209,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                 <input
                   type="text"
                   value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
+                  onChange={(e) => { setNickname(e.target.value); }}
                   onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                   placeholder={language === 'de' ? 'z.B. Max' : 'e.g. Max'}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
@@ -228,7 +234,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                   ].map((option) => (
                     <button
                       key={option.value}
-                      onClick={() => setGender(option.value)}
+                      onClick={() => { setGender(option.value); }}
                       className={`w-full px-4 py-3 rounded-lg border-2 transition-all ${
                         gender === option.value
                           ? 'border-winter-600 dark:border-winter-400 bg-winter-50 dark:bg-winter-900'
@@ -257,7 +263,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                   <input
                     type="number"
                     value={height}
-                    onChange={(e) => setHeight(e.target.value)}
+                    onChange={(e) => { setHeight(e.target.value); }}
                     onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                     placeholder="z.B. 180"
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
@@ -283,7 +289,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                     type="number"
                     step="0.1"
                     value={bodyFat}
-                    onChange={(e) => setBodyFat(e.target.value)}
+                    onChange={(e) => { setBodyFat(e.target.value); }}
                     onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                     placeholder="z.B. 15.5"
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
@@ -308,7 +314,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                   <input
                     type="number"
                     value={maxPushups}
-                    onChange={(e) => setMaxPushups(e.target.value)}
+                    onChange={(e) => { setMaxPushups(e.target.value); }}
                     onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                     placeholder="z.B. 30"
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
@@ -335,10 +341,58 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
             {!birthdayOnly && step === 7 && (
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  🎂 Geburtstag (optional)
+                  ✅ {t('onboarding.selectActivities')}
                 </h2>
                 <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Damit wir dir an deinem besonderen Tag gratulieren können!
+                  {t('onboarding.activitiesHelp')}
+                </p>
+                <div className="space-y-3">
+                  {([
+                    { value: 'pushups' as Activity, label: t('onboarding.activityPushups'), icon: '💪' },
+                    { value: 'sports' as Activity, label: t('onboarding.activitySports'), icon: '🏃' },
+                    { value: 'water' as Activity, label: t('onboarding.activityWater'), icon: '💧' },
+                    { value: 'protein' as Activity, label: t('onboarding.activityProtein'), icon: '🥩' },
+                  ]).map((activity) => (
+                    <button
+                      key={activity.value}
+                      onClick={() => {
+                        if (enabledActivities.includes(activity.value)) {
+                          setEnabledActivities(enabledActivities.filter(a => a !== activity.value));
+                        } else {
+                          setEnabledActivities([...enabledActivities, activity.value]);
+                        }
+                      }}
+                      className={`w-full px-4 py-3 rounded-lg border-2 transition-all flex items-center gap-3 ${
+                        enabledActivities.includes(activity.value)
+                          ? 'border-winter-600 dark:border-winter-400 bg-winter-50 dark:bg-winter-900'
+                          : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                      }`}
+                    >
+                      <span className="text-2xl">{activity.icon}</span>
+                      <span className="flex-1 font-medium text-gray-900 dark:text-white text-left">
+                        {activity.label}
+                      </span>
+                      {enabledActivities.includes(activity.value) && (
+                        <span className="text-winter-600 dark:text-winter-400 text-xl">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+                {enabledActivities.length === 0 && (
+                  <p className="mt-4 text-sm text-red-600 dark:text-red-400">
+                    {language === 'de' ? 'Bitte wähle mindestens eine Aktivität aus' : 'Please select at least one activity'}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {!birthdayOnly && step === 8 && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                  🎂 {t('onboarding.birthdayOptional')}
+                </h2>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  {t('onboarding.birthdayHelp')}
                 </p>
                 <input
                   type="date"

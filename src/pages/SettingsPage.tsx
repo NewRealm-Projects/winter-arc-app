@@ -4,7 +4,7 @@ import { signOut } from 'firebase/auth';
 import * as Sentry from '@sentry/react';
 import { auth } from '../firebase/config';
 import { useStore } from '../store/useStore';
-import { Language } from '../types';
+import { Language, Activity } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 
@@ -269,6 +269,79 @@ function SettingsPage() {
             ))}
           </select>
         </div>
+
+        {/* Activities Selection */}
+        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            ✅ {t('settings.activities')}
+          </h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            {t('settings.activitiesDesc')}
+          </p>
+          <div className="space-y-3">
+            {([
+              { value: 'pushups' as Activity, label: t('tracking.pushups'), icon: '💪' },
+              { value: 'sports' as Activity, label: t('tracking.sport'), icon: '🏃' },
+              { value: 'water' as Activity, label: t('tracking.water'), icon: '💧' },
+              { value: 'protein' as Activity, label: t('tracking.protein'), icon: '🥩' },
+            ]).map((activity) => (
+              <div key={activity.value} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{activity.icon}</span>
+                  <div>
+                    <div className="font-semibold text-gray-900 dark:text-white">
+                      {activity.label}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={async () => {
+                    if (!user) return;
+                    const currentActivities = user.enabledActivities || ['pushups', 'sports', 'water', 'protein'];
+                    let newActivities: Activity[];
+
+                    if (currentActivities.includes(activity.value)) {
+                      // Ensure at least one activity remains
+                      if (currentActivities.length === 1) {
+                        alert(t('common.error') + ': ' + (user.language === 'de'
+                          ? 'Mindestens eine Aktivität muss aktiviert bleiben'
+                          : 'At least one activity must remain enabled'));
+                        return;
+                      }
+                      newActivities = currentActivities.filter(a => a !== activity.value);
+                    } else {
+                      newActivities = [...currentActivities, activity.value];
+                    }
+
+                    const { updateUser } = await import('../services/firestoreService');
+                    const result = await updateUser(user.id, { enabledActivities: newActivities });
+                    if (result.success) {
+                      setUser({ ...user, enabledActivities: newActivities });
+                    }
+                  }}
+                  className={`relative w-14 h-8 rounded-full transition-colors ${
+                    (user?.enabledActivities || ['pushups', 'sports', 'water', 'protein']).includes(activity.value)
+                      ? 'bg-winter-600'
+                      : 'bg-gray-300'
+                  }`}
+                >
+                  <div
+                    className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
+                      (user?.enabledActivities || ['pushups', 'sports', 'water', 'protein']).includes(activity.value)
+                        ? 'translate-x-6'
+                        : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+            {user?.language === 'de'
+              ? '💡 Gewicht wird immer getrackt und kann nicht deaktiviert werden'
+              : '💡 Weight is always tracked and cannot be disabled'}
+          </p>
+        </div>
         {/* Profile Section */}
         <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
           <div className="flex items-center gap-4 mb-6">
@@ -300,7 +373,7 @@ function SettingsPage() {
                 </label>
                 <div className="flex gap-2">
                   <button
-                    onClick={() => setEditLanguage('de')}
+                    onClick={() => { setEditLanguage('de'); }}
                     className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
                       editLanguage === 'de'
                         ? 'border-winter-600 bg-winter-50 dark:bg-winter-900 text-winter-600 dark:text-winter-400'
@@ -310,7 +383,7 @@ function SettingsPage() {
                     🇩🇪 Deutsch
                   </button>
                   <button
-                    onClick={() => setEditLanguage('en')}
+                    onClick={() => { setEditLanguage('en'); }}
                     className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
                       editLanguage === 'en'
                         ? 'border-winter-600 bg-winter-50 dark:bg-winter-900 text-winter-600 dark:text-winter-400'
@@ -328,7 +401,7 @@ function SettingsPage() {
                 <input
                   type="text"
                   value={editNickname}
-                  onChange={(e) => setEditNickname(e.target.value)}
+                  onChange={(e) => { setEditNickname(e.target.value); }}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
@@ -339,7 +412,7 @@ function SettingsPage() {
                 <input
                   type="number"
                   value={editHeight}
-                  onChange={(e) => setEditHeight(e.target.value)}
+                  onChange={(e) => { setEditHeight(e.target.value); }}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
@@ -350,7 +423,7 @@ function SettingsPage() {
                 <input
                   type="number"
                   value={editWeight}
-                  onChange={(e) => setEditWeight(e.target.value)}
+                  onChange={(e) => { setEditWeight(e.target.value); }}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
@@ -362,7 +435,7 @@ function SettingsPage() {
                   type="number"
                   step="0.1"
                   value={editBodyFat}
-                  onChange={(e) => setEditBodyFat(e.target.value)}
+                  onChange={(e) => { setEditBodyFat(e.target.value); }}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
@@ -373,7 +446,7 @@ function SettingsPage() {
                 <input
                   type="number"
                   value={editMaxPushups}
-                  onChange={(e) => setEditMaxPushups(e.target.value)}
+                  onChange={(e) => { setEditMaxPushups(e.target.value); }}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
@@ -385,7 +458,7 @@ function SettingsPage() {
                   {t('common.save')}
                 </button>
                 <button
-                  onClick={() => setIsEditingProfile(false)}
+                  onClick={() => { setIsEditingProfile(false); }}
                   className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                 >
                   {t('common.cancel')}
@@ -474,7 +547,7 @@ function SettingsPage() {
               <input
                 type="text"
                 value={groupCode}
-                onChange={(e) => setGroupCode(e.target.value.toUpperCase())}
+                onChange={(e) => { setGroupCode(e.target.value.toUpperCase()); }}
                 placeholder={t('settings.groupCodePlaceholder')}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none font-mono"
                 autoFocus
@@ -500,7 +573,7 @@ function SettingsPage() {
             </div>
           ) : (
             <button
-              onClick={() => setShowGroupInput(true)}
+              onClick={() => { setShowGroupInput(true); }}
               className="w-full px-4 py-3 bg-winter-50 dark:bg-winter-900/20 text-winter-600 dark:text-winter-400 rounded-lg hover:bg-winter-100 dark:hover:bg-winter-900/30 transition-colors font-medium"
             >
               {t('settings.joinOrCreateGroup')}
@@ -582,7 +655,7 @@ function SettingsPage() {
     </button>
     {!pwaInstallPrompt && (
       <button
-        onClick={() => setShowInstallHelp((prev) => !prev)}
+        onClick={() => { setShowInstallHelp((prev) => !prev); }}
         className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
       >
         {showInstallHelp ? t('settings.hideInstructions') : t('settings.showInstructions')}
@@ -634,7 +707,7 @@ function SettingsPage() {
           {notificationsEnabled && (
             <div className="mt-4 space-y-2">
               <button
-                onClick={() => setShowTimeModal(true)}
+                onClick={() => { setShowTimeModal(true); }}
                 className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
               >
                 {t('settings.changeTime')}
@@ -659,7 +732,7 @@ function SettingsPage() {
               <input
                 type="time"
                 value={notificationTime}
-                onChange={(e) => setNotificationTime(e.target.value)}
+                onChange={(e) => { setNotificationTime(e.target.value); }}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none mb-4"
               />
               <div className="flex gap-2">

@@ -30,6 +30,8 @@ interface AppState {
 
   smartContributions: Record<string, SmartTrackingContribution>;
   setSmartContributions: (value: Record<string, SmartTrackingContribution>) => void;
+  leaderboardFilter: 'week' | 'month' | 'all';
+  setLeaderboardFilter: (filter: 'week' | 'month' | 'all') => void;
 }
 
 const getTodayDate = (): string => new Date().toISOString().split('T')[0];
@@ -45,6 +47,19 @@ const getInitialDarkMode = (): boolean => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   } catch {
     return false;
+  }
+};
+
+// Load leaderboard filter preference from localStorage
+const getInitialLeaderboardFilter = (): 'week' | 'month' | 'all' => {
+  try {
+    const stored = localStorage.getItem('leaderboardFilter');
+    if (stored && (stored === 'week' || stored === 'month' || stored === 'all')) {
+      return stored;
+    }
+    return 'month'; // Default to month view
+  } catch {
+    return 'month';
   }
 };
 
@@ -104,4 +119,13 @@ export const useStore = create<AppState>((set) => ({
 
   smartContributions: {},
   setSmartContributions: (value) => set({ smartContributions: value }),
+  leaderboardFilter: getInitialLeaderboardFilter(),
+  setLeaderboardFilter: (filter) => {
+    try {
+      localStorage.setItem('leaderboardFilter', filter);
+    } catch (error) {
+      console.error('Failed to save leaderboard filter preference:', error);
+    }
+    set({ leaderboardFilter: filter });
+  },
 }));

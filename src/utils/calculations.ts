@@ -1,5 +1,5 @@
 import { countActiveSports } from './sports';
-import type { SportTracking } from '../types';
+import type { SportTracking, Activity } from '../types';
 
 /**
  * Berechnet den BMI (Body Mass Index)
@@ -39,13 +39,22 @@ export function calculateWaterGoal(
 }
 
 /**
- * Berechnet den Streak (aufeinanderfolgende Tage mit mindestens 3/5 Tasks)
+ * Berechnet den Streak (aufeinanderfolgende Tage mit ALLEN aktivierten Tasks + Gewicht)
  * @param tracking Tracking-Daten (key: YYYY-MM-DD, value: DailyTracking)
- * @returns Anzahl aufeinanderfolgender Tage mit mindestens 3/5 erledigten Tasks
+ * @param enabledActivities Array of enabled activities (default: all)
+ * @returns Anzahl aufeinanderfolgender Tage mit allen erforderlichen Tasks
  */
-export function calculateStreak(tracking: Record<string, { pushups?: { total?: number }; sports?: SportTracking; water?: number; protein?: number; weight?: { value?: number } }>): number {
+export function calculateStreak(
+  tracking: Record<string, { pushups?: { total?: number }; sports?: SportTracking; water?: number; protein?: number; weight?: { value?: number } }>,
+  enabledActivities: Activity[] = ['pushups', 'sports', 'water', 'protein']
+): number {
   const dates = Object.keys(tracking).sort().reverse();
   if (dates.length === 0) return 0;
+
+  // Total tasks = enabled activities + weight (always tracked)
+  const totalTasks = enabledActivities.length + 1;
+  // Required tasks = ALL enabled activities + weight
+  const requiredTasks = totalTasks;
 
   let streak = 0;
   const today = new Date();
@@ -57,18 +66,30 @@ export function calculateStreak(tracking: Record<string, { pushups?: { total?: n
     const date = new Date(dateStr);
     date.setHours(0, 0, 0, 0);
 
-    // Check if day has at least 3/5 tasks completed
-    const hasPushups = (dayTracking?.pushups?.total || 0) > 0;
-    const hasSports = countActiveSports(dayTracking?.sports) > 0;
-    const hasWater = (dayTracking?.water || 0) >= 2000; // Goal: 2L
-    const hasProtein = (dayTracking?.protein || 0) >= 100; // Goal: 100g
-    const hasWeight = !!dayTracking?.weight?.value; // Weight entered
+    // Count completed tasks based on enabled activities
+    const completedTasks = [];
 
-    const tasksCompleted = [hasPushups, hasSports, hasWater, hasProtein, hasWeight].filter(Boolean).length;
-    const isCompleted = tasksCompleted >= 3; // At least 3 tasks required
+    if (enabledActivities.includes('pushups') && (dayTracking.pushups?.total || 0) > 0) {
+      completedTasks.push('pushups');
+    }
+    if (enabledActivities.includes('sports') && countActiveSports(dayTracking?.sports) > 0) {
+      completedTasks.push('sports');
+    }
+    if (enabledActivities.includes('water') && (dayTracking?.water || 0) >= 2000) {
+      completedTasks.push('water');
+    }
+    if (enabledActivities.includes('protein') && (dayTracking.protein || 0) >= 100) {
+      completedTasks.push('protein');
+    }
+    // Weight is always checked (mandatory)
+    if (dayTracking.weight?.value) {
+      completedTasks.push('weight');
+    }
+
+    const isCompleted = completedTasks.length >= requiredTasks;
 
     if (!isCompleted) {
-      // Day doesn't meet 3/5 requirement - stop counting
+      // Day doesn't meet required task threshold - stop counting
       break;
     }
 

@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
 import { useTranslation } from '../hooks/useTranslation';
 import type { SportEntry, SportKey } from '../types';
-import { countActiveSports, normalizeSports } from '../utils/sports';
+import { countActiveSports, normalizeSports, toSportEntry } from '../utils/sports';
 import { getTileClasses, designTokens } from '../theme/tokens';
 import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 
@@ -42,16 +42,16 @@ function SportTile() {
   );
 
   const toggleRest = (sport: SportKey) => {
-    const nextSports: Record<SportKey, SportEntry> = {
-      ...currentSports,
-      [sport]: {
-        ...currentSports[sport],
-        active: !currentSports[sport].active,
-      },
-    };
+    const previous = toSportEntry(activeTracking?.sports?.[sport] ? activeTracking.sports[sport] : currentSports[sport]);
 
     updateDayTracking(activeDate, {
-      sports: nextSports,
+      sports: {
+        ...activeTracking?.sports,
+        [sport]: {
+          ...previous,
+          active: !previous.active,
+        },
+      },
     });
   };
 
@@ -63,25 +63,23 @@ function SportTile() {
 
     setSelectedSport(sport);
     const sportData = currentSports[sport];
-    setDuration(sportData?.duration ?? 60);
-    setIntensity(sportData?.intensity ?? 5);
+    setDuration(sportData.duration ?? 60);
+    setIntensity(sportData.intensity ?? 5);
     setShowModal(true);
   };
 
   const saveSport = () => {
     if (!selectedSport) return;
 
-    const nextSports: Record<SportKey, SportEntry> = {
-      ...currentSports,
-      [selectedSport]: {
-        active: true,
-        duration,
-        intensity,
-      },
-    };
-
     updateDayTracking(activeDate, {
-      sports: nextSports,
+      sports: {
+        ...activeTracking?.sports,
+        [selectedSport]: {
+          active: true,
+          duration,
+          intensity,
+        },
+      },
     });
     setShowModal(false);
     setSelectedSport(null);
@@ -90,13 +88,11 @@ function SportTile() {
   const removeSport = () => {
     if (!selectedSport) return;
 
-    const nextSports: Record<SportKey, SportEntry> = {
-      ...currentSports,
-      [selectedSport]: { active: false },
-    };
-
     updateDayTracking(activeDate, {
-      sports: nextSports,
+      sports: {
+        ...activeTracking?.sports,
+        [selectedSport]: { active: false },
+      },
     });
     setShowModal(false);
     setSelectedSport(null);
@@ -133,13 +129,13 @@ function SportTile() {
 
       <div className="grid grid-cols-3 gap-1.5 text-center">
         {sportOptions.map((sport) => {
-          const isChecked = displaySports[sport.key]?.active || false;
+          const isChecked = displaySports[sport.key].active || false;
 
           return (
             <button
               key={sport.key}
               type="button"
-              onClick={() => openSportModal(sport.key)}
+              onClick={() => { openSportModal(sport.key); }}
               className={`p-2 rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-1 ${
                 isChecked
                   ? 'bg-blue-600/20 dark:bg-blue-600/30 border-2 border-blue-400 shadow-inner'
@@ -160,11 +156,11 @@ function SportTile() {
         createPortal(
           <div
             className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"
-            onClick={() => setShowModal(false)}
+            onClick={() => { setShowModal(false); }}
           >
             <div
               className="rounded-2xl bg-slate-800/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-5 w-full max-w-sm"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); }}
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-white">
@@ -187,7 +183,7 @@ function SportTile() {
                     {[30, 60, 90].map((min) => (
                       <button
                         key={min}
-                        onClick={() => setDuration(min)}
+                        onClick={() => { setDuration(min); }}
                         className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                           duration === min
                             ? 'bg-blue-600 text-white'
@@ -201,7 +197,7 @@ function SportTile() {
                   <input
                     type="number"
                     value={duration}
-                    onChange={(e) => setDuration(Number(e.target.value))}
+                    onChange={(e) => { setDuration(Number(e.target.value)); }}
                     className="w-full px-3 py-2 text-sm rounded-lg border border-white/20 bg-white/5 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-400 outline-none"
                     placeholder="Custom"
                   />
@@ -215,7 +211,7 @@ function SportTile() {
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
                       <button
                         key={level}
-                        onClick={() => setIntensity(level)}
+                        onClick={() => { setIntensity(level); }}
                         className={`px-2 py-2 rounded-lg text-sm font-medium transition-all ${
                           intensity === level
                             ? 'bg-gradient-to-br from-orange-500 to-red-500 text-white scale-110'

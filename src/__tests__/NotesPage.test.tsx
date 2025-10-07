@@ -57,24 +57,27 @@ vi.mock('../store/noteStore', () => ({ noteStore: noteStoreMock }));
 
 vi.mock('../features/notes/pipeline', () => {
   return {
-    processSmartNote: vi.fn(async (raw: string) => {
-      const note: SmartNote = {
-        id: `note-${Math.random().toString(16).slice(2)}`,
-        ts: Date.now(),
-        raw,
-        summary: raw,
-        events: [],
-        pending: true,
-      };
-      await noteStoreMock.add(note);
-      setTimeout(() => {
-        void noteStoreMock.update(note.id, {
-          summary: `Processed: ${raw}`,
-          pending: false,
-        });
-      }, 150);
-      return { noteId: note.id };
-    }),
+    processSmartNote: vi.fn(
+      async (raw: string, options?: { autoTracking?: boolean; attachments?: SmartNote['attachments'] }) => {
+        const note: SmartNote = {
+          id: `note-${Math.random().toString(16).slice(2)}`,
+          ts: Date.now(),
+          raw,
+          summary: raw,
+          events: [],
+          pending: true,
+          attachments: options?.attachments,
+        };
+        await noteStoreMock.add(note);
+        setTimeout(() => {
+          void noteStoreMock.update(note.id, {
+            summary: `Processed: ${raw}`,
+            pending: false,
+          });
+        }, 150);
+        return { noteId: note.id };
+      }
+    ),
     retrySmartNote: vi.fn(),
   };
 });
