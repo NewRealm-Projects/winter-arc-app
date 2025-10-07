@@ -122,6 +122,8 @@ Der Client ruft `https://generativelanguage.googleapis.com/v1beta/models/gemini-
 
 Ein `401` oder `403` deutet auf einen fehlenden/ungültigen Schlüssel hin. Stelle sicher, dass der Key aktiv ist und in deiner `.env` verfügbar gemacht wird (`VITE_GEMINI_API_KEY=...`).
 
+Falls die Generierung bei dir regelmäßig durch ein Timeout abbricht, kannst du mit `VITE_GEMINI_TIMEOUT_MS` (Standard: `20000`) einen längeren Request-Timeout in Millisekunden konfigurieren.
+
 **Firebase Setup**:
 1. Gehe zu [Firebase Console](https://console.firebase.google.com/)
 2. Erstelle neues Projekt

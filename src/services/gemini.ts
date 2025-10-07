@@ -8,6 +8,9 @@ export interface SummarizeInput {
 }
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+const timeoutEnv = Number.parseInt(import.meta.env.VITE_GEMINI_TIMEOUT_MS ?? '', 10);
+const GEMINI_TIMEOUT_MS = Number.isFinite(timeoutEnv) && timeoutEnv > 0 ? timeoutEnv : 20000;
+
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 
 function sanitizeNote(note: SmartNote) {
@@ -113,7 +116,9 @@ export async function summarizeAndValidate(
 
     let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutHandle = setTimeout(() => { reject(new Error('Gemini timeout')); }, 8000);
+      timeoutHandle = setTimeout(() => {
+        reject(new Error('Gemini timeout'));
+      }, GEMINI_TIMEOUT_MS);
     });
 
     const generationPromise = model.generateContent({
