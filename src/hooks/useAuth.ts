@@ -33,7 +33,7 @@ export function useAuth() {
 
             if (shouldUploadGooglePhoto) {
               const { uploadProfilePictureFromUrl } = await import('../services/storageService');
-              const uploadResult = await uploadProfilePictureFromUrl(firebaseUser.photoURL!, firebaseUser.uid);
+              const uploadResult = await uploadProfilePictureFromUrl(firebaseUser.photoURL, firebaseUser.uid);
 
               if (uploadResult.success && uploadResult.url) {
                 const updates: Partial<Omit<User, 'id'>> = {
