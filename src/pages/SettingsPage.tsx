@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { signOut } from 'firebase/auth';
 import * as Sentry from '@sentry/react';
@@ -7,13 +6,14 @@ import { useStore } from '../store/useStore';
 import { Language, Activity } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
+import { glassCardClasses, glassCardHoverClasses, designTokens } from '../theme/tokens';
+
+type SectionId = 'general' | 'profile' | 'account';
 
 // Wetter-Stadt Auswahl Optionen
 const cityOptions = [
   'Aachen', 'Berlin', 'Hamburg', 'München', 'Köln', 'Frankfurt', 'Stuttgart', 'Dresden', 'Leipzig', 'Düsseldorf'
 ];
-
-
 
 function SettingsPage() {
   // Wetter-Stadt Auswahl
@@ -40,16 +40,15 @@ function SettingsPage() {
   const [editBodyFat, setEditBodyFat] = useState('');
   const [editMaxPushups, setEditMaxPushups] = useState('');
 
-
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
     if (typeof window === 'undefined') return false;
     return localStorage.getItem('notification-enabled') === 'true';
   });
 
-
   const [notificationTime, setNotificationTime] = useState('20:00');
   const [showTimeModal, setShowTimeModal] = useState(false);
   const [showInstallHelp, setShowInstallHelp] = useState(false);
+  const [activeSection, setActiveSection] = useState<SectionId>('general');
 
   const user = useStore((state) => state.user);
   const setUser = useStore((state) => state.setUser);
@@ -57,7 +56,6 @@ function SettingsPage() {
   const setPwaInstallPrompt = useStore((state) => state.setPwaInstallPrompt);
   const isIOS = typeof window !== 'undefined' && /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
   const isStandalone = typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || ('standalone' in window.navigator && (window.navigator as { standalone?: boolean }).standalone));
-
 
   const handleInstallApp = async () => {
     if (pwaInstallPrompt) {
@@ -241,502 +239,654 @@ function SettingsPage() {
     }
   };
 
+  const sections: Array<{ id: SectionId; label: string; description: string }> = [
+    {
+      id: 'general',
+      label: `✨ ${t('settings.quickSettings')}`,
+      description: t('settings.quickSettingsDesc'),
+    },
+    {
+      id: 'profile',
+      label: `👤 ${t('settings.profile')}`,
+      description: t('settings.profileSettingsDesc'),
+    },
+    {
+      id: 'account',
+      label: `🔐 ${t('settings.account')}`,
+      description: t('settings.accountSettingsDesc'),
+    },
+  ];
+
+  const currentSection = sections.find((section) => section.id === activeSection) ?? sections[0];
+  const enabledActivities = user?.enabledActivities || ['pushups', 'sports', 'water', 'protein'];
+
+  const profileSummaryItems: Array<{ label: string; value: string }> = [
+    { label: t('settings.language'), value: user?.language === 'de' ? '🇩🇪 Deutsch' : '🇺🇸 English' },
+    { label: t('settings.nickname'), value: user?.nickname || '—' },
+    {
+      label: t('settings.gender'),
+      value: user?.gender === 'male'
+        ? t('settings.male')
+        : user?.gender === 'female'
+          ? t('settings.female')
+          : t('settings.diverse'),
+    },
+    { label: t('settings.height'), value: `${user?.height ?? '—'} cm` },
+    { label: t('settings.weight'), value: `${user?.weight ?? '—'} kg` },
+    { label: t('settings.maxPushups'), value: `${user?.maxPushups ?? '—'}` },
+  ];
+
+  if (user?.bodyFat) {
+    profileSummaryItems.splice(5, 0, { label: t('settings.bodyFat'), value: `${user.bodyFat}%` });
+  }
+
   return (
-  <div className="min-h-screen-mobile glass-dark safe-pt">
-      {/* Header */}
-  <div className="glass-dark text-white px-4 py-6 md:px-6 md:py-8">
-        <div className="mobile-container">
-          <h1 className="text-fluid-h1 font-bold mb-2">⚙️ {t('settings.title')}</h1>
-          <p className="text-fluid-base text-winter-100">{t('settings.subtitle')}</p>
+    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe">
+      <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0">
+        <div className="flex flex-col gap-3 md:gap-4">
+          <section className={`${glassCardClasses} ${designTokens.padding.spacious} text-white`}>
+            <div className="flex flex-col gap-5">
+              <div>
+                <h1 className="flex items-center gap-2 text-fluid-h1 font-semibold tracking-tight">
+                  <span aria-hidden="true">⚙️</span>
+                  {t('settings.title')}
+                </h1>
+                <p className="text-sm text-white/70">{t('settings.subtitle')}</p>
+              </div>
+              <nav className="flex flex-wrap gap-2" aria-label={t('settings.title')}>
+                {sections.map((section) => {
+                  const isActive = section.id === activeSection;
+                  return (
+                    <button
+                      key={section.id}
+                      type="button"
+                      onClick={() => { setActiveSection(section.id); }}
+                      className={`group flex-1 min-w-[140px] rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                        isActive
+                          ? 'border-transparent bg-white text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)]'
+                          : 'border-white/20 bg-white/10 text-white/80 hover:border-white/30 hover:bg-white/15'
+                      }`}
+                    >
+                      <span className="flex items-center justify-center gap-2">{section.label}</span>
+                    </button>
+                  );
+                })}
+              </nav>
+              <p className="text-xs text-white/60">{currentSection.description}</p>
+            </div>
+          </section>
+
+          <div className="flex flex-col gap-3 md:gap-4">
+            {activeSection === 'general' && (
+              <>
+                <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
+                  <div className="flex flex-col gap-4">
+                    <div>
+                      <h2 className="flex items-center gap-2 text-lg font-semibold">
+                        <span aria-hidden="true">🌤️</span>
+                        {t('settings.weatherCity')}
+                      </h2>
+                      <p className="text-sm text-white/70">{t('settings.weatherCityDesc')}</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label
+                        htmlFor="weather-city-select"
+                        className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50"
+                      >
+                        {t('settings.weatherCity')}
+                      </label>
+                      <select
+                        id="weather-city-select"
+                        value={weatherCity}
+                        onChange={handleCityChange}
+                        className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white outline-none transition focus:border-white/40 focus:ring-2 focus:ring-white/30"
+                      >
+                        {cityOptions.map((city) => (
+                          <option key={city} value={city} className="text-slate-900">
+                            {city}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </section>
+
+                <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
+                  <div className="flex flex-col gap-5">
+                    <div>
+                      <h2 className="flex items-center gap-2 text-lg font-semibold">
+                        <span aria-hidden="true">✅</span>
+                        {t('settings.activities')}
+                      </h2>
+                      <p className="text-sm text-white/70">{t('settings.activitiesDesc')}</p>
+                    </div>
+                    <div className="space-y-4">
+                      {([
+                        { value: 'pushups' as Activity, label: t('tracking.pushups'), icon: '💪' },
+                        { value: 'sports' as Activity, label: t('tracking.sport'), icon: '🏃' },
+                        { value: 'water' as Activity, label: t('tracking.water'), icon: '💧' },
+                        { value: 'protein' as Activity, label: t('tracking.protein'), icon: '🥩' },
+                      ]).map((activity) => {
+                        const activityEnabled = enabledActivities.includes(activity.value);
+                        return (
+                          <div key={activity.value} className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl" aria-hidden="true">{activity.icon}</span>
+                              <div className="flex flex-col">
+                                <span className="font-semibold">{activity.label}</span>
+                                <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+                                  {activityEnabled ? t('common.yes') : t('common.no')}
+                                </span>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              aria-pressed={activityEnabled}
+                              onClick={async () => {
+                                if (!user) return;
+                                const currentActivities = user.enabledActivities || ['pushups', 'sports', 'water', 'protein'];
+                                let newActivities: Activity[];
+
+                                if (currentActivities.includes(activity.value)) {
+                                  if (currentActivities.length === 1) {
+                                    alert(t('common.error') + ': ' + (user.language === 'de'
+                                      ? 'Mindestens eine Aktivität muss aktiviert bleiben'
+                                      : 'At least one activity must remain enabled'));
+                                    return;
+                                  }
+                                  newActivities = currentActivities.filter((item) => item !== activity.value);
+                                } else {
+                                  newActivities = [...currentActivities, activity.value];
+                                }
+
+                                const { updateUser } = await import('../services/firestoreService');
+                                const result = await updateUser(user.id, { enabledActivities: newActivities });
+                                if (result.success) {
+                                  setUser({ ...user, enabledActivities: newActivities });
+                                }
+                              }}
+                              className={`relative h-9 w-16 rounded-full border transition-all duration-200 ${
+                                activityEnabled
+                                  ? 'border-white/40 bg-gradient-to-r from-winter-400 to-winter-600 shadow-[0_14px_40px_rgba(15,23,42,0.45)]'
+                                  : 'border-white/20 bg-white/10 hover:border-white/30'
+                              }`}
+                            >
+                              <span
+                                className={`absolute top-1 left-1 h-7 w-7 rounded-full bg-white transition-transform duration-200 ${
+                                  activityEnabled ? 'translate-x-7 drop-shadow-[0_8px_20px_rgba(15,23,42,0.35)]' : ''
+                                }`}
+                              />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-white/60">
+                      {user?.language === 'de'
+                        ? '💡 Gewicht wird immer getrackt und kann nicht deaktiviert werden'
+                        : '💡 Weight is always tracked and cannot be disabled'}
+                    </p>
+                  </div>
+                </section>
+
+                <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
+                  <div className="flex flex-col gap-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h2 className="flex items-center gap-2 text-lg font-semibold">
+                          <span aria-hidden="true">🔔</span>
+                          {t('settings.notifications')}
+                        </h2>
+                        <p className="text-sm text-white/70">{t('settings.dailyReminder')}</p>
+                      </div>
+                      <button
+                        type="button"
+                        aria-pressed={notificationsEnabled}
+                        onClick={handleToggleNotifications}
+                        className={`relative h-9 w-16 rounded-full border transition-all duration-200 ${
+                          notificationsEnabled
+                            ? 'border-white/40 bg-gradient-to-r from-winter-400 to-winter-600 shadow-[0_14px_40px_rgba(15,23,42,0.45)]'
+                            : 'border-white/20 bg-white/10 hover:border-white/30'
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-1 left-1 h-7 w-7 rounded-full bg-white transition-transform duration-200 ${
+                            notificationsEnabled ? 'translate-x-7 drop-shadow-[0_8px_20px_rgba(15,23,42,0.35)]' : ''
+                          }`}
+                        />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-white/70">
+                      <span>{t('settings.reminderTime')}</span>
+                      <span className="font-semibold text-white">{notificationTime}</span>
+                    </div>
+                    {notificationsEnabled && (
+                      <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                        <button
+                          type="button"
+                          onClick={() => { setShowTimeModal(true); }}
+                          className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+                        >
+                          {t('settings.changeTime')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={sendTestNotification}
+                          className="rounded-xl bg-white px-4 py-3 text-sm font-semibold text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)] transition hover:shadow-[0_18px_50px_rgba(15,23,42,0.45)]"
+                        >
+                          {t('settings.testNotification')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h2 className="flex items-center gap-2 text-lg font-semibold">
+                        <span aria-hidden="true">🎨</span>
+                        {t('settings.appearance')}
+                      </h2>
+                      <p className="text-sm text-white/70">{t('settings.themeDesc')}</p>
+                    </div>
+                    <ThemeToggle />
+                  </div>
+                </section>
+
+                <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
+                  <div className="flex flex-col gap-4">
+                    <div>
+                      <h2 className="flex items-center gap-2 text-lg font-semibold">
+                        <span aria-hidden="true">📲</span>
+                        {t('settings.installSection')}
+                      </h2>
+                      <p className="text-sm text-white/70">{t('settings.installDescription')}</p>
+                    </div>
+                    <div className="flex flex-col gap-2 md:flex-row">
+                      <button
+                        type="button"
+                        onClick={handleInstallApp}
+                        disabled={isStandalone}
+                        className="flex-1 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)] transition hover:shadow-[0_18px_50px_rgba(15,23,42,0.45)] disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        {pwaInstallPrompt ? t('settings.installButton') : t('settings.installHelp')}
+                      </button>
+                      {!pwaInstallPrompt && (
+                        <button
+                          type="button"
+                          onClick={() => { setShowInstallHelp((prev) => !prev); }}
+                          className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+                        >
+                          {showInstallHelp ? t('settings.hideInstructions') : t('settings.showInstructions')}
+                        </button>
+                      )}
+                    </div>
+                    {(showInstallHelp || !pwaInstallPrompt) && (
+                      <p className="text-xs leading-relaxed text-white/60">
+                        {isStandalone
+                          ? t('settings.installAlready')
+                          : isIOS
+                            ? t('settings.installInstructionsIos')
+                            : t('settings.installInstructions')}
+                      </p>
+                    )}
+                  </div>
+                </section>
+              </>
+            )}
+
+            {activeSection === 'profile' && (
+              <>
+                <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
+                  <div className="flex flex-col gap-5">
+                    <div className="flex items-center gap-4">
+                      {user?.photoURL && (
+                        <img
+                          src={user.photoURL}
+                          alt={user.nickname}
+                          referrerPolicy="no-referrer"
+                          className="h-20 w-20 rounded-full border border-white/20 object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      )}
+                      <div>
+                        <h2 className="flex items-center gap-2 text-lg font-semibold">
+                          <span aria-hidden="true">👤</span>
+                          {t('settings.profile')}
+                        </h2>
+                        <p className="text-sm text-white/70">{user?.nickname}</p>
+                      </div>
+                    </div>
+
+                    {isEditingProfile ? (
+                      <div className="flex flex-col gap-4">
+                        <div className="flex flex-col gap-2">
+                          <span className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">
+                            {t('settings.language')}
+                          </span>
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => { setEditLanguage('de'); }}
+                              className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                                editLanguage === 'de'
+                                  ? 'border-transparent bg-white text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)]'
+                                  : 'border-white/20 bg-white/10 text-white/80 hover:border-white/30 hover:bg-white/15'
+                              }`}
+                            >
+                              🇩🇪 Deutsch
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setEditLanguage('en'); }}
+                              className={`rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                                editLanguage === 'en'
+                                  ? 'border-transparent bg-white text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)]'
+                                  : 'border-white/20 bg-white/10 text-white/80 hover:border-white/30 hover:bg-white/15'
+                              }`}
+                            >
+                              🇺🇸 English
+                            </button>
+                          </div>
+                        </div>
+
+                        {[{
+                          key: 'nickname',
+                          label: t('settings.nickname'),
+                          value: editNickname,
+                          onChange: (value: string) => { setEditNickname(value); },
+                          type: 'text',
+                        }, {
+                          key: 'height',
+                          label: t('settings.height'),
+                          value: editHeight,
+                          onChange: (value: string) => { setEditHeight(value); },
+                          type: 'number',
+                        }, {
+                          key: 'weight',
+                          label: t('settings.weight'),
+                          value: editWeight,
+                          onChange: (value: string) => { setEditWeight(value); },
+                          type: 'number',
+                        }, {
+                          key: 'bodyFat',
+                          label: t('settings.bodyFat'),
+                          value: editBodyFat,
+                          onChange: (value: string) => { setEditBodyFat(value); },
+                          type: 'number',
+                          step: '0.1',
+                        }, {
+                          key: 'maxPushups',
+                          label: t('settings.maxPushups'),
+                          value: editMaxPushups,
+                          onChange: (value: string) => { setEditMaxPushups(value); },
+                          type: 'number',
+                        }].map((field) => (
+                          <label key={field.key} className="flex flex-col gap-2 text-sm font-medium">
+                            <span className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">{field.label}</span>
+                            <input
+                              type={field.type}
+                              value={field.value}
+                              step={field.step}
+                              onChange={(event) => { field.onChange(event.target.value); }}
+                              className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white outline-none transition focus:border-white/40 focus:ring-2 focus:ring-white/30"
+                            />
+                          </label>
+                        ))}
+
+                        <div className="flex flex-col gap-2 md:flex-row">
+                          <button
+                            type="button"
+                            onClick={handleSaveProfile}
+                            className="flex-1 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)] transition hover:shadow-[0_18px_50px_rgba(15,23,42,0.45)]"
+                          >
+                            {t('common.save')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setIsEditingProfile(false); }}
+                            className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+                          >
+                            {t('common.cancel')}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col gap-4">
+                        <div className="grid grid-cols-1 gap-3 text-sm text-white/80">
+                          {profileSummaryItems.map((item) => (
+                            <div key={item.label} className="flex items-center justify-between gap-2">
+                              <span className="text-xs uppercase tracking-[0.28em] text-white/50">{item.label}</span>
+                              <span className="font-semibold text-white">{item.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleEditProfile}
+                          className="rounded-xl bg-white px-4 py-3 text-sm font-semibold text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)] transition hover:shadow-[0_18px_50px_rgba(15,23,42,0.45)]"
+                        >
+                          {t('settings.editProfile')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </section>
+
+                <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
+                  <div className="flex flex-col gap-4">
+                    <div>
+                      <h2 className="flex items-center gap-2 text-lg font-semibold">
+                        <span aria-hidden="true">🔒</span>
+                        {t('settings.privacy')}
+                      </h2>
+                      <p className="text-sm text-white/70">{t('settings.shareProfilePictureDesc')}</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-white">{t('settings.shareProfilePicture')}</span>
+                      <button
+                        type="button"
+                        aria-pressed={Boolean(user?.shareProfilePicture)}
+                        onClick={async () => {
+                          if (!user) return;
+                          const newValue = !user.shareProfilePicture;
+                          const { updateUser } = await import('../services/firestoreService');
+                          const result = await updateUser(user.id, { shareProfilePicture: newValue });
+                          if (result.success) {
+                            setUser({ ...user, shareProfilePicture: newValue });
+                          }
+                        }}
+                        className={`relative h-9 w-16 rounded-full border transition-all duration-200 ${
+                          user?.shareProfilePicture
+                            ? 'border-white/40 bg-gradient-to-r from-winter-400 to-winter-600 shadow-[0_14px_40px_rgba(15,23,42,0.45)]'
+                            : 'border-white/20 bg-white/10 hover:border-white/30'
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-1 left-1 h-7 w-7 rounded-full bg-white transition-transform duration-200 ${
+                            user?.shareProfilePicture ? 'translate-x-7 drop-shadow-[0_8px_20px_rgba(15,23,42,0.35)]' : ''
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
+                  <div className="flex flex-col gap-4">
+                    <div>
+                      <h2 className="flex items-center gap-2 text-lg font-semibold">
+                        <span aria-hidden="true">👥</span>
+                        {t('settings.group')}
+                      </h2>
+                      <p className="text-sm text-white/70">{t('settings.joinOrCreateGroup')}</p>
+                    </div>
+                    {user?.groupCode ? (
+                      <div className="flex flex-col gap-3">
+                        <div className="rounded-xl border border-white/10 bg-white/10 px-4 py-4">
+                          <span className="text-xs uppercase tracking-[0.28em] text-white/50">
+                            {t('settings.yourGroupCode')}
+                          </span>
+                          <span className="mt-1 block text-2xl font-semibold text-white">
+                            {user.groupCode}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className="rounded-xl border border-red-300/40 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200 transition hover:border-red-200/60 hover:bg-red-500/20"
+                        >
+                          {t('settings.leaveGroup')}
+                        </button>
+                      </div>
+                    ) : showGroupInput ? (
+                      <div className="flex flex-col gap-3">
+                        <label className="flex flex-col gap-2 text-sm font-semibold text-white">
+                          <span className="text-xs uppercase tracking-[0.28em] text-white/50">
+                            {t('settings.groupCodePlaceholder')}
+                          </span>
+                          <input
+                            type="text"
+                            value={groupCode}
+                            onChange={(e) => { setGroupCode(e.target.value.toUpperCase()); }}
+                            placeholder={t('settings.groupCodePlaceholder')}
+                            className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 font-mono text-white outline-none transition focus:border-white/40 focus:ring-2 focus:ring-white/30"
+                            autoFocus
+                          />
+                        </label>
+                        <div className="flex flex-col gap-2 md:flex-row">
+                          <button
+                            type="button"
+                            onClick={handleJoinGroup}
+                            disabled={!groupCode}
+                            className="flex-1 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)] transition hover:shadow-[0_18px_50px_rgba(15,23,42,0.45)] disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            {t('settings.joinGroup')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowGroupInput(false);
+                              setGroupCode('');
+                            }}
+                            className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+                          >
+                            {t('common.cancel')}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => { setShowGroupInput(true); }}
+                        className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+                      >
+                        {t('settings.joinOrCreateGroup')}
+                      </button>
+                    )}
+                  </div>
+                </section>
+              </>
+            )}
+
+            {activeSection === 'account' && (
+              <>
+                <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
+                  <div className="flex flex-col gap-4">
+                    <div>
+                      <h2 className="flex items-center gap-2 text-lg font-semibold">
+                        <span aria-hidden="true">🔐</span>
+                        {t('settings.account')}
+                      </h2>
+                      <p className="text-sm text-white/70">{t('settings.subtitle')}</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+                      >
+                        {t('settings.logout')}
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-xl border border-red-300/40 bg-red-500/10 px-4 py-3 text-left text-sm font-semibold text-red-200 transition hover:border-red-200/60 hover:bg-red-500/20"
+                      >
+                        {t('settings.deleteAccount')}
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
+                  <div className="flex flex-col gap-3">
+                    <h2 className="flex items-center gap-2 text-lg font-semibold">
+                      <span aria-hidden="true">📄</span>
+                      {t('settings.legal')}
+                    </h2>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+                      >
+                        {t('settings.privacy')}
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+                      >
+                        {t('settings.terms')}
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                {import.meta.env.DEV && (
+                  <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} border border-yellow-300/40 bg-yellow-500/10 text-yellow-50`}>
+                    <div className="flex flex-col gap-4">
+                      <h2 className="flex items-center gap-2 text-lg font-semibold">
+                        <span aria-hidden="true">🧪</span>
+                        Debug Tools
+                      </h2>
+                      <button
+                        type="button"
+                        onClick={handleTestError}
+                        className="rounded-xl border border-yellow-200/40 bg-yellow-400/20 px-4 py-3 text-left text-sm font-semibold text-yellow-50 transition hover:border-yellow-200/60 hover:bg-yellow-400/30"
+                      >
+                        Test Sentry Error Tracking
+                      </button>
+                      <div className="text-xs text-yellow-100/80">
+                        Sentry Status: {import.meta.env.VITE_SENTRY_DSN ? '✅ Konfiguriert' : '⚠️ Nicht konfiguriert'}
+                      </div>
+                    </div>
+                  </section>
+                )}
+              </>
+            )}
+          </div>
+
+          <div className="text-center text-xs text-white/50">
+            Winter Arc Tracker v0.0.1
+          </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="mobile-container pt-4 md:pt-6 pb-20 safe-pb">
-        <div className="mobile-stack">
-        {/* Wetter Stadt Auswahl */}
-        <div className="glass dark:glass-dark rounded-[20px] p-6 mb-2">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">🌤️ {t('settings.weatherCity')}</h2>
-          <label htmlFor="weather-city-select" className="block mb-2 text-sm text-gray-700 dark:text-gray-300">{t('settings.weatherCityDesc')}:</label>
-          <select
-            id="weather-city-select"
-            value={weatherCity}
-            onChange={handleCityChange}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none"
-          >
-            {cityOptions.map((city) => (
-              <option key={city} value={city}>{city}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Activities Selection */}
-        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-            ✅ {t('settings.activities')}
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            {t('settings.activitiesDesc')}
-          </p>
-          <div className="space-y-3">
-            {([
-              { value: 'pushups' as Activity, label: t('tracking.pushups'), icon: '💪' },
-              { value: 'sports' as Activity, label: t('tracking.sport'), icon: '🏃' },
-              { value: 'water' as Activity, label: t('tracking.water'), icon: '💧' },
-              { value: 'protein' as Activity, label: t('tracking.protein'), icon: '🥩' },
-            ]).map((activity) => (
-              <div key={activity.value} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{activity.icon}</span>
-                  <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">
-                      {activity.label}
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={async () => {
-                    if (!user) return;
-                    const currentActivities = user.enabledActivities || ['pushups', 'sports', 'water', 'protein'];
-                    let newActivities: Activity[];
-
-                    if (currentActivities.includes(activity.value)) {
-                      // Ensure at least one activity remains
-                      if (currentActivities.length === 1) {
-                        alert(t('common.error') + ': ' + (user.language === 'de'
-                          ? 'Mindestens eine Aktivität muss aktiviert bleiben'
-                          : 'At least one activity must remain enabled'));
-                        return;
-                      }
-                      newActivities = currentActivities.filter(a => a !== activity.value);
-                    } else {
-                      newActivities = [...currentActivities, activity.value];
-                    }
-
-                    const { updateUser } = await import('../services/firestoreService');
-                    const result = await updateUser(user.id, { enabledActivities: newActivities });
-                    if (result.success) {
-                      setUser({ ...user, enabledActivities: newActivities });
-                    }
-                  }}
-                  className={`relative w-14 h-8 rounded-full transition-colors ${
-                    (user?.enabledActivities || ['pushups', 'sports', 'water', 'protein']).includes(activity.value)
-                      ? 'bg-winter-600'
-                      : 'bg-gray-300'
-                  }`}
-                >
-                  <div
-                    className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                      (user?.enabledActivities || ['pushups', 'sports', 'water', 'protein']).includes(activity.value)
-                        ? 'translate-x-6'
-                        : 'translate-x-0'
-                    }`}
-                  />
-                </button>
-              </div>
-            ))}
-          </div>
-          <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-            {user?.language === 'de'
-              ? '💡 Gewicht wird immer getrackt und kann nicht deaktiviert werden'
-              : '💡 Weight is always tracked and cannot be disabled'}
-          </p>
-        </div>
-        {/* Profile Section */}
-        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
-          <div className="flex items-center gap-4 mb-6">
-            {user?.photoURL && (
-              <img
-                src={user.photoURL}
-                alt={user.nickname}
-                referrerPolicy="no-referrer"
-                className="w-20 h-20 rounded-full border-2 border-winter-200 dark:border-winter-700 shadow-lg object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = 'none';
-                }}
-              />
-            )}
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                👤 {t('settings.profile')}
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {user?.nickname}
-              </p>
-            </div>
-          </div>
-          {isEditingProfile ? (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('settings.language')}
-                </label>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => { setEditLanguage('de'); }}
-                    className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
-                      editLanguage === 'de'
-                        ? 'border-winter-600 bg-winter-50 dark:bg-winter-900 text-winter-600 dark:text-winter-400'
-                        : 'border-gray-300 dark:border-gray-600 hover:border-winter-400'
-                    }`}
-                  >
-                    🇩🇪 Deutsch
-                  </button>
-                  <button
-                    onClick={() => { setEditLanguage('en'); }}
-                    className={`flex-1 px-4 py-2 rounded-lg border-2 transition-all ${
-                      editLanguage === 'en'
-                        ? 'border-winter-600 bg-winter-50 dark:bg-winter-900 text-winter-600 dark:text-winter-400'
-                        : 'border-gray-300 dark:border-gray-600 hover:border-winter-400'
-                    }`}
-                  >
-                    🇺🇸 English
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('settings.nickname')}
-                </label>
-                <input
-                  type="text"
-                  value={editNickname}
-                  onChange={(e) => { setEditNickname(e.target.value); }}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('settings.height')}
-                </label>
-                <input
-                  type="number"
-                  value={editHeight}
-                  onChange={(e) => { setEditHeight(e.target.value); }}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('settings.weight')}
-                </label>
-                <input
-                  type="number"
-                  value={editWeight}
-                  onChange={(e) => { setEditWeight(e.target.value); }}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('settings.bodyFat')}
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={editBodyFat}
-                  onChange={(e) => { setEditBodyFat(e.target.value); }}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('settings.maxPushups')}
-                </label>
-                <input
-                  type="number"
-                  value={editMaxPushups}
-                  onChange={(e) => { setEditMaxPushups(e.target.value); }}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSaveProfile}
-                  className="flex-1 px-4 py-3 bg-winter-600 text-white rounded-lg hover:bg-winter-700 transition-colors font-medium"
-                >
-                  {t('common.save')}
-                </button>
-                <button
-                  onClick={() => { setIsEditingProfile(false); }}
-                  className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                >
-                  {t('common.cancel')}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">{t('settings.language')}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {user?.language === 'de' ? '🇩🇪 Deutsch' : '🇺🇸 English'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">{t('settings.nickname')}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {user?.nickname}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">{t('settings.gender')}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white capitalize">
-                    {user?.gender === 'male' ? t('settings.male') : user?.gender === 'female' ? t('settings.female') : t('settings.diverse')}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">{t('settings.height')}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {user?.height} cm
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">{t('settings.weight')}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {user?.weight} kg
-                  </span>
-                </div>
-                {user?.bodyFat && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600 dark:text-gray-400">{t('settings.bodyFat')}</span>
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      {user.bodyFat}%
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">{t('settings.maxPushups')}</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {user?.maxPushups}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={handleEditProfile}
-                className="mt-4 w-full px-4 py-3 bg-winter-600 text-white rounded-lg hover:bg-winter-700 transition-colors font-medium"
-              >
-                {t('settings.editProfile')}
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Groups Section */}
-        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            👥 {t('settings.group')}
-          </h2>
-          {user?.groupCode ? (
-            <div className="space-y-3">
-              <div className="p-4 bg-winter-50 dark:bg-winter-900/20 rounded-lg">
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                  {t('settings.yourGroupCode')}
-                </div>
-                <div className="text-2xl font-bold text-winter-600 dark:text-winter-400">
-                  {user.groupCode}
-                </div>
-              </div>
-              <button className="w-full px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors font-medium">
-                {t('settings.leaveGroup')}
-              </button>
-            </div>
-          ) : showGroupInput ? (
-            <div className="space-y-3">
-              <input
-                type="text"
-                value={groupCode}
-                onChange={(e) => { setGroupCode(e.target.value.toUpperCase()); }}
-                placeholder={t('settings.groupCodePlaceholder')}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none font-mono"
-                autoFocus
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={handleJoinGroup}
-                  disabled={!groupCode}
-                  className="flex-1 px-4 py-3 bg-winter-600 text-white rounded-lg hover:bg-winter-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {t('settings.joinGroup')}
-                </button>
-                <button
-                  onClick={() => {
-                    setShowGroupInput(false);
-                    setGroupCode('');
-                  }}
-                  className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-                >
-                  {t('common.cancel')}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => { setShowGroupInput(true); }}
-              className="w-full px-4 py-3 bg-winter-50 dark:bg-winter-900/20 text-winter-600 dark:text-winter-400 rounded-lg hover:bg-winter-100 dark:hover:bg-winter-900/30 transition-colors font-medium"
-            >
-              {t('settings.joinOrCreateGroup')}
-            </button>
-          )}
-        </div>
-
-        {/* Privacy Section */}
-        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            🔒 {t('settings.privacy')}
-          </h2>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-semibold text-gray-900 dark:text-white">
-                {t('settings.shareProfilePicture')}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                {t('settings.shareProfilePictureDesc')}
-              </div>
-            </div>
-            <button
-              onClick={async () => {
-                if (!user) return;
-                const newValue = !user.shareProfilePicture;
-                const { updateUser } = await import('../services/firestoreService');
-                const result = await updateUser(user.id, { shareProfilePicture: newValue });
-                if (result.success) {
-                  setUser({ ...user, shareProfilePicture: newValue });
-                }
-              }}
-              className={`relative w-14 h-8 rounded-full transition-colors ${
-                user?.shareProfilePicture ? 'bg-winter-600' : 'bg-gray-300'
-              }`}
-            >
-              <div
-                className={`absolute top-1 left-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                  user?.shareProfilePicture ? 'translate-x-6' : 'translate-x-0'
-                }`}
-              />
-            </button>
-          </div>
-        </div>
-
-        {/* Appearance Section */}
-        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            🎨 {t('settings.appearance')}
-          </h2>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-semibold text-gray-900 dark:text-white">
-                {t('settings.theme')}
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                {t('settings.themeDesc')}
-              </div>
-            </div>
-            <ThemeToggle />
-          </div>
-        </div>
-
-
-{/* Install Section */}
-<div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
-  <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-    📲 {t('settings.installSection')}
-  </h2>
-  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-    {t('settings.installDescription')}
-  </p>
-  <div className="flex flex-wrap gap-2">
-    <button
-      onClick={handleInstallApp}
-      className="px-4 py-3 bg-winter-600 text-white rounded-lg font-semibold hover:bg-winter-700 transition-colors flex-1 md:flex-initial"
-      disabled={isStandalone}
-    >
-      {pwaInstallPrompt ? t('settings.installButton') : t('settings.installHelp')}
-    </button>
-    {!pwaInstallPrompt && (
-      <button
-        onClick={() => { setShowInstallHelp((prev) => !prev); }}
-        className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-      >
-        {showInstallHelp ? t('settings.hideInstructions') : t('settings.showInstructions')}
-      </button>
-    )}
-  </div>
-  {(showInstallHelp || !pwaInstallPrompt) && (
-    <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-      {isStandalone
-        ? t('settings.installAlready')
-        : isIOS
-          ? t('settings.installInstructionsIos')
-          : t('settings.installInstructions')}
-    </p>
-  )}
-</div>
-
-        {/* Notifications Section */}
-        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            🔔 {t('settings.notifications')}
-          </h2>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium text-gray-900 dark:text-white">
-                  {t('settings.dailyReminder')}
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {notificationTime}
-                </div>
-              </div>
-              <button
-                onClick={handleToggleNotifications}
-                className={`relative w-14 h-8 rounded-full transition-colors ${
-                  notificationsEnabled
-                    ? 'bg-winter-600'
-                    : 'bg-gray-300 dark:bg-gray-600'
-                }`}
-              >
-                <div
-                  className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                    notificationsEnabled ? 'left-7' : 'left-1'
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
-          {notificationsEnabled && (
-            <div className="mt-4 space-y-2">
-              <button
-                onClick={() => { setShowTimeModal(true); }}
-                className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium"
-              >
-                {t('settings.changeTime')}
-              </button>
-              <button
-                onClick={sendTestNotification}
-                className="w-full px-4 py-3 bg-winter-50 dark:bg-winter-900/20 text-winter-600 dark:text-winter-400 rounded-lg hover:bg-winter-100 dark:hover:bg-winter-900/30 transition-colors font-medium"
-              >
-                {t('settings.testNotification')}
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Time Modal */}
-        {showTimeModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="glass-dark rounded-2xl shadow-xl max-w-md w-full p-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                {t('settings.reminderTime')}
-              </h2>
+      {showTimeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+          <div className={`${glassCardClasses} ${designTokens.padding.spacious} max-w-md w-full text-white`}>
+            <div className="flex flex-col gap-4">
+              <h2 className="text-2xl font-semibold">{t('settings.reminderTime')}</h2>
               <input
                 type="time"
                 value={notificationTime}
                 onChange={(e) => { setNotificationTime(e.target.value); }}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none mb-4"
+                className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white outline-none transition focus:border-white/40 focus:ring-2 focus:ring-white/30"
               />
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2 md:flex-row">
                 <button
+                  type="button"
                   onClick={() => {
                     setShowTimeModal(false);
                     if (notificationsEnabled) {
@@ -744,83 +894,25 @@ function SettingsPage() {
                       console.log('🔄 Benachrichtigungszeit aktualisiert:', notificationTime);
                     }
                   }}
-                  className="flex-1 px-4 py-3 bg-winter-600 text-white rounded-lg font-semibold hover:bg-winter-700 transition-colors"
+                  className="flex-1 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)] transition hover:shadow-[0_18px_50px_rgba(15,23,42,0.45)]"
                 >
                   {t('common.save')}
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setShowTimeModal(false);
                     setNotificationTime('20:00');
                   }}
-                  className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
                 >
                   {t('common.cancel')}
                 </button>
               </div>
             </div>
           </div>
-        )}
-
-        {/* Account Section */}
-        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            🔐 {t('settings.account')}
-          </h2>
-          <div className="space-y-2">
-            <button
-              onClick={handleLogout}
-              className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors font-medium text-left"
-            >
-              {t('settings.logout')}
-            </button>
-            <button className="w-full px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors font-medium text-left">
-              {t('settings.deleteAccount')}
-            </button>
-          </div>
         </div>
-
-        {/* Legal Section */}
-        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            📄 {t('settings.legal')}
-          </h2>
-          <div className="space-y-2">
-            <button className="w-full px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left">
-              {t('settings.privacy')}
-            </button>
-            <button className="w-full px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-left">
-              {t('settings.terms')}
-            </button>
-          </div>
-        </div>
-
-        {/* Debug Section (only in development) */}
-        {import.meta.env.DEV && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl shadow-lg p-6 border-2 border-yellow-300 dark:border-yellow-700">
-            <h2 className="text-lg font-bold text-yellow-900 dark:text-yellow-300 mb-4">
-              🧪 Debug Tools
-            </h2>
-            <div className="space-y-2">
-              <button
-                onClick={handleTestError}
-                className="w-full px-4 py-3 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-200 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-900/60 transition-colors font-medium text-left"
-              >
-                Test Sentry Error Tracking
-              </button>
-              <div className="text-xs text-yellow-700 dark:text-yellow-400 mt-2">
-                Sentry Status: {import.meta.env.VITE_SENTRY_DSN ? '✅ Konfiguriert' : '⚠️ Nicht konfiguriert'}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* App Version */}
-        <div className="text-center text-sm text-gray-500 dark:text-gray-400 pt-4">
-          Winter Arc Tracker v0.0.1
-        </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
