@@ -19,7 +19,7 @@ function mergeSports(
     merged[key] = {
       active: true,
       duration: entry.duration ?? manualEntry?.duration,
-      intensity: entry.intensity ?? manualEntry?.intensity,
+      intensity: entry.intensity ?? manualEntry.intensity,
     };
   }
 
