@@ -77,6 +77,7 @@ export type SmartNoteAttachment = {
   id: string;
   url: string;
   type: 'image';
+  storagePath?: string;
 };
 
 export interface SmartNote {
