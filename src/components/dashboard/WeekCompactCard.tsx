@@ -1,5 +1,17 @@
-import { format, startOfWeek, addDays, isSameDay } from 'date-fns';
+import {
+  format,
+  startOfWeek,
+  addDays,
+  isSameDay,
+  addWeeks,
+  differenceInCalendarWeeks,
+  parseISO,
+  isValid,
+  differenceInCalendarDays,
+  isAfter,
+} from 'date-fns';
 import { de, enUS } from 'date-fns/locale';
+import { useEffect, useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { countActiveSports } from '../../utils/sports';
@@ -13,11 +25,89 @@ export default function WeekCompactCard() {
   const today = new Date();
   const todayKey = format(today, 'yyyy-MM-dd');
   const activeDate = selectedDate || todayKey;
-  const weekStart = startOfWeek(today, { weekStartsOn: 1 }); // Monday
   const locale = language === 'de' ? de : enUS;
 
+  const parseActiveDate = () => {
+    if (!activeDate) {
+      return today;
+    }
+    const parsed = parseISO(activeDate);
+    return isValid(parsed) ? parsed : today;
+  };
+
+  const [weekOffset, setWeekOffset] = useState(() => {
+    const todayStart = parseISO(todayKey);
+    const parsedDate = activeDate ? parseISO(activeDate) : null;
+    const validDate = parsedDate && isValid(parsedDate) ? parsedDate : todayStart;
+    return differenceInCalendarWeeks(
+      startOfWeek(validDate, { weekStartsOn: 1 }),
+      startOfWeek(todayStart, { weekStartsOn: 1 }),
+      { weekStartsOn: 1 }
+    );
+  });
+
+  useEffect(() => {
+    const todayStart = parseISO(todayKey);
+    const parsedDate = activeDate ? parseISO(activeDate) : null;
+    const validDate = parsedDate && isValid(parsedDate) ? parsedDate : todayStart;
+    const offset = differenceInCalendarWeeks(
+      startOfWeek(validDate, { weekStartsOn: 1 }),
+      startOfWeek(todayStart, { weekStartsOn: 1 }),
+      { weekStartsOn: 1 }
+    );
+    setWeekOffset(offset);
+  }, [activeDate, todayKey]);
+
+  const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const displayedWeekStart = addWeeks(currentWeekStart, weekOffset);
+  const displayedWeekEnd = addDays(displayedWeekStart, 6);
+
+  const activeDateObj = parseActiveDate();
+  const activeWeekStart = startOfWeek(activeDateObj, { weekStartsOn: 1 });
+  const activeDayIndex = Math.min(
+    Math.max(differenceInCalendarDays(activeDateObj, activeWeekStart), 0),
+    6
+  );
+
+  const weekRangeFormat = language === 'de' ? 'd. MMM' : 'MMM d';
+  const weekRangeLabel = `${format(displayedWeekStart, weekRangeFormat, { locale })} – ${format(
+    displayedWeekEnd,
+    weekRangeFormat,
+    { locale }
+  )}`;
+
+  const isoWeekNumber = format(displayedWeekStart, 'I');
+  const headingLabel = (() => {
+    if (weekOffset === 0) {
+      return t('dashboard.weekOverview');
+    }
+    if (weekOffset === -1) {
+      return t('dashboard.lastWeek');
+    }
+    return t('dashboard.weekNumberTitle', { week: isoWeekNumber });
+  })();
+
+  const disableNextWeek = weekOffset >= 0;
+
+  const handleWeekChange = (direction: 'previous' | 'next') => {
+    if (direction === 'next' && disableNextWeek) {
+      return;
+    }
+
+    const delta = direction === 'previous' ? -1 : 1;
+    const newWeekOffset = weekOffset + delta;
+    const newWeekStart = addWeeks(displayedWeekStart, delta);
+    const targetDate = addDays(newWeekStart, activeDayIndex);
+
+    const safeTargetDate =
+      newWeekOffset === 0 && isAfter(targetDate, today) ? today : targetDate;
+
+    setWeekOffset(newWeekOffset);
+    setSelectedDate(format(safeTargetDate, 'yyyy-MM-dd'));
+  };
+
   const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const date = addDays(weekStart, i);
+    const date = addDays(displayedWeekStart, i);
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayTracking = tracking[dateStr];
     const isToday = isSameDay(date, today);
@@ -48,11 +138,33 @@ export default function WeekCompactCard() {
       <div className="flex items-start justify-between mb-3 gap-4">
         <div className="flex-1 min-w-0">
           <h2 className="text-lg lg:text-xl font-semibold text-white mb-0.5">
-            {t('dashboard.weekOverview')}
+            {headingLabel}
           </h2>
           <p className="text-xs text-white/70">
             {t('dashboard.tapToEdit')}
           </p>
+          <p className="text-xs text-white/50 mt-1">
+            {t('dashboard.weekRangeLabel', { range: weekRangeLabel })}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => handleWeekChange('previous')}
+            className="p-2 rounded-full border border-white/10 text-white/70 hover:text-white hover:border-white/30 transition-colors"
+            aria-label={t('dashboard.previousWeek')}
+          >
+            <span aria-hidden="true">‹</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleWeekChange('next')}
+            disabled={disableNextWeek}
+            className="p-2 rounded-full border border-white/10 text-white/70 hover:text-white hover:border-white/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label={t('dashboard.nextWeek')}
+          >
+            <span aria-hidden="true">›</span>
+          </button>
         </div>
       </div>
 

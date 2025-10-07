@@ -13,6 +13,11 @@ export const translations = {
     dashboard: {
       greeting: 'Hey, {{nickname}}! 👋',
       weekOverview: 'Diese Woche',
+      lastWeek: 'Letzte Woche',
+      weekNumberTitle: 'KW {{week}}',
+      weekRangeLabel: '{{range}}',
+      previousWeek: 'Vorherige Woche',
+      nextWeek: 'Nächste Woche',
       days: 'Tage',
       completed: 'abgeschlossen',
       streak: 'Tage Streak',
@@ -238,6 +243,11 @@ export const translations = {
     dashboard: {
       greeting: 'Hey, {{nickname}}! 👋',
       weekOverview: 'This Week',
+      lastWeek: 'Last Week',
+      weekNumberTitle: 'Week {{week}}',
+      weekRangeLabel: '{{range}}',
+      previousWeek: 'Previous week',
+      nextWeek: 'Next week',
       days: 'days',
       completed: 'completed',
       streak: 'Day Streak',
