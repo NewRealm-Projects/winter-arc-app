@@ -1,6 +1,7 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code
+in this repository.
 
 ---
 
@@ -8,9 +9,146 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Progressive Web App (PWA) für iOS und Android namens "Winter Arc Fitness Tracker" - eine umfassende Fitness-Tracking-App mit Fokus auf Liegestütze, Sport, Ernährung und Gewichtstracking.
+Progressive Web App (PWA) für iOS und Android namens "Winter Arc Fitness Tracker"
+- eine umfassende Fitness-Tracking-App mit Fokus auf Liegestütze, Sport, Ernährung
+und Gewichtstracking.
 
 ---
+
+## Codacy Compliance (verbindlich)
+
+Codacy muss für jeden Commit grün sein, sonst blockieren wir den Merge.
+
+| Check | Anforderung |
+| --- | --- |
+| ESLint/TSLint | `npm run lint` liefert keine Fehler oder Warnungen |
+| Prettier | `npm run format:check` meldet **OK**, Dateien formatiert |
+| TypeScript | `npm run typecheck` ohne Fehler |
+| Tests | `npm test -- --coverage` fehlerfrei, ≥ 80 % Statements/Branches/Lines |
+| Security/Quality | In Codacy keine "Critical" oder "Major" Issues |
+
+### So reproduzierst du Codacy lokal
+
+```bash
+npm ci
+npm run lint
+npm run format:check
+npm run typecheck
+npm run test -- --coverage
+```
+
+Alternativ mit Yarn:
+
+```bash
+yarn install --frozen-lockfile
+yarn lint
+yarn format:check
+yarn typecheck
+yarn test --coverage
+```
+
+Oder mit PNPM:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm lint
+pnpm format:check
+pnpm typecheck
+pnpm test -- --coverage
+```
+
+### Typische Ursachen und schnelle Fixes
+
+- Unused imports/vars:
+
+  ```ts
+  // schlecht
+  import x from 'x'; // unbenutzt
+  const y = 1;
+
+  // gut
+  // ungenutzte entfernen oder mit _ kennzeichnen
+  ```
+
+- any/fehlende Typen:
+
+  ```ts
+  // schlecht
+  function handle(a: any) { /* ... */ }
+
+  // gut
+  function handle(a: UserInput): Result { /* ... */ }
+  ```
+
+- console.log im App-Code:
+
+  ```ts
+  // schlecht
+  console.log('debug');
+
+  // gut
+  logger.debug('message'); // oder entfernen
+  ```
+
+- Magic Numbers:
+
+  ```ts
+  // schlecht
+  if (retries > 3) { /* ... */ }
+
+  // gut
+  const MAX_RETRIES = 3;
+  if (retries > MAX_RETRIES) { /* ... */ }
+  ```
+
+- Komplexe Funktionen: max. ~50 Zeilen, Komplexität senken, in Hilfsfunktionen teilen.
+- Zyklen/Imports: keine zyklischen Abhängigkeiten, shared Types in eigenes Modul legen.
+
+### Commit-/PR-Checklist (muss erfüllt sein)
+
+- [ ] `npm run lint` ohne Findings
+- [ ] `npm run format:write` ausgeführt bzw. `format:check` grün
+- [ ] `npm run typecheck` grün
+- [ ] `npm test -- --coverage` grün, Coverage ≥ 80 %
+- [ ] Keine `console.*` im Produktionscode
+- [ ] Keine TODO/FIXME im Diff oder mit Issue verlinkt
+- [ ] Funktionslänge/Komplexität ok, Magic Numbers extrahiert
+- [ ] Neue/angepasste Funktionen mit Typen und Tests
+
+### Wenn Codacy trotzdem rot ist
+
+- [Codacy Dashboard öffnen](https://app.codacy.com/gh/<ORG>/<REPO>).
+- Issue anklicken, Regeltext lesen, lokalen Linter mit `--fix` ausführen.
+- Prettier/ESLint-Regeln der bestehenden Config respektieren, keine Ad-hoc-Ausnahmen.
+
+## Prompts & Struktur
+
+- Keine Inline-Code-Hacks, Prompt-Blöcke klar trennen.
+- Prompt-Dateien im Repo formatiert halten, Zeilenlänge beachten.
+- Beispiele anonymisieren, keine sensiblen Daten einbauen.
+
+```md
+# Prompt: Nutzer-Checkliste
+
+## Ziel
+- Fortschritt visualisieren
+- Abbrüche vermeiden
+
+```ts
+export function summarize(progress: number): string {
+  if (progress >= 1) {
+    return 'Done';
+  }
+  return `${Math.round(progress * 100)}%`;
+}
+```
+```
+
+## PR-Anforderungen für Prompt-Änderungen
+
+- Linter und Formatter wie oben beschrieben ausführen.
+- Minimalen Repro-Test dokumentieren (z. B. Beispielaufruf + erwartetes Ergebnis).
+- Keine sensiblen Daten oder personenbezogenen Beispiele committen.
 
 ## Claude Code Guidelines
 
@@ -21,7 +159,9 @@ Progressive Web App (PWA) für iOS und Android namens "Winter Arc Fitness Tracke
 - Setup or configuration steps
 - Library/API documentation lookups
 
-This means you should **automatically use the Context7 MCP tools** to resolve library IDs and get library documentation **without the user having to explicitly ask**.
+This means you should **automatically use the Context7 MCP tools** to resolve
+library IDs and get library documentation **without the user having to explicitly
+ask**.
 
 ---
 
@@ -49,6 +189,7 @@ This means you should **automatically use the Context7 MCP tools** to resolve li
 
 ### Commit Message Format
 Follow conventional commits style:
+
 ```
 type(scope): subject
 
@@ -61,6 +202,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 Types: `feat`, `fix`, `refactor`, `chore`, `test`, `docs`, `style`, `perf`
 
 ### Scripts
+
 ```bash
 # Development
 npm run dev              # Start dev server
@@ -96,31 +238,40 @@ npm run agent:artifacts  # Collect agent artifacts into structured directories
 
 ### Agentisches Entwicklungs-Setup
 
-Dieses Projekt nutzt ein **strukturiertes Agent-System** (`.agent/`) zur Qualitätssicherung. Jeder Agent ist spezialisiert auf einen bestimmten Bereich und arbeitet in isolierten Feature Branches.
+Dieses Projekt nutzt ein **strukturiertes Agent-System** (`.agent/`) zur
+Qualitätssicherung. Jeder Agent ist spezialisiert auf einen bestimmten Bereich
+und arbeitet in isolierten Feature Branches.
 
 #### 4 Spezialisierte Agents
 
 1. **UI-Refactor Agent** ([`.agent/ui-refactor.agent.md`](.agent/ui-refactor.agent.md))
-   - **Trigger**: Inkonsistentes Glass/Blur Design, fehlende Mobile-Optimierung, veraltete Tile-Styles
-   - **Fokus**: Design Token System, Mobile-First One-Screen-Regel, Glassmorphism-Konsistenz
+   - **Trigger**: Inkonsistentes Glass/Blur Design, fehlende Mobile-Optimierung,
+     veraltete Tile-Styles
+   - **Fokus**: Design Token System, Mobile-First One-Screen-Regel,
+     Glassmorphism-Konsistenz
    - **Output**: Migrierte Tiles, Design Token System, Mobile Layouts
    - **Quality Gates**: Visual Regression Tests (Light/Dark), Responsive Tests
 
 2. **PWA/Performance Agent** ([`.agent/pwa-perf.agent.md`](.agent/pwa-perf.agent.md))
    - **Trigger**: Lighthouse Score < 90, Bundle Size > 600 KB, TTI > 2s
-   - **Fokus**: Lazy Loading, Bundle-Optimierung, Service Worker, Image Optimization
+   - **Fokus**: Lazy Loading, Bundle-Optimierung, Service Worker,
+     Image Optimization
    - **Output**: Performance Report, Bundle Analysis, Lighthouse Audits
    - **Quality Gates**: Lighthouse ≥ 90, Bundle < 600 KB Main Chunk
 
 3. **Test/Guard Agent** ([`.agent/test-guard.agent.md`](.agent/test-guard.agent.md))
-   - **Trigger**: Coverage < 70%, fehlende E2E Tests, keine Visual Regression Tests
-   - **Fokus**: Unit Tests (Vitest), E2E Tests (Playwright), Visual Regression, Dead Code Detection
+   - **Trigger**: Coverage < 70%, fehlende E2E Tests, keine Visual Regression
+     Tests
+   - **Fokus**: Unit Tests (Vitest), E2E Tests (Playwright), Visual Regression,
+     Dead Code Detection
    - **Output**: Test Suites, Coverage Reports, Visual Regression Baselines
    - **Quality Gates**: Coverage ≥ 70%, E2E Tests für kritische Flows
 
 4. **Docs/Changelog Agent** ([`.agent/docs-changelog.agent.md`](.agent/docs-changelog.agent.md))
-   - **Trigger**: Veraltete Docs, fehlende CHANGELOG-Einträge, inkonsistente Version
-   - **Fokus**: README, CLAUDE.md, CONTRIBUTING.md, CHANGELOG.md, Screenshots, Versioning
+   - **Trigger**: Veraltete Docs, fehlende CHANGELOG-Einträge,
+     inkonsistente Version
+   - **Fokus**: README, CLAUDE.md, CONTRIBUTING.md, CHANGELOG.md, Screenshots,
+     Versioning
    - **Output**: Aktualisierte Markdown-Dateien, Screenshots, Version Bump
    - **Quality Gates**: Links funktionieren, Screenshots aktuell, Version korrekt
 
@@ -178,7 +329,7 @@ Siehe [`.agent/policies.md`](.agent/policies.md) für vollständige Regeln:
 
 Alle Agent-Outputs landen in `artifacts/`:
 
-```
+```text
 artifacts/
 ├── bundle/              # PWA/Performance Agent
 │   ├── bundle-summary.md
@@ -196,7 +347,6 @@ artifacts/
     ├── screenshots/
     └── *.md
 ```
-
 ### Definition of Ready (DoR)
 Before starting work on a task:
 - [ ] Problem clearly defined with acceptance criteria
