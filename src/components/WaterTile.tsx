@@ -110,7 +110,7 @@ function WaterTile() {
             pattern="[0-9]*"
             value={inputValue}
             onChange={(event) => { setInputValue(event.target.value); }}
-            onKeyDown={(event) => event.key === 'Enter' && saveAdjust()}
+            onKeyDown={(event) => { if (event.key === 'Enter') saveAdjust(); }}
             placeholder="ml"
             className="flex-1 px-2 py-1.5 text-sm rounded-lg border border-blue-200 dark:border-blue-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
             autoFocus
