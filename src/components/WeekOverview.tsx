@@ -4,10 +4,11 @@ import { useStore } from '../store/useStore';
 import { useTranslation } from '../hooks/useTranslation';
 import { calculateStreak } from '../utils/calculations';
 import { countActiveSports } from '../utils/sports';
+import { useCombinedTracking } from '../hooks/useCombinedTracking';
 
 function WeekOverview() {
   const { t, language } = useTranslation();
-  const tracking = useStore((state) => state.tracking);
+  const combinedTracking = useCombinedTracking();
   const selectedDate = useStore((state) => state.selectedDate);
   const setSelectedDate = useStore((state) => state.setSelectedDate);
 
@@ -18,12 +19,12 @@ function WeekOverview() {
   const locale = language === 'de' ? de : enUS;
 
   // Calculate streak
-  const streak = calculateStreak(tracking);
+  const streak = calculateStreak(combinedTracking);
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(weekStart, i);
     const dateStr = format(date, 'yyyy-MM-dd');
-    const dayTracking = tracking[dateStr];
+    const dayTracking = combinedTracking[dateStr];
     const isToday = isSameDay(date, today);
     const isSelected = dateStr === activeDate;
 

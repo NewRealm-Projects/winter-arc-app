@@ -6,6 +6,7 @@ import './styles/theme.css'
 import './styles/tokens.css'
 import App from './App.tsx'
 import { ThemeProvider } from './contexts/ThemeContext'
+import './features/notes/trackingSync'
 
 // Initialize Sentry
 if (import.meta.env.VITE_SENTRY_DSN) {

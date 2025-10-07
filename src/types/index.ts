@@ -65,6 +65,17 @@ export interface DailyTracking {
   completed: boolean;
 }
 
+export interface SmartTrackingContribution {
+  water?: number;
+  protein?: number;
+  pushups?: number;
+  sports?: Partial<Record<SportKey, SportEntry>>;
+  weight?: {
+    value?: number;
+    bodyFat?: number;
+  };
+}
+
 export interface Group {
   code: string;
   name: string;

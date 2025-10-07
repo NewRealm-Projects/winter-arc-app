@@ -10,6 +10,7 @@ import {
 } from '../utils/pushupAlgorithm';
 import { useTranslation } from '../hooks/useTranslation';
 import { getTileClasses, designTokens } from '../theme/tokens';
+import { useCombinedTracking, useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 
 function PushupTile() {
   const { t } = useTranslation();
@@ -21,15 +22,16 @@ function PushupTile() {
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
   const selectedDate = useStore((state) => state.selectedDate);
+  const combinedTracking = useCombinedTracking();
 
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const activeDate = selectedDate || todayKey;
   const isToday = activeDate === todayKey;
   const activeTracking = tracking[activeDate];
+  const combinedDaily = useCombinedDailyTracking(activeDate);
   const currentPushups = activeTracking?.pushups;
-  const workoutTotal =
-    currentPushups?.workout?.reps?.reduce((sum, reps) => sum + reps, 0) ?? 0;
-  const pushupsForDay = (currentPushups?.total ?? workoutTotal) ?? 0;
+  const workoutTotal = currentPushups?.workout?.reps?.reduce((sum, reps) => sum + reps, 0) ?? 0;
+  const pushupsForDay = combinedDaily?.pushups?.total ?? workoutTotal ?? 0;
 
   const displayDayLabel = isToday
     ? t('tracking.today')
@@ -39,8 +41,8 @@ function PushupTile() {
   const isWorkoutComplete = currentPushups?.workout?.reps?.length === 5;
 
   // Generiere Plan basierend auf Historie
-  const lastTotal = getLastPushupTotal(tracking);
-  const daysCompleted = countPushupDays(tracking);
+  const lastTotal = getLastPushupTotal(combinedTracking);
+  const daysCompleted = countPushupDays(combinedTracking);
   const initialTotal = lastTotal > 0 ? lastTotal : Math.round((user?.maxPushups || 20) * 2.5);
   const todayPlan = generateProgressivePlan(initialTotal, daysCompleted);
   const plannedTotal = calculateTotalReps(todayPlan);

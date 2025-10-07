@@ -17,8 +17,6 @@ function sanitizeNote(note: SmartNote) {
     raw: note.raw,
     summary: note.summary,
     events: note.events?.map((event) => ({ ...event })) ?? [],
-      ...event,
-    })) ?? [],
   };
 }
 

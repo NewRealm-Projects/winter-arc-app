@@ -212,6 +212,9 @@ export const noteStore = {
   async get(id: string) {
     return getNote(id);
   },
+  async all() {
+    return getAllNotes();
+  },
   async todayAggregates() {
     const notes = filterToday(await getAllNotes());
     return sumEvents(notes);

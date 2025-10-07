@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore';
 import { calculateWaterGoal } from '../utils/calculations';
 import { useTranslation } from '../hooks/useTranslation';
 import { getTileClasses, designTokens } from '../theme/tokens';
+import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 
 function WaterTile() {
   const { t } = useTranslation();
@@ -14,20 +15,22 @@ function WaterTile() {
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const activeDate = selectedDate || todayKey;
   const activeTracking = tracking[activeDate];
-  const currentWater = activeTracking?.water || 0;
+  const combinedTracking = useCombinedDailyTracking(activeDate);
+  const manualWater = activeTracking?.water || 0;
+  const totalWater = combinedTracking?.water ?? manualWater;
 
   const waterGoal = user?.weight ? calculateWaterGoal(user.weight) : 3000;
 
   const addWater = (amount: number) => {
     updateDayTracking(activeDate, {
-      water: currentWater + amount,
+      water: manualWater + amount,
     });
   };
 
-  const progress = Math.min((currentWater / waterGoal) * 100, 100);
-  const liters = (currentWater / 1000).toFixed(2);
+  const progress = Math.min((totalWater / waterGoal) * 100, 100);
+  const liters = (totalWater / 1000).toFixed(2);
   const goalLiters = (waterGoal / 1000).toFixed(2);
-  const isTracked = currentWater >= 1000; // mindestens 1L
+  const isTracked = totalWater >= 1000; // mindestens 1L
 
   return (
     <div className={`${getTileClasses(isTracked)} ${designTokens.padding.compact} text-white`}>

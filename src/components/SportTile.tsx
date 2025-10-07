@@ -6,6 +6,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import type { SportEntry, SportKey } from '../types';
 import { countActiveSports, normalizeSports } from '../utils/sports';
 import { getTileClasses, designTokens } from '../theme/tokens';
+import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 
 const SPORT_OPTION_CONFIG: Array<{ key: SportKey; labelKey: string; icon: string }> = [
   { key: 'hiit', labelKey: 'tracking.hiit', icon: '🔥' },
@@ -30,9 +31,14 @@ function SportTile() {
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const activeDate = selectedDate || todayKey;
   const activeTracking = tracking[activeDate];
+  const combinedDaily = useCombinedDailyTracking(activeDate);
   const currentSports: Record<SportKey, SportEntry> = useMemo(
     () => normalizeSports(activeTracking?.sports),
     [activeTracking?.sports]
+  );
+  const displaySports: Record<SportKey, SportEntry> = useMemo(
+    () => normalizeSports(combinedDaily?.sports),
+    [combinedDaily?.sports]
   );
 
   const toggleRest = (sport: SportKey) => {
@@ -105,7 +111,7 @@ function SportTile() {
     [t]
   );
 
-  const completedCount = countActiveSports(currentSports);
+  const completedCount = countActiveSports(displaySports);
   const isTracked = completedCount > 0;
   const modalSport = sportOptions.find((option) => option.key === selectedSport);
 
@@ -127,7 +133,7 @@ function SportTile() {
 
       <div className="grid grid-cols-3 gap-1.5 text-center">
         {sportOptions.map((sport) => {
-          const isChecked = currentSports[sport.key]?.active ?? false;
+          const isChecked = displaySports[sport.key]?.active ?? false;
 
           return (
             <button
