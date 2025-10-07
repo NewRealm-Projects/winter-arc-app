@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Reduce the streak completion threshold to 50% daily fulfillment to make progress streaks more attainable.
+
 ## [0.1.0] - 2025-10-06
 
 ### 🎉 Features

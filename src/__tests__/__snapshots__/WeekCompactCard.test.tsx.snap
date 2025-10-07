@@ -111,6 +111,11 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
           >
             8
           </span>
+          <span
+            class="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-xs shadow-lg"
+          >
+            🔥
+          </span>
         </div>
       </button>
       <button
@@ -166,6 +171,11 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
           >
             9
           </span>
+          <span
+            class="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-xs shadow-lg"
+          >
+            🔥
+          </span>
         </div>
       </button>
       <button
@@ -220,6 +230,11 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
             class="absolute bottom-1 text-[10px] font-medium text-white/50"
           >
             10
+          </span>
+          <span
+            class="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-xs shadow-lg"
+          >
+            🔥
           </span>
         </div>
       </button>
@@ -456,13 +471,13 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
           🔥
         </span>
         <span>
-          0
+          3
            
           Day Streak
         </span>
       </span>
       <span>
-        Streak counts when the day hits 100%
+        Streak counts once the day hits 50%
       </span>
     </div>
   </div>
