@@ -143,7 +143,7 @@ function LeaderboardPage() {
     if (enabledActivities.includes('protein') && (dayTracking?.protein || 0) >= 100) {
       progress += pointsPerTask;
     }
-    if (dayTracking?.weight?.value) {
+    if (dayTracking.weight?.value) {
       progress += pointsPerTask;
     }
 
