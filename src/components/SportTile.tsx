@@ -225,7 +225,7 @@ function SportTile() {
                 </div>
 
                 <div className="flex gap-2 pt-2">
-                  {currentSports[selectedSport].active && (
+                  {currentSports[selectedSport]?.active && (
                     <button
                       onClick={removeSport}
                       className="flex-1 px-4 py-2 text-sm bg-red-600/30 text-red-200 rounded-lg hover:bg-red-600/50 transition-colors"
