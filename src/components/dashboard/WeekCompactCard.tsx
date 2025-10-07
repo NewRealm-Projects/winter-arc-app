@@ -128,7 +128,7 @@ export default function WeekCompactCard() {
     if (enabledActivities.includes('sports') && countActiveSports(dayTracking.sports) > 0) {
       completedList.push('sports');
     }
-    if (enabledActivities.includes('water') && (dayTracking?.water || 0) >= 2000) {
+    if (enabledActivities.includes('water') && (dayTracking.water || 0) >= 2000) {
       completedList.push('water');
     }
     if (enabledActivities.includes('protein') && (dayTracking?.protein || 0) >= 100) {
