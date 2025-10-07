@@ -2,6 +2,7 @@ import { addDays, format } from 'date-fns';
 import type { DailyTracking, Activity, User } from '../types';
 import { countActiveSports } from './sports';
 import { calculateProteinGoal, calculateWaterGoal } from './calculations';
+import { STREAK_COMPLETION_THRESHOLD } from '../constants/streak';
 
 const DEFAULT_WATER_GOAL_ML = 3000;
 
@@ -208,7 +209,7 @@ export function calculateCompletionStreak(
       : undefined;
 
     const completion = getDayCompletion({ tracking: dayTracking, user, enabledActivities });
-    if (completion.percent < 100) {
+    if (completion.percent < STREAK_COMPLETION_THRESHOLD) {
       break;
     }
 

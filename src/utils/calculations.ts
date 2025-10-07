@@ -1,5 +1,6 @@
 import { countActiveSports } from './sports';
 import type { SportTracking, Activity } from '../types';
+import { STREAK_COMPLETION_THRESHOLD } from '../constants/streak';
 
 /**
  * Berechnet den BMI (Body Mass Index)
@@ -39,10 +40,10 @@ export function calculateWaterGoal(
 }
 
 /**
- * Berechnet den Streak (aufeinanderfolgende Tage mit ALLEN aktivierten Tasks + Gewicht)
+ * Berechnet den Streak (aufeinanderfolgende Tage mit ausreichender Tageserfüllung)
  * @param tracking Tracking-Daten (key: YYYY-MM-DD, value: DailyTracking)
  * @param enabledActivities Array of enabled activities (default: all)
- * @returns Anzahl aufeinanderfolgender Tage mit allen erforderlichen Tasks
+ * @returns Anzahl aufeinanderfolgender Tage mit mindestens 50% erfüllten Tasks
  */
 export function calculateStreak(
   tracking: Record<string, { pushups?: { total?: number }; sports?: SportTracking; water?: number; protein?: number; weight?: { value?: number } }>,
@@ -53,8 +54,8 @@ export function calculateStreak(
 
   // Total tasks = enabled activities + weight (always tracked)
   const totalTasks = enabledActivities.length + 1;
-  // Required tasks = ALL enabled activities + weight
-  const requiredTasks = totalTasks;
+  const completionThreshold = STREAK_COMPLETION_THRESHOLD / 100;
+  const requiredTasks = Math.max(1, Math.ceil(totalTasks * completionThreshold));
 
   let streak = 0;
   const today = new Date();
@@ -63,9 +64,11 @@ export function calculateStreak(
   for (let i = 0; i < dates.length; i++) {
     const dateStr = dates[i];
     const dayTracking = tracking[dateStr];
-    const { sports, water, protein, pushups, weight } = dayTracking;
+
+    if (!dayTracking) {
       continue;
     }
+
     const { sports, water = 0, protein = 0, pushups, weight } = dayTracking;
     const date = new Date(dateStr);
     date.setHours(0, 0, 0, 0);
