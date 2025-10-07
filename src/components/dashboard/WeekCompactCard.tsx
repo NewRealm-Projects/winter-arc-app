@@ -135,7 +135,7 @@ export default function WeekCompactCard() {
       completedList.push('protein');
     }
     // Weight is always tracked
-    if (dayTracking?.weight?.value) {
+    if (dayTracking.weight?.value) {
       completedList.push('weight');
     }
 
