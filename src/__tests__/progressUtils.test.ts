@@ -83,4 +83,35 @@ describe('calculateCompletionStreak', () => {
       vi.useRealTimers();
     }
   });
+
+  it('counts days with at least 50% completion towards the streak', () => {
+    const today = new Date('2024-03-15T08:00:00Z');
+    const tracking: Record<string, Partial<DailyTracking>> = {};
+
+    vi.useFakeTimers();
+    vi.setSystemTime(today);
+
+    try {
+      const createEntry = (offset: number, water: number) => {
+        const date = new Date(today);
+        date.setDate(today.getDate() - offset);
+        const key = date.toISOString().split('T')[0];
+        if (key.match(/^\d{4}-\d{2}-\d{2}$/) && !Object.prototype.hasOwnProperty.call(tracking, key) && !isNaN(Date.parse(key)) && key === new Date(key).toISOString().split('T')[0]) tracking[key] = { water };
+      };
+
+      createEntry(0, 1500); // exactly 50% of 3L goal
+      createEntry(1, 2000); // above threshold
+      createEntry(2, 1000); // below threshold, should break streak
+
+      const streak = calculateCompletionStreak(
+        tracking,
+        { hydrationGoalLiters: 3, weight: 80 },
+        ['water']
+      );
+
+      expect(streak).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

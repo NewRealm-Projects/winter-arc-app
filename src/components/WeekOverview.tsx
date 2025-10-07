@@ -3,6 +3,7 @@ import { de, enUS } from 'date-fns/locale';
 import { useStore } from '../store/useStore';
 import { useTranslation } from '../hooks/useTranslation';
 import { calculateStreak } from '../utils/calculations';
+import { STREAK_COMPLETION_THRESHOLD } from '../constants/streak';
 import { countActiveSports } from '../utils/sports';
 import { useCombinedTracking } from '../hooks/useCombinedTracking';
 
@@ -22,7 +23,7 @@ function WeekOverview() {
   const enabledActivities = user?.enabledActivities || ['pushups', 'sports', 'water', 'protein'];
 
   const totalTasks = enabledActivities.length + 1; // +1 for weight
-  const requiredTasks = Math.ceil(totalTasks * 0.6);
+  const requiredTasks = Math.max(1, Math.ceil(totalTasks * (STREAK_COMPLETION_THRESHOLD / 100)));
 
   const streak = calculateStreak(combinedTracking, enabledActivities);
 

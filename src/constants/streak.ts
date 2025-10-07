@@ -1,0 +1,1 @@
+export const STREAK_COMPLETION_THRESHOLD = 50;

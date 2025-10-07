@@ -17,6 +17,7 @@ import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useCombinedTracking } from '../../hooks/useCombinedTracking';
 import type { Activity } from '../../types';
+import { STREAK_COMPLETION_THRESHOLD } from '../../constants/streak';
 import {
   calculateCompletionStreak,
   formatGrams,
@@ -188,7 +189,7 @@ export default function WeekCompactCard() {
         percent: completion.percent,
         isToday,
         isSelected,
-        isStreak: completion.percent >= 100,
+        isStreak: completion.percent >= STREAK_COMPLETION_THRESHOLD,
         tooltip: tooltipLabel,
       };
     });
