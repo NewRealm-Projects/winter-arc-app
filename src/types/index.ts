@@ -2,7 +2,7 @@ export type Gender = 'male' | 'female' | 'diverse';
 
 export type Language = 'de' | 'en';
 
-export type Activity = 'pushups' | 'sports' | 'water' | 'protein';
+export type Activity = 'pushups' | 'sports' | 'water' | 'protein' | 'weight';
 
 export type WorkoutStatus = 'pass' | 'hold' | 'fail';
 
