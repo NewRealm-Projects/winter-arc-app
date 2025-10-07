@@ -42,7 +42,7 @@ export function combineTrackingWithSmart(
         protein: 0,
         completed: false,
       } as DailyTracking);
-    const smart = contributions[dateKey] ?? ({} as SmartTrackingContribution);
+    const smart = contributions[dateKey] ?? { water: 0, protein: 0, sports: {} } as SmartTrackingContribution;
 
     const manualSports = normalizeSports(manual.sports);
     const sports = mergeSports(manualSports, smart.sports);
