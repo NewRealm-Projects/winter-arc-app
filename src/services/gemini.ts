@@ -103,7 +103,7 @@ export async function summarizeAndValidate(
   const sanitizedPayload = {
     note: input.raw,
     recentNotes: input.recentNotes?.slice(0, 5).map(sanitizeNote) ?? [],
-    candidates: input.candidates?.map(sanitizeEvent) ?? [],
+    candidates: input.candidates?.map(sanitizeEvent) || [],
   };
 
   try {
