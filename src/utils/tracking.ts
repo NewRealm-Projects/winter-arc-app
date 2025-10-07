@@ -15,7 +15,7 @@ function mergeSports(
     if (!entry) continue;
     if (!entry.active) continue;
 
-    const manualEntry = manual[key];
+    const manualEntry = manual[key as keyof typeof manual];
     merged[key] = {
       active: true,
       duration: entry.duration ?? manualEntry?.duration,
