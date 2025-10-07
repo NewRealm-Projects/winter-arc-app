@@ -151,3 +151,37 @@ body::after {
     box-shadow: 0 0 20px rgba(239, 68, 68, 0.35), 0 6px 24px rgba(0, 0, 0, 0.25);
   }
 }
+
+.version-bubble {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  right: clamp(12px, 3vw, 24px);
+  min-width: 68px;
+  min-height: 30px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #d0d0ff;
+  background: var(--glass-bg);
+  border-radius: 18px;
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  box-shadow:
+    0 12px 32px rgba(15, 23, 42, 0.42),
+    0 0 18px rgba(120, 138, 255, 0.18);
+  pointer-events: none;
+  z-index: 60;
+}
+
+@media (max-width: 480px) {
+  .version-bubble {
+    right: clamp(10px, 4vw, 18px);
+    padding: 6px 12px;
+    min-width: 64px;
+  }
+}
