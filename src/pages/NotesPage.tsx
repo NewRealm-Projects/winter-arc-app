@@ -3,6 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from '../hooks/useTranslation';
 import { SmartNote, Event, SmartNoteAttachment } from '../types/events';
 import { noteStore } from '../store/noteStore';
+import { useStore } from '../store/useStore';
 import { processSmartNote, retrySmartNote } from '../features/notes/pipeline';
 import { glassCardClasses, glassCardHoverClasses, designTokens } from '../theme/tokens';
 
@@ -259,6 +260,13 @@ function NotesPage() {
     });
     return unsubscribe;
   }, [loadNotes]);
+
+  const user = useStore((state) => state.user);
+
+  useEffect(() => {
+    if (!user) return;
+    void noteStore.syncFromRemote();
+  }, [user]);
 
   const onSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
