@@ -352,7 +352,7 @@ function LeaderboardPage() {
                 {sortedLeaderboardData.map((entry, index) => {
                   const rank = index + 1;
                   const isCurrentUser = user?.nickname === entry.nickname;
-                  const entryId = entry.id ?? `entry-${index}`;
+                  const entryId = entry.id;
 
                   return (
                     <div
