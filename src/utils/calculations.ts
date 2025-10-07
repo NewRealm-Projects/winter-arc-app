@@ -78,7 +78,7 @@ export function calculateStreak(
     if (enabledActivities.includes('water') && (dayTracking?.water || 0) >= 2000) {
       completedTasks.push('water');
     }
-    if (enabledActivities.includes('protein') && (dayTracking?.protein || 0) >= 100) {
+    if (enabledActivities.includes('protein') && (dayTracking.protein || 0) >= 100) {
       completedTasks.push('protein');
     }
     // Weight is always checked (mandatory)
