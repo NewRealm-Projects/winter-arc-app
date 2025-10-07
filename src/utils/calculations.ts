@@ -64,9 +64,11 @@ export function calculateStreak(
   for (let i = 0; i < dates.length; i++) {
     const dateStr = dates[i];
     const dayTracking = tracking[dateStr];
-    const { sports, water, protein, pushups, weight } = dayTracking;
+
+    if (!dayTracking) {
       continue;
     }
+
     const { sports, water = 0, protein = 0, pushups, weight } = dayTracking;
     const date = new Date(dateStr);
     date.setHours(0, 0, 0, 0);
