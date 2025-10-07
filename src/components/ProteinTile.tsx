@@ -4,6 +4,7 @@ import { useStore } from '../store/useStore';
 import { calculateProteinGoal } from '../utils/calculations';
 import { useTranslation } from '../hooks/useTranslation';
 import { getTileClasses, designTokens } from '../theme/tokens';
+import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 
 function ProteinTile() {
   const { t } = useTranslation();
@@ -18,7 +19,9 @@ function ProteinTile() {
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const activeDate = selectedDate || todayKey;
   const activeTracking = tracking[activeDate];
-  const currentProtein = activeTracking?.protein || 0;
+  const combinedTracking = useCombinedDailyTracking(activeDate);
+  const manualProtein = activeTracking?.protein || 0;
+  const totalProtein = combinedTracking?.protein ?? manualProtein;
 
   const proteinGoal = user?.weight ? calculateProteinGoal(user.weight) : 150;
 
@@ -26,15 +29,15 @@ function ProteinTile() {
     const amount = parseInt(inputValue);
     if (!isNaN(amount) && amount > 0) {
       updateDayTracking(activeDate, {
-        protein: currentProtein + amount,
+        protein: manualProtein + amount,
       });
       setInputValue('');
       setShowInput(false);
     }
   };
 
-  const progress = Math.min((currentProtein / proteinGoal) * 100, 100);
-  const isTracked = currentProtein > 0;
+  const progress = Math.min((totalProtein / proteinGoal) * 100, 100);
+  const isTracked = totalProtein > 0;
 
   return (
     <div className={`${getTileClasses(isTracked)} ${designTokens.padding.compact} text-white`}>
@@ -46,7 +49,7 @@ function ProteinTile() {
           </h3>
         </div>
         <div className="text-sm font-bold text-orange-600 dark:text-orange-400">
-          {currentProtein}g
+          {totalProtein}g
         </div>
       </div>
 

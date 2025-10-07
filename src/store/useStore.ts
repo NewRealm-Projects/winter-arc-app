@@ -1,5 +1,5 @@
 ﻿import { create } from 'zustand';
-import { User, DailyTracking, BeforeInstallPromptEvent } from '../types';
+import { User, DailyTracking, BeforeInstallPromptEvent, SmartTrackingContribution } from '../types';
 
 interface AppState {
   user: User | null;
@@ -27,6 +27,9 @@ interface AppState {
 
   isOnboarded: boolean;
   setIsOnboarded: (value: boolean) => void;
+
+  smartContributions: Record<string, SmartTrackingContribution>;
+  setSmartContributions: (value: Record<string, SmartTrackingContribution>) => void;
 }
 
 const getTodayDate = (): string => new Date().toISOString().split('T')[0];
@@ -98,4 +101,7 @@ export const useStore = create<AppState>((set) => ({
 
   isOnboarded: false,
   setIsOnboarded: (value) => set({ isOnboarded: value }),
+
+  smartContributions: {},
+  setSmartContributions: (value) => set({ smartContributions: value }),
 }));

@@ -7,6 +7,7 @@ import { calculateStreak } from '../utils/calculations';
 import { countActiveSports } from '../utils/sports';
 import { useTranslation } from '../hooks/useTranslation';
 import type { GroupMember } from '../types';
+import { useCombinedTracking } from '../hooks/useCombinedTracking';
 
 function LeaderboardPage() {
   const { t, language } = useTranslation();
@@ -16,29 +17,29 @@ function LeaderboardPage() {
   const [loading, setLoading] = useState(false);
 
   const user = useStore((state) => state.user);
-  const tracking = useStore((state) => state.tracking);
+  const combinedTracking = useCombinedTracking();
   const locale = language === 'de' ? de : enUS;
 
   // Calculate current user stats
   const userStats = useMemo(() => {
-    const totalPushups = Object.values(tracking).reduce(
+    const totalPushups = Object.values(combinedTracking).reduce(
       (sum, day) => sum + (day.pushups?.total || 0),
       0
     );
-    const sportSessions = Object.values(tracking).reduce(
+    const sportSessions = Object.values(combinedTracking).reduce(
       (sum, day) =>
         sum +
         countActiveSports(day.sports),
       0
     );
-    const streak = calculateStreak(tracking);
+    const streak = calculateStreak(combinedTracking);
 
     return {
       totalPushups,
       sportSessions,
       streak,
     };
-  }, [tracking]);
+  }, [combinedTracking]);
 
   useEffect(() => {
     const loadLeaderboard = async () => {
@@ -161,7 +162,7 @@ function LeaderboardPage() {
             <div className="grid grid-cols-7 gap-2">
               {daysInWeek.map((day) => {
                 const dateStr = format(day, 'yyyy-MM-dd');
-                const dayTracking = tracking[dateStr];
+                const dayTracking = combinedTracking[dateStr] || {};
                 const isCurrentDay = isToday(day);
                 // Calculate progress percentage
                 const pushups = dayTracking?.pushups?.total || 0;
@@ -252,7 +253,7 @@ function LeaderboardPage() {
               ))}
               {daysInMonth.map((day) => {
               const dateStr = format(day, 'yyyy-MM-dd');
-              const dayTracking = tracking[dateStr];
+              const dayTracking = combinedTracking[dateStr];
               const isCurrentDay = isToday(day);
 
               // Calculate progress percentage

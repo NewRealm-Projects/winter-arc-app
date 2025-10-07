@@ -11,6 +11,8 @@ import {
   calculateTotalReps,
   evaluateWorkout,
 } from '../utils/pushupAlgorithm';
+import { useCombinedTracking } from '../hooks/useCombinedTracking';
+import { combineTrackingWithSmart } from '../utils/tracking';
 
 function PushupTrainingPage() {
   const navigate = useNavigate();
@@ -18,6 +20,8 @@ function PushupTrainingPage() {
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
   const selectedDate = useStore((state) => state.selectedDate);
+  const smartContributions = useStore((state) => state.smartContributions);
+  const combinedTracking = useCombinedTracking();
 
   const [currentSet, setCurrentSet] = useState(0);
   const [reps, setReps] = useState<number[]>([]);
@@ -33,8 +37,8 @@ function PushupTrainingPage() {
   const displayDayLabel = isToday ? 'Heute' : format(new Date(activeDate), 'dd.MM.');
 
   // Generiere den Trainingsplan basierend auf Historie
-  const lastTotal = getLastPushupTotal(tracking);
-  const daysCompleted = countPushupDays(tracking);
+  const lastTotal = getLastPushupTotal(combinedTracking);
+  const daysCompleted = countPushupDays(combinedTracking);
 
   // Initial total: Wenn noch keine Historie, nutze maxPushups * 2.5
   const initialTotal = lastTotal > 0 ? lastTotal : Math.round((user?.maxPushups || 20) * 2.5);
@@ -116,7 +120,12 @@ function PushupTrainingPage() {
         const birthday = user.birthday;
         // Tracking für den aktuellen User (kann auch alle Tage enthalten)
         try {
-          await generateDailyMotivation(tracking, nickname, birthday, 'PushupTraining Abschluss');
+          const updatedManual = {
+            ...tracking,
+            [activeDate]: newTracking,
+          };
+          const trackingForAi = combineTrackingWithSmart(updatedManual, smartContributions);
+          await generateDailyMotivation(trackingForAi, nickname, birthday, 'PushupTraining Abschluss');
         } catch (e) {
           console.warn('AI Prompt Log (PushupTraining) Fehler:', e);
         }

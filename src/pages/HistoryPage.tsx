@@ -17,17 +17,19 @@ import { useStore } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
 import { countActiveSports } from '../utils/sports';
+import { useCombinedTracking } from '../hooks/useCombinedTracking';
 
 function HistoryPage() {
   const navigate = useNavigate();
   const { t, language } = useTranslation();
   const tracking = useStore((state) => state.tracking);
+  const combinedTracking = useCombinedTracking();
   const setTracking = useStore((state) => state.setTracking);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const locale = language === 'de' ? de : enUS;
 
   // Sort tracking entries by date (newest first)
-  const sortedEntries = Object.entries(tracking).sort(
+  const sortedEntries = Object.entries(combinedTracking).sort(
     ([dateA], [dateB]) => dateB.localeCompare(dateA)
   );
 
@@ -77,6 +79,7 @@ function HistoryPage() {
               const formattedDate = format(dateObj, 'EEE, dd. MMM yyyy', {
                 locale,
               });
+              const hasManualEntry = Boolean(tracking[date]);
 
               return (
                 <div
@@ -92,12 +95,14 @@ function HistoryPage() {
                         {date}
                       </div>
                     </div>
-                    <button
-                      onClick={() => setDeleteConfirm(date)}
-                      className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-sm font-medium"
-                    >
-                      {t('tracking.delete')}
-                    </button>
+                    {hasManualEntry ? (
+                      <button
+                        onClick={() => setDeleteConfirm(date)}
+                        className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-sm font-medium"
+                      >
+                        {t('tracking.delete')}
+                      </button>
+                    ) : null}
                   </div>
 
                   {/* Tracking Details */}
@@ -164,7 +169,7 @@ function HistoryPage() {
                   </div>
 
                   {/* Delete Confirmation */}
-                  {deleteConfirm === date && (
+                  {deleteConfirm === date && hasManualEntry && (
                     <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                       <p className="text-sm text-red-800 dark:text-red-200 mb-2">
                         {t('tracking.deleteConfirm')}

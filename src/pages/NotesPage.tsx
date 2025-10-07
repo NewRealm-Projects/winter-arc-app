@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from '../hooks/useTranslation';
 import { SmartNote, Event } from '../types/events';
@@ -6,8 +6,6 @@ import { noteStore } from '../store/noteStore';
 import { processSmartNote, retrySmartNote } from '../features/notes/pipeline';
 
 const PAGE_SIZE = 20;
-
-type Aggregates = Awaited<ReturnType<typeof noteStore.todayAggregates>>;
 
 function useAutoTracking() {
   const [autoTracking, setAutoTracking] = useState(() => {
@@ -146,56 +144,6 @@ function EventBadges({ events }: { events: Event[] }) {
   );
 }
 
-function AggregatesBar({ aggregates }: { aggregates: Aggregates }) {
-  const workoutSummary = useMemo(() => {
-    const entries = Object.entries(aggregates.workoutsBySport ?? {});
-    if (!entries.length) return '–';
-    return entries
-      .map(([sport, count]) => `${getWorkoutLabel(sport)} (${count})`)
-      .join(', ');
-  }, [aggregates.workoutsBySport]);
-
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700 dark:text-gray-200">
-      <div className="glass dark:glass-dark rounded-xl p-4 flex flex-col">
-        <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Wasser</span>
-        <span className="text-lg font-semibold">{aggregates.waterMl} ml</span>
-      </div>
-      <div className="glass dark:glass-dark rounded-xl p-4 flex flex-col">
-        <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Protein</span>
-        <span className="text-lg font-semibold">{aggregates.proteinG} g</span>
-      </div>
-      <div className="glass dark:glass-dark rounded-xl p-4 flex flex-col">
-        <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Push-ups</span>
-        <span className="text-lg font-semibold">{aggregates.pushups}</span>
-      </div>
-      <div className="glass dark:glass-dark rounded-xl p-4 flex flex-col">
-        <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Workouts</span>
-        <span className="text-lg font-semibold">{workoutSummary}</span>
-      </div>
-      <div className="glass dark:glass-dark rounded-xl p-4 flex flex-col">
-        <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Rest Day</span>
-        <span className="text-lg font-semibold">{aggregates.isRestDay ? 'Ja' : 'Nein'}</span>
-      </div>
-      <div className="glass dark:glass-dark rounded-xl p-4 flex flex-col">
-        <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Letzte Werte</span>
-        <span className="text-lg font-semibold">
-          {(() => {
-            const parts: string[] = [];
-            if (typeof aggregates.lastWeightKg === 'number') {
-              parts.push(`⚖️ ${aggregates.lastWeightKg} kg`);
-            }
-            if (typeof aggregates.lastBfpPercent === 'number') {
-              parts.push(`📉 ${aggregates.lastBfpPercent} %`);
-            }
-            return parts.length ? parts.join(' · ') : '–';
-          })()}
-        </span>
-      </div>
-    </div>
-  );
-}
-
 function NoteCard({ note }: { note: SmartNote }) {
   const createdAgo = formatDistanceToNow(note.ts, { addSuffix: true });
 
@@ -229,15 +177,6 @@ function NotesPage() {
   const [input, setInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notes, setNotes] = useState<SmartNote[]>([]);
-  const [aggregates, setAggregates] = useState<Aggregates>({
-    waterMl: 0,
-    proteinG: 0,
-    pushups: 0,
-    workoutsBySport: {} as Record<'cardio' | 'gym' | 'other' | 'hiit_hyrox' | 'swimming' | 'football', number>,
-    isRestDay: false,
-    lastWeightKg: undefined,
-    lastBfpPercent: undefined,
-  });
   const [autoTracking, setAutoTracking] = useAutoTracking();
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -250,20 +189,13 @@ function NotesPage() {
     limitRef.current = limit;
   }, []);
 
-  const refreshAggregates = useCallback(async () => {
-    const data = await noteStore.todayAggregates();
-    setAggregates(data);
-  }, []);
-
   useEffect(() => {
     loadNotes();
-    refreshAggregates();
     const unsubscribe = noteStore.subscribe(() => {
       loadNotes();
-      refreshAggregates();
     });
     return unsubscribe;
-  }, [loadNotes, refreshAggregates]);
+  }, [loadNotes]);
 
   const onSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
@@ -332,9 +264,6 @@ function NotesPage() {
             Auto-Tracking aktiv
           </label>
         </div>
-
-        <AggregatesBar aggregates={aggregates} />
-
         <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
           {notes.length === 0 ? (
             <div className="text-sm text-gray-600 dark:text-gray-400 text-center py-10">Noch keine Smart Notes vorhanden.</div>

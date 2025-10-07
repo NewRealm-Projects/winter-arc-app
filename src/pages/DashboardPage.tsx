@@ -1,4 +1,3 @@
-import { useStore } from '../store/useStore';
 import PushupTile from '../components/PushupTile';
 import SportTile from '../components/SportTile';
 import WaterTile from '../components/WaterTile';
@@ -12,11 +11,12 @@ import { getWeatherForAachen } from '../services/weatherService';
 import { calculateStreak } from '../utils/calculations';
 import { useTracking } from '../hooks/useTracking';
 import { useWeeklyTop3 } from '../hooks/useWeeklyTop3';
+import { useCombinedTracking } from '../hooks/useCombinedTracking';
 
 type WeatherCondition = "sunny" | "cloudy" | "rain" | "snow" | "partly";
 
 function DashboardPage() {
-  const tracking = useStore((state) => state.tracking);
+  const combinedTracking = useCombinedTracking();
 
   // Auto-save tracking data to Firebase
   useTracking();
@@ -27,7 +27,7 @@ function DashboardPage() {
   const [weatherLoading, setWeatherLoading] = useState(true);
 
   // Calculate streak
-  const streak = calculateStreak(tracking);
+  const streak = calculateStreak(combinedTracking);
 
 
 

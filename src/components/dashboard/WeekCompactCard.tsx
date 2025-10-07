@@ -15,10 +15,11 @@ import { useEffect, useState } from 'react';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { countActiveSports } from '../../utils/sports';
+import { useCombinedTracking } from '../../hooks/useCombinedTracking';
 
 export default function WeekCompactCard() {
   const { t, language } = useTranslation();
-  const tracking = useStore((state) => state.tracking);
+  const combinedTracking = useCombinedTracking();
   const selectedDate = useStore((state) => state.selectedDate);
   const setSelectedDate = useStore((state) => state.setSelectedDate);
 
@@ -109,7 +110,7 @@ export default function WeekCompactCard() {
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(displayedWeekStart, i);
     const dateStr = format(date, 'yyyy-MM-dd');
-    const dayTracking = tracking[dateStr];
+    const dayTracking = combinedTracking[dateStr] || {};
     const isToday = isSameDay(date, today);
     const isSelected = dateStr === activeDate;
 

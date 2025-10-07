@@ -5,6 +5,7 @@ import { useStore } from '../store/useStore';
 import { calculateBMI } from '../utils/calculations';
 import { useTranslation } from '../hooks/useTranslation';
 import { glassCardClasses, designTokens } from '../theme/tokens';
+import { useCombinedTracking, useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 
 function WeightTile() {
   const { t } = useTranslation();
@@ -17,11 +18,13 @@ function WeightTile() {
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
   const selectedDate = useStore((state) => state.selectedDate);
+  const combinedTracking = useCombinedTracking();
 
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const activeDate = selectedDate || todayKey;
   const isToday = activeDate === todayKey;
   const activeTracking = tracking[activeDate];
+  const combinedDaily = useCombinedDailyTracking(activeDate);
   const displayDayLabel = isToday
     ? t('tracking.today')
     : format(new Date(activeDate), 'dd.MM.');
@@ -97,7 +100,7 @@ function WeightTile() {
       }
     }
 
-    Object.entries(tracking).forEach(([dateKey, dayTracking]) => {
+    Object.entries(combinedTracking).forEach(([dateKey, dayTracking]) => {
       if (!dayTracking?.weight?.value) {
         return;
       }
@@ -122,8 +125,8 @@ function WeightTile() {
     }));
   }, [activeDate, range, tracking, user?.bodyFat, user?.createdAt, user?.weight]);
 
-  const latestWeight = activeTracking?.weight?.value ?? user?.weight ?? 0;
-  const latestBMI = activeTracking?.weight?.bmi;
+  const latestWeight = combinedDaily?.weight?.value ?? activeTracking?.weight?.value ?? user?.weight ?? 0;
+  const latestBMI = activeTracking?.weight?.bmi ?? combinedDaily?.weight?.bmi;
 
   return (
     <div className={`${glassCardClasses} ${designTokens.padding.compact} text-white`}>
