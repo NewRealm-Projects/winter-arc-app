@@ -30,18 +30,18 @@ function WeekOverview() {
     const date = addDays(weekStart, i);
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayTracking = Object.prototype.hasOwnProperty.call(combinedTracking, dateStr)
-      const dayTracking = Object.prototype.hasOwnProperty.call(combinedTracking, dateStr) && typeof combinedTracking[dateStr] === 'object' ? (combinedTracking[dateStr] as { pushups?: { total?: number }; sports?: unknown; water?: number; protein?: number }) : null;
-      : null;
+      ? combinedTracking[dateStr]
+      : undefined;
     const isToday = isSameDay(date, today);
     const isSelected = dateStr === activeDate;
 
     const completedList: string[] = [];
 
-    const hasPushups = enabledActivities.includes('pushups') && (dayTracking?.pushups?.total || 0) > 0;
+    const hasPushups = enabledActivities.includes('pushups') && (dayTracking?.pushups?.total ?? 0) > 0;
     const hasSports = enabledActivities.includes('sports') && countActiveSports(dayTracking?.sports) > 0;
-    const hasWater = enabledActivities.includes('water') && (dayTracking?.water || 0) >= 2000;
-    const hasProtein = enabledActivities.includes('protein') && (dayTracking?.protein || 0) >= 100;
-    const hasWeight = !!dayTracking?.weight?.value;
+    const hasWater = enabledActivities.includes('water') && (dayTracking?.water ?? 0) >= 2000;
+    const hasProtein = enabledActivities.includes('protein') && (dayTracking?.protein ?? 0) >= 100;
+    const hasWeight = typeof dayTracking?.weight?.value === 'number';
 
     if (hasPushups) completedList.push('pushups');
     if (hasSports) completedList.push('sports');

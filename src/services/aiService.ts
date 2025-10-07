@@ -56,7 +56,7 @@ function analyzeTrackingData(tracking: Record<string, DailyTracking>): UserTrack
   const recentWeight = weightEntries.length > 0 ? weightEntries[0][1].weight?.value : undefined;
   const lastWorkoutDate = trackingDates.length > 0 ? trackingDates[trackingDates.length - 1] : undefined;
   const todayEntry = Object.prototype.hasOwnProperty.call(tracking, today)
-    const todayEntry = Object.prototype.hasOwnProperty.call(tracking, today) ? tracking[today] : undefined;
+    ? tracking[today]
     : undefined;
   const completedToday = todayEntry?.completed || false;
 
@@ -105,7 +105,7 @@ export async function generateDailyMotivation(
     const stats = analyzeTrackingData(trackingLast7);
     const todayKey = now.toISOString().split('T')[0];
     const todayTrackingEntry = Object.prototype.hasOwnProperty.call(trackingLast7, todayKey)
-      const todayTrackingEntry = Object.prototype.hasOwnProperty.call(trackingLast7, todayKey) ? trackingLast7[todayKey] : undefined;
+      ? trackingLast7[todayKey]
       : undefined;
     const todayReps = todayTrackingEntry?.pushups?.workout?.reps;
 
