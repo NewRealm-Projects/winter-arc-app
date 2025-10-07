@@ -13,6 +13,7 @@ import {
 } from '../utils/pushupAlgorithm';
 import { useCombinedTracking } from '../hooks/useCombinedTracking';
 import { combineTrackingWithSmart } from '../utils/tracking';
+import { glassCardClasses, designTokens } from '../theme/tokens';
 
 function PushupTrainingPage() {
   const navigate = useNavigate();
@@ -46,6 +47,12 @@ function PushupTrainingPage() {
   const plannedTotal = calculateTotalReps(plan);
 
   const restTime = 60; // 60 Sekunden Pause
+
+  const containerClasses = 'min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe';
+  const contentClasses = 'mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0 space-y-4';
+  const headlineCardClasses = `${glassCardClasses} ${designTokens.padding.compact} text-white flex items-center gap-3`;
+  const statsCardClasses = `${glassCardClasses} ${designTokens.padding.spacious} text-white space-y-6`;
+  const motivationCardClasses = `${glassCardClasses} ${designTokens.padding.compact} text-white text-center space-y-2`;
 
   // Start countdown timer
   useEffect(() => {
@@ -85,7 +92,7 @@ function PushupTrainingPage() {
     setReps(newReps);
     setCurrentReps(0);
 
-  if (newReps.length < 5) {
+    if (newReps.length < 5) {
       // Nächster Satz - starte Pause
       setCurrentSet(currentSet + 1);
       setRestTimeLeft(restTime);
@@ -147,89 +154,90 @@ function PushupTrainingPage() {
     const performance = ((totalReps / plannedReps) * 100).toFixed(0);
 
     return (
-  <div className="min-h-screen glass-dark rounded-2xl safe-area-inset-top">
-  <div className="glass-dark rounded-2xl text-white p-6 pb-8 pt-4 md:pt-6">
-          <div className="max-w-7xl mx-auto">
+      <div className={containerClasses}>
+        <div className={contentClasses}>
+          <header className={headlineCardClasses}>
             <button
               onClick={() => { navigate(-1); }}
-              className="mb-4 text-winter-100 hover:text-white"
+              className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm font-medium"
             >
-              ← Zurück
+              <span className="text-lg leading-none">←</span>
+              Zurück
             </button>
-            <h1 className="text-3xl font-bold">Training Abgeschlossen! 🎉</h1>
-          </div>
-        </div>
+            <div>
+              <h1 className="text-fluid-h2 font-semibold">Training abgeschlossen! 🎉</h1>
+              <p className="text-fluid-sm text-white/70">Starker Einsatz heute!</p>
+            </div>
+          </header>
 
-        <div className="max-w-7xl mx-auto px-4 -mt-4 pb-20">
-          <div className="glass-dark rounded-2xl shadow-lg p-8">
-            {/* Stats */}
-            <div className="text-center mb-8">
-              <div className="text-6xl font-bold text-winter-600 dark:text-winter-400 mb-2">
+          <section className={statsCardClasses}>
+            <div className="text-center space-y-2">
+              <div className="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-winter-200 via-winter-100 to-winter-300">
                 {totalReps}
               </div>
-              <div className="text-gray-500 dark:text-gray-400">
-                Liegestütze insgesamt
+              <p className="text-white/70">Liegestütze insgesamt</p>
+            </div>
+
+            <div className="tile-grid-2">
+              <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-5 text-center shadow-inner">
+                <p className="text-sm text-white/60">Planerfüllung</p>
+                <p className="text-3xl font-semibold text-white">{performance}%</p>
+                <p className="text-xs text-white/60">Geplant waren {plannedReps}</p>
               </div>
-              <div className="mt-4 text-2xl font-semibold text-gray-900 dark:text-white">
-                {performance}% des Plans
-              </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Geplant waren {plannedReps}
+              <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-winter-500/70 to-winter-700/70 px-4 py-5 text-center shadow-[0_10px_40px_rgba(14,165,233,0.45)]">
+                <p className="text-sm text-white/80">Nächste Challenge</p>
+                <p className="text-2xl font-semibold text-white">{totalReps + 1} Wiederholungen</p>
+                <p className="text-xs text-white/80">als Startpunkt für morgen</p>
               </div>
             </div>
 
-            {/* Set Breakdown */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Deine Sätze:
-              </h3>
-              <div className="space-y-3">
-                {reps.map((rep, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-winter-600 dark:bg-winter-500 text-white flex items-center justify-center font-bold" style={{ borderRadius: 0 }}>
-                        {index + 1}
+            <div className="space-y-3">
+              <h3 className="text-fluid-base font-semibold text-white/90">Deine Sätze</h3>
+              <div className="mobile-stack">
+                {reps.map((rep, index) => {
+                  const target = plan[index];
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white/90"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-winter-500 to-winter-700 text-base font-semibold text-white shadow-lg">
+                          {index + 1}
+                        </span>
+                        <div>
+                          <p className="text-sm font-medium text-white">Satz {index + 1}</p>
+                          <p className="text-xs text-white/60">Ziel: {target}</p>
+                        </div>
                       </div>
-                      <span className="text-gray-900 dark:text-white font-medium">
-                        Satz {index + 1}
-                      </span>
+                      <div className="text-right">
+                        <p className="text-2xl font-semibold text-white">{rep}</p>
+                        <p className="text-xs text-white/60">Differenz: {rep - target >= 0 ? `+${rep - target}` : rep - target}</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                        {rep}
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Ziel: {plan[index]}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
+          </section>
 
-            {/* Motivation */}
-            <div className="bg-winter-50 dark:bg-winter-900/20 p-6 mb-6" style={{ borderRadius: 0 }}>
-              <p className="text-center text-gray-900 dark:text-white font-medium">
-                {totalReps >= plannedReps
-                  ? '🔥 Fantastisch! Du hast dein Ziel erreicht!'
-                  : '💪 Weiter so! Morgen wird noch besser!'}
-              </p>
-              <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-2">
-                Nächstes Mal sind {totalReps + 1} Wiederholungen geplant.
-              </p>
-            </div>
+          <section className={motivationCardClasses}>
+            <p className="text-fluid-base font-semibold text-white">
+              {totalReps >= plannedReps
+                ? '🔥 Fantastisch! Du hast dein Ziel übertroffen.'
+                : '💪 Stark! Morgen wirst du noch stärker.'}
+            </p>
+            <p className="text-fluid-sm text-white/70">
+              Bleib dran – Kontinuität bringt dir deinen Winter Arc!
+            </p>
+          </section>
 
-            <button
-              onClick={handleFinish}
-              className="w-full py-4 bg-winter-600 dark:bg-winter-500 text-white hover:bg-winter-700 dark:hover:bg-winter-600 transition-colors font-semibold text-lg"
-              style={{ borderRadius: 0 }}
-            >
-              Fertig
-            </button>
-          </div>
+          <button
+            onClick={handleFinish}
+            className="w-full rounded-2xl bg-gradient-to-r from-winter-500 via-winter-600 to-winter-700 py-4 text-lg font-semibold text-white shadow-[0_12px_40px_rgba(56,189,248,0.35)] transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-white/40 active:translate-y-0"
+          >
+            Fertig
+          </button>
         </div>
       </div>
     );
@@ -238,97 +246,88 @@ function PushupTrainingPage() {
   // Show countdown before starting
   if (!isStarted) {
     return (
-  <div className="min-h-screen glass-dark rounded-2xl flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-9xl font-bold text-winter-600 dark:text-winter-400 mb-4">
-            {startCountdown}
+      <div className={containerClasses}>
+        <div className="mobile-container dashboard-container safe-pb px-3 pt-10 md:px-6 md:pt-16 lg:px-0 flex items-center justify-center">
+          <div className={`${glassCardClasses} ${designTokens.padding.spacious} text-white text-center space-y-4 animate-fade-in`}>
+            <div className="text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-winter-200 via-winter-100 to-winter-300">
+              {startCountdown}
+            </div>
+            <p className="text-fluid-base text-white/70">Mach dich bereit...</p>
           </div>
-          <p className="text-2xl text-gray-600 dark:text-gray-400">
-            Mach dich bereit...
-          </p>
         </div>
       </div>
     );
   }
 
   return (
-  <div className="min-h-screen glass-dark rounded-2xl safe-area-inset-top overflow-hidden">
-      {/* Header */}
-  <div className="glass-dark rounded-2xl text-white p-6 pb-8 pt-4 md:pt-6">
-        <div className="max-w-7xl mx-auto">
+    <div className={containerClasses}>
+      <div className={contentClasses}>
+        <header className={`${headlineCardClasses} justify-between`}>
           <button
             onClick={() => navigate(-1)}
-            className="mb-4 text-winter-100 hover:text-white"
+            className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm font-medium"
           >
-            ← Zurück
+            <span className="text-lg leading-none">←</span>
+            Zurück
           </button>
-          <h1 className="text-3xl font-bold mb-2">Liegestütze Training</h1>
-          <p className="text-winter-100">
-            {displayDayLabel} geplant: {plannedTotal} Wiederholungen
-          </p>
-        </div>
-      </div>
+          <div className="text-right">
+            <h1 className="text-fluid-h2 font-semibold">Liegestütze Training</h1>
+            <p className="text-fluid-sm text-white/70">
+              {displayDayLabel} · geplant: {plannedTotal} Wiederholungen
+            </p>
+          </div>
+        </header>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 -mt-4 pb-20">
-  <div className="glass-dark rounded-2xl shadow-lg p-6">
+        <section className={`${glassCardClasses} ${designTokens.padding.spacious} text-white space-y-8`}>
           {/* Plan Overview */}
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Dein Plan für heute:
-            </h3>
-            <div className="grid grid-cols-5 gap-2">
-              {plan.map((targetReps, index) => (
-                <div
-                  key={index}
-                  className={`p-3 rounded-lg text-center transition-all ${
-                    index < currentSet
-                      ? 'bg-green-100 dark:bg-green-900/30 border-2 border-green-500'
-                      : index === currentSet
-                      ? 'bg-winter-100 dark:bg-winter-900/30 border-2 border-winter-500'
-                      : 'bg-gray-100 dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600'
-                  }`}
-                >
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                    Satz {index + 1}
+          <div className="space-y-4">
+            <h3 className="text-fluid-base font-semibold text-white/90">Dein Plan für heute</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+              {plan.map((targetReps, index) => {
+                const isDone = index < currentSet;
+                const isActive = index === currentSet && restTimeLeft === 0;
+                const stateClasses = isDone
+                  ? 'border-green-300/60 bg-green-500/20 text-green-100 shadow-[0_0_25px_rgba(34,197,94,0.35)]'
+                  : isActive
+                  ? 'bg-gradient-to-br from-winter-500/80 to-winter-700/80 text-white shadow-[0_10px_40px_rgba(14,165,233,0.45)]'
+                  : 'text-white/70 hover:bg-white/10';
+
+                return (
+                  <div
+                    key={index}
+                    className={`rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center transition-all ${stateClasses}`}
+                  >
+                    <p className="text-xs uppercase tracking-wide text-white/60">Satz {index + 1}</p>
+                    <p className="text-2xl font-semibold">{targetReps}</p>
+                    {isDone && reps[index] !== undefined && (
+                      <p className="text-xs text-white/80 mt-1">✓ {reps[index]} geschafft</p>
+                    )}
                   </div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {targetReps}
-                  </div>
-                  {index < currentSet && reps[index] !== undefined && (
-                    <div className="text-xs text-green-600 dark:text-green-400 mt-1">
-                      ✓ {reps[index]}
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
           {/* Current Set */}
           {currentSet < 5 && (
-            <div className="mb-6">
-              <div className="text-center mb-4">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                  Satz {currentSet + 1}
-                </h2>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Ziel: {plan[currentSet]} Wiederholungen
-                </p>
+            <div className="space-y-6">
+              <div className="text-center space-y-2">
+                <h2 className="text-fluid-h2 font-semibold text-white">Satz {currentSet + 1}</h2>
+                <p className="text-white/70">Ziel: {plan[currentSet]} Wiederholungen</p>
               </div>
 
               {/* Rest Timer */}
               {restTimeLeft > 0 ? (
-                <div className="text-center mb-6">
-                  <div className="text-6xl font-bold text-winter-600 dark:text-winter-400 mb-2">
-                    {restTimeLeft}s
+                <div className="space-y-4 text-center">
+                  <div className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-8 py-4">
+                    <span className="text-5xl font-semibold text-transparent bg-clip-text bg-gradient-to-br from-winter-200 via-winter-100 to-winter-300">
+                      {restTimeLeft}s
+                    </span>
                   </div>
-                  <p className="text-gray-500 dark:text-gray-400 mb-4">
-                    Pause läuft...
-                  </p>
+                  <p className="text-white/70">Pause läuft...</p>
                   <button
                     onClick={handleSkipRest}
-                    className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    className="inline-flex items-center justify-center rounded-full border border-white/20 bg-white/10 px-6 py-2 text-sm font-medium text-white/80 transition-colors hover:bg-white/20"
                   >
                     Pause überspringen
                   </button>
@@ -340,11 +339,11 @@ function PushupTrainingPage() {
                     <div className="w-72 h-72 flex items-center justify-center overflow-hidden select-none" style={{ touchAction: 'manipulation' }}>
                       <button
                         onClick={handleTap}
-                        className="w-64 h-64 rounded-full bg-gradient-to-br from-winter-500 to-winter-700 hover:from-winter-600 hover:to-winter-800 active:scale-95 transition-all shadow-2xl flex flex-col items-center justify-center text-white focus:outline-none"
+                        className="w-64 h-64 rounded-full bg-gradient-to-br from-winter-500 to-winter-700 hover:from-winter-600 hover:to-winter-800 active:scale-95 transition-all shadow-[0_20px_60px_rgba(14,165,233,0.45)] flex flex-col items-center justify-center text-white focus:outline-none"
                         style={{ userSelect: 'none' }}
                       >
                         <div className="text-7xl font-bold mb-2">{currentReps}</div>
-                        <div className="text-lg opacity-90">Tippe mit der Nase</div>
+                        <div className="text-fluid-base text-white/80">Tippe mit der Nase</div>
                       </button>
                     </div>
                   </div>
@@ -352,7 +351,7 @@ function PushupTrainingPage() {
                   <button
                     onClick={handleCompleteSet}
                     disabled={currentReps === 0}
-                    className="w-full py-4 bg-winter-600 dark:bg-winter-500 text-white rounded-xl hover:bg-winter-700 dark:hover:bg-winter-600 transition-colors font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full rounded-2xl bg-gradient-to-r from-winter-500 via-winter-600 to-winter-700 py-4 text-lg font-semibold text-white shadow-[0_12px_40px_rgba(56,189,248,0.35)] transition-transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-white/40 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
                   >
                     Satz abschließen ({currentReps} Wiederholungen)
                   </button>
@@ -362,21 +361,21 @@ function PushupTrainingPage() {
           )}
 
           {/* Progress */}
-          <div className="mt-6">
-            <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-2">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-sm text-white/70">
               <span>Fortschritt</span>
               <span>
                 {currentSet} / 5 Sätze
               </span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+            <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-winter-500 to-winter-600 h-3 rounded-full transition-all duration-300"
+                className="h-2 rounded-full bg-gradient-to-r from-winter-300 via-winter-500 to-winter-700 transition-all duration-300"
                 style={{ width: `${(currentSet / 5) * 100}%` }}
               />
             </div>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
