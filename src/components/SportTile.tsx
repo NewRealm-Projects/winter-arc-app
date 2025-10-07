@@ -133,7 +133,7 @@ function SportTile() {
 
       <div className="grid grid-cols-3 gap-1.5 text-center">
         {sportOptions.map((sport) => {
-          const isChecked = displaySports[sport.key]?.active ?? false;
+          const isChecked = displaySports[sport.key]?.active || false;
 
           return (
             <button
