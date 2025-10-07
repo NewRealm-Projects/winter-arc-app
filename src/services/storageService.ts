@@ -54,6 +54,29 @@ export async function uploadProfilePictureFromUrl(
 }
 
 /**
+ * Uploads a user-selected file to Firebase Storage as the profile picture
+ */
+export async function uploadProfilePictureFile(
+  file: File,
+  userId: string
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    const storageRef = ref(storage, `profile-pictures/${userId}.jpg`);
+
+    await uploadBytes(storageRef, file, {
+      contentType: file.type || 'image/jpeg',
+      cacheControl: 'public, max-age=31536000',
+    });
+
+    const downloadURL = await getDownloadURL(storageRef);
+    return { success: true, url: downloadURL };
+  } catch (error) {
+    console.error('❌ Error uploading profile picture file:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+/**
  * Deletes a user's profile picture from Firebase Storage
  * @param userId - The user's ID
  */
