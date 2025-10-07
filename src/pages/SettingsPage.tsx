@@ -166,7 +166,7 @@ function SettingsPage() {
       alert(t('settings.profilePictureUploadError'));
     } finally {
       setIsUploadingPhoto(false);
-      event.target.value = '';
+      if (event?.target) {
         event.target.value = '';
       }
     }
