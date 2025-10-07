@@ -56,7 +56,7 @@ function analyzeTrackingData(tracking: Record<string, DailyTracking>): UserTrack
   const recentWeight = weightEntries.length > 0 ? weightEntries[0][1].weight?.value : undefined;
   const lastWorkoutDate = trackingDates.length > 0 ? trackingDates[trackingDates.length - 1] : undefined;
   const todayEntry = Object.prototype.hasOwnProperty.call(tracking, today)
-    const validKeys = Object.keys(tracking); const todayEntry = typeof today === 'string' && validKeys.includes(today) ? tracking[today] : undefined;
+    ? tracking[today]
     : undefined;
   const completedToday = todayEntry?.completed || false;
 
