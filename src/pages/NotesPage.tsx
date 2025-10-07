@@ -4,7 +4,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { SmartNote, Event, SmartNoteAttachment } from '../types/events';
 import { noteStore } from '../store/noteStore';
 import { useStore } from '../store/useStore';
-import { processSmartNote, retrySmartNote } from '../features/notes/pipeline';
+import { processSmartNote, retrySmartNote, updateSmartNote } from '../features/notes/pipeline';
 import { glassCardClasses, glassCardHoverClasses, designTokens } from '../theme/tokens';
 
 const PAGE_SIZE = 20;
@@ -149,26 +149,134 @@ function EventBadges({ events }: { events: Event[] }) {
 
 function NoteCard({ note }: { note: SmartNote }) {
   const createdAgo = formatDistanceToNow(note.ts, { addSuffix: true });
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(note.raw);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    if (!isEditing) {
+      setEditValue(note.raw);
+    }
+  }, [note.raw, isEditing]);
+
+  const handleStartEdit = useCallback(() => {
+    setEditValue(note.raw);
+    setIsEditing(true);
+  }, [note.raw]);
+
+  const handleCancelEdit = useCallback(() => {
+    setEditValue(note.raw);
+    setIsEditing(false);
+  }, [note.raw]);
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!editValue.trim()) {
+      return;
+    }
+    setIsSaving(true);
+    try {
+      await updateSmartNote(note.id, editValue);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update smart note', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [editValue, note.id]);
+
+  const handleDelete = useCallback(async () => {
+    const confirmed = typeof window === 'undefined' ? true : window.confirm('Smart Note wirklich löschen?');
+    if (!confirmed) return;
+    setIsDeleting(true);
+    try {
+      await noteStore.remove(note.id);
+    } catch (error) {
+      console.error('Failed to delete smart note', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [note.id]);
 
   return (
     <div className={`${glassCardHoverClasses} ${designTokens.padding.compact} text-white space-y-3 w-full`}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="text-[10px] uppercase tracking-[0.35em] text-white/50">{createdAgo}</div>
-          <p className="mt-2 text-sm md:text-base text-white/90 leading-relaxed">
-            {note.summary}
-            {note.pending && <span className="ml-2" title="Wird verarbeitet">⏳</span>}
-          </p>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+          <div className="flex-1">
+            <div className="text-[10px] uppercase tracking-[0.35em] text-white/50">{createdAgo}</div>
+            {isEditing ? (
+              <>
+                <textarea
+                  aria-label="Smart Note bearbeiten"
+                  value={editValue}
+                  onChange={(event) => { setEditValue(event.target.value); }}
+                  rows={3}
+                  className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/50 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/40"
+                  disabled={isSaving}
+                />
+                <p className="mt-1 text-xs text-white/60">Änderungen werden erneut verarbeitet.</p>
+              </>
+            ) : (
+              <p className="mt-2 text-sm md:text-base text-white/90 leading-relaxed">
+                {note.summary}
+                {note.pending && <span className="ml-2" title="Wird verarbeitet">⏳</span>}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-wrap justify-end gap-2">
+            {note.pending && !isEditing ? (
+              <button
+                className="text-xs font-semibold text-white/80 hover:text-white transition-colors"
+                onClick={() => retrySmartNote(note.id)}
+                type="button"
+              >
+                Erneut prüfen
+              </button>
+            ) : null}
+            {isEditing ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="text-xs font-semibold text-white/60 transition-colors hover:text-white"
+                  disabled={isSaving}
+                >
+                  Abbrechen
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSaveEdit()}
+                  className={`text-xs font-semibold transition-colors ${
+                    isSaving ? 'text-white/40 cursor-not-allowed' : 'text-winter-200 hover:text-white'
+                  }`}
+                  disabled={isSaving}
+                >
+                  Speichern
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleStartEdit}
+                  className="text-xs font-semibold text-white/80 transition-colors hover:text-white"
+                >
+                  Bearbeiten
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete()}
+                  className={`text-xs font-semibold transition-colors ${
+                    isDeleting ? 'text-white/40 cursor-not-allowed' : 'text-red-300 hover:text-red-200'
+                  }`}
+                  disabled={isDeleting}
+                >
+                  Löschen
+                </button>
+              </>
+            )}
+          </div>
         </div>
-        {note.pending && (
-          <button
-            className="text-xs font-semibold text-white/80 hover:text-white transition-colors"
-            onClick={() => retrySmartNote(note.id)}
-            type="button"
-          >
-            Erneut prüfen
-          </button>
-        )}
       </div>
       <EventBadges events={note.events} />
       {note.attachments && note.attachments.length > 0 ? (
