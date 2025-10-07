@@ -115,7 +115,7 @@ export async function summarizeAndValidate(
 
     let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
     const timeoutPromise = new Promise<never>((_, reject) => {
-      timeoutHandle = setTimeout(() => reject(new Error('Gemini timeout')), 8000);
+      timeoutHandle = setTimeout(() => { reject(new Error('Gemini timeout')); }, 8000);
     });
 
     const generationPromise = model.generateContent({
