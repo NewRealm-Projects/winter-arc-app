@@ -166,7 +166,7 @@ function SettingsPage() {
       alert(t('settings.profilePictureUploadError'));
     } finally {
       setIsUploadingPhoto(false);
-      event.target.value = '';
+      if (event?.target) {
         event.target.value = '';
       }
     }
@@ -282,6 +282,23 @@ function SettingsPage() {
     }
   };
 
+  const closeTimeModal = () => {
+    setShowTimeModal(false);
+  };
+
+  const handleSaveNotificationTime = () => {
+    closeTimeModal();
+
+    if (notificationsEnabled) {
+      scheduleNotification(notificationTime);
+    }
+  };
+
+  const handleResetNotificationTime = () => {
+    closeTimeModal();
+    setNotificationTime('20:00');
+  };
+
   const sections: Array<{ id: SectionId; label: string; description: string }> = [
     {
       id: 'general',
@@ -318,6 +335,44 @@ function SettingsPage() {
     { label: t('settings.weight'), value: `${user?.weight ?? '—'} kg` },
     { label: t('settings.maxPushups'), value: `${user?.maxPushups ?? '—'}` },
   ];
+
+  const renderTimeModal = () => {
+    if (!showTimeModal) {
+      return null;
+    }
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+        <div className={`${glassCardClasses} ${designTokens.padding.spacious} max-w-md w-full text-white`}>
+          <div className="flex flex-col gap-4">
+            <h2 className="text-2xl font-semibold">{t('settings.reminderTime')}</h2>
+            <input
+              type="time"
+              value={notificationTime}
+              onChange={(e) => { setNotificationTime(e.target.value); }}
+              className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white outline-none transition focus:border-white/40 focus:ring-2 focus:ring-white/30"
+            />
+            <div className="flex flex-col gap-2 md:flex-row">
+              <button
+                type="button"
+                onClick={handleSaveNotificationTime}
+                className="flex-1 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)] transition hover:shadow-[0_18px_50px_rgba(15,23,42,0.45)]"
+              >
+                {t('common.save')}
+              </button>
+              <button
+                type="button"
+                onClick={handleResetNotificationTime}
+                className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+              >
+                {t('common.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   if (user?.bodyFat) {
     profileSummaryItems.splice(5, 0, { label: t('settings.bodyFat'), value: `${user.bodyFat}%` });
@@ -948,46 +1003,7 @@ function SettingsPage() {
         </div>
       </div>
 
-      {showTimeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
-          <div className={`${glassCardClasses} ${designTokens.padding.spacious} max-w-md w-full text-white`}>
-            <div className="flex flex-col gap-4">
-              <h2 className="text-2xl font-semibold">{t('settings.reminderTime')}</h2>
-              <input
-                type="time"
-                value={notificationTime}
-                onChange={(e) => { setNotificationTime(e.target.value); }}
-                className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white outline-none transition focus:border-white/40 focus:ring-2 focus:ring-white/30"
-              />
-              <div className="flex flex-col gap-2 md:flex-row">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowTimeModal(false);
-                    if (notificationsEnabled) {
-                      scheduleNotification(notificationTime);
-                      console.log('🔄 Benachrichtigungszeit aktualisiert:', notificationTime);
-                    }
-                  }}
-                  className="flex-1 rounded-xl bg-white px-4 py-3 text-sm font-semibold text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)] transition hover:shadow-[0_18px_50px_rgba(15,23,42,0.45)]"
-                >
-                  {t('common.save')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowTimeModal(false);
-                    setNotificationTime('20:00');
-                  }}
-                  className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
-                >
-                  {t('common.cancel')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {renderTimeModal()}
     </div>
   );
 }
