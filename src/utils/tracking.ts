@@ -57,7 +57,7 @@ export function combineTrackingWithSmart(
     const weight = (() => {
       const value = manual?.weight?.value ?? smart?.weight?.value;
       const bodyFat = manual?.weight?.bodyFat ?? smart?.weight?.bodyFat;
-      const bmi = manual?.weight?.bmi;
+      const bmi = manual.weight?.bmi;
 
       if (value === undefined && bodyFat === undefined && bmi === undefined) {
         return undefined;
