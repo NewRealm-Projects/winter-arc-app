@@ -101,7 +101,7 @@ function WeightTile() {
     }
 
     Object.entries(combinedTracking).forEach(([dateKey, dayTracking]) => {
-      if (!dayTracking?.weight?.value) {
+      if (!dayTracking.weight?.value) {
         return;
       }
       if (!isWithinRange(dateKey)) {
@@ -221,7 +221,7 @@ function WeightTile() {
             ].map((option) => (
               <button
                 key={option.value}
-                onClick={() => setRange(option.value)}
+                onClick={() => { setRange(option.value); }}
                 className={`flex-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-colors ${
                   range === option.value
                     ? 'bg-purple-600 text-white'
@@ -297,18 +297,18 @@ function WeightTile() {
                 type="number"
                 step="0.1"
                 value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                placeholder={t('tracking.weightPlaceholder')}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+                onChange={(e) => { setWeight(e.target.value); }}
+                placeholder="Gewicht (kg)"
+                className="flex-1 px-2 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
                 autoFocus
               />
               <input
                 type="number"
                 step="0.1"
                 value={bodyFat}
-                onChange={(e) => setBodyFat(e.target.value)}
-                placeholder={t('tracking.bodyFatPlaceholder')}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+                onChange={(e) => { setBodyFat(e.target.value); }}
+                placeholder="KFA (%)"
+                className="w-20 px-2 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
               />
             </div>
             <div className="flex gap-2">
@@ -331,8 +331,15 @@ function WeightTile() {
               </button>
             </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <button
+            onClick={() => { setShowInput(true); }}
+            className="w-full px-3 py-2 text-sm bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium"
+          >
+            {t('tracking.addWeight')}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

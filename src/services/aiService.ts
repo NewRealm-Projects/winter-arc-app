@@ -55,7 +55,10 @@ function analyzeTrackingData(tracking: Record<string, DailyTracking>): UserTrack
   const trackingDates = Object.keys(tracking).sort();
   const recentWeight = weightEntries.length > 0 ? weightEntries[0][1].weight?.value : undefined;
   const lastWorkoutDate = trackingDates.length > 0 ? trackingDates[trackingDates.length - 1] : undefined;
-  const completedToday = tracking[today]?.completed || false;
+  const todayEntry = Object.prototype.hasOwnProperty.call(tracking, today)
+    const todayEntry = Object.prototype.hasOwnProperty.call(tracking, today) && typeof today === 'string' ? tracking[today] : undefined;
+    : undefined;
+  const completedToday = todayEntry?.completed || false;
 
   return {
     currentStreak,
@@ -100,7 +103,11 @@ export async function generateDailyMotivation(
     const isoDatetime = now.toISOString();
     const weatherInfo = weatherContext || '';
     const stats = analyzeTrackingData(trackingLast7);
-    const todayReps = trackingLast7[now.toISOString().split('T')[0]]?.pushups?.workout?.reps;
+    const todayKey = now.toISOString().split('T')[0];
+    const todayTrackingEntry = Object.prototype.hasOwnProperty.call(trackingLast7, todayKey)
+      const todayTrackingEntry = todayKey in trackingLast7 ? trackingLast7[todayKey] : undefined;
+      : undefined;
+    const todayReps = todayTrackingEntry?.pushups?.workout?.reps;
 
     // Prompt-Variablen vorbereiten
     // (bereits oben deklariert)

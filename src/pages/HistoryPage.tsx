@@ -46,7 +46,7 @@ function HistoryPage() {
   <div className="glass-dark text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto flex items-center gap-4">
           <button
-            onClick={() => navigate('/')}
+            onClick={() => { navigate('/'); }}
             className="text-white hover:bg-white/10 rounded-lg p-2 transition-colors"
           >
             ← {t('tracking.back')}
@@ -97,7 +97,7 @@ function HistoryPage() {
                     </div>
                     {hasManualEntry ? (
                       <button
-                        onClick={() => setDeleteConfirm(date)}
+                      onClick={() => { setDeleteConfirm(date); }}
                         className="px-3 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-sm font-medium"
                       >
                         {t('tracking.delete')}
@@ -176,13 +176,13 @@ function HistoryPage() {
                       </p>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => handleDelete(date)}
+                          onClick={() => { handleDelete(date); }}
                           className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
                         >
                           {t('tracking.confirmDelete')}
                         </button>
                         <button
-                          onClick={() => setDeleteConfirm(null)}
+                          onClick={() => { setDeleteConfirm(null); }}
                           className="flex-1 px-3 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
                         >
                           {t('common.cancel')}

@@ -138,9 +138,17 @@ function ProteinTile() {
               </button>
             </div>
           </div>
-        </div>
-      )}
-    </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => { setShowInput(true); }}
+            className="w-full px-3 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors font-medium text-xs"
+          >
+            {t('tracking.addProtein')}
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 

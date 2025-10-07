@@ -69,7 +69,7 @@ function PushupTile() {
     <>
       <button
         type="button"
-        onClick={() => setShowModal(true)}
+        onClick={() => { setShowModal(true); }}
         className={`w-full ${getTileClasses(isTracked)} ${designTokens.padding.compact} text-left text-white hover:bg-white/8`}
       >
         {/* Header with Icon and Count */}
@@ -149,7 +149,7 @@ function PushupTile() {
             <input
               type="number"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => { setInputValue(e.target.value); }}
               onKeyDown={(e) => e.key === 'Enter' && handleSave()}
               placeholder={isSetMode ? t('tracking.totalAmount') : t('tracking.enterAmount')}
               className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none mb-4"
