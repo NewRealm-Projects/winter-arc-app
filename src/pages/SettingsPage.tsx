@@ -139,7 +139,7 @@ function SettingsPage() {
   const handleProfilePictureFileChange = async (event?: ChangeEvent<HTMLInputElement>) => {
     if (!user) return;
 
-    const file = event?.target?.files?.[0];
+    const file = event?.target.files?.[0];
     if (!file) return;
 
     setIsUploadingPhoto(true);
