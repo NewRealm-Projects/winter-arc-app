@@ -54,7 +54,7 @@ function TrainingLoadTile() {
 
   const activeDate = selectedDate ?? new Date().toISOString().split('T')[0];
   const combinedDaily = useCombinedDailyTracking(activeDate);
-  const manualDaily = tracking.hasOwnProperty(activeDate) ? tracking[activeDate] : undefined;
+  const manualDaily = Object.prototype.hasOwnProperty.call(tracking, activeDate) ? tracking[activeDate] : undefined;
 
   const recoverySource = manualDaily?.recovery ?? combinedDaily?.recovery;
   const sessions = useMemo(
