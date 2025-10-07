@@ -43,7 +43,7 @@ function WeekDayCircleComponent({
   return (
     <button
       type="button"
-      className={`group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 ${
+      className={`group relative flex flex-col items-center gap-1.5 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 ${
         isSelected ? 'scale-[1.04]' : 'scale-100'
       }`}
       onClick={onClick}
@@ -55,7 +55,7 @@ function WeekDayCircleComponent({
         {label}
       </span>
       <div
-        className={`relative flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200 ${
+        className={`relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200 sm:h-16 sm:w-16 ${
           isToday ? 'ring-2 ring-sky-400/70 ring-offset-2 ring-offset-transparent' : ''
         } ${isSelected ? 'shadow-[0_8px_18px_rgba(56,189,248,0.35)]' : ''}`}
       >
@@ -80,8 +80,8 @@ function WeekDayCircleComponent({
             strokeLinecap="round"
           />
         </svg>
-        <span className="relative text-sm font-semibold text-white">{Math.round(safePercent)}%</span>
-        <span className="absolute bottom-1 text-[10px] font-medium text-white/50">{dayNumber}</span>
+        <span className="relative text-xs font-semibold text-white sm:text-sm">{Math.round(safePercent)}%</span>
+        <span className="absolute bottom-1 text-[9px] font-medium text-white/50 sm:text-[10px]">{dayNumber}</span>
         {isStreak ? (
           <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-xs shadow-lg">
             🔥
