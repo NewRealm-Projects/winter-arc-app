@@ -24,14 +24,18 @@ type FetchOptions = {
   cursor?: number;
 };
 
-const FORBIDDEN_FIRESTORE_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+const FIRESTORE_INVALID_FIELD_CHARACTERS = ['~', '*', '/', '[', ']'];
 
 function isValidKey(key: string): boolean {
   if (key.trim() === '') {
     return false;
   }
 
-  return !FORBIDDEN_FIRESTORE_KEYS.has(key);
+  if (key.startsWith('__')) {
+    return false;
+  }
+
+  return !FIRESTORE_INVALID_FIELD_CHARACTERS.some((invalidChar) => key.includes(invalidChar));
 }
 
 function sanitizeForFirestore<T>(value: T): T {
