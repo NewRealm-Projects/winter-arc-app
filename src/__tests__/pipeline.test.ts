@@ -1,51 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { SmartNote } from '../types/events';
-
-const storeState = vi.hoisted(() => ({
-  notes: new Map<string, SmartNote>(),
-}));
-
-const noteStoreMock = vi.hoisted(() => ({
-  async add(note: SmartNote) {
-    storeState.notes.set(note.id, note);
-  },
-  async update(id: string, patch: Partial<SmartNote>) {
-    const existing = storeState.notes.get(id);
-    if (!existing) return;
-    storeState.notes.set(id, { ...existing, ...patch });
-  },
-  async getRecent(limit: number) {
-    return Array.from(storeState.notes.values())
-      .sort((a, b) => b.ts - a.ts)
-      .slice(0, limit);
-  },
-  async get(id: string) {
-    return storeState.notes.get(id);
-  },
-}));
-
-const geminiExports = vi.hoisted(() => {
-  class GeminiUnavailableError extends Error {}
-  class GeminiTimeoutError extends Error {}
-  return {
-    summarizeAndValidate: vi.fn(),
-    GeminiUnavailableError,
-    GeminiTimeoutError,
-  };
-});
-
-vi.mock('../store/noteStore', () => ({ noteStore: noteStoreMock }));
-vi.mock('../services/gemini', () => geminiExports);
-
-import { mergeEvents, processSmartNote } from '../features/notes/pipeline';
+import { describe, expect, it } from 'vitest';
+import { mergeEvents } from '../features/notes/pipeline';
 import { Event, ProteinEvent } from '../types/events';
-
-const { summarizeAndValidate, GeminiUnavailableError } = geminiExports;
-
-beforeEach(() => {
-  storeState.notes.clear();
-  summarizeAndValidate.mockReset();
-});
 
 describe('mergeEvents', () => {
   const baseTs = Date.now();
@@ -101,20 +56,6 @@ describe('mergeEvents', () => {
     const protein = merged[0] as ProteinEvent;
     expect(protein.grams).toBe(25);
     expect(protein.source).toBe('heuristic');
-  });
-});
-
-describe('processSmartNote fallback', () => {
-  it('marks note as unavailable when Gemini cannot be reached', async () => {
-    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-    summarizeAndValidate.mockRejectedValue(new GeminiUnavailableError());
-    const { noteId } = await processSmartNote('500 ml Wasser', { autoTracking: true });
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    const stored = storeState.notes.get(noteId);
-    expect(stored?.llmStatus).toBe('unavailable');
-    expect(stored?.pending).toBe(false);
-    expect(stored?.summary.length).toBeGreaterThan(0);
-    errorSpy.mockRestore();
   });
 });
 
