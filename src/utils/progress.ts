@@ -70,15 +70,18 @@ export interface DayCompletionResult {
     water: number;
     protein: number;
     movement: number;
+    weight: number;
   };
   ratios: {
     water: number;
     protein: number;
     movement: number;
+    weight: number;
   };
   totals: {
     water: number;
     protein: number;
+    weight: number | null;
   };
   goals: {
     water: number;
@@ -87,6 +90,9 @@ export interface DayCompletionResult {
   movement: {
     pushupsDone: boolean;
     sportsCount: number;
+  };
+  weight: {
+    logged: boolean;
   };
 }
 
@@ -129,6 +135,9 @@ export function getDayCompletion({
 
   const waterValue = Number.isFinite(safeTracking.water) ? Math.max(safeTracking.water ?? 0, 0) : 0;
   const proteinValue = Number.isFinite(safeTracking.protein) ? Math.max(safeTracking.protein ?? 0, 0) : 0;
+  const rawWeightValue = safeTracking.weight?.value;
+  const hasWeightValue = Number.isFinite(rawWeightValue);
+  const weightValue = hasWeightValue ? Math.max(rawWeightValue ?? 0, 0) : 0;
   const pushupsDone = Boolean(safeTracking.pushups?.total && safeTracking.pushups.total > 0);
   const sportsCount = countActiveSports(safeTracking.sports);
   const movementDone = pushupsDone || sportsCount > 0;
@@ -138,6 +147,9 @@ export function getDayCompletion({
   const isPushupsEnabled = enabledActivities ? enabledActivities.includes('pushups') : true;
   const isSportsEnabled = enabledActivities ? enabledActivities.includes('sports') : true;
   const isMovementEnabled = isPushupsEnabled || isSportsEnabled;
+  const isWeightEnabled = enabledActivities
+    ? enabledActivities.includes('weight')
+    : Boolean(safeTracking.weight);
 
   const hasProteinGoal = isProteinEnabled && proteinGoal > 0;
 
@@ -145,26 +157,31 @@ export function getDayCompletion({
     water: isWaterEnabled ? 0.4 : 0,
     protein: hasProteinGoal ? 0.4 : 0,
     movement: isMovementEnabled ? 0.2 : 0,
+    weight: isWeightEnabled ? 0.2 : 0,
   };
 
-  const weightSum = baseWeights.water + baseWeights.protein + baseWeights.movement;
+  const weightSum =
+    baseWeights.water + baseWeights.protein + baseWeights.movement + baseWeights.weight;
 
   const normalizedWeights = weightSum > 0
     ? {
         water: baseWeights.water / weightSum,
         protein: baseWeights.protein / weightSum,
         movement: baseWeights.movement / weightSum,
+        weight: baseWeights.weight / weightSum,
       }
-    : { water: 0, protein: 0, movement: 0 };
+    : { water: 0, protein: 0, movement: 0, weight: 0 };
 
   const waterRatio = waterGoal > 0 ? clamp(waterValue / waterGoal) : 0;
   const proteinRatio = proteinGoal > 0 ? clamp(proteinValue / proteinGoal) : 0;
   const movementRatio = movementDone ? 1 : 0;
+  const weightRatio = isWeightEnabled ? (hasWeightValue ? 1 : 0) : 0;
 
   const completion =
     waterRatio * normalizedWeights.water +
     proteinRatio * normalizedWeights.protein +
-    movementRatio * normalizedWeights.movement;
+    movementRatio * normalizedWeights.movement +
+    weightRatio * normalizedWeights.weight;
 
   const percent = Math.round(clamp(completion) * 100);
 
@@ -175,10 +192,12 @@ export function getDayCompletion({
       water: waterRatio,
       protein: proteinRatio,
       movement: movementRatio,
+      weight: weightRatio,
     },
     totals: {
       water: waterValue,
       protein: proteinValue,
+      weight: hasWeightValue ? weightValue : null,
     },
     goals: {
       water: isWaterEnabled ? waterGoal : 0,
@@ -187,6 +206,9 @@ export function getDayCompletion({
     movement: {
       pushupsDone,
       sportsCount,
+    },
+    weight: {
+      logged: hasWeightValue,
     },
   };
 }
