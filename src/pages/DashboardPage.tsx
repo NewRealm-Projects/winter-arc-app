@@ -96,7 +96,9 @@ function DashboardPage() {
 
         {/* Week Compact Card */}
         <div className="tile-grid-2 mb-3 animate-fade-in-up delay-100">
-          <WeekCompactCard />
+          <div className="col-span-full">
+            <WeekCompactCard />
+          </div>
         </div>
 
         {/* Tracking Tiles */}
