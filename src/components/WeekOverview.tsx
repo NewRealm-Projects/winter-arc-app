@@ -105,7 +105,7 @@ function WeekOverview() {
         {weekDays.map((day) => {
           // Circle styling based on status
           let circleClasses =
-            'h-8 w-8 md:h-10 md:w-10 rounded-full flex items-center justify-center font-bold transition-all cursor-pointer text-sm md:text-base';
+            'rounded-full flex items-center justify-center font-bold transition-all cursor-pointer w-[clamp(2.25rem,8vw,3.5rem)] h-[clamp(2.25rem,8vw,3.5rem)] text-[clamp(0.75rem,1.6vw,1rem)]';
 
           if (day.isCompleted) {
             circleClasses += ' bg-emerald-500 text-white shadow-[0_0_12px_2px_rgba(16,185,129,0.6)]';
