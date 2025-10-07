@@ -390,7 +390,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                 <input
                   type="date"
                   value={birthday}
-                  onChange={(e) => setBirthday(e.target.value)}
+                  onChange={(e) => { setBirthday(e.target.value); }}
                   onKeyDown={(e) => e.key === 'Enter' && handleComplete()}
                   className="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white placeholder-white/60 focus:border-transparent focus:ring-2 focus:ring-sky-400/80 focus:outline-none"
                   autoFocus

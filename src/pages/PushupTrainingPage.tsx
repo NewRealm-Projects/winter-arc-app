@@ -264,7 +264,7 @@ function PushupTrainingPage() {
       <div className={contentClasses}>
         <header className={`${headlineCardClasses} justify-between`}>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => { navigate(-1); }}
             className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm font-medium"
           >
             <span className="text-lg leading-none">←</span>

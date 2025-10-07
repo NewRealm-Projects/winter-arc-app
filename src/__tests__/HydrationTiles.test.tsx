@@ -59,8 +59,8 @@ describe('Hydration and Protein tiles', () => {
 
     await act(async () => {});
 
-    expect(water!.container.textContent).not.toContain('NaN');
-    expect(protein!.container.textContent).not.toContain('NaN');
-    expect(protein!.container.textContent).toContain('Set your goal');
+    expect(water?.container.textContent).not.toContain('NaN');
+    expect(protein?.container.textContent).not.toContain('NaN');
+    expect(protein?.container.textContent).toContain('Set your goal');
   });
 });
