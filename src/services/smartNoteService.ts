@@ -24,6 +24,20 @@ type FetchOptions = {
   cursor?: number;
 };
 
+const FIRESTORE_INVALID_FIELD_CHARACTERS = ['~', '*', '/', '[', ']'];
+
+function isValidKey(key: string): boolean {
+  if (key.trim() === '') {
+    return false;
+  }
+
+  if (key.startsWith('__')) {
+    return false;
+  }
+
+  return !FIRESTORE_INVALID_FIELD_CHARACTERS.some((invalidChar) => key.includes(invalidChar));
+}
+
 function sanitizeForFirestore<T>(value: T): T {
   if (value === null || value === undefined) {
     return value;

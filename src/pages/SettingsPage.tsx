@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState, ChangeEvent } from 'react';
 import { signOut } from 'firebase/auth';
 import * as Sentry from '@sentry/react';
 import { auth } from '../firebase/config';
@@ -56,6 +56,9 @@ function SettingsPage() {
   const setPwaInstallPrompt = useStore((state) => state.setPwaInstallPrompt);
   const isIOS = typeof window !== 'undefined' && /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
   const isStandalone = typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || ('standalone' in window.navigator && (window.navigator as { standalone?: boolean }).standalone));
+
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const profilePictureInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleInstallApp = async () => {
     if (pwaInstallPrompt) {
@@ -126,6 +129,44 @@ function SettingsPage() {
     } catch (error) {
       console.error('Error updating profile:', error);
       alert(t('settings.saveError'));
+    }
+  };
+
+  const handleChooseProfilePicture = () => {
+    profilePictureInputRef.current?.click();
+  };
+
+  const handleProfilePictureFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    if (!user) return;
+
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingPhoto(true);
+
+    try {
+      const { uploadProfilePictureFile } = await import('../services/storageService');
+      const uploadResult = await uploadProfilePictureFile(file, user.id);
+
+      if (!uploadResult.success || !uploadResult.url) {
+        throw new Error(uploadResult.error || 'upload_failed');
+      }
+
+      const { updateUser } = await import('../services/firestoreService');
+      const result = await updateUser(user.id, { photoURL: uploadResult.url });
+
+      if (!result.success) {
+        throw new Error('firestore_update_failed');
+      }
+
+      setUser({ ...user, photoURL: uploadResult.url });
+      alert(t('settings.profilePictureUpdated'));
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      alert(t('settings.profilePictureUploadError'));
+    } finally {
+      setIsUploadingPhoto(false);
+      event.target.value = '';
     }
   };
 
@@ -683,34 +724,66 @@ function SettingsPage() {
                         <span aria-hidden="true">🔒</span>
                         {t('settings.privacy')}
                       </h2>
-                      <p className="text-sm text-white/70">{t('settings.shareProfilePictureDesc')}</p>
+                      <p className="text-sm text-white/70">{t('settings.profilePicturePrivacyDescription')}</p>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold text-white">{t('settings.shareProfilePicture')}</span>
-                      <button
-                        type="button"
-                        aria-pressed={Boolean(user?.shareProfilePicture)}
-                        onClick={async () => {
-                          if (!user) return;
-                          const newValue = !user.shareProfilePicture;
-                          const { updateUser } = await import('../services/firestoreService');
-                          const result = await updateUser(user.id, { shareProfilePicture: newValue });
-                          if (result.success) {
-                            setUser({ ...user, shareProfilePicture: newValue });
-                          }
-                        }}
-                        className={`relative h-9 w-16 rounded-full border transition-all duration-200 ${
-                          user?.shareProfilePicture
-                            ? 'border-white/40 bg-gradient-to-r from-winter-400 to-winter-600 shadow-[0_14px_40px_rgba(15,23,42,0.45)]'
-                            : 'border-white/20 bg-white/10 hover:border-white/30'
-                        }`}
-                      >
-                        <span
-                          className={`absolute top-1 left-1 h-7 w-7 rounded-full bg-white transition-transform duration-200 ${
-                            user?.shareProfilePicture ? 'translate-x-7 drop-shadow-[0_8px_20px_rgba(15,23,42,0.35)]' : ''
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="h-16 w-16 overflow-hidden rounded-full border border-white/20 bg-white/10 shadow-inner">
+                          {user?.photoURL ? (
+                            <img src={user.photoURL} alt={t('settings.profilePictureAlt')} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-2xl">👤</div>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            type="button"
+                            onClick={handleChooseProfilePicture}
+                            disabled={isUploadingPhoto}
+                            className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)] transition hover:shadow-[0_18px_50px_rgba(15,23,42,0.45)] disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {isUploadingPhoto ? t('settings.uploadingPhoto') : t('settings.changeProfilePicture')}
+                          </button>
+                          <p className="text-xs text-white/70">{t('settings.profilePictureHint')}</p>
+                          <input
+                            ref={profilePictureInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={() => { void handleProfilePictureFileChange(); }}
+                            className="hidden"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex flex-1 items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                        <div>
+                          <p className="font-semibold text-white">{t('settings.shareProfilePicture')}</p>
+                          <p className="text-sm text-white/70">{t('settings.shareProfilePictureDesc')}</p>
+                        </div>
+                        <button
+                          type="button"
+                          aria-pressed={Boolean(user?.shareProfilePicture)}
+                          onClick={async () => {
+                            if (!user) return;
+                            const newValue = !user.shareProfilePicture;
+                            const { updateUser } = await import('../services/firestoreService');
+                            const result = await updateUser(user.id, { shareProfilePicture: newValue });
+                            if (result.success) {
+                              setUser({ ...user, shareProfilePicture: newValue });
+                            }
+                          }}
+                          className={`relative h-9 w-16 rounded-full border transition-all duration-200 ${
+                            user?.shareProfilePicture
+                              ? 'border-white/40 bg-gradient-to-r from-winter-400 to-winter-600 shadow-[0_14px_40px_rgba(15,23,42,0.45)]'
+                              : 'border-white/20 bg-white/10 hover:border-white/30'
                           }`}
-                        />
-                      </button>
+                        >
+                          <span
+                            className={`absolute top-1 left-1 h-7 w-7 rounded-full bg-white transition-transform duration-200 ${
+                              user?.shareProfilePicture ? 'translate-x-7 drop-shadow-[0_8px_20px_rgba(15,23,42,0.35)]' : ''
+                            }`}
+                          />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </section>

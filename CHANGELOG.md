@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Profile picture management: Google avatars are uploaded to Firebase Storage during onboarding, users can replace them with custom uploads, and sharing preferences are configurable in-app. Updated Firebase Storage rules restrict access to shared photos.
 ### Changed
 
 - Reduce the streak completion threshold to 50% daily fulfillment to make progress streaks more attainable.
