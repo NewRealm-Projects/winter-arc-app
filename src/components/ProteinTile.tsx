@@ -78,7 +78,7 @@ function ProteinTile() {
               <button
                 key={amount}
                 type="button"
-                onClick={() => addProtein(amount)}
+                onClick={() => { addProtein(amount); }}
                 className="px-2 py-1.5 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 text-orange-600 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors font-medium text-xs"
               >
                 +{amount}g
