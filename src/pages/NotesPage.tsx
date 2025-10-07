@@ -198,19 +198,6 @@ function AggregatesBar({ aggregates }: { aggregates: Aggregates }) {
 
 function NoteCard({ note }: { note: SmartNote }) {
   const createdAgo = formatDistanceToNow(note.ts, { addSuffix: true });
-  const status: SmartNote['llmStatus'] | 'ready' = note.llmStatus
-    ? note.llmStatus
-    : note.pending
-      ? 'pending'
-      : 'ready';
-  const showSpinner = status === 'pending';
-  const showError = status === 'error';
-  const showUnavailable = status === 'unavailable';
-  const statusHint = showUnavailable
-    ? 'Gemini-Endpoint aktuell nicht erreichbar – Heuristik verwendet.'
-    : showError
-      ? 'Gemini konnte nicht antworten. Bitte später erneut prüfen.'
-      : null;
 
   return (
     <div className="glass dark:glass-dark rounded-2xl p-5 shadow-sm transition-all">
@@ -219,14 +206,10 @@ function NoteCard({ note }: { note: SmartNote }) {
           <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{createdAgo}</div>
           <p className="mt-2 text-base text-gray-900 dark:text-gray-100 leading-relaxed">
             {note.summary}
-            {showSpinner && <span className="ml-2" title="Wird verarbeitet">⏳</span>}
-            {showError && <span className="ml-2" title="Fehler bei der Zusammenfassung">⚠️</span>}
+            {note.pending && <span className="ml-2" title="Wird verarbeitet">⏳</span>}
           </p>
-          {statusHint ? (
-            <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">{statusHint}</p>
-          ) : null}
         </div>
-        {(status === 'pending' || status === 'error') && (
+        {note.pending && (
           <button
             className="text-sm text-winter-600 hover:text-winter-500 dark:text-winter-300"
             onClick={() => retrySmartNote(note.id)}
