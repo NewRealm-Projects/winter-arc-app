@@ -162,7 +162,7 @@ function WaterTile() {
               <button
                 key={amount}
                 type="button"
-                onClick={() => addWater(amount)}
+                onClick={() => { addWater(amount); }}
                 className="px-2 py-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium text-xs"
               >
                 +{amount}
@@ -197,7 +197,7 @@ function WaterTile() {
               inputMode="numeric"
               pattern="[0-9]*"
               value={exactValue}
-              onChange={(e) => setExactValue(e.target.value)}
+              onChange={(e) => { setExactValue(e.target.value); }}
               onKeyDown={(e) => e.key === 'Enter' && setExactWater()}
               placeholder="ml / L"
               className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none mb-4"
