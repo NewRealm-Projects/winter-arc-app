@@ -91,6 +91,7 @@ export const translations = {
       intensity: 'Intensität',
       minutes: 'Minuten',
       remove: 'Entfernen',
+      adjustAmount: 'Menge anpassen',
     },
     // Group/Leaderboard
     group: {
@@ -321,6 +322,7 @@ export const translations = {
       intensity: 'Intensity',
       minutes: 'Minutes',
       remove: 'Remove',
+      adjustAmount: 'Adjust amount',
     },
     // Group/Leaderboard
     group: {
