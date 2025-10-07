@@ -24,7 +24,9 @@ function WeekOverview() {
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(weekStart, i);
     const dateStr = format(date, 'yyyy-MM-dd');
-    const dayTracking = combinedTracking.hasOwnProperty(dateStr) ? combinedTracking[dateStr] : null;
+    const dayTracking = Object.prototype.hasOwnProperty.call(combinedTracking, dateStr)
+      ? combinedTracking[dateStr]
+      : null;
     const isToday = isSameDay(date, today);
     const isSelected = dateStr === activeDate;
 
