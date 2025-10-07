@@ -27,7 +27,7 @@ function sanitizeForFirestore<T>(value: T): T {
       const sanitizedValue = sanitizeForFirestore(entryValue);
 
       if (sanitizedValue !== undefined) {
-        acc[key] = sanitizedValue;
+        if (typeof key === 'string') { acc[key] = sanitizedValue; }
       }
 
       return acc;
