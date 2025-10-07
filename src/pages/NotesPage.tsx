@@ -265,7 +265,7 @@ function NoteCard({ note }: { note: SmartNote }) {
                 </button>
                 <button
                   type="button"
-                  onClick={handleDelete}
+                  onClick={() => handleDelete()}
                   className={`text-xs font-semibold transition-colors ${
                     isDeleting ? 'text-white/40 cursor-not-allowed' : 'text-red-300 hover:text-red-200'
                   }`}
