@@ -69,7 +69,7 @@ export function calculateStreak(
     // Count completed tasks based on enabled activities
     const completedTasks = [];
 
-    if (enabledActivities.includes('pushups') && (dayTracking?.pushups?.total || 0) > 0) {
+    if (enabledActivities.includes('pushups') && (dayTracking.pushups?.total || 0) > 0) {
       completedTasks.push('pushups');
     }
     if (enabledActivities.includes('sports') && countActiveSports(dayTracking?.sports) > 0) {
