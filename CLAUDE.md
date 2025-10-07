@@ -33,6 +33,20 @@ This means you should **automatically use the Context7 MCP tools** to resolve li
 - `feat/<topic>` - Feature branches (branch from develop)
 - `fix/<topic>` - Bug fix branches
 
+## Codequalität & PR-Workflow (Codacy)
+
+- Alle Pull Requests benötigen einen **Codacy-Status = Passed**.
+- Vor jedem PR lokal ausführen: `npm run lint && npm run format && npm run typecheck && npm run test`.
+- Keine Merges ohne grünes Codacy-Signal und grüne Pipeline-Ergebnisse.
+
+### PR-Checkliste
+- [ ] Codacy Passed
+- [ ] Lint/Format/Typecheck/Test grün
+- [ ] a11y-Basics geprüft (Kontrast, Focus, ARIA bei neuen Elementen)
+- [ ] i18n-Strings statt Hardcodes verwendet
+- [ ] Screenshots/GIFs bei UI-Änderungen angehängt
+- [ ] Changelog-Eintrag aktualisiert
+
 ### Commit Message Format
 Follow conventional commits style:
 ```

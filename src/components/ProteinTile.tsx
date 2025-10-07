@@ -1,13 +1,41 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
-import { calculateProteinGoal } from '../utils/calculations';
 import { useTranslation } from '../hooks/useTranslation';
 import { getTileClasses, designTokens } from '../theme/tokens';
 import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
+import { formatGrams, getPercent, resolveProteinGoal } from '../utils/progress';
+
+const sanitizeGramValue = (value: unknown): number => {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric <= 0) {
+    return 0;
+  }
+  return Math.round(numeric);
+};
+
+const parseProteinInput = (value: string): number | null => {
+  const trimmed = value.trim().toLowerCase();
+  if (!trimmed) {
+    return null;
+  }
+
+  const normalized = trimmed.replace(',', '.');
+  const numeric = Number.parseFloat(normalized.replace(/[^0-9.]/g, ''));
+
+  if (!Number.isFinite(numeric) || numeric < 0) {
+    return null;
+  }
+
+  if (normalized.includes('kg')) {
+    return Math.round(numeric * 1000);
+  }
+
+  return Math.round(numeric);
+};
 
 function ProteinTile() {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
 
@@ -20,30 +48,41 @@ function ProteinTile() {
   const activeDate = selectedDate || todayKey;
   const activeTracking = tracking[activeDate];
   const combinedTracking = useCombinedDailyTracking(activeDate);
-  const manualProtein = activeTracking?.protein || 0;
-  const totalProtein = combinedTracking?.protein ?? manualProtein;
+  const manualProtein = sanitizeGramValue(activeTracking?.protein);
+  const totalProtein = sanitizeGramValue(combinedTracking?.protein ?? manualProtein);
 
-  const proteinGoal = user?.weight ? calculateProteinGoal(user.weight) : 150;
+  const proteinGoal = Math.max(resolveProteinGoal(user), 0);
+  const hasGoal = proteinGoal > 0;
+  const percent = hasGoal ? getPercent(totalProtein, proteinGoal) : 0;
+  const localeCode = language === 'de' ? 'de-DE' : 'en-US';
+  const formattedTotal = `${formatGrams(totalProtein, { locale: localeCode })}g`;
+  const formattedGoal = hasGoal
+    ? `${formatGrams(proteinGoal, { locale: localeCode })}g`
+    : '';
+  const isTracked = totalProtein > 0;
 
   const addProtein = (amount: number) => {
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return;
+    }
     updateDayTracking(activeDate, {
-      protein: manualProtein + amount,
+      protein: sanitizeGramValue(manualProtein + amount),
     });
   };
 
-  const saveProtein = () => {
-    const amount = parseInt(inputValue, 10);
-    if (!Number.isNaN(amount) && amount >= 0) {
-      updateDayTracking(activeDate, {
-        protein: amount,
-      });
-      setInputValue('');
-      setShowModal(false);
-    }
-  };
+  const parsedProteinInput = useMemo(() => parseProteinInput(inputValue), [inputValue]);
 
-  const progress = proteinGoal ? Math.min((totalProtein / proteinGoal) * 100, 100) : 0;
-  const isTracked = totalProtein > 0;
+  const saveProtein = () => {
+    if (parsedProteinInput === null) {
+      return;
+    }
+
+    updateDayTracking(activeDate, {
+      protein: parsedProteinInput,
+    });
+    setInputValue('');
+    setShowModal(false);
+  };
 
   return (
     <>
@@ -56,20 +95,28 @@ function ProteinTile() {
             </h3>
           </div>
           <div className="text-sm font-bold text-orange-600 dark:text-orange-400">
-            {totalProtein}g
+            {formattedTotal}
           </div>
         </div>
 
         <div className="mb-4 text-center">
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div
-              className="bg-gradient-to-r from-orange-400 to-orange-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-            {Math.round(progress)}% / {proteinGoal}g
-          </div>
+          {hasGoal ? (
+            <>
+              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-orange-400 to-orange-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+              <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                {percent}% / {formattedGoal}
+              </div>
+            </>
+          ) : (
+            <div className="mt-2 text-xs text-orange-200 bg-orange-500/10 rounded-lg px-3 py-2">
+              {t('tracking.setGoal')}
+            </div>
+          )}
         </div>
 
         <div className="space-y-1.5">
@@ -88,7 +135,7 @@ function ProteinTile() {
           <button
             type="button"
             onClick={() => {
-              setInputValue(manualProtein.toString());
+              setInputValue(manualProtein ? manualProtein.toString() : '');
               setShowModal(true);
             }}
             className="w-full py-1 text-xs text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
@@ -117,14 +164,14 @@ function ProteinTile() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter') saveProtein();
               }}
-              placeholder="g"
+              placeholder="g / kg"
               className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none mb-4"
               autoFocus
             />
             <div className="flex gap-2">
               <button
                 onClick={saveProtein}
-                disabled={!inputValue || parseInt(inputValue, 10) < 0}
+                disabled={parsedProteinInput === null}
                 className="flex-1 px-4 py-3 bg-orange-600 text-white rounded-lg font-semibold hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {t('tracking.save')}
