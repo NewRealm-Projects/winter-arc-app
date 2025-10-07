@@ -371,7 +371,7 @@ function LeaderboardPage() {
                           ? 'bg-winter-100 dark:bg-winter-900 ring-2 ring-winter-500'
                           : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
                       }`}
-                      onClick={() => setSelectedUser(selectedUser === entry.id ? null : entry.id)}
+                      onClick={() => { setSelectedUser(selectedUser === entry.id ? null : entry.id); }}
                     >
                       <div className="flex items-center gap-4">
                         {(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? (
