@@ -70,7 +70,7 @@ function DashboardPage() {
   return (
     <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe">
       {/* Content */}
-      <div className="mobile-container safe-pb px-3 pt-4 md:px-6 md:pt-8 max-h-[calc(100vh-5rem)] viewport-safe">
+      <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0 max-h-[calc(100vh-5rem)] viewport-safe">
         {/* Top Grid: Streak + Weather - Always side-by-side */}
         <div className="grid grid-cols-2 gap-2 lg:gap-4 mb-3 animate-fade-in-up">
           {/* Streak Card */}
@@ -94,10 +94,9 @@ function DashboardPage() {
           </div>
         </div>
 
-        {/* Week Compact Card + Weight Tile */}
+        {/* Week Compact Card */}
         <div className="tile-grid-2 mb-3 animate-fade-in-up delay-100">
           <WeekCompactCard />
-          <WeightTile />
         </div>
 
         {/* Tracking Tiles */}
@@ -113,6 +112,9 @@ function DashboardPage() {
             <WaterTile />
             <ProteinTile />
           </div>
+
+          {/* Weight Tile */}
+          <WeightTile />
         </div>
       </div>
     </div>
