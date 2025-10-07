@@ -112,16 +112,19 @@ function LeaderboardPage() {
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const firstDayOffset = (monthStart.getDay() + 6) % 7;
 
-  const getRankColor = (rank: number) => {
+  const getRankBadgeClasses = (rank: number) => {
+    const baseBadgeClasses =
+      'w-10 h-10 rounded-full border flex items-center justify-center font-bold text-sm transition-colors duration-200';
+
     switch (rank) {
       case 1:
-        return 'bg-gradient-to-br from-yellow-400 to-orange-500 border border-white/20 shadow-lg';
+        return `${baseBadgeClasses} bg-gradient-to-br from-winter-200/90 via-winter-300/90 to-winter-500/90 text-slate-900 border-white/40 shadow-[0_10px_30px_rgba(14,165,233,0.45)]`;
       case 2:
-        return 'bg-white/20 border border-white/40';
+        return `${baseBadgeClasses} bg-gradient-to-br from-winter-200/70 to-winter-400/70 text-slate-900 border-white/30 shadow-[0_6px_24px_rgba(14,165,233,0.35)]`;
       case 3:
-        return 'bg-orange-500/80 border border-white/20';
+        return `${baseBadgeClasses} bg-gradient-to-br from-winter-300/60 to-winter-600/60 text-white border-white/20 shadow-[0_6px_24px_rgba(8,47,73,0.35)]`;
       default:
-        return 'bg-white/10 border border-white/20';
+        return `${baseBadgeClasses} bg-white/10 text-white border-white/20`;
     }
   };
 
@@ -348,16 +351,16 @@ function LeaderboardPage() {
             </section>
           )}
 
-          <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+          <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
+            <h2 className="text-lg font-semibold text-white mb-4">
               {t('group.rankings')}
             </h2>
             {loading ? (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <div className="text-center py-8 text-white/60">
                 {t('common.loading')}
               </div>
             ) : leaderboardData.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <div className="text-center py-8 text-white/60">
                 {t('group.noMembers')}
               </div>
             ) : (
@@ -365,17 +368,24 @@ function LeaderboardPage() {
                 {sortedLeaderboardData.map((entry, index) => {
                   const rank = index + 1;
                   const isCurrentUser = user?.nickname === entry.nickname;
-                  const key = entry.id || `entry-${index}`;
+                  const entryId = entry.id ?? entry.nickname;
+                  const isExpanded = selectedUser === entryId;
 
                   return (
-                    <div
-                      key={key}
-                      className={`p-4 rounded-xl transition-all cursor-pointer ${
+                    <button
+                      key={entryId || `entry-${index}`}
+                      type="button"
+                      aria-expanded={isExpanded}
+                      className={`${glassCardClasses} ${designTokens.padding.compact} md:p-5 group relative w-full text-left cursor-pointer overflow-hidden transition-all duration-200 ${
                         isCurrentUser
-                          ? 'bg-winter-100 dark:bg-winter-900 ring-2 ring-winter-500'
-                          : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
-                      }`}
-                      onClick={() => { setSelectedUser(selectedUser === entry.id ? null : entry.id); }}
+                          ? 'ring-1 ring-winter-300/70 shadow-[0_12px_40px_rgba(14,165,233,0.35)] bg-gradient-to-br from-winter-500/15 via-winter-400/10 to-transparent'
+                          : isExpanded
+                          ? 'border-white/20 bg-white/10 shadow-[0_10px_36px_rgba(15,23,42,0.35)]'
+                          : 'hover:border-white/20 hover:bg-white/10'
+                      } ${designTokens.tile.hover} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-winter-200/70`}
+                      onClick={() => {
+                        setSelectedUser(isExpanded ? null : entryId);
+                      }}
                     >
                       <div className="flex items-center gap-4">
                         {(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? (
@@ -383,7 +393,7 @@ function LeaderboardPage() {
                             src={entry.photoURL}
                             alt={entry.nickname}
                             referrerPolicy="no-referrer"
-                            className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-600 object-cover flex-shrink-0"
+                            className="w-12 h-12 rounded-full border-2 border-white/20 object-cover flex-shrink-0"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.style.display = 'none';
@@ -393,48 +403,50 @@ function LeaderboardPage() {
                           />
                         ) : null}
                         <div
-                          className={`w-12 h-12 rounded-full bg-gradient-to-br from-winter-400 to-winter-600 ${(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? 'hidden' : 'flex'} items-center justify-center text-white font-bold text-lg flex-shrink-0`}
+                          className={`w-12 h-12 rounded-full bg-gradient-to-br from-winter-400 to-winter-600 ${(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? 'hidden' : 'flex'} items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-[0_8px_24px_rgba(14,165,233,0.45)]`}
                         >
                           {entry.nickname.charAt(0).toUpperCase()}
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                          <div className="font-semibold text-white flex items-center gap-2">
                             <span>{entry.nickname}</span>
                             {isCurrentUser && (
-                              <span className="text-xs bg-winter-500 text-white px-2 py-0.5 rounded ml-1">
+                              <span className="text-xs bg-winter-500/80 text-white px-2 py-0.5 rounded-full ml-1">
                                 {t('group.you')}
                               </span>
                             )}
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                            <span>{entry.streak} {t('group.daysStreak')} 🔥</span>
-                            <span>•</span>
-                            <span>💪 {entry.dailyPushups || 0} {t('group.today')}</span>
+                          <div className="text-sm text-white/70 flex items-center gap-2">
+                            <span>
+                              {entry.streak} {t('group.daysStreak')} 🔥
+                            </span>
+                            <span className="text-white/30">•</span>
+                            <span className="text-winter-200">
+                              💪 {entry.dailyPushups || 0} {t('group.today')}
+                            </span>
                           </div>
                         </div>
 
-                        <div
-                          className={`w-10 h-10 rounded-full ${getRankColor(rank)} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}
-                        >
+                        <div className={`${getRankBadgeClasses(rank)} flex-shrink-0`}>
                           #{rank}
                         </div>
                       </div>
 
-                      {selectedUser === entry.id && (
-                        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                      {isExpanded && (
+                        <div className="mt-4 pt-4 border-t border-white/12">
                           {(() => {
                             const userEnabledActivities = entry.enabledActivities || ['pushups', 'sports', 'water', 'protein'];
                             const stats = [] as JSX.Element[];
 
                             if (userEnabledActivities.includes('pushups')) {
                               stats.push(
-                                <div key="pushups">
+                                <div key="pushups" className="flex flex-col items-center gap-1 text-center">
                                   <div className="text-2xl mb-1">💪</div>
-                                  <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                  <div className="text-lg font-bold text-white">
                                     {entry.totalPushups}
                                   </div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  <div className="text-xs text-white/60">
                                     {t('group.pushups')}
                                   </div>
                                 </div>
@@ -443,12 +455,12 @@ function LeaderboardPage() {
 
                             if (userEnabledActivities.includes('sports')) {
                               stats.push(
-                                <div key="sports">
+                                <div key="sports" className="flex flex-col items-center gap-1 text-center">
                                   <div className="text-2xl mb-1">🏃</div>
-                                  <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                  <div className="text-lg font-bold text-white">
                                     {entry.sportSessions}
                                   </div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  <div className="text-xs text-white/60">
                                     {t('group.sportSessions')}
                                   </div>
                                 </div>
@@ -457,12 +469,12 @@ function LeaderboardPage() {
 
                             if (userEnabledActivities.includes('water')) {
                               stats.push(
-                                <div key="water">
+                                <div key="water" className="flex flex-col items-center gap-1 text-center">
                                   <div className="text-2xl mb-1">💧</div>
-                                  <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                  <div className="text-lg font-bold text-white">
                                     {(entry.avgWater / 1000).toFixed(1)}L
                                   </div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  <div className="text-xs text-white/60">
                                     {t('group.avgWater')}
                                   </div>
                                 </div>
@@ -471,12 +483,12 @@ function LeaderboardPage() {
 
                             if (userEnabledActivities.includes('protein')) {
                               stats.push(
-                                <div key="protein">
+                                <div key="protein" className="flex flex-col items-center gap-1 text-center">
                                   <div className="text-2xl mb-1">🥩</div>
-                                  <div className="text-lg font-bold text-gray-900 dark:text-white">
+                                  <div className="text-lg font-bold text-white">
                                     {entry.avgProtein}g
                                   </div>
-                                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  <div className="text-xs text-white/60">
                                     {t('group.avgProtein')}
                                   </div>
                                 </div>
@@ -489,12 +501,12 @@ function LeaderboardPage() {
                           })()}
                         </div>
                       )}
-                    </div>
+                    </button>
                   );
                 })}
               </div>
             )}
-          </div>
+          </section>
         </div>
       </div>
     </div>
