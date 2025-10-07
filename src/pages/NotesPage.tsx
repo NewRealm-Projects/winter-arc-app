@@ -209,7 +209,7 @@ function NoteCard({ note }: { note: SmartNote }) {
                 <textarea
                   aria-label="Smart Note bearbeiten"
                   value={editValue}
-                  onChange={(event) => setEditValue(event.target.value)}
+                  onChange={(event) => { setEditValue(event.target.value); }}
                   rows={3}
                   className="mt-2 w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/50 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/40"
                   disabled={isSaving}
