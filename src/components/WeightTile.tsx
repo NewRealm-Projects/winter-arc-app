@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { format, subDays } from 'date-fns';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useStore } from '../store/useStore';
@@ -11,7 +11,7 @@ function WeightTile() {
   const [showInput, setShowInput] = useState(false);
   const [weight, setWeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
-  const [days, setDays] = useState(7);
+  const [range, setRange] = useState<'week' | 'month' | 'all'>('week');
 
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
@@ -46,69 +46,81 @@ function WeightTile() {
     }
   };
 
-  // Generate chart data
-  const chartData = [];
+  const chartData = useMemo(() => {
+    const entries: { dateKey: string; weight: number; bodyFat?: number }[] = [];
 
-  // Use selected date as reference point for the graph
-  const referenceDate = new Date(activeDate);
+    const referenceDate = new Date(activeDate);
+    const rangeToDays: Record<'week' | 'month', number> = {
+      week: 7,
+      month: 30,
+    };
 
-  // Add onboarding weight as the first data point if available and within the date range
-  if (user?.weight && user?.createdAt) {
-    try {
-      // Handle different date formats from Firestore
-      let createdAtDate: Date;
+    const days = range === 'all' ? null : rangeToDays[range];
+    const oldestDateInRange = days ? format(subDays(referenceDate, days - 1), 'yyyy-MM-dd') : null;
 
-      if (typeof user.createdAt === 'string') {
-        createdAtDate = new Date(user.createdAt);
-      } else if (user.createdAt instanceof Date) {
-        createdAtDate = user.createdAt;
-      } else if (typeof user.createdAt === 'object' && 'seconds' in user.createdAt) {
-        // Firestore Timestamp object
-  createdAtDate = new Date((user.createdAt as { seconds: number }).seconds * 1000);
-      } else {
-        // Try to convert to Date
-  createdAtDate = new Date(user.createdAt as string | number | Date);
+    const isWithinRange = (dateKey: string) => {
+      if (dateKey > activeDate) {
+        return false;
       }
+      if (!oldestDateInRange) {
+        return true;
+      }
+      return dateKey >= oldestDateInRange;
+    };
 
-      // Validate the date
-      if (!isNaN(createdAtDate.getTime())) {
-        const createdDate = format(createdAtDate, 'yyyy-MM-dd');
-        const oldestDateInRange = format(subDays(referenceDate, days - 1), 'yyyy-MM-dd');
+    if (user?.weight && user?.createdAt) {
+      try {
+        let createdAtDate: Date;
 
-        // Include onboarding weight if it's within the selected date range
-        if (createdDate >= oldestDateInRange && createdDate <= activeDate) {
-          chartData.push({
-            date: format(createdAtDate, 'dd.MM'),
-            weight: user.weight,
-            bodyFat: user.bodyFat,
-          });
+        if (typeof user.createdAt === 'string') {
+          createdAtDate = new Date(user.createdAt);
+        } else if (user.createdAt instanceof Date) {
+          createdAtDate = user.createdAt;
+        } else if (typeof user.createdAt === 'object' && user.createdAt !== null && 'seconds' in user.createdAt) {
+          createdAtDate = new Date((user.createdAt as { seconds: number }).seconds * 1000);
+        } else {
+          createdAtDate = new Date(user.createdAt as string | number | Date);
         }
-      }
-    } catch (error) {
-      console.error('❌ Error parsing onboarding date:', error, 'createdAt:', user.createdAt);
-    }
-  }
 
-  // Add tracked weights
-  for (let i = days - 1; i >= 0; i--) {
-    const date = format(subDays(referenceDate, i), 'yyyy-MM-dd');
-    const dayTracking = tracking[date];
-    if (dayTracking?.weight) {
-      chartData.push({
-        date: format(new Date(date), 'dd.MM'),
+        if (!isNaN(createdAtDate.getTime())) {
+          const createdDateKey = format(createdAtDate, 'yyyy-MM-dd');
+          if (isWithinRange(createdDateKey)) {
+            entries.push({
+              dateKey: createdDateKey,
+              weight: user.weight,
+              bodyFat: user.bodyFat,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error parsing onboarding date:', error, 'createdAt:', user.createdAt);
+      }
+    }
+
+    Object.entries(tracking).forEach(([dateKey, dayTracking]) => {
+      if (!dayTracking?.weight?.value) {
+        return;
+      }
+      if (!isWithinRange(dateKey)) {
+        return;
+      }
+      entries.push({
+        dateKey,
         weight: dayTracking.weight.value,
         bodyFat: dayTracking.weight.bodyFat,
       });
-    }
-  }
+    });
 
-  // Sort by date to ensure proper chronological order
-  chartData.sort((a, b) => {
-    const [dayA, monthA] = a.date.split('.');
-    const [dayB, monthB] = b.date.split('.');
-    return new Date(2024, parseInt(monthA) - 1, parseInt(dayA)).getTime() -
-           new Date(2024, parseInt(monthB) - 1, parseInt(dayB)).getTime();
-  });
+    entries.sort((a, b) => new Date(a.dateKey).getTime() - new Date(b.dateKey).getTime());
+
+    const dateFormat = range === 'all' ? 'dd.MM.yy' : 'dd.MM';
+
+    return entries.map((entry) => ({
+      date: format(new Date(entry.dateKey), dateFormat),
+      weight: entry.weight,
+      bodyFat: entry.bodyFat,
+    }));
+  }, [activeDate, range, tracking, user?.bodyFat, user?.createdAt, user?.weight]);
 
   const latestWeight = activeTracking?.weight?.value ?? user?.weight ?? 0;
   const latestBMI = activeTracking?.weight?.bmi;
@@ -200,20 +212,20 @@ function WeightTile() {
           {/* Time Range Selector */}
           <div className="flex gap-1.5 mb-1.5">
             {[
-              { days: 7, label: t('tracking.week') },
-              { days: 30, label: t('tracking.month') },
-              { days: 90, label: t('tracking.allTime') },
-            ].map((range) => (
+              { value: 'week' as const, label: t('tracking.week') },
+              { value: 'month' as const, label: t('tracking.month') },
+              { value: 'all' as const, label: t('tracking.allTime') },
+            ].map((option) => (
               <button
-                key={range.days}
-                onClick={() => setDays(range.days)}
+                key={option.value}
+                onClick={() => setRange(option.value)}
                 className={`flex-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-colors ${
-                  days === range.days
+                  range === option.value
                     ? 'bg-purple-600 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                {range.label}
+                {option.label}
               </button>
             ))}
           </div>
