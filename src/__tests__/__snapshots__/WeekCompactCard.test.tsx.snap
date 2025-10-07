@@ -56,13 +56,13 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
       </div>
     </div>
     <div
-      class="mt-4 grid grid-cols-4 gap-3 sm:grid-cols-7"
+      class="mt-4 flex flex-nowrap items-center justify-center gap-3 overflow-x-auto scroll-smooth no-scrollbar sm:grid sm:grid-cols-7 sm:items-stretch sm:justify-start sm:overflow-visible"
     >
       <button
         aria-label="Monday · 80%
 💧 2.6/2.5L · 🥩 150/150g · 💤"
         aria-pressed="false"
-        class="group relative flex flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
+        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
         title="Monday · 80%
 💧 2.6/2.5L · 🥩 150/150g · 💤"
         type="button"
@@ -122,7 +122,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
         aria-label="Tuesday · 61%
 💧 1.8/2.5L · 🥩 120/150g · 💤"
         aria-pressed="false"
-        class="group relative flex flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
+        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
         title="Tuesday · 61%
 💧 1.8/2.5L · 🥩 120/150g · 💤"
         type="button"
@@ -182,7 +182,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
         aria-label="Wednesday · 97%
 💧 2.5/2.5L · 🥩 140/150g · 💪"
         aria-pressed="true"
-        class="group relative flex flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-[1.04]"
+        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-[1.04]"
         title="Wednesday · 97%
 💧 2.5/2.5L · 🥩 140/150g · 💪"
         type="button"
@@ -242,7 +242,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
         aria-label="Thursday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         aria-pressed="false"
-        class="group relative flex flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
+        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
         title="Thursday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         type="button"
@@ -297,7 +297,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
         aria-label="Friday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         aria-pressed="false"
-        class="group relative flex flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
+        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
         title="Friday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         type="button"
@@ -352,7 +352,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
         aria-label="Saturday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         aria-pressed="false"
-        class="group relative flex flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
+        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
         title="Saturday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         type="button"
@@ -407,7 +407,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
         aria-label="Sunday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         aria-pressed="false"
-        class="group relative flex flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
+        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
         title="Sunday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         type="button"

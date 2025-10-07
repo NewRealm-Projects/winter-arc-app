@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState, ChangeEvent, useRef } from 'react';
 import { Gender, Language, Activity } from '../types';
 import { useStore } from '../store/useStore';
 import { initPushupPlan } from '../utils/pushupAlgorithm';
@@ -14,6 +14,10 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   const [step, setStep] = useState(1);
   const [language, setLanguage] = useState<Language>('de');
   const [nickname, setNickname] = useState('');
+  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState(user?.photoURL ?? '');
+  const [shareProfilePicture, setShareProfilePicture] = useState(user?.shareProfilePicture ?? true);
+  const profilePictureInputRef = useRef<HTMLInputElement | null>(null);
   const [gender, setGender] = useState<Gender>('male');
   const [height, setHeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
@@ -25,7 +29,29 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   const setUser = useStore((state) => state.setUser);
   const setIsOnboarded = useStore((state) => state.setIsOnboarded);
 
-  const totalSteps = birthdayOnly ? 1 : 8;
+  const totalSteps = birthdayOnly ? 1 : 9;
+
+  const handleProfilePictureChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (profilePicturePreview && profilePicturePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(profilePicturePreview);
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setProfilePictureFile(file);
+    setProfilePicturePreview(previewUrl);
+    event.target.value = '';
+  };
+
+  useEffect(() => {
+    return () => {
+      if (profilePicturePreview && profilePicturePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(profilePicturePreview);
+      }
+    };
+  }, [profilePicturePreview]);
 
   const handleNext = () => {
     if (step < totalSteps) {
@@ -67,6 +93,20 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
       // Full onboarding
       const pushupState = initPushupPlan(parseInt(maxPushups));
 
+      let photoURL = user?.photoURL;
+
+      if (profilePictureFile) {
+        const { uploadProfilePictureFile } = await import('../services/storageService');
+        const uploadResult = await uploadProfilePictureFile(profilePictureFile, currentUser.uid);
+
+        if (!uploadResult.success || !uploadResult.url) {
+          alert(t('onboarding.profilePictureUploadError'));
+          return;
+        }
+
+        photoURL = uploadResult.url;
+      }
+
       const newUser = {
         language,
         nickname,
@@ -77,8 +117,8 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
         maxPushups: parseInt(maxPushups),
         birthday: birthday || undefined,
         groupCode: '',
-        photoURL: user?.photoURL || undefined, // photoURL already uploaded in useAuth
-        shareProfilePicture: true, // Default to sharing
+        photoURL: photoURL || undefined,
+        shareProfilePicture,
         enabledActivities,
         createdAt: new Date(),
         pushupState,
@@ -111,16 +151,18 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
       case 2:
         return nickname.trim().length > 0;
       case 3:
-        return gender !== undefined;
+        return true; // Profile picture is optional
       case 4:
-        return height && parseInt(height) > 0;
+        return gender !== undefined;
       case 5:
-        return true; // bodyFat is optional
+        return height && parseInt(height) > 0;
       case 6:
-        return maxPushups && parseInt(maxPushups) > 0;
+        return true; // bodyFat is optional
       case 7:
-        return enabledActivities.length > 0; // at least one activity required
+        return maxPushups && parseInt(maxPushups) > 0;
       case 8:
+        return enabledActivities.length > 0; // at least one activity required
+      case 9:
         return true; // birthday is optional
       default:
         return false;
@@ -231,6 +273,77 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   
             {!birthdayOnly && step === 3 && (
               <div className="space-y-4">
+                <h2 className="text-fluid-h2 font-semibold text-white">{t('onboarding.profilePictureTitle')}</h2>
+                <p className="text-sm text-white/70">{t('onboarding.profilePictureDescription')}</p>
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="h-24 w-24 overflow-hidden rounded-full border border-white/20 bg-white/10 shadow-inner">
+                      {profilePicturePreview ? (
+                        <img
+                          src={profilePicturePreview}
+                          alt={t('onboarding.profilePictureAlt')}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-3xl">👤</div>
+                      )}
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          profilePictureInputRef.current?.click();
+                        }}
+                        className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)] transition hover:shadow-[0_18px_50px_rgba(15,23,42,0.45)]"
+                      >
+                        {profilePicturePreview
+                          ? t('onboarding.changeProfilePicture')
+                          : t('onboarding.uploadProfilePicture')}
+                      </button>
+                      <input
+                        ref={profilePictureInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfilePictureChange}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-1 flex-col gap-3 text-sm text-white/70 md:pl-6">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <p>{t('onboarding.profilePictureInfo')}</p>
+                    </div>
+                    <div className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <div>
+                        <p className="font-semibold text-white">{t('onboarding.shareProfilePicture')}</p>
+                        <p>{t('onboarding.shareProfilePictureDescription')}</p>
+                      </div>
+                      <button
+                        type="button"
+                        aria-pressed={shareProfilePicture}
+                        onClick={() => {
+                          setShareProfilePicture((prev) => !prev);
+                        }}
+                        className={`relative h-9 w-16 rounded-full border transition-all duration-200 ${
+                          shareProfilePicture
+                            ? 'border-white/40 bg-gradient-to-r from-winter-400 to-winter-600 shadow-[0_14px_40px_rgba(15,23,42,0.45)]'
+                            : 'border-white/20 bg-white/10 hover:border-white/30'
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-1 left-1 h-7 w-7 rounded-full bg-white transition-transform duration-200 ${
+                            shareProfilePicture ? 'translate-x-7 drop-shadow-[0_8px_20px_rgba(15,23,42,0.35)]' : ''
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!birthdayOnly && step === 4 && (
+              <div className="space-y-4">
                 <h2 className="text-fluid-h2 font-semibold text-white">Dein Geschlecht</h2>
                 <p className="text-sm text-white/70">Dies hilft uns bei der Berechnung deiner Ziele</p>
                 <div className="space-y-3">
@@ -257,8 +370,8 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                 </div>
               </div>
             )}
-  
-            {!birthdayOnly && step === 4 && (
+
+            {!birthdayOnly && step === 5 && (
               <div className="space-y-4">
                 <h2 className="text-fluid-h2 font-semibold text-white">Deine Größe</h2>
                 <p className="text-sm text-white/70">In Zentimetern (cm)</p>
@@ -281,7 +394,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
               </div>
             )}
   
-            {!birthdayOnly && step === 5 && (
+            {!birthdayOnly && step === 6 && (
               <div className="space-y-4">
                 <h2 className="text-fluid-h2 font-semibold text-white">Körperfettanteil (optional)</h2>
                 <p className="text-sm text-white/70">Wenn du deinen KFA kennst, gib ihn hier ein</p>
@@ -305,7 +418,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
               </div>
             )}
   
-            {!birthdayOnly && step === 6 && (
+            {!birthdayOnly && step === 7 && (
               <div className="space-y-4">
                 <h2 className="text-fluid-h2 font-semibold text-white">Maximale Liegestütze</h2>
                 <p className="text-sm text-white/70">Wie viele Liegestütze schaffst du maximal am Stück?</p>
@@ -339,7 +452,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
               </div>
             )}
   
-            {!birthdayOnly && step === 7 && (
+            {!birthdayOnly && step === 8 && (
               <div className="space-y-4">
                 <h2 className="text-fluid-h2 font-semibold text-white">✅ {t('onboarding.selectActivities')}</h2>
                 <p className="text-sm text-white/70">{t('onboarding.activitiesHelp')}</p>
@@ -383,7 +496,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
               </div>
             )}
   
-            {!birthdayOnly && step === 8 && (
+            {!birthdayOnly && step === 9 && (
               <div className="space-y-4">
                 <h2 className="text-fluid-h2 font-semibold text-white">🎂 {t('onboarding.birthdayOptional')}</h2>
                 <p className="text-sm text-white/70">{t('onboarding.birthdayHelp')}</p>
