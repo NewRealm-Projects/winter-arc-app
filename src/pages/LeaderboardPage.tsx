@@ -126,9 +126,13 @@ function LeaderboardPage() {
   };
 
   const calculateDayProgress = (dateStr: string) => {
-    const dayTracking = combinedTracking[dateStr];
     const totalTasksForProgress = enabledActivities.length + 1; // +1 for weight
     const pointsPerTask = 100 / totalTasksForProgress;
+
+    const dayTracking = combinedTracking[dateStr];
+    if (!dayTracking) {
+      return 0;
+    }
 
     let progress = 0;
     if (enabledActivities.includes('pushups') && (dayTracking.pushups?.total || 0) > 0) {
