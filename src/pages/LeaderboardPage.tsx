@@ -131,7 +131,7 @@ function LeaderboardPage() {
     const pointsPerTask = 100 / totalTasksForProgress;
 
     let progress = 0;
-    if (enabledActivities.includes('pushups') && (dayTracking?.pushups?.total || 0) > 0) {
+    if (enabledActivities.includes('pushups') && (dayTracking.pushups?.total || 0) > 0) {
       progress += pointsPerTask;
     }
     if (enabledActivities.includes('sports') && countActiveSports(dayTracking?.sports) > 0) {
