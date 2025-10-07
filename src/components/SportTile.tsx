@@ -70,7 +70,7 @@ function SportTile() {
   );
 
   const openSportManager = (sport?: SportKey) => {
-    const fallbackSport = sport ?? activeSportOptions[0]?.key ?? 'hiit';
+    const fallbackSport = activeSportOptions[0]?.key ?? 'hiit';
     setSelectedSport(fallbackSport);
     setShowModal(true);
   };
