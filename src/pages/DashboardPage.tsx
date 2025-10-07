@@ -64,7 +64,7 @@ function DashboardPage() {
         setWeatherLoading(false);
       }
     };
-    loadWeather();
+    void loadWeather();
   }, []);
 
   return (

@@ -73,7 +73,7 @@ function ProteinTile() {
               inputMode="numeric"
               pattern="[0-9]*"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => { setInputValue(e.target.value); }}
               onKeyDown={(e) => e.key === 'Enter' && addProtein()}
               placeholder='g'
               className="flex-1 px-2 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-orange-500 outline-none"
@@ -98,7 +98,7 @@ function ProteinTile() {
         ) : (
           <button
             type="button"
-            onClick={() => setShowInput(true)}
+            onClick={() => { setShowInput(true); }}
             className="w-full px-3 py-2 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors font-medium text-xs"
           >
             {t('tracking.addProtein')}

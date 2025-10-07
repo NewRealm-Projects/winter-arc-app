@@ -41,7 +41,7 @@ function LoginPage() {
       }
     };
 
-    checkRedirectResult();
+    void checkRedirectResult();
   }, []);
 
   const handleGoogleLogin = async () => {
@@ -198,7 +198,7 @@ function LoginPage() {
           {/* Login Mode Toggle */}
           <div className="mt-3 flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
             <button
-              onClick={() => setUseRedirect(!useRedirect)}
+              onClick={() => { setUseRedirect(!useRedirect); }}
               className="underline hover:text-gray-700 dark:hover:text-gray-300"
             >
               {useRedirect ? 'Switch to popup mode' : 'Switch to redirect mode'}

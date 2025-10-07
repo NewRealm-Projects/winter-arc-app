@@ -65,9 +65,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     // Listen for system theme changes
     if (theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handler = () => updateResolvedTheme();
+      const handler = () => { updateResolvedTheme(); };
       mediaQuery.addEventListener('change', handler);
-      return () => mediaQuery.removeEventListener('change', handler);
+      return () => { mediaQuery.removeEventListener('change', handler); };
     }
   }, [theme]);
 

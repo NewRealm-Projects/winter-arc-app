@@ -115,10 +115,10 @@ export default function WeekCompactCard() {
     const isSelected = dateStr === activeDate;
 
     // Check what's completed
-    const hasPushups = (dayTracking?.pushups?.total || 0) > 0;
-    const hasSports = countActiveSports(dayTracking?.sports) > 0;
-    const hasWater = (dayTracking?.water || 0) >= 2000;
-    const hasProtein = (dayTracking?.protein || 0) >= 100;
+    const hasPushups = (dayTracking.pushups?.total || 0) > 0;
+    const hasSports = countActiveSports(dayTracking.sports) > 0;
+    const hasWater = (dayTracking.water || 0) >= 2000;
+    const hasProtein = (dayTracking.protein || 0) >= 100;
 
     const tasksCompleted = [hasPushups, hasSports, hasWater, hasProtein].filter(Boolean).length;
     const isDone = tasksCompleted >= 3;
@@ -151,7 +151,7 @@ export default function WeekCompactCard() {
         <div className="flex items-center gap-2 pt-1">
           <button
             type="button"
-            onClick={() => handleWeekChange('previous')}
+            onClick={() => { handleWeekChange('previous'); }}
             className="p-2 rounded-full border border-white/10 text-white/70 hover:text-white hover:border-white/30 transition-colors"
             aria-label={t('dashboard.previousWeek')}
           >
@@ -159,7 +159,7 @@ export default function WeekCompactCard() {
           </button>
           <button
             type="button"
-            onClick={() => handleWeekChange('next')}
+            onClick={() => { handleWeekChange('next'); }}
             disabled={disableNextWeek}
             className="p-2 rounded-full border border-white/10 text-white/70 hover:text-white hover:border-white/30 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label={t('dashboard.nextWeek')}

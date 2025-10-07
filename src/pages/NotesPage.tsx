@@ -190,7 +190,7 @@ function NotesPage() {
   }, []);
 
   useEffect(() => {
-    loadNotes();
+    void loadNotes();
     const unsubscribe = noteStore.subscribe(() => {
       loadNotes();
     });
@@ -235,7 +235,7 @@ function NotesPage() {
         <form onSubmit={onSubmit} className="glass dark:glass-dark rounded-2xl p-5 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
           <input
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => { setInput(e.target.value); }}
             placeholder="Kurz notieren…"
             className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none"
             disabled={isSubmitting}
@@ -259,7 +259,7 @@ function NotesPage() {
             <input
               type="checkbox"
               checked={autoTracking}
-              onChange={(event) => setAutoTracking(event.target.checked)}
+              onChange={(event) => { setAutoTracking(event.target.checked); }}
             />
             Auto-Tracking aktiv
           </label>

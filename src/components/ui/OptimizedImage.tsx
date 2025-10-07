@@ -50,8 +50,8 @@ export function OptimizedImage({
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           className={`${className} ${isLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300`}
-          onLoad={() => setIsLoaded(true)}
-          onError={() => setHasError(true)}
+          onLoad={() => { setIsLoaded(true); }}
+          onError={() => { setHasError(true); }}
           {...props}
         />
       </picture>

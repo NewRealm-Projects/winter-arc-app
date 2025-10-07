@@ -155,7 +155,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                 <input
                   type="date"
                   value={birthday}
-                  onChange={(e) => setBirthday(e.target.value)}
+                  onChange={(e) => { setBirthday(e.target.value); }}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
                   autoFocus
                 />
@@ -177,7 +177,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                   ].map((option) => (
                     <button
                       key={option.value}
-                      onClick={() => setLanguage(option.value)}
+                      onClick={() => { setLanguage(option.value); }}
                       className={`w-full px-6 py-4 rounded-lg border-2 transition-all flex items-center gap-4 ${
                         language === option.value
                           ? 'border-winter-600 dark:border-winter-400 bg-winter-50 dark:bg-winter-900 text-winter-600 dark:text-winter-400'
@@ -203,7 +203,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                 <input
                   type="text"
                   value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
+                  onChange={(e) => { setNickname(e.target.value); }}
                   onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                   placeholder={language === 'de' ? 'z.B. Max' : 'e.g. Max'}
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
@@ -228,7 +228,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                   ].map((option) => (
                     <button
                       key={option.value}
-                      onClick={() => setGender(option.value)}
+                      onClick={() => { setGender(option.value); }}
                       className={`w-full px-4 py-3 rounded-lg border-2 transition-all ${
                         gender === option.value
                           ? 'border-winter-600 dark:border-winter-400 bg-winter-50 dark:bg-winter-900'
@@ -257,7 +257,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                   <input
                     type="number"
                     value={height}
-                    onChange={(e) => setHeight(e.target.value)}
+                    onChange={(e) => { setHeight(e.target.value); }}
                     onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                     placeholder="z.B. 180"
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
@@ -283,7 +283,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                     type="number"
                     step="0.1"
                     value={bodyFat}
-                    onChange={(e) => setBodyFat(e.target.value)}
+                    onChange={(e) => { setBodyFat(e.target.value); }}
                     onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                     placeholder="z.B. 15.5"
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
@@ -308,7 +308,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                   <input
                     type="number"
                     value={maxPushups}
-                    onChange={(e) => setMaxPushups(e.target.value)}
+                    onChange={(e) => { setMaxPushups(e.target.value); }}
                     onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                     placeholder="z.B. 30"
                     className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"

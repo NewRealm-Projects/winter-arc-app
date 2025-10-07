@@ -41,7 +41,7 @@ function LeaderboardPreview() {
       }
     };
 
-    loadLeaderboard();
+    void loadLeaderboard();
   }, [user?.groupCode]);
 
   const getRankColor = (rank: number) => {

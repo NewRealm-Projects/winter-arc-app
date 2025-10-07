@@ -58,11 +58,11 @@ export function calculateStreak(tracking: Record<string, { pushups?: { total?: n
     date.setHours(0, 0, 0, 0);
 
     // Check if day has at least 3/5 tasks completed
-    const hasPushups = (dayTracking?.pushups?.total || 0) > 0;
-    const hasSports = countActiveSports(dayTracking?.sports) > 0;
-    const hasWater = (dayTracking?.water || 0) >= 2000; // Goal: 2L
-    const hasProtein = (dayTracking?.protein || 0) >= 100; // Goal: 100g
-    const hasWeight = !!dayTracking?.weight?.value; // Weight entered
+    const hasPushups = (dayTracking.pushups?.total || 0) > 0;
+    const hasSports = countActiveSports(dayTracking.sports) > 0;
+    const hasWater = (dayTracking.water || 0) >= 2000; // Goal: 2L
+    const hasProtein = (dayTracking.protein || 0) >= 100; // Goal: 100g
+    const hasWeight = !!dayTracking.weight?.value; // Weight entered
 
     const tasksCompleted = [hasPushups, hasSports, hasWater, hasProtein, hasWeight].filter(Boolean).length;
     const isCompleted = tasksCompleted >= 3; // At least 3 tasks required

@@ -50,8 +50,8 @@ function PushupTrainingPage() {
   // Start countdown timer
   useEffect(() => {
     if (!isStarted && startCountdown > 0) {
-      const timer = setTimeout(() => setStartCountdown(startCountdown - 1), 1000);
-      return () => clearTimeout(timer);
+      const timer = setTimeout(() => { setStartCountdown(startCountdown - 1); }, 1000);
+      return () => { clearTimeout(timer); };
     } else if (!isStarted && startCountdown === 0) {
       setIsStarted(true);
     }
@@ -60,8 +60,8 @@ function PushupTrainingPage() {
   // Rest timer
   useEffect(() => {
     if (restTimeLeft > 0) {
-      const timer = setTimeout(() => setRestTimeLeft(restTimeLeft - 1), 1000);
-      return () => clearTimeout(timer);
+        const timer = setTimeout(() => { setRestTimeLeft(restTimeLeft - 1); }, 1000);
+        return () => { clearTimeout(timer); };
     }
   }, [restTimeLeft]);
 
@@ -69,7 +69,7 @@ function PushupTrainingPage() {
   // Automatischer Satzabschluss, wenn Ziel erreicht
   useEffect(() => {
     if (currentReps > 0 && currentReps >= plan[currentSet] && restTimeLeft === 0 && currentSet < 5) {
-      handleCompleteSet();
+      void handleCompleteSet();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentReps]);
@@ -112,7 +112,7 @@ function PushupTrainingPage() {
       };
       updateDayTracking(activeDate, newTracking);
       if (user?.id) {
-        saveDailyTracking(user.id, activeDate, newTracking);
+        void saveDailyTracking(user.id, activeDate, newTracking);
       }
       // AI Prompt Log für Training
       if (user) {
@@ -151,7 +151,7 @@ function PushupTrainingPage() {
   <div className="glass-dark rounded-2xl text-white p-6 pb-8 pt-4 md:pt-6">
           <div className="max-w-7xl mx-auto">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => { navigate(-1); }}
               className="mb-4 text-winter-100 hover:text-white"
             >
               ← Zurück

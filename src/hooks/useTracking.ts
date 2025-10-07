@@ -15,10 +15,10 @@ export function useTracking() {
     // Debounce saving to Firebase (wait 1 second after last change)
     const timeoutId = setTimeout(() => {
       Object.entries(tracking).forEach(([date, data]) => {
-        saveDailyTracking(user.id, date, data);
+        void saveDailyTracking(user.id, date, data);
       });
     }, 1000);
 
-    return () => clearTimeout(timeoutId);
+    return () => { clearTimeout(timeoutId); };
   }, [tracking, user]);
 }
