@@ -175,7 +175,7 @@ function WaterTile() {
               setExactValue(manualWater ? manualWater.toString() : '');
               setShowModal(true);
             }}
-            className="px-2 py-1.5 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium text-xs"
+            className="w-full py-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
           >
             ✏️ {t('tracking.edit')}
           </button>
