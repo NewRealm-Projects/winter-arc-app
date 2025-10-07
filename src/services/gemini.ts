@@ -1,22 +1,5 @@
 import { SmartNote, Event } from '../types/events';
 
-export class GeminiUnavailableError extends Error {
-  status?: number;
-
-  constructor(status?: number, message = 'Gemini endpoint unavailable') {
-    super(message);
-    this.name = 'GeminiUnavailableError';
-    this.status = status;
-  }
-}
-
-export class GeminiTimeoutError extends Error {
-  constructor(message = 'Gemini timeout') {
-    super(message);
-    this.name = 'GeminiTimeoutError';
-  }
-}
-
 export interface SummarizeInput {
   raw: string;
   recentNotes: SmartNote[];
@@ -44,9 +27,6 @@ export async function summarizeAndValidate(
     });
 
     if (!response.ok) {
-      if ([404, 405, 501].includes(response.status)) {
-        throw new GeminiUnavailableError(response.status);
-      }
       throw new Error(`Gemini request failed with status ${response.status}`);
     }
 
@@ -58,10 +38,7 @@ export async function summarizeAndValidate(
     };
   } catch (error) {
     if ((error as Error).name === 'AbortError') {
-      throw new GeminiTimeoutError();
-    }
-    if (error instanceof GeminiUnavailableError) {
-      throw error;
+      throw new Error('Gemini timeout');
     }
     throw error;
   } finally {

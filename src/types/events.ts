@@ -80,7 +80,6 @@ export interface SmartNote {
   summary: string;
   events: Event[];
   pending?: boolean;
-  llmStatus?: 'pending' | 'ready' | 'unavailable' | 'error';
 }
 
 export type SmartNoteInput = {

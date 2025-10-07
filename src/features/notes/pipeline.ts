@@ -1,9 +1,5 @@
 import { parseHeuristic } from '../../lib/parsers';
-import {
-  summarizeAndValidate,
-  GeminiUnavailableError,
-  GeminiTimeoutError,
-} from '../../services/gemini';
+import { summarizeAndValidate } from '../../services/gemini';
 import { noteStore } from '../../store/noteStore';
 import { Event, SmartNote } from '../../types/events';
 
@@ -125,140 +121,6 @@ function createOptimisticSummary(raw: string) {
   return `${raw.slice(0, 117)}...`;
 }
 
-function detectLanguage(raw: string): 'de' | 'en' {
-  const sample = raw.toLowerCase();
-  const germanSignals = /wasser|gramm|ausruhen|pause|resttag|liegestütz|km|min\.|heute|kg|tee|laufen|training/;
-  const englishSignals = /water|protein|push ?up|rest day|run|gym|workout|swim|today|lbs|weight|cardio|tea|coffee/;
-  if (germanSignals.test(sample) && !englishSignals.test(sample)) {
-    return 'de';
-  }
-  if (englishSignals.test(sample) && !germanSignals.test(sample)) {
-    return 'en';
-  }
-  if (sample.includes('ß') || sample.includes('ä') || sample.includes('ö') || sample.includes('ü')) {
-    return 'de';
-  }
-  return englishSignals.test(sample) ? 'en' : 'de';
-}
-
-function describeEvent(event: Event, lang: 'de' | 'en'): string | null {
-  const joiner = '·';
-  switch (event.kind) {
-    case 'drink': {
-      const beverage =
-        event.beverage === 'water'
-          ? lang === 'de'
-            ? 'Wasser'
-            : 'water'
-          : event.beverage === 'protein'
-            ? lang === 'de'
-              ? 'Proteinshake'
-              : 'protein shake'
-            : event.beverage === 'coffee'
-              ? lang === 'de'
-                ? 'Kaffee'
-                : 'coffee'
-              : event.beverage === 'tea'
-                ? lang === 'de'
-                  ? 'Tee'
-                  : 'tea'
-                : lang === 'de'
-                  ? 'Drink'
-                  : 'drink';
-      return `${event.volumeMl} ml ${beverage}`;
-    }
-    case 'protein':
-      return lang === 'de' ? `${event.grams} g Protein` : `${event.grams} g protein`;
-    case 'pushups':
-      return lang === 'de' ? `${event.count} Liegestütze` : `${event.count} push-ups`;
-    case 'workout': {
-      const sport = (() => {
-        switch (event.sport) {
-          case 'hiit_hyrox':
-            return lang === 'de' ? 'Hyrox/HIIT' : 'Hyrox/HIIT';
-          case 'cardio':
-            return lang === 'de' ? 'Cardio' : 'cardio';
-          case 'gym':
-            return lang === 'de' ? 'Gym' : 'gym';
-          case 'swimming':
-            return lang === 'de' ? 'Schwimmen' : 'swimming';
-          case 'football':
-            return lang === 'de' ? 'Fußball' : 'football';
-          default:
-            return event.sport;
-        }
-      })();
-      const duration = event.durationMin ? `${joiner} ${event.durationMin} min` : '';
-      const intensity = event.intensity
-        ? `${joiner} ${
-            event.intensity === 'easy'
-              ? lang === 'de'
-                ? 'locker'
-                : 'easy'
-              : event.intensity === 'moderate'
-                ? lang === 'de'
-                  ? 'moderat'
-                  : 'moderate'
-                : lang === 'de'
-                  ? 'hart'
-                  : 'hard'
-          }`
-        : '';
-      return [sport, duration, intensity].filter(Boolean).join(' ');
-    }
-    case 'rest':
-      return lang === 'de' ? 'Ruhetag' : 'rest day';
-    case 'weight':
-      return `${event.kg} kg`;
-    case 'bfp':
-      return lang === 'de' ? `${event.percent} % Körperfett` : `${event.percent} % body fat`;
-    case 'food': {
-      const details: string[] = [];
-      if (typeof event.calories === 'number') {
-        details.push(`${event.calories} kcal`);
-      }
-      if (typeof event.proteinG === 'number') {
-        details.push(
-          lang === 'de' ? `${event.proteinG} g Protein` : `${event.proteinG} g protein`
-        );
-      }
-      const suffix = details.length ? ` (${details.join(', ')})` : '';
-      return `${event.label}${suffix}`;
-    }
-    default:
-      return null;
-  }
-}
-
-function createHeuristicSummary(raw: string, events: Event[]): string {
-  if (!events.length) {
-    return createOptimisticSummary(raw);
-  }
-  const lang = detectLanguage(raw);
-  const descriptions = events
-    .map((event) => describeEvent(event, lang))
-    .filter((value): value is string => Boolean(value));
-  if (!descriptions.length) {
-    return createOptimisticSummary(raw);
-  }
-  const prefix = lang === 'de' ? 'Notiert: ' : 'Logged: ';
-  return `${prefix}${descriptions.join(', ')}.`;
-}
-
-async function settleWithHeuristic(
-  noteId: string,
-  raw: string,
-  events: Event[],
-  status: SmartNote['llmStatus']
-) {
-  await noteStore.update(noteId, {
-    summary: createHeuristicSummary(raw, events),
-    events,
-    pending: status === 'pending' || status === 'error',
-    llmStatus: status,
-  });
-}
-
 export async function processSmartNote(rawInput: string, options: { autoTracking: boolean } = { autoTracking: true }) {
   const raw = rawInput.trim();
   if (!raw) {
@@ -275,7 +137,6 @@ export async function processSmartNote(rawInput: string, options: { autoTracking
       raw,
       summary: raw,
       events: [],
-      llmStatus: 'ready',
     };
     await noteStore.add(note);
     return { noteId };
@@ -291,7 +152,6 @@ export async function processSmartNote(rawInput: string, options: { autoTracking
     summary: createOptimisticSummary(raw),
     events: optimisticEvents,
     pending: true,
-    llmStatus: 'pending',
   };
 
   await noteStore.add(optimisticNote);
@@ -316,19 +176,13 @@ export async function processSmartNote(rawInput: string, options: { autoTracking
         summary: result.summary || createOptimisticSummary(raw),
         events: mergedEvents,
         pending: false,
-        llmStatus: 'ready',
       });
     } catch (error) {
       console.error('Gemini summarization failed', error);
-      if (error instanceof GeminiUnavailableError) {
-        await settleWithHeuristic(noteId, raw, optimisticEvents, 'unavailable');
-        return;
-      }
-      if (error instanceof GeminiTimeoutError) {
-        await settleWithHeuristic(noteId, raw, optimisticEvents, 'error');
-        return;
-      }
-      await settleWithHeuristic(noteId, raw, optimisticEvents, 'error');
+      await noteStore.update(noteId, {
+        summary: createOptimisticSummary(raw),
+        pending: true,
+      });
     }
   })();
 
@@ -339,7 +193,7 @@ export async function retrySmartNote(noteId: string) {
   const existing = await noteStore.get(noteId);
   if (!existing) return;
 
-  await noteStore.update(noteId, { pending: true, llmStatus: 'pending' });
+  await noteStore.update(noteId, { pending: true });
 
   const ts = existing.ts;
   const heuristic = parseHeuristic(existing.raw);
@@ -368,19 +222,12 @@ export async function retrySmartNote(noteId: string) {
       summary: result.summary || createOptimisticSummary(existing.raw),
       events: mergedEvents,
       pending: false,
-      llmStatus: 'ready',
     });
   } catch (error) {
     console.error('Gemini retry failed', error);
-    if (error instanceof GeminiUnavailableError) {
-      await settleWithHeuristic(noteId, existing.raw, heuristicEvents, 'unavailable');
-      return;
-    }
-    if (error instanceof GeminiTimeoutError) {
-      await settleWithHeuristic(noteId, existing.raw, heuristicEvents, 'error');
-      return;
-    }
-    await settleWithHeuristic(noteId, existing.raw, heuristicEvents, 'error');
+    await noteStore.update(noteId, {
+      pending: true,
+    });
   }
 }
 
