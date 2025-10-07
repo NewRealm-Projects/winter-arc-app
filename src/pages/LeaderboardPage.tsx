@@ -362,7 +362,7 @@ function LeaderboardPage() {
                           ? 'bg-gradient-to-r from-winter-500/60 to-sky-500/40 text-white'
                           : 'bg-white/10 text-white/80 hover:bg-white/20'
                       }`}
-                      onClick={() => setSelectedUser(selectedUser === entryId ? null : entryId)}
+                      onClick={() => { setSelectedUser(selectedUser === entryId ? null : entryId); }}
                     >
                       <div className="flex items-center gap-4">
                         {(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? (
