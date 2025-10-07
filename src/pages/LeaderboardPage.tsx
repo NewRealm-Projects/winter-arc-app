@@ -8,6 +8,7 @@ import { countActiveSports } from '../utils/sports';
 import { useTranslation } from '../hooks/useTranslation';
 import type { GroupMember } from '../types';
 import { useCombinedTracking } from '../hooks/useCombinedTracking';
+import { glassCardClasses, glassCardHoverClasses, designTokens } from '../theme/tokens';
 
 function LeaderboardPage() {
   const { t, language } = useTranslation();
@@ -110,401 +111,365 @@ function LeaderboardPage() {
   const getRankColor = (rank: number) => {
     switch (rank) {
       case 1:
-        return 'bg-yellow-500';
+        return 'bg-gradient-to-br from-yellow-400 to-orange-500 border border-white/20 shadow-lg';
       case 2:
-        return 'bg-gray-400';
+        return 'bg-white/20 border border-white/40';
       case 3:
-        return 'bg-orange-600';
+        return 'bg-orange-500/80 border border-white/20';
       default:
-        return 'bg-winter-600';
+        return 'bg-white/10 border border-white/20';
     }
   };
 
   return (
-  <div className="min-h-screen glass-dark safe-area-inset-top">
-      {/* Header */}
-  <div className="glass-dark text-white p-6 pb-8">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">👥 {t('group.title')}</h1>
-          <p className="text-winter-100">{t('group.code')}: {user?.groupCode || t('group.none')}</p>
-        </div>
-      </div>
+    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe">
+      <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0">
+        <div className="flex flex-col gap-3 md:gap-4">
+          <section className={`${glassCardClasses} ${designTokens.padding.spacious} text-white`}>
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <h1 className="text-fluid-h1 font-semibold flex items-center gap-2">
+                    <span aria-hidden="true">👥</span>
+                    {t('group.title')}
+                  </h1>
+                  <p className="text-sm text-white/70">{t('group.rankings')}</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-semibold text-white/50 tracking-[0.28em] uppercase">
+                    {t('group.code')}
+                  </span>
+                  <span className="px-4 py-1.5 rounded-full bg-white/10 border border-white/20 font-mono text-sm tracking-[0.35em] uppercase">
+                    {user?.groupCode || t('group.none')}
+                  </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm px-4 py-4">
+                  <div className="flex items-center justify-between text-sm text-white/70">
+                    <span className="flex items-center gap-2">
+                      <span aria-hidden="true">🔥</span>
+                      {t('group.daysStreak')}
+                    </span>
+                  </div>
+                  <div className="text-3xl font-semibold text-white mt-2">{userStats.streak}</div>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm px-4 py-4">
+                  <div className="flex items-center justify-between text-sm text-white/70">
+                    <span className="flex items-center gap-2">
+                      <span aria-hidden="true">💪</span>
+                      {t('group.pushups')}
+                    </span>
+                  </div>
+                  <div className="text-3xl font-semibold text-white mt-2">{userStats.totalPushups}</div>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm px-4 py-4">
+                  <div className="flex items-center justify-between text-sm text-white/70">
+                    <span className="flex items-center gap-2">
+                      <span aria-hidden="true">🏃</span>
+                      {t('group.sportSessions')}
+                    </span>
+                  </div>
+                  <div className="text-3xl font-semibold text-white mt-2">{userStats.sportSessions}</div>
+                </div>
+              </div>
+            </div>
+          </section>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 pt-4 md:pt-6 pb-20 space-y-4">
-        {/* Filter Tabs */}
-        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-2 flex gap-2">
-          {[
-            { key: 'week' as const, label: t('group.week') },
-            { key: 'month' as const, label: t('group.month') },
-            { key: 'all' as const, label: t('group.all') },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setFilter(tab.key)}
-              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === tab.key
-                  ? 'bg-winter-600 text-white'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+          <section className={`${glassCardClasses} p-2 flex items-center gap-2`}>
+            {[
+              { key: 'week' as const, label: t('group.week') },
+              { key: 'month' as const, label: t('group.month') },
+              { key: 'all' as const, label: t('group.all') },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setFilter(tab.key)}
+                className={`flex-1 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+                  filter === tab.key
+                    ? 'bg-gradient-to-r from-winter-500/80 to-sky-500/80 text-white shadow-[0_8px_24px_rgba(59,130,246,0.45)]'
+                    : 'text-white/70 hover:bg-white/10'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </section>
 
-        {/* Week Heatmap - Only show in week view */}
-        {filter === 'week' && (
-          <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-3">
-            <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
-              {t('group.trainingWeek')} ({t('group.weekNumber')} {format(now, 'ww', { locale })})
-            </h2>
-            <div className="grid grid-cols-7 gap-2">
-              {daysInWeek.map((day) => {
-                const dateStr = format(day, 'yyyy-MM-dd');
-                const dayTracking = combinedTracking[dateStr] || {};
-                const isCurrentDay = isToday(day);
-                // Calculate progress percentage
-                const pushups = dayTracking?.pushups?.total || 0;
-                const sports = countActiveSports(dayTracking?.sports);
-                const water = dayTracking?.water || 0;
-                const protein = dayTracking?.protein || 0;
-                const weight = dayTracking?.weight?.value || 0;
-                const progress = (
-                  (pushups > 0 ? 20 : 0) +
-                  (sports > 0 ? 20 : 0) +
-                  (water >= 2000 ? 20 : 0) +
-                  (protein >= 100 ? 20 : 0) +
-                  (weight > 0 ? 20 : 0)
-                );
-                return (
-                  <div key={`week-${dateStr}`} className="flex flex-col items-center gap-1">
-                    {/* Day label */}
-                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                      {format(day, 'EEE', { locale })}
+          {filter === 'week' && (
+            <section className={`${glassCardHoverClasses} ${designTokens.padding.compact} text-white`}>
+              <h2 className="text-sm font-semibold text-white mb-3">
+                {t('group.trainingWeek')} ({t('group.weekNumber')} {format(now, 'ww', { locale })})
+              </h2>
+              <div className="grid grid-cols-7 gap-2">
+                {daysInWeek.map((day) => {
+                  const dateStr = format(day, 'yyyy-MM-dd');
+                  const dayTracking = combinedTracking[dateStr] || {};
+                  const isCurrentDay = isToday(day);
+                  const pushups = dayTracking?.pushups?.total || 0;
+                  const sports = countActiveSports(dayTracking?.sports);
+                  const water = dayTracking?.water || 0;
+                  const protein = dayTracking?.protein || 0;
+                  const weight = dayTracking?.weight?.value || 0;
+                  const progress =
+                    (pushups > 0 ? 20 : 0) +
+                    (sports > 0 ? 20 : 0) +
+                    (water >= 2000 ? 20 : 0) +
+                    (protein >= 100 ? 20 : 0) +
+                    (weight > 0 ? 20 : 0);
+
+                  return (
+                    <div key={`week-${dateStr}`} className="flex flex-col items-center gap-1">
+                      <div className="text-xs font-medium text-white/70">
+                        {format(day, 'EEE', { locale })}
+                      </div>
+
+                      <div className="w-12 h-12 flex items-center justify-center relative">
+                        <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
+                          <circle
+                            cx="18"
+                            cy="18"
+                            r="16"
+                            fill="none"
+                            className="stroke-white/15"
+                            strokeWidth="4"
+                          />
+                          {progress > 0 && (
+                            <circle
+                              cx="18"
+                              cy="18"
+                              r="16"
+                              fill="none"
+                              className={isCurrentDay ? 'stroke-winter-200' : 'stroke-winter-400'}
+                              strokeWidth="4"
+                              strokeDasharray={`${progress} 100`}
+                              strokeLinecap="round"
+                            />
+                          )}
+                        </svg>
+                        <div
+                          className={`absolute inset-0 flex items-center justify-center text-xs font-semibold ${
+                            isCurrentDay ? 'text-white' : 'text-white/80'
+                          }`}
+                        >
+                          {format(day, 'd')}
+                        </div>
+                      </div>
                     </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
-                    {/* Progress Circle (larger for week view) */}
-                    <div className="w-12 h-12 flex items-center justify-center relative">
-                      <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                        {/* Background circle */}
+          {filter === 'month' && (
+            <section className={`${glassCardHoverClasses} ${designTokens.padding.compact} text-white`}>
+              <h2 className="text-sm font-semibold text-white mb-3">
+                {t('group.trainingHeatmap')} ({format(now, 'MMMM yyyy', { locale })})
+              </h2>
+              <div className="grid grid-cols-7 gap-0.5 max-w-sm">
+                {(language === 'de' ? ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']).map((dayLabel) => (
+                  <div
+                    key={dayLabel}
+                    className="text-center text-xs font-medium text-white/60 pb-0.5"
+                  >
+                    {dayLabel}
+                  </div>
+                ))}
+                {Array.from({ length: firstDayOffset }).map((_, i) => (
+                  <div key={`offset-month-${i}`} className="aspect-square" />
+                ))}
+                {daysInMonth.map((day) => {
+                  const dateStr = format(day, 'yyyy-MM-dd');
+                  const dayTracking = combinedTracking[dateStr];
+                  const isCurrentDay = isToday(day);
+
+                  const pushups = dayTracking?.pushups?.total || 0;
+                  const sports = countActiveSports(dayTracking?.sports);
+                  const water = dayTracking?.water || 0;
+                  const protein = dayTracking?.protein || 0;
+                  const weight = dayTracking?.weight?.value || 0;
+
+                  const progress =
+                    (pushups > 0 ? 20 : 0) +
+                    (sports > 0 ? 20 : 0) +
+                    (water >= 2000 ? 20 : 0) +
+                    (protein >= 100 ? 20 : 0) +
+                    (weight > 0 ? 20 : 0);
+
+                  return (
+                    <div key={`month-${dateStr}`} className="aspect-square flex items-center justify-center relative">
+                      <svg className="w-1/2 h-1/2 -rotate-90" viewBox="0 0 36 36">
                         <circle
                           cx="18"
                           cy="18"
                           r="16"
                           fill="none"
-                          className="stroke-gray-200 dark:stroke-gray-700"
+                          className={isSameMonth(day, monthStart) ? 'stroke-white/15' : 'stroke-white/5'}
                           strokeWidth="4"
                         />
-                        {/* Progress circle */}
                         {progress > 0 && (
                           <circle
                             cx="18"
                             cy="18"
                             r="16"
                             fill="none"
-                            className={`${
-                              isCurrentDay
-                                ? 'stroke-winter-500'
-                                : 'stroke-winter-400'
-                            }`}
+                            className={isCurrentDay ? 'stroke-winter-200' : 'stroke-winter-400'}
                             strokeWidth="4"
                             strokeDasharray={`${progress} 100`}
                             strokeLinecap="round"
                           />
                         )}
                       </svg>
-                      {/* Day number */}
                       <div
-                        className={`absolute inset-0 flex items-center justify-center text-xs font-semibold ${
+                        className={`absolute inset-0 flex items-center justify-center text-xs font-medium ${
                           isCurrentDay
-                            ? 'text-winter-600 dark:text-winter-400'
-                            : 'text-gray-600 dark:text-gray-300'
+                            ? 'text-white'
+                            : isSameMonth(day, monthStart)
+                            ? 'text-white/80'
+                            : 'text-white/30'
                         }`}
                       >
                         {format(day, 'd')}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Month Heatmap - Only show in month view */}
-        {filter === 'month' && (
-          <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-3">
-            <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-2">
-              {t('group.trainingHeatmap')} ({format(now, 'MMMM yyyy', { locale })})
-            </h2>
-            <div className="grid grid-cols-7 gap-0.5 max-w-sm">
-              {(language === 'de' ? ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']).map((day) => (
-                <div
-                  key={day}
-                  className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 pb-0.5"
-                >
-                  {day}
-                </div>
-              ))}
-              {/* Empty cells for offset */}
-              {Array.from({ length: firstDayOffset }).map((_, i) => (
-                <div key={`offset-month-${i}`} className="aspect-square" />
-              ))}
-              {daysInMonth.map((day) => {
-              const dateStr = format(day, 'yyyy-MM-dd');
-              const dayTracking = combinedTracking[dateStr];
-              const isCurrentDay = isToday(day);
-
-              // Calculate progress percentage
-              const pushups = dayTracking?.pushups?.total || 0;
-              const sports = countActiveSports(dayTracking?.sports);
-              const water = dayTracking?.water || 0;
-              const protein = dayTracking?.protein || 0;
-              const weight = dayTracking?.weight?.value || 0;
-
-              // Progress: 20% per category (pushups, sports, water, protein, weight)
-              const progress = (
-                (pushups > 0 ? 20 : 0) +
-                (sports > 0 ? 20 : 0) +
-                (water >= 2000 ? 20 : 0) +
-                (protein >= 100 ? 20 : 0) +
-                (weight > 0 ? 20 : 0)
-              );
-
-              return (
-                <div
-                  key={`month-${dateStr}`}
-                  className="aspect-square flex items-center justify-center relative"
-                >
-                  {/* Progress Circle (50% size) */}
-                  <svg className="w-1/2 h-1/2 -rotate-90" viewBox="0 0 36 36">
-                    {/* Background circle */}
-                    <circle
-                      cx="18"
-                      cy="18"
-                      r="16"
-                      fill="none"
-                      className={`${
-                        isSameMonth(day, monthStart)
-                          ? 'stroke-gray-200 dark:stroke-gray-700'
-                          : 'stroke-gray-100 dark:stroke-gray-800'
-                      }`}
-                      strokeWidth="4"
-                    />
-                    {/* Progress circle */}
-                    {progress > 0 && (
-                      <circle
-                        cx="18"
-                        cy="18"
-                        r="16"
-                        fill="none"
-                        className={`${
-                          isCurrentDay
-                            ? 'stroke-winter-500'
-                            : 'stroke-winter-400'
-                        }`}
-                        strokeWidth="4"
-                        strokeDasharray={`${progress} 100`}
-                        strokeLinecap="round"
-                      />
-                    )}
-                  </svg>
-                  {/* Day number */}
-                  <div
-                    className={`absolute inset-0 flex items-center justify-center text-xs font-medium ${
-                      isCurrentDay
-                        ? 'text-winter-600 dark:text-winter-400'
-                        : isSameMonth(day, monthStart)
-                        ? 'text-gray-600 dark:text-gray-400'
-                        : 'text-gray-300 dark:text-gray-700'
-                    }`}
-                  >
-                    {format(day, 'd')}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          </div>
-        )}
-
-        {/* Leaderboard Rankings */}
-        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            {t('group.rankings')}
-          </h2>
-          {loading ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              {t('common.loading')}
-            </div>
-          ) : leaderboardData.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              {t('group.noMembers')}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {sortedLeaderboardData.map((entry, index) => {
-              const rank = index + 1;
-              const isCurrentUser = user?.nickname === entry.nickname;
-              // Fallback falls userId fehlt: nutze index
-              const key = entry.id || `entry-${index}`;
-              return (
-                <div
-                  key={key}
-                  className={`p-4 rounded-xl transition-all cursor-pointer ${
-                    isCurrentUser
-                      ? 'bg-winter-100 dark:bg-winter-900 ring-2 ring-winter-500'
-                      : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
-                  }`}
-                  onClick={() =>
-                    setSelectedUser(
-                      selectedUser === entry.id ? null : entry.id
-                    )
-                  }
-                >
-                  <div className="flex items-center gap-4">
-                    {/* Avatar (Photo or Default) */}
-                    {(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? (
-                      <img
-                        src={entry.photoURL}
-                        alt={entry.nickname}
-                        referrerPolicy="no-referrer"
-                        className="w-12 h-12 rounded-full border-2 border-gray-200 dark:border-gray-600 object-cover flex-shrink-0"
-                        onError={(e) => {
-                          // If image fails to load, hide it and show default avatar
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const defaultAvatar = target.nextElementSibling as HTMLElement;
-                          if (defaultAvatar) defaultAvatar.style.display = 'flex';
-                        }}
-                      />
-                    ) : null}
-                    {/* Default Avatar - show if no photo or photo not shared */}
-                    <div
-                      className={`w-12 h-12 rounded-full bg-gradient-to-br from-winter-400 to-winter-600 ${(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? 'hidden' : 'flex'} items-center justify-center text-white font-bold text-lg flex-shrink-0`}
-                    >
-                      {entry.nickname.charAt(0).toUpperCase()}
-                    </div>
-
-                    {/* User Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                        <span>{entry.nickname}</span>
-                        {isCurrentUser && (
-                          <span className="text-xs bg-winter-500 text-white px-2 py-0.5 rounded ml-1">
-                            {t('group.you')}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                        <span>{entry.streak} {t('group.daysStreak')} 🔥</span>
-                        <span>•</span>
-                        <span>💪 {entry.dailyPushups || 0} {t('group.today')}</span>
-                      </div>
-                    </div>
-
-                    {/* Rank Badge - Always on the right */}
-                    <div
-                      className={`w-10 h-10 rounded-full ${getRankColor(
-                        rank
-                      )} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}
-                    >
-                      #{rank}
-                    </div>
-                  </div>
-
-                  {/* Expanded Details */}
-                  {selectedUser === entry.id && (
-                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div>
-                          <div className="text-2xl mb-1">💪</div>
-                          <div className="text-lg font-bold text-gray-900 dark:text-white">
-                            {entry.totalPushups}
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {t('group.pushups')}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-2xl mb-1">🏃</div>
-                          <div className="text-lg font-bold text-gray-900 dark:text-white">
-                            {entry.sportSessions}
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {t('group.sportSessions')}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-2xl mb-1">💧</div>
-                          <div className="text-lg font-bold text-gray-900 dark:text-white">
-                            {(entry.avgWater / 1000).toFixed(1)}L
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {t('group.avgWater')}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-2xl mb-1">🥩</div>
-                          <div className="text-lg font-bold text-gray-900 dark:text-white">
-                            {entry.avgProtein}g
-                          </div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {t('group.avgProtein')}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            </div>
-          )}
-        </div>
-
-        {/* Achievements */}
-        <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-            🏅 {t('group.achievements')}
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              {
-                icon: '🔥',
-                label: t('group.achievement7Days'),
-                locked: userStats.streak < 7
-              },
-              {
-                icon: '💪',
-                label: t('group.achievement1000'),
-                locked: userStats.totalPushups < 1000
-              },
-              {
-                icon: '🏃',
-                label: t('group.achievement20Workouts'),
-                locked: userStats.sportSessions < 20
-              },
-              {
-                icon: '⭐',
-                label: t('group.achievementTop3'),
-                locked: true // TODO: Calculate rank
-              },
-            ].map((achievement) => (
-              <div
-                key={achievement.label}
-                className={`p-4 rounded-xl text-center ${
-                  achievement.locked
-                    ? 'bg-gray-100 dark:bg-gray-700 opacity-50'
-                    : 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white'
-                }`}
-              >
-                <div className="text-3xl mb-2">{achievement.icon}</div>
-                <div className="text-xs font-medium">{achievement.label}</div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
+            </section>
+          )}
+
+          <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">{t('group.rankings')}</h2>
+            </div>
+            {loading ? (
+              <div className="text-center py-8 text-white/70">{t('common.loading')}</div>
+            ) : leaderboardData.length === 0 ? (
+              <div className="text-center py-8 text-white/70">{t('group.noMembers')}</div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {sortedLeaderboardData.map((entry, index) => {
+                  const rank = index + 1;
+                  const isCurrentUser = user?.nickname === entry.nickname;
+                  const entryId = entry.id ?? `entry-${index}`;
+
+                  return (
+                    <div
+                      key={entryId}
+                      className={`p-4 rounded-2xl transition-all cursor-pointer border border-white/10 ${
+                        isCurrentUser
+                          ? 'bg-gradient-to-r from-winter-500/60 to-sky-500/40 text-white'
+                          : 'bg-white/10 text-white/80 hover:bg-white/20'
+                      }`}
+                      onClick={() => setSelectedUser(selectedUser === entryId ? null : entryId)}
+                    >
+                      <div className="flex items-center gap-4">
+                        {(entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? (
+                          <img
+                            src={entry.photoURL}
+                            alt={entry.nickname}
+                            referrerPolicy="no-referrer"
+                            className="w-12 h-12 rounded-full border-2 border-white/30 object-cover flex-shrink-0"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const defaultAvatar = target.nextElementSibling as HTMLElement;
+                              if (defaultAvatar) defaultAvatar.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className={`w-12 h-12 rounded-full bg-gradient-to-br from-winter-400 to-winter-600 ${
+                            (entry.shareProfilePicture || isCurrentUser) && entry.photoURL ? 'hidden' : 'flex'
+                          } items-center justify-center text-white font-bold text-lg flex-shrink-0`}
+                        >
+                          {entry.nickname.charAt(0).toUpperCase()}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold flex items-center gap-2 text-white">
+                            <span className="truncate">{entry.nickname}</span>
+                            {isCurrentUser && (
+                              <span className="text-xs bg-white/20 px-2 py-0.5 rounded-full">
+                                {t('group.you')}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-sm text-white/70 flex items-center gap-2">
+                            <span>
+                              {entry.streak} {t('group.daysStreak')} 🔥
+                            </span>
+                            <span aria-hidden="true">•</span>
+                            <span>
+                              💪 {entry.dailyPushups || 0} {t('group.today')}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`w-10 h-10 rounded-full ${getRankColor(rank)} flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}
+                        >
+                          #{rank}
+                        </div>
+                      </div>
+
+                      {selectedUser === entryId && (
+                        <div className="mt-4 pt-4 border-t border-white/10">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-white">
+                            <div>
+                              <div className="text-2xl mb-1">💪</div>
+                              <div className="text-lg font-semibold">{entry.totalPushups}</div>
+                              <div className="text-xs text-white/70">{t('group.pushups')}</div>
+                            </div>
+                            <div>
+                              <div className="text-2xl mb-1">🏃</div>
+                              <div className="text-lg font-semibold">{entry.sportSessions}</div>
+                              <div className="text-xs text-white/70">{t('group.sportSessions')}</div>
+                            </div>
+                            <div>
+                              <div className="text-2xl mb-1">💧</div>
+                              <div className="text-lg font-semibold">{(entry.avgWater / 1000).toFixed(1)}L</div>
+                              <div className="text-xs text-white/70">{t('group.avgWater')}</div>
+                            </div>
+                            <div>
+                              <div className="text-2xl mb-1">🥩</div>
+                              <div className="text-lg font-semibold">{entry.avgProtein}g</div>
+                              <div className="text-xs text-white/70">{t('group.avgProtein')}</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
+            <h2 className="text-lg font-semibold mb-4">🏅 {t('group.achievements')}</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { icon: '🔥', label: t('group.achievement7Days'), locked: userStats.streak < 7 },
+                { icon: '💪', label: t('group.achievement1000'), locked: userStats.totalPushups < 1000 },
+                { icon: '🏃', label: t('group.achievement20Workouts'), locked: userStats.sportSessions < 20 },
+                { icon: '⭐', label: t('group.achievementTop3'), locked: true },
+              ].map((achievement) => (
+                <div
+                  key={achievement.label}
+                  className={`p-4 rounded-2xl text-center transition-all ${
+                    achievement.locked
+                      ? 'bg-white/10 border border-white/10 text-white/50'
+                      : 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-lg'
+                  }`}
+                >
+                  <div className="text-3xl mb-2">{achievement.icon}</div>
+                  <div className="text-xs font-medium">{achievement.label}</div>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       </div>
     </div>

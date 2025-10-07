@@ -71,7 +71,7 @@ export function combineTrackingWithSmart(
       };
     })();
 
-    result[`${dateKey}`] = { date: manual?.date ?? dateKey, sports, water, protein, pushups, weight, completed: manual?.completed ?? false };
+    result[dateKey] = {
       date: manual?.date ?? dateKey,
       sports,
       water,
