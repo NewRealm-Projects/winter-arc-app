@@ -78,6 +78,30 @@ const DECIMAL_REGEX = /,/g;
 
 const FOOD_CALORIES_REGEX = /(\d+(?:[.,]\d+)?)\s?(kcal|cal(?:orien)?)\b/i;
 const FOOD_PROTEIN_REGEX = /(\d+(?:[.,]\d+)?)\s?(g|gramm|grams?)\b.*(protein|eiweiß)/i;
+const LETTER_BOUNDARY_REGEX = /[a-zäöüß]/i;
+
+function containsKeyword(text: string, keyword: string): boolean {
+  let index = text.indexOf(keyword);
+  if (index === -1) {
+    return false;
+  }
+
+  while (index !== -1) {
+    const before = index > 0 ? text[index - 1] : '';
+    const afterIndex = index + keyword.length;
+    const after = afterIndex < text.length ? text[afterIndex] : '';
+    const beforeIsLetter = LETTER_BOUNDARY_REGEX.test(before);
+    const afterIsLetter = LETTER_BOUNDARY_REGEX.test(after);
+
+    if (!(beforeIsLetter && afterIsLetter)) {
+      return true;
+    }
+
+    index = text.indexOf(keyword, index + keyword.length);
+  }
+
+  return false;
+}
 
 const DEFAULT_CONFIDENCE = 0.6;
 
@@ -139,7 +163,7 @@ function findIntensity(raw: string): 'easy' | 'moderate' | 'hard' | undefined {
 function detectSport(raw: string): 'hiit_hyrox' | 'cardio' | 'gym' | 'swimming' | 'football' | 'other' {
   const lower = raw.toLowerCase();
   for (const [keyword, sport] of Object.entries(workoutKeywords)) {
-    if (lower.includes(keyword)) {
+    if (containsKeyword(lower, keyword)) {
       return sport;
     }
   }
@@ -199,7 +223,7 @@ export function parseHeuristic(raw: string): { raw: string; candidates: Event[] 
     candidates.push(pushupEvent);
   }
 
-  const workoutMatch = /(workout|training|hiit|hyrox|laufen|joggen|run|gym|schwimmen|swimming|fußball|fussball|football|cardio)/i.test(lower);
+  const workoutMatch = Object.keys(workoutKeywords).some((keyword) => containsKeyword(lower, keyword));
   if (workoutMatch) {
     const workoutEvent = {
       ...buildBase('workout', DEFAULT_CONFIDENCE),

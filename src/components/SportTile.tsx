@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
 import { useTranslation } from '../hooks/useTranslation';
 import type { SportEntry, SportKey } from '../types';
-import { countActiveSports, normalizeSports } from '../utils/sports';
+import { countActiveSports, normalizeSports, toSportEntry } from '../utils/sports';
 import { getTileClasses, designTokens } from '../theme/tokens';
 import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 
@@ -42,16 +42,16 @@ function SportTile() {
   );
 
   const toggleRest = (sport: SportKey) => {
-    const nextSports: Record<SportKey, SportEntry> = {
-      ...currentSports,
-      [sport]: {
-        ...currentSports[sport],
-        active: !currentSports[sport].active,
-      },
-    };
+    const previous = toSportEntry(activeTracking?.sports?.[sport] ?? currentSports[sport]);
 
     updateDayTracking(activeDate, {
-      sports: nextSports,
+      sports: {
+        ...activeTracking?.sports,
+        [sport]: {
+          ...previous,
+          active: !previous.active,
+        },
+      },
     });
   };
 
@@ -63,25 +63,24 @@ function SportTile() {
 
     setSelectedSport(sport);
     const sportData = currentSports[sport];
-    setDuration(sportData?.duration ?? 60);
-    setIntensity(sportData?.intensity ?? 5);
+    const combinedSportData = displaySports[sport];
+    setDuration(sportData?.duration ?? combinedSportData?.duration ?? 60);
+    setIntensity(sportData?.intensity ?? combinedSportData?.intensity ?? 5);
     setShowModal(true);
   };
 
   const saveSport = () => {
     if (!selectedSport) return;
 
-    const nextSports: Record<SportKey, SportEntry> = {
-      ...currentSports,
-      [selectedSport]: {
-        active: true,
-        duration,
-        intensity,
-      },
-    };
-
     updateDayTracking(activeDate, {
-      sports: nextSports,
+      sports: {
+        ...activeTracking?.sports,
+        [selectedSport]: {
+          active: true,
+          duration,
+          intensity,
+        },
+      },
     });
     setShowModal(false);
     setSelectedSport(null);
@@ -90,13 +89,11 @@ function SportTile() {
   const removeSport = () => {
     if (!selectedSport) return;
 
-    const nextSports: Record<SportKey, SportEntry> = {
-      ...currentSports,
-      [selectedSport]: { active: false },
-    };
-
     updateDayTracking(activeDate, {
-      sports: nextSports,
+      sports: {
+        ...activeTracking?.sports,
+        [selectedSport]: { active: false },
+      },
     });
     setShowModal(false);
     setSelectedSport(null);
@@ -229,7 +226,7 @@ function SportTile() {
                 </div>
 
                 <div className="flex gap-2 pt-2">
-                  {currentSports[selectedSport]?.active && (
+                  {(currentSports[selectedSport]?.active || displaySports[selectedSport]?.active) && (
                     <button
                       onClick={removeSport}
                       className="flex-1 px-4 py-2 text-sm bg-red-600/30 text-red-200 rounded-lg hover:bg-red-600/50 transition-colors"
