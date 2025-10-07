@@ -189,7 +189,7 @@ export async function deleteSmartNote(userId: string, note: SmartNote): Promise<
     await Promise.allSettled(
       note.attachments
         .filter((attachment) => Boolean(attachment.storagePath))
-        .map((attachment) => deleteObject(ref(storage, attachment.storagePath!)))
+        .map((attachment) => deleteObject(ref(storage, attachment.storagePath)))
     );
   }
 }
