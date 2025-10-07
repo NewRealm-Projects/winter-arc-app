@@ -62,6 +62,11 @@ export interface DailyTracking {
   sports: SportTracking;
   water: number; // ml
   protein: number; // g
+  recovery?: {
+    sleepQuality?: number;
+    recovery?: number;
+    illness?: boolean;
+  };
   weight?: {
     value: number; // kg
     bodyFat?: number; // %

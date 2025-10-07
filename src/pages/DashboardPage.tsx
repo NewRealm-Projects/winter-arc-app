@@ -3,6 +3,7 @@ import SportTile from '../components/SportTile';
 import WaterTile from '../components/WaterTile';
 import ProteinTile from '../components/ProteinTile';
 import WeightTile from '../components/WeightTile';
+import TrainingLoadTile from '../components/TrainingLoadTile';
 import StreakMiniCard from '../components/dashboard/StreakMiniCard';
 import WeatherCard from '../components/dashboard/WeatherCard';
 import WeekCompactCard from '../components/dashboard/WeekCompactCard';
@@ -113,6 +114,7 @@ function DashboardPage() {
             if (enabledActivities.includes('sports')) tiles.push(<SportTile key="sports" />);
             if (enabledActivities.includes('water')) tiles.push(<WaterTile key="water" />);
             if (enabledActivities.includes('protein')) tiles.push(<ProteinTile key="protein" />);
+            tiles.push(<TrainingLoadTile key="training-load" />);
 
             // Group tiles into pairs for tile-grid-2 layout
             const tileGroups = [];

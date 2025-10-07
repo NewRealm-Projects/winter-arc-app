@@ -30,6 +30,18 @@ export const translations = {
       waterProgress: 'Wasserfortschritt: {{percent}}% ({{day}})',
       minTasks: 'Mind. {{minTasks}} Aufgaben ({{totalTasksDone}}/35 {{tasks}})',
       today: 'Heute',
+      trainingLoad: 'Trainingslast',
+      trainingLoadSubtitle: 'Berechnet aus Schlaf, Regeneration & Workouts',
+      trainingLoadStatus: {
+        low: 'Niedrig',
+        optimal: 'Optimal',
+        high: 'Hoch',
+      },
+      trainingLoadSleep: 'Schlaf',
+      trainingLoadRecovery: 'Regeneration',
+      trainingLoadWorkouts: 'Sessions',
+      trainingLoadPushups: 'Liegestütze',
+      trainingLoadNoData: 'Noch keine Daten erfasst',
     },
     // Weather
     weather: {
@@ -297,6 +309,18 @@ export const translations = {
       waterProgress: 'Water progress: {{percent}}% ({{day}})',
       minTasks: 'Min. {{minTasks}} tasks ({{totalTasksDone}}/35 {{tasks}})',
       today: 'Today',
+      trainingLoad: 'Training Load',
+      trainingLoadSubtitle: 'Calculated from sleep, recovery & workouts',
+      trainingLoadStatus: {
+        low: 'Low',
+        optimal: 'Optimal',
+        high: 'High',
+      },
+      trainingLoadSleep: 'Sleep',
+      trainingLoadRecovery: 'Recovery',
+      trainingLoadWorkouts: 'Sessions',
+      trainingLoadPushups: 'Pushups',
+      trainingLoadNoData: 'No data yet',
     },
     // Weather
     weather: {
