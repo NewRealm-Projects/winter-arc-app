@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { JSX } from 'react';
+import type { JSX, CSSProperties } from 'react';
 import {
   format,
   startOfMonth,
@@ -156,7 +156,78 @@ function LeaderboardPage() {
       progress += pointsPerTask;
     }
 
-    return progress;
+    return Math.min(100, Math.max(0, progress));
+  };
+
+  const DayProgressCircle = ({
+    baseStrokeClass,
+    isCurrentDay,
+    label,
+    labelClassName,
+    progress,
+    size = 'lg',
+  }: {
+    baseStrokeClass: string;
+    isCurrentDay: boolean;
+    label: string;
+    labelClassName: string;
+    progress: number;
+    size?: 'lg' | 'md';
+  }) => {
+    const normalizedProgress = Math.min(100, Math.max(0, progress));
+    const showHalfIndicator = normalizedProgress >= 50 && normalizedProgress < 100;
+    const containerSizeClass =
+      size === 'lg' ? 'w-12 h-12' : 'w-11/12 h-11/12';
+    const insetValue = size === 'lg' ? '18%' : '22%';
+
+    const halfFillColor = isCurrentDay
+      ? 'rgba(186, 230, 253, 0.9)'
+      : 'rgba(56, 189, 248, 0.75)';
+    const halfFillShadow = isCurrentDay
+      ? '0 6px 16px rgba(186, 230, 253, 0.35)'
+      : '0 6px 16px rgba(14, 165, 233, 0.28)';
+
+    const insetStyle: CSSProperties = {
+      top: insetValue,
+      right: insetValue,
+      bottom: insetValue,
+      left: insetValue,
+      backgroundImage: `linear-gradient(135deg, ${halfFillColor} 0%, ${halfFillColor} 50%, transparent 50%, transparent 100%)`,
+      boxShadow: halfFillShadow,
+    };
+
+    return (
+      <div className={`relative flex items-center justify-center ${containerSizeClass}`}>
+        {showHalfIndicator ? <div className="absolute rounded-full" style={insetStyle} /> : null}
+        <svg className="relative z-10 h-full w-full -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
+          <circle
+            cx="18"
+            cy="18"
+            r="16"
+            fill="none"
+            className={baseStrokeClass}
+            strokeWidth="4"
+          />
+          {normalizedProgress > 0 ? (
+            <circle
+              cx="18"
+              cy="18"
+              r="16"
+              fill="none"
+              className={isCurrentDay ? 'stroke-winter-200' : 'stroke-winter-400'}
+              strokeWidth="4"
+              strokeDasharray={`${normalizedProgress} 100`}
+              strokeLinecap="round"
+            />
+          ) : null}
+        </svg>
+        <div
+          className={`absolute inset-0 z-20 flex items-center justify-center text-xs font-semibold ${labelClassName}`}
+        >
+          {label}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -251,37 +322,13 @@ function LeaderboardPage() {
                         {format(day, 'EEE', { locale })}
                       </div>
 
-                      <div className="w-12 h-12 flex items-center justify-center relative">
-                        <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                          <circle
-                            cx="18"
-                            cy="18"
-                            r="16"
-                            fill="none"
-                            className="stroke-white/15"
-                            strokeWidth="4"
-                          />
-                          {progress > 0 && (
-                            <circle
-                              cx="18"
-                              cy="18"
-                              r="16"
-                              fill="none"
-                              className={isCurrentDay ? 'stroke-winter-200' : 'stroke-winter-400'}
-                              strokeWidth="4"
-                              strokeDasharray={`${progress} 100`}
-                              strokeLinecap="round"
-                            />
-                          )}
-                        </svg>
-                        <div
-                          className={`absolute inset-0 flex items-center justify-center text-xs font-semibold ${
-                            isCurrentDay ? 'text-white' : 'text-white/80'
-                          }`}
-                        >
-                          {format(day, 'd')}
-                        </div>
-                      </div>
+                      <DayProgressCircle
+                        baseStrokeClass="stroke-white/15"
+                        isCurrentDay={isCurrentDay}
+                        label={format(day, 'd')}
+                        labelClassName={isCurrentDay ? 'text-white' : 'text-white/80'}
+                        progress={progress}
+                      />
                     </div>
                   );
                 })}
@@ -294,61 +341,48 @@ function LeaderboardPage() {
               <h2 className="text-sm font-semibold text-white mb-3">
                 {t('group.trainingHeatmap')} ({format(now, 'MMMM yyyy', { locale })})
               </h2>
-              <div className="grid grid-cols-7 gap-0.5 max-w-sm">
-                {(language === 'de' ? ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'] : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']).map((dayLabel) => (
-                  <div
-                    key={dayLabel}
-                    className="text-center text-xs font-medium text-white/60 pb-0.5"
-                  >
-                    {dayLabel}
-                  </div>
-                ))}
-                {Array.from({ length: firstDayOffset }).map((_, i) => (
-                  <div key={`offset-month-${i}`} className="aspect-square" />
-                ))}
-                {daysInMonth.map((day) => {
-                  const dateStr = format(day, 'yyyy-MM-dd');
-                  const progress = calculateDayProgress(dateStr);
-                  const isCurrentDay = isToday(day);
-
-                  return (
-                    <div key={`month-${dateStr}`} className="aspect-square flex items-center justify-center relative">
-                      <svg className="w-1/2 h-1/2 -rotate-90" viewBox="0 0 36 36">
-                        <circle
-                          cx="18"
-                          cy="18"
-                          r="16"
-                          fill="none"
-                          className={isSameMonth(day, monthStart) ? 'stroke-white/15' : 'stroke-white/5'}
-                          strokeWidth="4"
-                        />
-                        {progress > 0 && (
-                          <circle
-                            cx="18"
-                            cy="18"
-                            r="16"
-                            fill="none"
-                            className={isCurrentDay ? 'stroke-winter-200' : 'stroke-winter-400'}
-                            strokeWidth="4"
-                            strokeDasharray={`${progress} 100`}
-                            strokeLinecap="round"
-                          />
-                        )}
-                      </svg>
-                      <div
-                        className={`absolute inset-0 flex items-center justify-center text-xs font-medium ${
-                          isCurrentDay
-                            ? 'text-white'
-                            : isSameMonth(day, monthStart)
-                            ? 'text-white/80'
-                            : 'text-white/30'
-                        }`}
-                      >
-                        {format(day, 'd')}
-                      </div>
+              <div className="flex justify-center">
+                <div className="grid w-full max-w-3xl grid-cols-7 gap-x-1.5 gap-y-2 place-items-center">
+                  {(language === 'de'
+                    ? ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
+                    : ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+                  ).map((dayLabel) => (
+                    <div
+                      key={dayLabel}
+                      className="text-center text-xs font-medium text-white/60 pb-0.5"
+                    >
+                      {dayLabel}
                     </div>
-                  );
-                })}
+                  ))}
+                  {Array.from({ length: firstDayOffset }).map((_, i) => (
+                    <div key={`offset-month-${i}`} className="aspect-square w-full" />
+                  ))}
+                  {daysInMonth.map((day) => {
+                    const dateStr = format(day, 'yyyy-MM-dd');
+                    const progress = calculateDayProgress(dateStr);
+                    const isCurrentDay = isToday(day);
+                    const inCurrentMonth = isSameMonth(day, monthStart);
+
+                    return (
+                      <div key={`month-${dateStr}`} className="aspect-square flex w-full items-center justify-center">
+                        <DayProgressCircle
+                          baseStrokeClass={inCurrentMonth ? 'stroke-white/15' : 'stroke-white/5'}
+                          isCurrentDay={isCurrentDay}
+                          label={format(day, 'd')}
+                          labelClassName={
+                            isCurrentDay
+                              ? 'text-white'
+                              : inCurrentMonth
+                              ? 'text-white/80'
+                              : 'text-white/30'
+                          }
+                          progress={progress}
+                          size="md"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </section>
           )}
