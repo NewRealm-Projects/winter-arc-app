@@ -209,7 +209,7 @@ export async function getGroupMembers(groupCode: string, startDate?: Date, endDa
           const todaysTracking = Object.prototype.hasOwnProperty.call(allTrackingData, today)
             ? allTrackingData[today]
             : undefined;
-          const workoutRepsSum = todaysTracking?.pushups?.workout?.reps?.reduce(
+          const workoutRepsSum = todaysTracking?.pushups?.workout?.reps.reduce(
             (sum: number, reps: number) => sum + reps,
             0
           ) ?? 0;
