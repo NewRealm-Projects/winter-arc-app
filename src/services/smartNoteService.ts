@@ -44,7 +44,7 @@ function sanitizeForFirestore<T>(value: T): T {
       }
 
       if (typeof key === 'string' && key.trim() !== '') {
-        acc[key] = sanitizeForFirestore(entryValue);
+        if (isValidKey(key)) { acc[key] = sanitizeForFirestore(entryValue); }
       }
       return acc;
     }, {});
