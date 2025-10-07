@@ -2,6 +2,7 @@
 
 Progressive Web App (PWA) für iOS und Android – umfassendes Fitness-Tracking mit Liegestützen, Sport, Ernährung und Gewichtstracking.
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1189b27964ed48cf8a6dd35455db65ec)](https://app.codacy.com/gh/WildDragonKing/winter-arc-app?utm_source=github.com&utm_medium=referral&utm_content=WildDragonKing/winter-arc-app&utm_campaign=Badge_Grade)
 [![CI](https://github.com/WildDragonKing/winter-arc-app/workflows/CI/badge.svg)](https://github.com/WildDragonKing/winter-arc-app/actions)
 [![Lighthouse Score](https://img.shields.io/badge/lighthouse-95%2B-brightgreen)](.agent/scripts/run-lighthouse.mjs)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](tsconfig.json)
