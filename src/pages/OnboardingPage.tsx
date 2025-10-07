@@ -11,6 +11,10 @@ interface OnboardingPageProps {
 
 function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   const { t } = useTranslation();
+  const user = useStore((state) => state.user);
+  const setUser = useStore((state) => state.setUser);
+  const setIsOnboarded = useStore((state) => state.setIsOnboarded);
+
   const [step, setStep] = useState(1);
   const [language, setLanguage] = useState<Language>('de');
   const [nickname, setNickname] = useState('');
@@ -24,10 +28,6 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   const [maxPushups, setMaxPushups] = useState('');
   const [enabledActivities, setEnabledActivities] = useState<Activity[]>(['pushups', 'sports', 'water', 'protein']);
   const [birthday, setBirthday] = useState('');
-
-  const user = useStore((state) => state.user);
-  const setUser = useStore((state) => state.setUser);
-  const setIsOnboarded = useStore((state) => state.setIsOnboarded);
 
   const totalSteps = birthdayOnly ? 1 : 9;
 
