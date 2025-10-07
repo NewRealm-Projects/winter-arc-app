@@ -131,6 +131,10 @@ export const translations = {
     settings: {
       title: 'Einstellungen',
       subtitle: 'Passe dein Profil an',
+      quickSettings: 'Schnelleinstellungen',
+      quickSettingsDesc: 'Passe Wetter, Aktivitäten und Erinnerungen für deinen Tag an.',
+      profileSettingsDesc: 'Aktualisiere persönliche Daten und teile Infos mit deiner Gruppe.',
+      accountSettingsDesc: 'Verwalte Kontoaktionen, Rechtliches und Entwickler-Tools.',
       weatherCity: 'Wetter-Stadt',
       weatherCityDesc: 'Stadt für Wetterdaten auswählen',
       profile: 'Profil',
@@ -377,6 +381,10 @@ export const translations = {
     settings: {
       title: 'Settings',
       subtitle: 'Customize your profile',
+      quickSettings: 'Quick actions',
+      quickSettingsDesc: 'Fine-tune weather, activities, and reminders for your day.',
+      profileSettingsDesc: 'Update personal data and sharing preferences for your group.',
+      accountSettingsDesc: 'Manage account actions, legal info, and developer tools.',
       weatherCity: 'Weather City',
       weatherCityDesc: 'Select city for weather data',
       profile: 'Profile',
