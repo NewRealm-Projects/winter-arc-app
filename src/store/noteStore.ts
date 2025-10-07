@@ -1,4 +1,6 @@
 import Dexie, { Table } from 'dexie';
+import type { Auth } from 'firebase/auth';
+import { deleteSmartNote as deleteRemoteSmartNote, fetchAllSmartNotes, upsertSmartNote } from '../services/smartNoteService';
 import { SmartNote, WorkoutEvent } from '../types/events';
 
 const FALLBACK_KEY = 'smart_notes_fallback';
@@ -110,6 +112,69 @@ async function fetchNotes(limit: number, cursor?: number): Promise<SmartNote[]> 
   return filtered.slice(0, limit);
 }
 
+let cachedAuth: Auth | null | undefined;
+
+async function getFirebaseAuth(): Promise<Auth | null> {
+  if (cachedAuth !== undefined) {
+    return cachedAuth;
+  }
+
+  if (typeof window === 'undefined') {
+    cachedAuth = null;
+    return cachedAuth;
+  }
+
+  try {
+    const module = await import('../firebase/config');
+    cachedAuth = module.auth;
+    return cachedAuth;
+  } catch (error) {
+    console.warn('Firebase auth unavailable, skipping remote persistence.', error);
+    cachedAuth = null;
+    return cachedAuth;
+  }
+}
+
+function hasPendingAttachmentUpload(note: SmartNote): boolean {
+  return (note.attachments ?? []).some((attachment) => attachment.url.startsWith('data:') || !attachment.storagePath);
+}
+
+async function persistRemote(note: SmartNote): Promise<void> {
+  const authInstance = await getFirebaseAuth();
+  const userId = authInstance?.currentUser?.uid;
+  if (!userId) {
+    console.warn('Skipping remote smart note persistence (no authenticated user).');
+    return;
+  }
+
+  try {
+    const saved = await upsertSmartNote(userId, note);
+    if (hasPendingAttachmentUpload(note)) {
+      await putNote(saved);
+      emit();
+    }
+  } catch (error) {
+    console.warn('Failed to persist smart note remotely', error);
+  }
+}
+
+async function removeRemote(note: SmartNote | undefined): Promise<void> {
+  if (!note) return;
+
+  const authInstance = await getFirebaseAuth();
+  const userId = authInstance?.currentUser?.uid;
+  if (!userId) {
+    console.warn('Skipping remote smart note removal (no authenticated user).');
+    return;
+  }
+
+  try {
+    await deleteRemoteSmartNote(userId, note);
+  } catch (error) {
+    console.warn('Failed to delete smart note remotely', error);
+  }
+}
+
 function filterToday(notes: SmartNote[]): SmartNote[] {
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
@@ -181,6 +246,7 @@ export const noteStore = {
   async add(note: SmartNote) {
     await putNote(note);
     emit();
+    void persistRemote(note);
   },
   async update(id: string, patch: Partial<SmartNote>) {
     const existing = await getNote(id);
@@ -191,10 +257,13 @@ export const noteStore = {
     };
     await putNote(updated);
     emit();
+    void persistRemote(updated);
   },
   async remove(id: string) {
+    const existing = await getNote(id);
     await deleteNote(id);
     emit();
+    void removeRemote(existing);
   },
   async list({ cursor, limit = 20 }: { cursor?: number; limit?: number }) {
     const results = await fetchNotes(limit + 1, cursor);
@@ -218,6 +287,35 @@ export const noteStore = {
   async todayAggregates() {
     const notes = filterToday(await getAllNotes());
     return sumEvents(notes);
+  },
+  async syncFromRemote() {
+    const authInstance = await getFirebaseAuth();
+    const userId = authInstance?.currentUser?.uid;
+    if (!userId) {
+      return;
+    }
+
+    try {
+      const remoteNotes = await fetchAllSmartNotes(userId);
+      const remoteIds = new Set(remoteNotes.map((note) => note.id));
+
+      for (const note of remoteNotes) {
+        await putNote(note);
+      }
+
+      const localNotes = await getAllNotes();
+      await Promise.all(
+        localNotes
+          .filter((note) => !remoteIds.has(note.id) && !note.pending)
+          .map(async (note) => {
+            await deleteNote(note.id);
+          })
+      );
+
+      emit();
+    } catch (error) {
+      console.warn('Failed to sync smart notes from Firestore', error);
+    }
   },
   subscribe(listener: NotesListener) {
     listeners.add(listener);
