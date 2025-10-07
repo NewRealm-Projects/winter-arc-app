@@ -66,6 +66,15 @@ body::after {
     padding-top: env(safe-area-inset-top);
   }
 
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Enhanced Glassmorphism utilities */
   .glass {
     background: var(--glass-bg);
