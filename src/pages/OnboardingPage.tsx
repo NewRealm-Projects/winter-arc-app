@@ -3,6 +3,7 @@ import { Gender, Language, Activity } from '../types';
 import { useStore } from '../store/useStore';
 import { initPushupPlan } from '../utils/pushupAlgorithm';
 import { useTranslation } from '../hooks/useTranslation';
+import { glassCardClasses, designTokens } from '../theme/tokens';
 
 interface OnboardingPageProps {
   birthdayOnly?: boolean; // If true, only ask for birthday
@@ -127,53 +128,57 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   };
 
   return (
-  <div className="min-h-screen glass-dark p-4 flex items-center justify-center">
-      <div className="max-w-md w-full">
-  <div className="glass-dark rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe">
+      <div className="mobile-container dashboard-container safe-pb px-4 pt-6 md:px-6 md:pt-10 lg:px-0">
+        <div
+          className={`${glassCardClasses} ${designTokens.padding.spacious} text-white rounded-[28px] shadow-[0_24px_60px_rgba(15,23,42,0.45)] space-y-8`}
+        >
           {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-[0.28em] text-white/60">
                 Schritt {step} von {totalSteps}
               </span>
-              <span className="text-sm font-medium text-winter-600 dark:text-winter-400">
+              <span className="text-sm font-semibold text-sky-300">
                 {Math.round((step / totalSteps) * 100)}%
               </span>
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div className="h-2 w-full rounded-full bg-white/10">
               <div
-                className="bg-winter-600 dark:bg-winter-400 h-2 rounded-full transition-all duration-300"
+                className="h-full rounded-full bg-gradient-to-r from-winter-500 via-sky-500 to-winter-400 transition-all duration-300"
                 style={{ width: `${(step / totalSteps) * 100}%` }}
               />
             </div>
           </div>
-
+  
           {/* Step Content */}
-          <div className="mb-8">
+          <div className="space-y-8">
             {birthdayOnly && step === 1 && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <div className="space-y-4">
+                <h2 className="text-fluid-h2 font-semibold text-white">
                   🎂 Wann hast du Geburtstag?
                 </h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                <p className="text-sm text-white/70">
                   Damit wir dir an deinem besonderen Tag gratulieren können!
                 </p>
                 <input
                   type="date"
                   value={birthday}
-                  onChange={(e) => { setBirthday(e.target.value); }}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
+                  onChange={(e) => {
+                    setBirthday(e.target.value);
+                  }}
+                  className="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white placeholder-white/60 focus:border-transparent focus:ring-2 focus:ring-sky-400/80 focus:outline-none"
                   autoFocus
                 />
               </div>
             )}
-
+  
             {!birthdayOnly && step === 1 && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <div className="space-y-4">
+                <h2 className="text-fluid-h2 font-semibold text-white">
                   🌍 Wähle deine Sprache / Choose your language
                 </h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                <p className="text-sm text-white/70">
                   In welcher Sprache möchtest du die App nutzen?
                 </p>
                 <div className="space-y-3">
@@ -183,49 +188,51 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                   ].map((option) => (
                     <button
                       key={option.value}
-                      onClick={() => { setLanguage(option.value); }}
-                      className={`w-full px-6 py-4 rounded-lg border-2 transition-all flex items-center gap-4 ${
+                      onClick={() => {
+                        setLanguage(option.value);
+                      }}
+                      className={`flex w-full items-center gap-4 rounded-2xl border px-5 py-4 transition-all backdrop-blur-sm ${
                         language === option.value
-                          ? 'border-winter-600 dark:border-winter-400 bg-winter-50 dark:bg-winter-900 text-winter-600 dark:text-winter-400'
-                          : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:border-winter-400 dark:hover:border-winter-500'
+                          ? 'border-transparent bg-gradient-to-r from-winter-500/90 via-sky-500/90 to-winter-400/90 text-white shadow-[0_12px_40px_rgba(56,189,248,0.35)]'
+                          : 'border-white/10 bg-white/10 text-white/80 hover:border-white/20 hover:bg-white/10'
                       }`}
                     >
                       <span className="text-3xl">{option.icon}</span>
-                      <span className="text-lg font-medium">{option.label}</span>
+                      <span className="text-lg font-semibold">{option.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
             )}
-
+  
             {!birthdayOnly && step === 2 && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <div className="space-y-4">
+                <h2 className="text-fluid-h2 font-semibold text-white">
                   {language === 'de' ? 'Wie sollen wir dich nennen?' : 'What should we call you?'}
                 </h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  {language === 'de' ? 'Wähle einen Spitznamen für dein Profil' : 'Choose a nickname for your profile'}
+                <p className="text-sm text-white/70">
+                  {language === 'de'
+                    ? 'Wähle einen Spitznamen für dein Profil'
+                    : 'Choose a nickname for your profile'}
                 </p>
                 <input
                   type="text"
                   value={nickname}
-                  onChange={(e) => { setNickname(e.target.value); }}
+                  onChange={(e) => {
+                    setNickname(e.target.value);
+                  }}
                   onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                   placeholder={language === 'de' ? 'z.B. Max' : 'e.g. Max'}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white placeholder-white/60 focus:border-transparent focus:ring-2 focus:ring-sky-400/80 focus:outline-none"
                   autoFocus
                 />
               </div>
             )}
-
+  
             {!birthdayOnly && step === 3 && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Dein Geschlecht
-                </h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Dies hilft uns bei der Berechnung deiner Ziele
-                </p>
+              <div className="space-y-4">
+                <h2 className="text-fluid-h2 font-semibold text-white">Dein Geschlecht</h2>
+                <p className="text-sm text-white/70">Dies hilft uns bei der Berechnung deiner Ziele</p>
                 <div className="space-y-3">
                   {[
                     { value: 'male' as Gender, label: 'Männlich', icon: '👨' },
@@ -234,101 +241,95 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                   ].map((option) => (
                     <button
                       key={option.value}
-                      onClick={() => { setGender(option.value); }}
-                      className={`w-full px-4 py-3 rounded-lg border-2 transition-all ${
+                      onClick={() => {
+                        setGender(option.value);
+                      }}
+                      className={`flex w-full items-center gap-3 rounded-2xl border px-5 py-3.5 transition-all ${
                         gender === option.value
-                          ? 'border-winter-600 dark:border-winter-400 bg-winter-50 dark:bg-winter-900'
-                          : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                      } flex items-center gap-3`}
+                          ? 'border-transparent bg-gradient-to-r from-winter-500/90 via-sky-500/90 to-winter-400/90 text-white shadow-[0_12px_40px_rgba(56,189,248,0.35)]'
+                          : 'border-white/10 bg-white/10 text-white/80 hover:border-white/20 hover:bg-white/10'
+                      }`}
                     >
                       <span className="text-2xl">{option.icon}</span>
-                      <span className="font-medium text-gray-900 dark:text-white">
-                        {option.label}
-                      </span>
+                      <span className="font-semibold text-white">{option.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
             )}
-
+  
             {!birthdayOnly && step === 4 && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Deine Größe
-                </h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  In Zentimetern (cm)
-                </p>
+              <div className="space-y-4">
+                <h2 className="text-fluid-h2 font-semibold text-white">Deine Größe</h2>
+                <p className="text-sm text-white/70">In Zentimetern (cm)</p>
                 <div className="relative">
                   <input
                     type="number"
                     value={height}
-                    onChange={(e) => { setHeight(e.target.value); }}
+                    onChange={(e) => {
+                      setHeight(e.target.value);
+                    }}
                     onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                     placeholder="z.B. 180"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
+                    className="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 pr-16 text-white placeholder-white/60 focus:border-transparent focus:ring-2 focus:ring-sky-400/80 focus:outline-none"
                     autoFocus
                   />
-                  <span className="absolute right-4 top-3 text-gray-500 dark:text-gray-400">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-white/60">
                     cm
                   </span>
                 </div>
               </div>
             )}
-
+  
             {!birthdayOnly && step === 5 && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Körperfettanteil (optional)
-                </h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Wenn du deinen KFA kennst, gib ihn hier ein
-                </p>
+              <div className="space-y-4">
+                <h2 className="text-fluid-h2 font-semibold text-white">Körperfettanteil (optional)</h2>
+                <p className="text-sm text-white/70">Wenn du deinen KFA kennst, gib ihn hier ein</p>
                 <div className="relative">
                   <input
                     type="number"
                     step="0.1"
                     value={bodyFat}
-                    onChange={(e) => { setBodyFat(e.target.value); }}
+                    onChange={(e) => {
+                      setBodyFat(e.target.value);
+                    }}
                     onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                     placeholder="z.B. 15.5"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
+                    className="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 pr-16 text-white placeholder-white/60 focus:border-transparent focus:ring-2 focus:ring-sky-400/80 focus:outline-none"
                     autoFocus
                   />
-                  <span className="absolute right-4 top-3 text-gray-500 dark:text-gray-400">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-white/60">
                     %
                   </span>
                 </div>
               </div>
             )}
-
+  
             {!birthdayOnly && step === 6 && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Maximale Liegestütze
-                </h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  Wie viele Liegestütze schaffst du maximal am Stück?
-                </p>
+              <div className="space-y-4">
+                <h2 className="text-fluid-h2 font-semibold text-white">Maximale Liegestütze</h2>
+                <p className="text-sm text-white/70">Wie viele Liegestütze schaffst du maximal am Stück?</p>
                 <div className="relative">
                   <input
                     type="number"
                     value={maxPushups}
-                    onChange={(e) => { setMaxPushups(e.target.value); }}
+                    onChange={(e) => {
+                      setMaxPushups(e.target.value);
+                    }}
                     onKeyDown={(e) => e.key === 'Enter' && canProceed() && handleNext()}
                     placeholder="z.B. 30"
-                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
+                    className="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 pr-20 text-white placeholder-white/60 focus:border-transparent focus:ring-2 focus:ring-sky-400/80 focus:outline-none"
                     autoFocus
                   />
-                  <span className="absolute right-4 top-3 text-gray-500 dark:text-gray-400">
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-white/60">
                     Reps
                   </span>
                 </div>
                 {maxPushups && parseInt(maxPushups) > 0 && (
-                  <div className="mt-4 p-4 bg-winter-50 dark:bg-winter-900 rounded-lg">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                    <p className="text-sm text-white/80">
                       Dein Trainingsplan startet mit{' '}
-                      <span className="font-bold text-winter-600 dark:text-winter-400">
+                      <span className="font-semibold text-sky-300">
                         {initPushupPlan(parseInt(maxPushups)).baseReps}
                       </span>{' '}
                       Wiederholungen pro Satz
@@ -337,15 +338,11 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                 )}
               </div>
             )}
-
+  
             {!birthdayOnly && step === 7 && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  ✅ {t('onboarding.selectActivities')}
-                </h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  {t('onboarding.activitiesHelp')}
-                </p>
+              <div className="space-y-4">
+                <h2 className="text-fluid-h2 font-semibold text-white">✅ {t('onboarding.selectActivities')}</h2>
+                <p className="text-sm text-white/70">{t('onboarding.activitiesHelp')}</p>
                 <div className="space-y-3">
                   {([
                     { value: 'pushups' as Activity, label: t('onboarding.activityPushups'), icon: '💪' },
@@ -357,61 +354,57 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                       key={activity.value}
                       onClick={() => {
                         if (enabledActivities.includes(activity.value)) {
-                          setEnabledActivities(enabledActivities.filter(a => a !== activity.value));
+                          setEnabledActivities(enabledActivities.filter((a) => a !== activity.value));
                         } else {
                           setEnabledActivities([...enabledActivities, activity.value]);
                         }
                       }}
-                      className={`w-full px-4 py-3 rounded-lg border-2 transition-all flex items-center gap-3 ${
+                      className={`flex w-full items-center gap-3 rounded-2xl border px-5 py-3.5 transition-all ${
                         enabledActivities.includes(activity.value)
-                          ? 'border-winter-600 dark:border-winter-400 bg-winter-50 dark:bg-winter-900'
-                          : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                          ? 'border-transparent bg-gradient-to-r from-winter-500/90 via-sky-500/90 to-winter-400/90 text-white shadow-[0_12px_40px_rgba(56,189,248,0.35)]'
+                          : 'border-white/10 bg-white/10 text-white/80 hover:border-white/20 hover:bg-white/10'
                       }`}
                     >
                       <span className="text-2xl">{activity.icon}</span>
-                      <span className="flex-1 font-medium text-gray-900 dark:text-white text-left">
-                        {activity.label}
-                      </span>
+                      <span className="flex-1 text-left text-base font-semibold">{activity.label}</span>
                       {enabledActivities.includes(activity.value) && (
-                        <span className="text-winter-600 dark:text-winter-400 text-xl">✓</span>
+                        <span className="text-xl text-sky-200">✓</span>
                       )}
                     </button>
                   ))}
                 </div>
                 {enabledActivities.length === 0 && (
-                  <p className="mt-4 text-sm text-red-600 dark:text-red-400">
-                    {language === 'de' ? 'Bitte wähle mindestens eine Aktivität aus' : 'Please select at least one activity'}
+                  <p className="text-sm text-rose-300">
+                    {language === 'de'
+                      ? 'Bitte wähle mindestens eine Aktivität aus'
+                      : 'Please select at least one activity'}
                   </p>
                 )}
               </div>
             )}
-
+  
             {!birthdayOnly && step === 8 && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  🎂 {t('onboarding.birthdayOptional')}
-                </h2>
-                <p className="text-gray-600 dark:text-gray-300 mb-6">
-                  {t('onboarding.birthdayHelp')}
-                </p>
+              <div className="space-y-4">
+                <h2 className="text-fluid-h2 font-semibold text-white">🎂 {t('onboarding.birthdayOptional')}</h2>
+                <p className="text-sm text-white/70">{t('onboarding.birthdayHelp')}</p>
                 <input
                   type="date"
                   value={birthday}
                   onChange={(e) => setBirthday(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleComplete()}
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-600 dark:focus:ring-winter-400 focus:border-transparent outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white placeholder-white/60 focus:border-transparent focus:ring-2 focus:ring-sky-400/80 focus:outline-none"
                   autoFocus
                 />
               </div>
             )}
           </div>
-
+  
           {/* Navigation Buttons */}
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             {step > 1 && (
               <button
                 onClick={handleBack}
-                className="flex-1 px-6 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="flex-1 rounded-2xl border border-white/20 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
               >
                 Zurück
               </button>
@@ -420,7 +413,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
               <button
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className="flex-1 px-6 py-3 rounded-lg bg-winter-600 dark:bg-winter-500 text-white font-semibold hover:bg-winter-700 dark:hover:bg-winter-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 rounded-2xl bg-gradient-to-r from-winter-500 via-sky-500 to-winter-400 px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(56,189,248,0.35)] transition-all hover:shadow-[0_16px_40px_rgba(56,189,248,0.45)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
               >
                 Weiter
               </button>
@@ -428,7 +421,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
               <button
                 onClick={handleComplete}
                 disabled={!canProceed()}
-                className="flex-1 px-6 py-3 rounded-lg bg-winter-600 dark:bg-winter-500 text-white font-semibold hover:bg-winter-700 dark:hover:bg-winter-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 rounded-2xl bg-gradient-to-r from-winter-500 via-sky-500 to-winter-400 px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(56,189,248,0.35)] transition-all hover:shadow-[0_16px_40px_rgba(56,189,248,0.45)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
               >
                 Fertig
               </button>
