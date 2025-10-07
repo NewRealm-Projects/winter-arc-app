@@ -4,6 +4,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { SmartNote, Event, SmartNoteAttachment } from '../types/events';
 import { noteStore } from '../store/noteStore';
 import { processSmartNote, retrySmartNote } from '../features/notes/pipeline';
+import { glassCardClasses, glassCardHoverClasses, designTokens } from '../theme/tokens';
 
 const PAGE_SIZE = 20;
 
@@ -70,7 +71,8 @@ function EventBadges({ events }: { events: Event[] }) {
   return (
     <div className="flex flex-wrap gap-2 mt-3">
       {events.map((event) => {
-        const baseClass = 'px-3 py-1 rounded-full text-sm bg-winter-100 text-winter-700 dark:bg-winter-900/40 dark:text-winter-100 flex items-center gap-1';
+        const baseClass =
+          'px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-white/80 border border-white/15 flex items-center gap-1';
         const confidenceLow = event.confidence < 0.5;
 
         switch (event.kind) {
@@ -148,18 +150,18 @@ function NoteCard({ note }: { note: SmartNote }) {
   const createdAgo = formatDistanceToNow(note.ts, { addSuffix: true });
 
   return (
-    <div className="glass dark:glass-dark rounded-2xl p-5 shadow-sm transition-all">
+    <div className={`${glassCardHoverClasses} ${designTokens.padding.compact} text-white space-y-3`}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">{createdAgo}</div>
-          <p className="mt-2 text-base text-gray-900 dark:text-gray-100 leading-relaxed">
+          <div className="text-[10px] uppercase tracking-[0.35em] text-white/50">{createdAgo}</div>
+          <p className="mt-2 text-sm md:text-base text-white/90 leading-relaxed">
             {note.summary}
             {note.pending && <span className="ml-2" title="Wird verarbeitet">⏳</span>}
           </p>
         </div>
         {note.pending && (
           <button
-            className="text-sm text-winter-600 hover:text-winter-500 dark:text-winter-300"
+            className="text-xs font-semibold text-white/80 hover:text-white transition-colors"
             onClick={() => retrySmartNote(note.id)}
             type="button"
           >
@@ -175,7 +177,7 @@ function NoteCard({ note }: { note: SmartNote }) {
               key={attachment.id}
               src={attachment.url}
               alt="Notizanhang"
-              className="h-20 w-20 object-cover rounded-xl border border-gray-200 dark:border-gray-700"
+              className="h-20 w-20 object-cover rounded-xl border border-white/15"
             />
           ))}
         </div>
@@ -285,106 +287,127 @@ function NotesPage() {
   }, [hasMore, loadingMore, loadNotes]);
 
   return (
-    <div className="min-h-screen safe-area-inset-top">
-      <div className="relative text-white p-6 pb-8">
-        <div className="max-w-[700px] mx-auto relative z-10">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">🧠 {t('notes.title')}</h1>
-          <p className="text-gray-600 dark:text-gray-400">Smart Notes helfen dir, Aktivitäten automatisch zu tracken.</p>
-        </div>
-      </div>
+    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe">
+      <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0">
+        <div className="flex flex-col gap-3 md:gap-4">
+          <section className={`${glassCardClasses} ${designTokens.padding.spacious} text-white animate-fade-in-up`}>
+            <h1 className="text-fluid-h1 font-semibold flex items-center gap-2">
+              <span aria-hidden="true">🧠</span>
+              {t('notes.title')}
+            </h1>
+            <p className="text-sm text-white/70 max-w-xl">
+              Smart Notes helfen dir, Aktivitäten automatisch zu tracken.
+            </p>
+          </section>
 
-      <div className="max-w-[700px] mx-auto px-4 pt-4 md:pt-6 pb-20 space-y-6">
-        <form onSubmit={onSubmit} className="glass dark:glass-dark rounded-2xl p-5 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-          <div className="flex-1 w-full">
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Kurz notieren…"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none"
-              disabled={isSubmitting}
-            />
-            {attachments.length > 0 ? (
-              <div className="mt-3 flex flex-wrap gap-3">
-                {attachments.map((attachment) => (
-                  <div key={attachment.id} className="relative">
-                    <img
-                      src={attachment.url}
-                      alt="Ausgewählter Anhang"
-                      className="h-20 w-20 object-cover rounded-xl border border-gray-200 dark:border-gray-700"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => { handleAttachmentRemove(attachment.id); }}
-                      className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-black/70 text-white text-xs flex items-center justify-center"
-                      aria-label="Anhang entfernen"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-            <div className="mt-3 flex flex-wrap gap-2">
+          <form
+            onSubmit={onSubmit}
+            className={[glassCardHoverClasses, designTokens.padding.spacious, 'flex flex-col gap-4 text-white', 'animate-fade-in-up delay-100'].join(' ')}
+          >
+            <div className="flex-1 w-full">
               <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleAttachmentChange}
-                className="hidden"
-                multiple
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Kurz notieren…"
+                className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-white placeholder:text-white/50 focus:border-white focus:outline-none focus:ring-2 focus:ring-white/40"
+                disabled={isSubmitting}
               />
+
+              {attachments.length > 0 ? (
+                <div className="mt-3 flex flex-wrap gap-3">
+                  {attachments.map((attachment) => (
+                    <div key={attachment.id} className="relative">
+                      <img
+                        src={attachment.url}
+                        alt="Ausgewählter Anhang"
+                        className="h-20 w-20 object-cover rounded-xl border border-white/15"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAttachmentRemove(attachment.id)}
+                        className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-xs text-white"
+                        aria-label="Anhang entfernen"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleAttachmentChange}
+                  className="hidden"
+                  multiple
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="inline-flex items-center justify-center rounded-xl border border-dashed border-white/20 px-4 py-2 text-sm font-semibold text-white/80 transition-colors hover:bg-white/10"
+                >
+                  📷 Foto aufnehmen oder wählen
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting || !input.trim()}
+              className={`inline-flex items-center justify-center rounded-2xl px-5 py-3 font-semibold transition-colors ${
+                isSubmitting
+                  ? 'bg-white/10 text-white/50 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-winter-400 to-winter-600 text-white shadow-[0_10px_30px_rgba(15,118,110,0.35)] hover:from-winter-300 hover:to-winter-500'
+              }`}
+            >
+              {isSubmitting ? 'Wird hinzugefügt…' : 'Hinzufügen'}
+            </button>
+          </form>
+
+          <section
+            className={[glassCardClasses, designTokens.padding.spacious, 'text-white flex flex-col gap-4', 'animate-fade-in-up', 'delay-200'].join(' ')}
+          >
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-lg font-semibold text-white">Heute</h2>
+              <label className="flex items-center gap-2 text-sm text-white/70">
+                <input
+                  type="checkbox"
+                  checked={autoTracking}
+                  onChange={(event) => { setAutoTracking(event.target.checked); }}
+                  className="h-4 w-4 rounded border-white/20 bg-white/10 text-winter-300 focus:ring-2 focus:ring-white/40"
+                />
+                Auto-Tracking aktiv
+              </label>
+            </div>
+
+            <div className="relative">
+              <div className="space-y-3 max-h-[min(60vh,28rem)] overflow-y-auto pr-1">
+                {notes.length === 0 ? (
+                  <div className="text-sm text-white/60 text-center py-10">
+                    Noch keine Smart Notes vorhanden.
+                  </div>
+                ) : (
+                  notes.map((note) => <NoteCard key={note.id} note={note} />)
+                )}
+              </div>
+            </div>
+
+            {hasMore && (
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-2 rounded-xl border border-dashed border-winter-400 text-sm text-winter-600 hover:bg-winter-50 dark:border-winter-500/60 dark:text-winter-200 dark:hover:bg-winter-900/50"
+                onClick={handleLoadMore}
+                className={['inline-flex w-full items-center justify-center rounded-2xl border border-white/15 px-4 py-3', 'text-sm font-semibold text-white/80 transition-colors', 'hover:bg-white/10'].join(' ')}
+                disabled={loadingMore}
               >
-                📷 Foto aufnehmen oder wählen
+                {loadingMore ? 'Lädt…' : 'Mehr laden'}
               </button>
-            </div>
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting || !input.trim()}
-            className={`px-5 py-3 rounded-xl font-semibold transition-colors ${
-              isSubmitting
-                ? 'bg-gray-300 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-not-allowed'
-                : 'bg-winter-600 text-white hover:bg-winter-700'
-            }`}
-          >
-            {isSubmitting ? 'Wird hinzugefügt…' : 'Hinzufügen'}
-          </button>
-        </form>
-
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Heute</h2>
-          <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-            <input
-              type="checkbox"
-              checked={autoTracking}
-              onChange={(event) => { setAutoTracking(event.target.checked); }}
-            />
-            Auto-Tracking aktiv
-          </label>
+            )}
+          </section>
         </div>
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-          {notes.length === 0 ? (
-            <div className="text-sm text-gray-600 dark:text-gray-400 text-center py-10">Noch keine Smart Notes vorhanden.</div>
-          ) : (
-            notes.map((note) => <NoteCard key={note.id} note={note} />)
-          )}
-        </div>
-
-        {hasMore && (
-          <button
-            type="button"
-            onClick={handleLoadMore}
-            className="w-full py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-            disabled={loadingMore}
-          >
-            {loadingMore ? 'Lädt…' : 'Mehr laden'}
-          </button>
-        )}
       </div>
     </div>
   );
