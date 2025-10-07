@@ -122,7 +122,7 @@ function SportTile() {
   const completedCount = countActiveSports(displaySports);
   const isTracked = completedCount > 0;
   const modalSport = sportOptions.find((option) => option.key === selectedSport);
-  const selectedIsActive = selectedSport in displaySports && typeof displaySports[selectedSport] === 'object' ? displaySports[selectedSport].active : false;
+  const selectedIsActive = Object.prototype.hasOwnProperty.call(displaySports, selectedSport) && typeof displaySports[selectedSport] === 'object' ? displaySports[selectedSport].active : false;
   const hasActiveSports = activeSportOptions.length > 0;
 
   return (
