@@ -24,6 +24,10 @@ const noteStoreMock = vi.hoisted(() => {
       storeState.notes = storeState.notes.map((note) => (note.id === id ? { ...note, ...patch } : note));
       emit();
     },
+    async remove(id: string) {
+      storeState.notes = storeState.notes.filter((note) => note.id !== id);
+      emit();
+    },
     async list({ limit }: { limit?: number }) {
       const safeLimit = limit ?? 20;
       const slice = storeState.notes.slice(0, safeLimit);
@@ -79,6 +83,9 @@ vi.mock('../features/notes/pipeline', () => {
       }
     ),
     retrySmartNote: vi.fn(),
+    updateSmartNote: vi.fn(async (id: string, raw: string) => {
+      await noteStoreMock.update(id, { raw, summary: raw });
+    }),
   };
 });
 
@@ -111,6 +118,65 @@ describe('NotesPage', () => {
     await waitFor(() => {
       expect(screen.queryByTitle('Wird verarbeitet')).not.toBeInTheDocument();
     });
+  });
+
+  it('allows editing an existing smart note', async () => {
+    const existing: SmartNote = {
+      id: 'note-1',
+      ts: Date.now() - 1000,
+      raw: 'Original Text',
+      summary: 'Original Text',
+      events: [],
+    };
+    await noteStoreMock.add(existing);
+
+    render(<NotesPage />);
+
+    const editButton = await screen.findByRole('button', { name: 'Bearbeiten' });
+    await act(async () => {
+      fireEvent.click(editButton);
+    });
+
+    const editor = screen.getByRole('textbox', { name: 'Smart Note bearbeiten' });
+    await act(async () => {
+      fireEvent.change(editor, { target: { value: 'Aktualisierte Notiz' } });
+    });
+
+    const saveButton = screen.getByRole('button', { name: 'Speichern' });
+    await act(async () => {
+      fireEvent.click(saveButton);
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByRole('textbox', { name: 'Smart Note bearbeiten' })).not.toBeInTheDocument();
+    });
+    expect(screen.getByText('Aktualisierte Notiz')).toBeInTheDocument();
+  });
+
+  it('allows deleting an existing smart note', async () => {
+    const existing: SmartNote = {
+      id: 'note-delete',
+      ts: Date.now() - 2000,
+      raw: 'Zum Löschen',
+      summary: 'Zum Löschen',
+      events: [],
+    };
+    await noteStoreMock.add(existing);
+
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+
+    render(<NotesPage />);
+
+    const deleteButton = await screen.findByRole('button', { name: 'Löschen' });
+    await act(async () => {
+      fireEvent.click(deleteButton);
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Zum Löschen')).not.toBeInTheDocument();
+    });
+
+    confirmSpy.mockRestore();
   });
 });
 
