@@ -22,10 +22,6 @@ function WaterTile() {
   const combinedTracking = useCombinedDailyTracking(activeDate);
   const manualWater = activeTracking?.water || 0;
   const totalWater = combinedTracking?.water ?? manualWater;
-  const smartWater = Math.max(0, totalWater - manualWater);
-
-  const [showAdjustInput, setShowAdjustInput] = useState(false);
-  const [inputValue, setInputValue] = useState('');
 
   const waterGoal = user?.weight ? calculateWaterGoal(user.weight) : 3000;
 
@@ -51,30 +47,6 @@ function WaterTile() {
   const goalLiters = (waterGoal / 1000).toFixed(2);
   const isTracked = totalWater >= 1000; // mindestens 1L
 
-  const openAdjust = () => {
-    setInputValue(totalWater ? String(Math.round(totalWater)) : '');
-    setShowAdjustInput(true);
-  };
-
-  const saveAdjust = () => {
-    const parsed = Math.round(Number.parseFloat(inputValue));
-    if (Number.isNaN(parsed) || parsed < 0) {
-      return;
-    }
-
-    const nextManual = Math.max(0, parsed - smartWater);
-    updateDayTracking(activeDate, {
-      water: nextManual,
-    });
-    setShowAdjustInput(false);
-    setInputValue('');
-  };
-
-  const cancelAdjust = () => {
-    setShowAdjustInput(false);
-    setInputValue('');
-  };
-
   return (
     <>
       <div className={`${getTileClasses(isTracked)} ${designTokens.padding.compact} text-white`}>
@@ -90,21 +62,17 @@ function WaterTile() {
           </div>
         </div>
 
-        <div className="mb-2 text-center">
+        <div className="mb-4 text-center">
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div
               className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
             {Math.round(progress)}% / {goalLiters}L
           </div>
         </div>
-        <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {displayedPercent}% / {goalLiters}L
-        </div>
-      </div>
 
         <div className="space-y-1.5">
           <div className="grid grid-cols-3 gap-1.5 text-center">

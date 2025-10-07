@@ -330,7 +330,7 @@ function NotesPage() {
                 type="file"
                 accept="image/*"
                 capture="environment"
-                onChange={() => handleAttachmentChange(event)}
+                onChange={handleAttachmentChange}
                 className="hidden"
                 multiple
               />
