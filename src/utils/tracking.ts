@@ -49,7 +49,7 @@ export function combineTrackingWithSmart(
 
     const water = (manual?.water ?? 0) + (smart?.water ?? 0);
     const protein = (manual?.protein ?? 0) + (smart?.protein ?? 0);
-    const pushupsTotal = (manual.pushups?.total ?? 0) + (smart?.pushups ?? 0);
+    const pushupsTotal = (manual.pushups?.total ?? 0) + (smart.pushups ?? 0);
 
     const pushups = (() => {
       if (manual.pushups || pushupsTotal > 0) {
