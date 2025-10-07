@@ -245,7 +245,7 @@ function NoteCard({ note }: { note: SmartNote }) {
                 </button>
                 <button
                   type="button"
-                  onClick={handleSaveEdit}
+                  onClick={() => handleSaveEdit()}
                   className={`text-xs font-semibold transition-colors ${
                     isSaving ? 'text-white/40 cursor-not-allowed' : 'text-winter-200 hover:text-white'
                   }`}
