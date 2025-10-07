@@ -314,7 +314,7 @@ function NotesPage() {
                     />
                     <button
                       type="button"
-                      onClick={() => handleAttachmentRemove(attachment.id)}
+                      onClick={() => { handleAttachmentRemove(attachment.id); }}
                       className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-black/70 text-white text-xs flex items-center justify-center"
                       aria-label="Anhang entfernen"
                     >
