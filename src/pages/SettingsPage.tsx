@@ -749,7 +749,7 @@ function SettingsPage() {
                             ref={profilePictureInputRef}
                             type="file"
                             accept="image/*"
-                            onChange={() => { handleProfilePictureFileChange(); }}
+                            onChange={() => { void handleProfilePictureFileChange(); }}
                             className="hidden"
                           />
                         </div>
