@@ -71,7 +71,7 @@ export function combineTrackingWithSmart(
       };
     })();
 
-    result[dateKey] = {
+    result[`${dateKey}`] = {
       date: manual?.date ?? dateKey,
       sports,
       water,
