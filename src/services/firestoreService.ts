@@ -3,15 +3,49 @@ import { db } from '../firebase/config';
 import type { User, DailyTracking, GroupMember, TrackingRecord } from '../types';
 import { countActiveSports } from '../utils/sports';
 
+type AnyRecord = Record<string, unknown>;
+
+function sanitizeForFirestore<T>(value: T): T {
+  if (value === null || value === undefined) {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => sanitizeForFirestore(item)) as unknown as T;
+  }
+
+  if (value instanceof Date) {
+    return new Date(value.getTime()) as unknown as T;
+  }
+
+  if (typeof value === 'object') {
+    const sanitizedEntries = Object.entries(value as AnyRecord).reduce<AnyRecord>((acc, [key, entryValue]) => {
+      if (entryValue === undefined) {
+        return acc;
+      }
+
+      const sanitizedValue = sanitizeForFirestore(entryValue);
+
+      acc[key] = sanitizedValue;
+        if (typeof key === 'string') { acc[key] = sanitizedValue; }
+      }
+
+      return acc;
+    }, {});
+
+    return sanitizedEntries as T;
+  }
+
+  return value;
+}
+
 // User operations
 export async function saveUser(userId: string, userData: Omit<User, 'id'>) {
   try {
     console.log('💾 Saving user data to Firestore...', { userId });
     const userRef = doc(db, 'users', userId);
     // Remove undefined fields to avoid Firestore error
-    const cleanedData = Object.fromEntries(
-      Object.entries(userData).filter(([_, value]) => value !== undefined)
-    );
+    const cleanedData = sanitizeForFirestore(userData);
     await setDoc(userRef, cleanedData);
     console.log('✅ User data saved successfully');
     return { success: true };
@@ -51,7 +85,8 @@ export async function updateUser(userId: string, updates: Partial<Omit<User, 'id
 export async function saveDailyTracking(userId: string, date: string, tracking: DailyTracking) {
   try {
     const trackingRef = doc(db, 'tracking', userId, 'days', date);
-    await setDoc(trackingRef, tracking);
+    const sanitizedTracking = sanitizeForFirestore(tracking);
+    await setDoc(trackingRef, sanitizedTracking);
     return { success: true };
   } catch (error) {
     console.error('Error saving tracking:', error);
