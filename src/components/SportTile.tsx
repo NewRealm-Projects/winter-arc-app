@@ -42,7 +42,7 @@ function SportTile() {
   );
 
   const toggleRest = (sport: SportKey) => {
-    const previous = toSportEntry(activeTracking?.sports?.[sport] ?? currentSports[sport]);
+    const previous = toSportEntry(activeTracking?.sports?.[sport] ? activeTracking.sports[sport] : currentSports[sport]);
 
     updateDayTracking(activeDate, {
       sports: {
