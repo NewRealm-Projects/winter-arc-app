@@ -105,7 +105,7 @@ export async function generateDailyMotivation(
     const stats = analyzeTrackingData(trackingLast7);
     const todayKey = now.toISOString().split('T')[0];
     const todayTrackingEntry = Object.prototype.hasOwnProperty.call(trackingLast7, todayKey)
-      ? trackingLast7[todayKey]
+      const todayTrackingEntry = todayKey in trackingLast7 ? trackingLast7[todayKey] : undefined;
       : undefined;
     const todayReps = todayTrackingEntry?.pushups?.workout?.reps;
 
