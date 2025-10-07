@@ -136,10 +136,10 @@ function SettingsPage() {
     profilePictureInputRef.current?.click();
   };
 
-  const handleProfilePictureFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+  const handleProfilePictureFileChange = async (event?: ChangeEvent<HTMLInputElement>) => {
     if (!user) return;
 
-    const file = event.target.files?.[0];
+    const file = event?.target.files?.[0];
     if (!file) return;
 
     setIsUploadingPhoto(true);
@@ -167,6 +167,8 @@ function SettingsPage() {
     } finally {
       setIsUploadingPhoto(false);
       event.target.value = '';
+        event.target.value = '';
+      }
     }
   };
 
@@ -749,9 +751,7 @@ function SettingsPage() {
                             ref={profilePictureInputRef}
                             type="file"
                             accept="image/*"
-                            onChange={(event) => {
-                              void handleProfilePictureFileChange(event);
-                            }}
+                            onChange={(event) => { void handleProfilePictureFileChange(event); }}
                             className="hidden"
                           />
                         </div>

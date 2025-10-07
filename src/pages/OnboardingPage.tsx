@@ -14,6 +14,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   const user = useStore((state) => state.user);
   const setUser = useStore((state) => state.setUser);
   const setIsOnboarded = useStore((state) => state.setIsOnboarded);
+
   const [step, setStep] = useState(1);
   const [language, setLanguage] = useState<Language>('de');
   const [nickname, setNickname] = useState('');
