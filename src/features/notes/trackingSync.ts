@@ -147,7 +147,7 @@ async function syncSmartTracking() {
     })();
   }
 
-  await currentSync;
+  try { await currentSync; } catch (error) { console.warn('Error during sync:', error); }
 }
 
 void syncSmartTracking();
