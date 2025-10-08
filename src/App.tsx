@@ -26,13 +26,7 @@ function App() {
   return (
     <ToastProvider>
       <ErrorBoundary>
-        <BrowserRouter
-          basename={routerBaseName}
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true
-          }}
-        >
+        <BrowserRouter basename={routerBaseName}>
           <AppRoutes />
           <PWAInstallPrompt />
           <div className="version-bubble" aria-label={`App version ${appVersion}`}>

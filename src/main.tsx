@@ -36,9 +36,32 @@ if (import.meta.env.VITE_SENTRY_DSN) {
   console.warn('✅ Sentry initialized');
 } else {
   console.warn('⚠️ Sentry DSN not configured');
+Sentry.init({
+  dsn:
+    import.meta.env.VITE_SENTRY_DSN ??
+    'https://a6c368bdbb6514ab4e4f989f23d882d4@o4510114201731072.ingest.de.sentry.io/4510155533516880',
+  environment: import.meta.env.MODE,
+  sendDefaultPii: true,
+  integrations: [
+    Sentry.browserTracingIntegration(),
+    Sentry.replayIntegration(),
+  ],
+  tracesSampleRate: 1.0,
+  tracePropagationTargets: ['localhost', /^https:\/\/yourserver\.io\/api/],
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+  enableLogs: true,
+})
+
+const container = document.getElementById('root')
+
+if (!container) {
+  throw new Error('Root container element not found')
 }
 
-createRoot(document.getElementById('root')!).render(
+const root = createRoot(container)
+
+root.render(
   <StrictMode>
     <ThemeProvider>
       <ToastProvider>
