@@ -5,27 +5,28 @@ import { Event, SmartNote } from '../../types/events';
 
 const RECENT_LIMIT = 5;
 
-function createEventId() {
-  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
-    return crypto.randomUUID();
+function getRuntimeCrypto(): Crypto | undefined {
+  if (typeof globalThis === 'undefined') {
+    return undefined;
   }
-  // Fallback: use crypto.getRandomValues for browsers (if available), or Node.js crypto.randomBytes.
-  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+  if (typeof globalThis.crypto !== 'undefined') {
+    return globalThis.crypto as Crypto;
+  }
+  return undefined;
+}
+
+function createEventId() {
+  const runtimeCrypto = getRuntimeCrypto();
+  if (runtimeCrypto?.randomUUID) {
+    return runtimeCrypto.randomUUID();
+  }
+  if (runtimeCrypto?.getRandomValues) {
     // Browser environment: generate a 16-byte hex string (UUID-like)
     const array = new Uint8Array(16);
-    crypto.getRandomValues(array);
+    runtimeCrypto.getRandomValues(array);
     return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
   }
-  // Node.js environment fallback
-  try {
-    // Avoid import if not present
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const nodeCrypto = require('crypto');
-    return nodeCrypto.randomBytes(16).toString('hex');
-  } catch (error) {
-    // Final fallback, should never hit unless very restricted env
-    throw new Error('No secure randomness available for event ID');
-  }
+  throw new Error('No secure randomness available for event ID');
 }
 
 function normalizeEvent(event: Event, noteTs: number, source: Event['source']): Event {
