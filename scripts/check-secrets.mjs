@@ -25,7 +25,13 @@ function scanForGoogleApiKeys() {
 
   for (const relativePath of trackedFiles) {
     const absolutePath = path.join(repoRoot, relativePath);
-    const stats = statSync(absolutePath);
+    let stats;
+    try {
+      stats = statSync(absolutePath);
+    } catch (error) {
+      // File might be deleted or moved in the working tree – skip gracefully
+      continue;
+    }
 
     if (!stats.isFile()) {
       continue;
