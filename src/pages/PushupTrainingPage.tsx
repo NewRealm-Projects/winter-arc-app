@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { generateDailyMotivation } from '../services/aiService';
 import { saveDailyTracking } from '../services/firestoreService';
 import { useNavigate } from 'react-router-dom';
@@ -44,6 +44,7 @@ function PushupTrainingPage() {
   // Initial total: Wenn noch keine Historie, nutze maxPushups * 2.5
   const initialTotal = lastTotal > 0 ? lastTotal : Math.round((user?.maxPushups || 20) * 2.5);
   const plan = generateProgressivePlan(initialTotal, daysCompleted);
+  const currentTarget = plan[currentSet];
   const plannedTotal = calculateTotalReps(plan);
 
   const restTime = 60; // 60 Sekunden Pause
@@ -67,27 +68,12 @@ function PushupTrainingPage() {
   // Rest timer
   useEffect(() => {
     if (restTimeLeft > 0) {
-        const timer = setTimeout(() => { setRestTimeLeft(restTimeLeft - 1); }, 1000);
-        return () => { clearTimeout(timer); };
+      const timer = setTimeout(() => { setRestTimeLeft(restTimeLeft - 1); }, 1000);
+      return () => { clearTimeout(timer); };
     }
   }, [restTimeLeft]);
 
-
-  // Automatischer Satzabschluss, wenn Ziel erreicht
-  useEffect(() => {
-    if (currentReps > 0 && currentReps >= plan[currentSet] && restTimeLeft === 0 && currentSet < 5) {
-      void handleCompleteSet();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentReps]);
-
-  const handleTap = () => {
-    // Verhindere Scrollen auf Mobilgeräten
-    window.scrollTo({ top: 0, behavior: 'auto' });
-    setCurrentReps(currentReps + 1);
-  };
-
-  const handleCompleteSet = async () => {
+  const handleCompleteSet = useCallback(async () => {
     const newReps = [...reps, currentReps];
     setReps(newReps);
     setCurrentReps(0);
@@ -138,6 +124,19 @@ function PushupTrainingPage() {
         }
       }
     }
+  }, [activeDate, currentReps, currentSet, reps, restTime, smartContributions, tracking, updateDayTracking, user]);
+
+  // Automatischer Satzabschluss, wenn Ziel erreicht
+  useEffect(() => {
+    if (currentReps > 0 && typeof currentTarget === 'number' && currentReps >= currentTarget && restTimeLeft === 0 && currentSet < 5) {
+      void handleCompleteSet();
+    }
+  }, [currentReps, currentSet, currentTarget, handleCompleteSet, restTimeLeft]);
+
+  const handleTap = () => {
+    // Verhindere Scrollen auf Mobilgeräten
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    setCurrentReps(currentReps + 1);
   };
 
   const handleSkipRest = () => {
