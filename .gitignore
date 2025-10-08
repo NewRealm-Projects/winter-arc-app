@@ -33,6 +33,10 @@ firebase-debug.log
 .env.local
 .env.production
 
+# Build sourcemaps that may contain secrets from production builds
+.smap/
+*.smap
+
 # PWA
 dev-dist
 

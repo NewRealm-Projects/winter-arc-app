@@ -47,10 +47,17 @@ Wir schätzen verantwortungsvolles Disclosure und nennen gerne Credits für vali
 
 Für Entwickler und Nutzer:
 
-- Halte deine App-Version aktuell (`npm audit fix` regelmäßig ausführen).  
-- Speichere **keine Secrets oder API Keys** im Code oder in öffentlichen Repositories.  
-- Verwende sichere Authentifizierungsmethoden (z. B. OAuth 2.0).  
+- Halte deine App-Version aktuell (`npm audit fix` regelmäßig ausführen).
+- Speichere **keine Secrets oder API Keys** im Code oder in öffentlichen Repositories.
+- Verwende sichere Authentifizierungsmethoden (z. B. OAuth 2.0).
 - Aktiviere **2-Faktor-Authentifizierung** für alle Teammitglieder mit GitHub- oder Deployment-Zugriff.
+
+### Automatisierte Secret-Prüfungen
+
+- Führe `npm run lint:secrets` aus, um nach versehentlich eingecheckten Google API Keys zu suchen.
+- Der Befehl ist Teil von `npm run lint` und schlägt fehl, wenn ein potentieller Key gefunden wird (Ausgabe wird maskiert).
+- Bei einem Fund: Secret aus dem Repository entfernen, den Schlüssel über die Google Cloud Console rotieren und alte Schlüssel widerrufen.
+- Anschließend Zugriffs- und Fehlerlogs prüfen, um möglichen Missbrauch zu erkennen und gegebenenfalls Incident-Response einzuleiten.
 
 ---
 
