@@ -75,8 +75,7 @@ function analyzeTrackingData(tracking: Record<string, DailyTracking>): UserTrack
 export async function generateDailyMotivation(
   tracking: Record<string, DailyTracking>,
   nickname: string,
-  birthday?: string,
-  weatherContext?: string
+  birthday?: string
 ): Promise<{ quote: string; subtext: string }> {
   try {
     // Nur Tracking-Daten der letzten 7 Tage verwenden
@@ -94,14 +93,12 @@ export async function generateDailyMotivation(
     console.warn('[AI PROMPT DEBUG] Userdaten für Motivation (letzte 7 Tage):', {
       nickname,
       birthday,
-      weatherContext,
       tracking: trackingLast7,
     });
 
     // Prompt-Variablen vorbereiten
     const now = new Date();
     const isoDatetime = now.toISOString();
-    const weatherInfo = weatherContext || '';
     const stats = analyzeTrackingData(trackingLast7);
     const todayKey = now.toISOString().split('T')[0];
     const todayTrackingEntry = Object.prototype.hasOwnProperty.call(trackingLast7, todayKey)
@@ -136,7 +133,6 @@ WICHTIG: Schreibe GENAU 3 Zeilen (3 Sätze, keine Absätze, keine Listen, keine 
 Daten, die du erhältst:
 ${JSON.stringify({
   nickname,
-  weatherContext: weatherInfo,
   stats: {
     currentStreak: stats.currentStreak,
     totalPushups: stats.totalPushups,
@@ -164,7 +160,6 @@ Logik:
   - avgWater < 2000 → erinnere ans Trinken.
   - avgProtein < 120 → erinnere an Protein.
   - Rest = true → Fokus auf Regeneration.
-- Wetter nur kurz einbauen (z. B. kühle Luft, klare Gedanken).
 - Schreibe in einem natürlichen Fluss, nicht stichpunktartig.
 
 Berücksichtige das FeedbackHistory-Array: Wenn mehrere Daumen runter in Folge, ändere Stil oder Inhalt, um besser zu motivieren. Bei Daumen hoch, halte den Stil ähnlich.

@@ -551,7 +551,7 @@ This section tracks planned features, ideas, and experimental work.
 - `src/logic/motivation.ts` - Static fallback quotes (still active)
 
 #### 2. History Page (Status: ⚫ archived 2025-10-04)
-**Reason**: Redundant with week/day navigation in WeekCompactCard, UI simplification
+**Reason**: Redundant with week/day navigation in WeekCirclesCard, UI simplification
 **Reactivation Steps**:
 1. Set `HISTORY_ENABLED = true` in `src/config/features.ts`
 2. Uncomment route in `src/routes/index.tsx` (line 15 + 60)

@@ -1,4 +1,4 @@
-import { renderWithProviders, screen, waitFor, fireEvent } from 'test/test-utils';
+import { renderWithProviders, screen, fireEvent } from 'test/test-utils';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { todayKey } from '../../lib/date';
 
@@ -43,14 +43,8 @@ vi.mock('../../components/WeightTile', () => ({
   default: () => <div data-testid="weight-tile" />,
 }));
 
-vi.mock('../../components/dashboard/WeekCompactCard', () => ({
-  default: () => <div data-testid="week-compact-card" />,
-}));
-
-vi.mock('../../components/dashboard/WeatherCard', () => ({
-  default: ({ location, loading }: { location?: string; loading?: boolean }) => (
-    <div data-testid="weather-card">{loading ? 'Loading' : location ?? 'Aachen'}</div>
-  ),
+vi.mock('../../components/dashboard/WeekCirclesCard', () => ({
+  default: () => <div data-testid="week-circles-card" />,
 }));
 
 vi.mock('../../components/TrainingLoadTile', () => ({
@@ -104,52 +98,26 @@ vi.mock('../../store/useStore', () => ({
   useStore: (selector: (state: typeof storeState) => unknown) => selector(storeState),
 }));
 
-const weatherResponse = {
-  temperature: 11,
-  weatherCode: 2,
-  weatherEmoji: '⛅',
-  weatherDescription: 'Partly cloudy',
-};
-
-vi.mock('../../services/weatherService', () => ({
-  getWeatherForAachen: vi.fn(async () => weatherResponse),
-}));
-
 describe('DashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     storeState.selectedDate = today;
   });
 
-  it('renders key dashboard widgets and hydration tile', async () => {
+  it('renders key dashboard widgets and layout spacing', async () => {
     renderWithProviders(<DashboardPage />);
 
+    const layout = await screen.findByTestId('dashboard-content-sections');
+    expect(layout).toHaveClass('flex');
+    expect(layout).toHaveClass('flex-col');
+    expect(layout.className).toContain('gap-3');
+    expect(layout.className).toContain('md:gap-4');
+
     expect(screen.getByTestId('dashboard-page')).toBeInTheDocument();
-
-    await waitFor(() => {
-      const weatherCards = screen.getAllByTestId('weather-card');
-      const renderedCard = weatherCards[weatherCards.length - 1];
-      expect(renderedCard).toHaveTextContent('Aachen');
-    });
-
+    expect(screen.getByTestId('week-compact-card')).toBeInTheDocument();
     expect(screen.getByTestId('training-load-tile')).toBeInTheDocument();
     expect(screen.getByTestId('header-summary-card')).toBeInTheDocument();
     expect(screen.getByTestId('header-streak-value')).toHaveTextContent('2');
-  });
-
-  it('falls back to default weather state on failure', async () => {
-    const { getWeatherForAachen } = await import('../../services/weatherService');
-    vi.mocked(getWeatherForAachen).mockRejectedValueOnce(new Error('offline'));
-
-    renderWithProviders(<DashboardPage />);
-
-    await waitFor(() => {
-      const weatherCards = screen.getAllByTestId('weather-card');
-      const renderedCard = weatherCards[weatherCards.length - 1];
-      expect(renderedCard).toBeInTheDocument();
-    });
-
-    expect(getWeatherForAachen).toHaveBeenCalled();
   });
 
   it('opens check-in modal from header button', async () => {

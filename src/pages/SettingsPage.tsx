@@ -10,26 +10,19 @@ import { glassCardClasses, glassCardHoverClasses, designTokens } from '../theme/
 
 type SectionId = 'general' | 'profile' | 'account';
 
-// Wetter-Stadt Auswahl Optionen
-const cityOptions = [
-  'Aachen', 'Berlin', 'Hamburg', 'München', 'Köln', 'Frankfurt', 'Stuttgart', 'Dresden', 'Leipzig', 'Düsseldorf'
-];
-
 function SettingsPage() {
-  // Wetter-Stadt Auswahl
-  const [weatherCity, setWeatherCity] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('weather-city') || 'Aachen';
-    }
-    return 'Aachen';
-  });
-  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setWeatherCity(e.target.value);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('weather-city', e.target.value);
-    }
-  };
   const { t } = useTranslation();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    try {
+      localStorage.removeItem('weather-city');
+    } catch {
+      // Ignore storage access issues (e.g., private mode)
+    }
+  }, []);
   const [showGroupInput, setShowGroupInput] = useState(false);
   const [groupCode, setGroupCode] = useState('');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -573,38 +566,6 @@ function SettingsPage() {
           <div className="flex flex-col gap-3 md:gap-4">
             {activeSection === 'general' && (
               <>
-                <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
-                  <div className="flex flex-col gap-4">
-                    <div>
-                      <h2 className="flex items-center gap-2 text-lg font-semibold">
-                        <span aria-hidden="true">🌤️</span>
-                        {t('settings.weatherCity')}
-                      </h2>
-                      <p className="text-sm text-white/70">{t('settings.weatherCityDesc')}</p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label
-                        htmlFor="weather-city-select"
-                        className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50"
-                      >
-                        {t('settings.weatherCity')}
-                      </label>
-                      <select
-                        id="weather-city-select"
-                        value={weatherCity}
-                        onChange={handleCityChange}
-                        className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white outline-none transition focus:border-white/40 focus:ring-2 focus:ring-white/30"
-                      >
-                        {cityOptions.map((city) => (
-                          <option key={city} value={city} className="text-slate-900">
-                            {city}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                </section>
-
                 <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
                   <div className="flex flex-col gap-5">
                     <div>
