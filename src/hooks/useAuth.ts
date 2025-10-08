@@ -4,6 +4,7 @@ import { doc, getDoc, collection, getDocs, setDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 import { useStore } from '../store/useStore';
 import type { User, DailyTracking, Activity } from '../types';
+import { clearDemoModeMarker, isDemoModeActive } from '../constants/demo';
 
 export function useAuth() {
   const setUser = useStore((state) => state.setUser);
@@ -21,6 +22,8 @@ export function useAuth() {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
         });
+
+        clearDemoModeMarker();
 
         try {
           const userDocRef = doc(db, 'users', firebaseUser.uid);
@@ -114,6 +117,11 @@ export function useAuth() {
           setAuthLoading(false);
         }
       } else {
+        if (isDemoModeActive()) {
+          setAuthLoading(false);
+          return;
+        }
+
         setUser(null);
         setIsOnboarded(false);
         setTracking({});

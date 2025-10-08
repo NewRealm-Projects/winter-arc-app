@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { auth, googleProvider } from '../firebase/config';
 import { useStore } from '../store/useStore';
+import { markDemoModeActive } from '../constants/demo';
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -128,6 +129,8 @@ function LoginPage() {
 
     setUser(demoUser);
     setIsOnboarded(true);
+    navigate('/', { replace: true });
+    markDemoModeActive();
   };
 
   return (
