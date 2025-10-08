@@ -25,14 +25,51 @@ test.describe('Week navigation', () => {
     await loginAtPath(page);
 
     const headerLabel = page.getByTestId('header-week-range');
+    const weekCard = page.getByTestId('week-circles-card');
+    const previousButton = page.getByRole('button', { name: /Vorherige Woche/i });
+    const nextButton = page.getByRole('button', { name: /Nächste Woche/i });
+
     const initialText = (await headerLabel.textContent())?.trim() ?? '';
     expect(initialText.length).toBeGreaterThan(0);
 
-    await page.getByRole('button', { name: /Vorherige Woche/i }).click();
+    const initialSelectedDayNumber = (
+      (await weekCard
+        .locator('button[aria-pressed="true"] span')
+        .filter({ hasText: /^\d+$/ })
+        .first()
+        .textContent()) ?? ''
+    ).trim();
+
+    await previousButton.click();
 
     await expect(headerLabel).not.toHaveText(initialText, { timeout: 5000 });
     const updatedText = (await headerLabel.textContent())?.trim() ?? '';
     expect(updatedText.length).toBeGreaterThan(0);
+
+    const previousWeekSelectedDayNumber = (
+      (await weekCard
+        .locator('button[aria-pressed="true"] span')
+        .filter({ hasText: /^\d+$/ })
+        .first()
+        .textContent()) ?? ''
+    ).trim();
+
+    expect(previousWeekSelectedDayNumber).not.toBe(initialSelectedDayNumber);
+
+    await nextButton.click();
+
+    await expect(headerLabel).toHaveText(initialText, { timeout: 5000 });
+
+    const currentWeekSelectedDayNumber = (
+      (await weekCard
+        .locator('button[aria-pressed="true"] span')
+        .filter({ hasText: /^\d+$/ })
+        .first()
+        .textContent()) ?? ''
+    ).trim();
+
+    expect(currentWeekSelectedDayNumber).toBe(initialSelectedDayNumber);
+    await expect(nextButton).toBeDisabled();
 
     await expect(page).toHaveURL(/week=/);
   });
