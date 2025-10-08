@@ -1,7 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 import { AddressInfo, createServer } from 'node:net';
 
-async function findAvailablePort(preferredPort: number): Promise<number> {
+const previewHost = process.env.E2E_HOST ?? '127.0.0.1';
+
+async function findAvailablePort(preferredPort: number, host: string): Promise<number> {
   return new Promise<number>((resolve, reject) => {
     const tester = createServer();
     tester.unref();
@@ -23,13 +25,13 @@ async function findAvailablePort(preferredPort: number): Promise<number> {
       const fallbackServer = createServer();
       fallbackServer.unref();
       fallbackServer.once('error', reject);
-      fallbackServer.listen(0, '127.0.0.1', () => {
+      fallbackServer.listen(0, host, () => {
         const address = fallbackServer.address() as AddressInfo;
         fallbackServer.close(() => resolve(address.port));
       });
     });
 
-    tester.listen(preferredPort, '127.0.0.1', () => {
+    tester.listen(preferredPort, host, () => {
       const address = tester.address() as AddressInfo;
       resolveWithPort(address.port);
     });
@@ -37,12 +39,12 @@ async function findAvailablePort(preferredPort: number): Promise<number> {
 }
 
 const preferredPort = Number.parseInt(process.env.E2E_PORT ?? '', 10) || 4173;
-const resolvedPort = await findAvailablePort(preferredPort);
-const baseURL = process.env.E2E_BASE_URL || `http://127.0.0.1:${resolvedPort}`;
+const resolvedPort = await findAvailablePort(preferredPort, previewHost);
+const baseURL = process.env.E2E_BASE_URL || `http://${previewHost}:${resolvedPort}`;
 
 const isCI = Boolean(process.env.CI);
 const workers = isCI ? 2 : undefined;
-const reuseExistingServer = !isCI && resolvedPort === preferredPort;
+const reuseExistingServer = !isCI;
 
 export default defineConfig({
   testDir: './tests',
@@ -50,7 +52,7 @@ export default defineConfig({
   retries: 1,
   ...(typeof workers === 'number' ? { workers } : {}),
   webServer: {
-    command: `npm run build && npm run preview -- --host 127.0.0.1 --port ${resolvedPort}`,
+    command: `npm run build && npm run preview -- --host ${previewHost} --port ${resolvedPort}`,
     url: baseURL,
     reuseExistingServer,
     stdout: 'pipe',
