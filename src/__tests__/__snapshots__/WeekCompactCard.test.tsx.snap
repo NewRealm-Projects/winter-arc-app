@@ -56,13 +56,13 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
       </div>
     </div>
     <div
-      class="mt-4 flex flex-nowrap items-center justify-center gap-3 overflow-x-auto scroll-smooth no-scrollbar sm:grid sm:grid-cols-7 sm:items-stretch sm:justify-start sm:overflow-visible"
+      class="mt-4 flex flex-nowrap items-center justify-center gap-2 overflow-x-auto scroll-smooth no-scrollbar sm:grid sm:grid-cols-7 sm:items-stretch sm:justify-start sm:overflow-visible sm:gap-3"
     >
       <button
         aria-label="Monday · 80%
 💧 2.6/2.5L · 🥩 150/150g · 💤"
         aria-pressed="false"
-        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
+        class="group relative flex flex-col items-center gap-1.5 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
         title="Monday · 80%
 💧 2.6/2.5L · 🥩 150/150g · 💤"
         type="button"
@@ -73,7 +73,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
           Mon
         </span>
         <div
-          class="relative flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200  "
+          class="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200 sm:h-16 sm:w-16  "
         >
           <svg
             class="absolute inset-0 h-full w-full -rotate-90"
@@ -85,7 +85,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
+              r="21"
               stroke-width="4"
             />
             <circle
@@ -93,21 +93,21 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
-              stroke-dasharray="138.23007675795088"
-              stroke-dashoffset="27.64601535159018"
+              r="21"
+              stroke-dasharray="131.94689145077132"
+              stroke-dashoffset="26.38937829015427"
               stroke-linecap="round"
               stroke-width="4"
             />
           </svg>
           <span
-            class="relative text-sm font-semibold text-white"
+            class="relative text-xs font-semibold text-white sm:text-sm"
           >
             80
             %
           </span>
           <span
-            class="absolute bottom-1 text-[10px] font-medium text-white/50"
+            class="absolute bottom-1 text-[9px] font-medium text-white/50 sm:text-[10px]"
           >
             8
           </span>
@@ -122,7 +122,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
         aria-label="Tuesday · 61%
 💧 1.8/2.5L · 🥩 120/150g · 💤"
         aria-pressed="false"
-        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
+        class="group relative flex flex-col items-center gap-1.5 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
         title="Tuesday · 61%
 💧 1.8/2.5L · 🥩 120/150g · 💤"
         type="button"
@@ -133,7 +133,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
           Tue
         </span>
         <div
-          class="relative flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200  "
+          class="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200 sm:h-16 sm:w-16  "
         >
           <svg
             class="absolute inset-0 h-full w-full -rotate-90"
@@ -145,7 +145,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
+              r="21"
               stroke-width="4"
             />
             <circle
@@ -153,21 +153,21 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
-              stroke-dasharray="138.23007675795088"
-              stroke-dashoffset="53.90972993560085"
+              r="21"
+              stroke-dasharray="131.94689145077132"
+              stroke-dashoffset="51.459287665800815"
               stroke-linecap="round"
               stroke-width="4"
             />
           </svg>
           <span
-            class="relative text-sm font-semibold text-white"
+            class="relative text-xs font-semibold text-white sm:text-sm"
           >
             61
             %
           </span>
           <span
-            class="absolute bottom-1 text-[10px] font-medium text-white/50"
+            class="absolute bottom-1 text-[9px] font-medium text-white/50 sm:text-[10px]"
           >
             9
           </span>
@@ -182,7 +182,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
         aria-label="Wednesday · 97%
 💧 2.5/2.5L · 🥩 140/150g · 💪"
         aria-pressed="true"
-        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-[1.04]"
+        class="group relative flex flex-col items-center gap-1.5 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-[1.04]"
         title="Wednesday · 97%
 💧 2.5/2.5L · 🥩 140/150g · 💪"
         type="button"
@@ -193,7 +193,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
           Wed
         </span>
         <div
-          class="relative flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200 ring-2 ring-sky-400/70 ring-offset-2 ring-offset-transparent shadow-[0_8px_18px_rgba(56,189,248,0.35)]"
+          class="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200 sm:h-16 sm:w-16 ring-2 ring-sky-400/70 ring-offset-2 ring-offset-transparent shadow-[0_8px_18px_rgba(56,189,248,0.35)]"
         >
           <svg
             class="absolute inset-0 h-full w-full -rotate-90"
@@ -205,7 +205,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
+              r="21"
               stroke-width="4"
             />
             <circle
@@ -213,21 +213,21 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
-              stroke-dasharray="138.23007675795088"
-              stroke-dashoffset="4.146902302738539"
+              r="21"
+              stroke-dasharray="131.94689145077132"
+              stroke-dashoffset="3.958406743523142"
               stroke-linecap="round"
               stroke-width="4"
             />
           </svg>
           <span
-            class="relative text-sm font-semibold text-white"
+            class="relative text-xs font-semibold text-white sm:text-sm"
           >
             97
             %
           </span>
           <span
-            class="absolute bottom-1 text-[10px] font-medium text-white/50"
+            class="absolute bottom-1 text-[9px] font-medium text-white/50 sm:text-[10px]"
           >
             10
           </span>
@@ -242,7 +242,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
         aria-label="Thursday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         aria-pressed="false"
-        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
+        class="group relative flex flex-col items-center gap-1.5 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
         title="Thursday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         type="button"
@@ -253,7 +253,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
           Thu
         </span>
         <div
-          class="relative flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200  "
+          class="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200 sm:h-16 sm:w-16  "
         >
           <svg
             class="absolute inset-0 h-full w-full -rotate-90"
@@ -265,7 +265,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
+              r="21"
               stroke-width="4"
             />
             <circle
@@ -273,21 +273,21 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
-              stroke-dasharray="138.23007675795088"
-              stroke-dashoffset="138.23007675795088"
+              r="21"
+              stroke-dasharray="131.94689145077132"
+              stroke-dashoffset="131.94689145077132"
               stroke-linecap="round"
               stroke-width="4"
             />
           </svg>
           <span
-            class="relative text-sm font-semibold text-white"
+            class="relative text-xs font-semibold text-white sm:text-sm"
           >
             0
             %
           </span>
           <span
-            class="absolute bottom-1 text-[10px] font-medium text-white/50"
+            class="absolute bottom-1 text-[9px] font-medium text-white/50 sm:text-[10px]"
           >
             11
           </span>
@@ -297,7 +297,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
         aria-label="Friday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         aria-pressed="false"
-        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
+        class="group relative flex flex-col items-center gap-1.5 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
         title="Friday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         type="button"
@@ -308,7 +308,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
           Fri
         </span>
         <div
-          class="relative flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200  "
+          class="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200 sm:h-16 sm:w-16  "
         >
           <svg
             class="absolute inset-0 h-full w-full -rotate-90"
@@ -320,7 +320,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
+              r="21"
               stroke-width="4"
             />
             <circle
@@ -328,21 +328,21 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
-              stroke-dasharray="138.23007675795088"
-              stroke-dashoffset="138.23007675795088"
+              r="21"
+              stroke-dasharray="131.94689145077132"
+              stroke-dashoffset="131.94689145077132"
               stroke-linecap="round"
               stroke-width="4"
             />
           </svg>
           <span
-            class="relative text-sm font-semibold text-white"
+            class="relative text-xs font-semibold text-white sm:text-sm"
           >
             0
             %
           </span>
           <span
-            class="absolute bottom-1 text-[10px] font-medium text-white/50"
+            class="absolute bottom-1 text-[9px] font-medium text-white/50 sm:text-[10px]"
           >
             12
           </span>
@@ -352,7 +352,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
         aria-label="Saturday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         aria-pressed="false"
-        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
+        class="group relative flex flex-col items-center gap-1.5 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
         title="Saturday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         type="button"
@@ -363,7 +363,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
           Sat
         </span>
         <div
-          class="relative flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200  "
+          class="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200 sm:h-16 sm:w-16  "
         >
           <svg
             class="absolute inset-0 h-full w-full -rotate-90"
@@ -375,7 +375,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
+              r="21"
               stroke-width="4"
             />
             <circle
@@ -383,21 +383,21 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
-              stroke-dasharray="138.23007675795088"
-              stroke-dashoffset="138.23007675795088"
+              r="21"
+              stroke-dasharray="131.94689145077132"
+              stroke-dashoffset="131.94689145077132"
               stroke-linecap="round"
               stroke-width="4"
             />
           </svg>
           <span
-            class="relative text-sm font-semibold text-white"
+            class="relative text-xs font-semibold text-white sm:text-sm"
           >
             0
             %
           </span>
           <span
-            class="absolute bottom-1 text-[10px] font-medium text-white/50"
+            class="absolute bottom-1 text-[9px] font-medium text-white/50 sm:text-[10px]"
           >
             13
           </span>
@@ -407,7 +407,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
         aria-label="Sunday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         aria-pressed="false"
-        class="group relative flex flex-shrink-0 flex-col items-center gap-2 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
+        class="group relative flex flex-col items-center gap-1.5 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent transition-transform duration-200 scale-100"
         title="Sunday · 0%
 💧 0/2.5L · 🥩 0/150g · 💤"
         type="button"
@@ -418,7 +418,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
           Sun
         </span>
         <div
-          class="relative flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200  "
+          class="relative flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5 transition-shadow duration-200 sm:h-16 sm:w-16  "
         >
           <svg
             class="absolute inset-0 h-full w-full -rotate-90"
@@ -430,7 +430,7 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
+              r="21"
               stroke-width="4"
             />
             <circle
@@ -438,21 +438,21 @@ exports[`WeekCompactCard > renders the week overview without NaN values 1`] = `
               cx="24"
               cy="24"
               fill="none"
-              r="22"
-              stroke-dasharray="138.23007675795088"
-              stroke-dashoffset="138.23007675795088"
+              r="21"
+              stroke-dasharray="131.94689145077132"
+              stroke-dashoffset="131.94689145077132"
               stroke-linecap="round"
               stroke-width="4"
             />
           </svg>
           <span
-            class="relative text-sm font-semibold text-white"
+            class="relative text-xs font-semibold text-white sm:text-sm"
           >
             0
             %
           </span>
           <span
-            class="absolute bottom-1 text-[10px] font-medium text-white/50"
+            class="absolute bottom-1 text-[9px] font-medium text-white/50 sm:text-[10px]"
           >
             14
           </span>
