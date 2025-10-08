@@ -6,6 +6,7 @@ import { ToastProvider } from './components/ui/ToastProvider';
 import { useAuth } from './hooks/useAuth';
 import { usePagePerf, useNetworkToast } from './hooks/usePagePerf';
 import packageJson from '../package.json';
+import { getRouterBasename } from './lib/router';
 
 const appVersion = packageJson?.version ?? '0.0.0';
 const versionLabel = `v${appVersion}`;
@@ -20,10 +21,13 @@ function App() {
   // Show network status toasts
   useNetworkToast();
 
+  const routerBaseName = getRouterBasename(import.meta.env.BASE_URL);
+
   return (
     <ToastProvider>
       <ErrorBoundary>
         <BrowserRouter
+          basename={routerBaseName}
           future={{
             v7_startTransition: true,
             v7_relativeSplatPath: true
