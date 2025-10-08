@@ -107,19 +107,33 @@ export function isInVariant(
 /**
  * Get or create anonymous user ID for experiments
  */
+function getRandomString(length: number): string {
+  const array = new Uint8Array(length);
+  if (typeof window !== "undefined" && window.crypto && window.crypto.getRandomValues) {
+    window.crypto.getRandomValues(array);
+  } else {
+    // fallback for environments without window.crypto (should not happen in a browser)
+    for (let i = 0; i < length; i++) {
+      array[i] = Math.floor(Math.random() * 256); // fallback, but insecure
+    }
+  }
+  // Convert bytes to hex string
+  return Array.from(array, (b) => b.toString(16).padStart(2, '0')).join('').substr(0, length);
+}
+
 function getAnonymousId(): string {
   const STORAGE_KEY = 'experiment_anon_id';
 
   try {
     let anonId = localStorage.getItem(STORAGE_KEY);
     if (!anonId) {
-      anonId = `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      anonId = `anon_${Date.now()}_${getRandomString(9)}`;
       localStorage.setItem(STORAGE_KEY, anonId);
     }
     return anonId;
   } catch {
     // Fallback if localStorage unavailable
-    return `anon_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `anon_${Date.now()}_${getRandomString(9)}`;
   }
 }
 
