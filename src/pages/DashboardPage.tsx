@@ -7,6 +7,7 @@ import TrainingLoadTile from '../components/TrainingLoadTile';
 import StreakMiniCard from '../components/dashboard/StreakMiniCard';
 import WeatherCard from '../components/dashboard/WeatherCard';
 import WeekCompactCard from '../components/dashboard/WeekCompactCard';
+import CheckInButton from '../components/dashboard/CheckInButton';
 import { useState, useEffect } from 'react';
 import { getWeatherForAachen } from '../services/weatherService';
 import { calculateStreak } from '../utils/calculations';
@@ -77,11 +78,16 @@ function DashboardPage() {
     <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe">
       {/* Content */}
       <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0 max-h-[calc(100vh-5rem)] viewport-safe">
-        {/* Top Grid: Streak + Weather - Always side-by-side */}
-        <div className="grid grid-cols-2 gap-2 lg:gap-4 mb-3 animate-fade-in-up">
+        {/* Top Grid: Streak + Check-in + Weather */}
+        <div className="flex flex-col gap-2 lg:gap-4 mb-3 animate-fade-in-up sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
           {/* Streak Card */}
           <div>
             <StreakMiniCard days={streak} />
+          </div>
+
+          {/* Check-in Button */}
+          <div className="sm:flex sm:items-stretch sm:justify-center">
+            <CheckInButton />
           </div>
 
           {/* Weather Card */}
@@ -105,6 +111,11 @@ function DashboardPage() {
           <WeekCompactCard />
         </div>
 
+        {/* Training Load Tile */}
+        <div className="mb-3 animate-fade-in-up delay-200">
+          <TrainingLoadTile />
+        </div>
+
         {/* Tracking Tiles - Dynamically rendered based on enabled activities */}
         <div className="mobile-stack animate-fade-in-up delay-300">
           {/* Render tiles in pairs for desktop 2-column layout */}
@@ -114,7 +125,6 @@ function DashboardPage() {
             if (enabledActivities.includes('sports')) tiles.push(<SportTile key="sports" />);
             if (enabledActivities.includes('water')) tiles.push(<WaterTile key="water" />);
             if (enabledActivities.includes('protein')) tiles.push(<ProteinTile key="protein" />);
-            tiles.push(<TrainingLoadTile key="training-load" />);
 
             // Group tiles into pairs for tile-grid-2 layout
             const tileGroups = [];
