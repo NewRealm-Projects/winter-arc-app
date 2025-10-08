@@ -97,7 +97,7 @@ export interface DayCompletionResult {
 }
 
 export function resolveWaterGoal(
-  user?: Pick<User, 'weight' | 'hydrationGoalLiters'> | null
+  user?: Partial<Pick<User, 'weight' | 'hydrationGoalLiters'>> | null
 ): number {
   if (user?.hydrationGoalLiters && Number.isFinite(user.hydrationGoalLiters) && user.hydrationGoalLiters > 0) {
     return Math.round(user.hydrationGoalLiters * 1000);
@@ -111,7 +111,7 @@ export function resolveWaterGoal(
 }
 
 export function resolveProteinGoal(
-  user?: Pick<User, 'weight' | 'proteinGoalGrams'> | null
+  user?: Partial<Pick<User, 'weight' | 'proteinGoalGrams'>> | null
 ): number {
   if (user?.proteinGoalGrams && Number.isFinite(user.proteinGoalGrams) && user.proteinGoalGrams > 0) {
     return Math.round(user.proteinGoalGrams);
@@ -210,6 +210,93 @@ export function getDayCompletion({
     weight: {
       logged: hasWeightValue,
     },
+  };
+}
+
+export interface DayProgressSummary {
+  readonly tasksCompleted: number;
+  readonly tasksTotal: number;
+  readonly percent: number;
+  readonly streakMet: boolean;
+}
+
+interface DayTaskSummaryInput {
+  readonly tracking?: Partial<DailyTracking>;
+  readonly user?:
+    | Partial<
+        Pick<
+          User,
+          'weight' | 'hydrationGoalLiters' | 'proteinGoalGrams' | 'enabledActivities'
+        >
+      >
+    | null;
+  readonly enabledActivities?: Activity[];
+}
+
+const DEFAULT_ENABLED_ACTIVITIES: Activity[] = [
+  'pushups',
+  'sports',
+  'water',
+  'protein',
+];
+
+function resolveEnabledActivities(
+  input?: Pick<User, 'enabledActivities'> | null,
+  override?: Activity[]
+): Activity[] {
+  if (override && override.length > 0) {
+    return override;
+  }
+  if (input?.enabledActivities && input.enabledActivities.length > 0) {
+    return input.enabledActivities;
+  }
+  return DEFAULT_ENABLED_ACTIVITIES;
+}
+
+export function getDayProgressSummary({
+  tracking,
+  user,
+  enabledActivities,
+}: DayTaskSummaryInput): DayProgressSummary {
+  const safeTracking = tracking ?? {};
+  const resolvedActivities = resolveEnabledActivities(user ?? undefined, enabledActivities);
+  const activitySet = new Set<Activity>(resolvedActivities);
+
+  const waterGoal = resolveWaterGoal(user);
+  const proteinGoal = resolveProteinGoal(user);
+  const sportsCount = countActiveSports(safeTracking.sports);
+  const pushupsDone = Boolean(safeTracking.pushups?.total && safeTracking.pushups.total > 0);
+  const waterDone = activitySet.has('water')
+    ? Number.isFinite(safeTracking.water) && (safeTracking.water ?? 0) >= waterGoal && waterGoal > 0
+    : false;
+  const proteinDone = activitySet.has('protein')
+    ? Number.isFinite(safeTracking.protein) && (safeTracking.protein ?? 0) >= proteinGoal && proteinGoal > 0
+    : false;
+  const movementEnabled = activitySet.has('pushups') || activitySet.has('sports');
+  const movementDone = movementEnabled ? pushupsDone || sportsCount > 0 : false;
+
+  const tasks = [
+    { enabled: activitySet.has('water'), completed: waterDone },
+    { enabled: activitySet.has('protein') && proteinGoal > 0, completed: proteinDone },
+    { enabled: movementEnabled, completed: movementDone },
+  ];
+
+  const tasksTotal = tasks.reduce((total, task) => (task.enabled ? total + 1 : total), 0);
+  const tasksCompleted = tasks.reduce(
+    (total, task) => (task.enabled && task.completed ? total + 1 : total),
+    0
+  );
+
+  const percent = Math.round(
+    (tasksCompleted / Math.max(1, tasksTotal)) * 100
+  );
+  const streakMet = percent >= STREAK_COMPLETION_THRESHOLD;
+
+  return {
+    tasksCompleted,
+    tasksTotal,
+    percent,
+    streakMet,
   };
 }
 

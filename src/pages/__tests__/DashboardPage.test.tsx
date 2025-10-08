@@ -1,4 +1,4 @@
-import { renderWithProviders, screen, fireEvent } from 'test/test-utils';
+import { renderWithProviders, screen } from 'test/test-utils';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { todayKey } from '../../lib/date';
 
@@ -43,18 +43,14 @@ vi.mock('../../components/WeightTile', () => ({
   default: () => <div data-testid="weight-tile" />,
 }));
 
-vi.mock('../../components/dashboard/WeekCirclesCard', () => ({
-  default: () => <div data-testid="week-circles-card" />,
+vi.mock('../../components/dashboard/WeeklyTile', () => ({
+  default: () => <div data-testid="weekly-tile" />,
 }));
 
 vi.mock('../../components/TrainingLoadTile', () => ({
   default: () => <div data-testid="training-load-tile" />,
 }));
 
-vi.mock('../../components/checkin/CheckInModal', () => ({
-  default: ({ isOpen }: { isOpen: boolean }) =>
-    isOpen ? <div data-testid="check-in-modal">open</div> : null,
-}));
 
 let DashboardPage: typeof import('../DashboardPage').default;
 
@@ -114,18 +110,7 @@ describe('DashboardPage', () => {
     expect(layout.className).toContain('md:gap-4');
 
     expect(screen.getByTestId('dashboard-page')).toBeInTheDocument();
-    expect(screen.getByTestId('week-compact-card')).toBeInTheDocument();
+    expect(screen.getByTestId('weekly-tile')).toBeInTheDocument();
     expect(screen.getByTestId('training-load-tile')).toBeInTheDocument();
-    expect(screen.getByTestId('header-summary-card')).toBeInTheDocument();
-    expect(screen.getByTestId('header-streak-value')).toHaveTextContent('2');
-  });
-
-  it('opens check-in modal from header button', async () => {
-    renderWithProviders(<DashboardPage />);
-
-    const button = await screen.findByRole('button', { name: /check-in/i });
-    fireEvent.click(button);
-
-    expect(screen.getByTestId('check-in-modal')).toBeInTheDocument();
   });
 });
