@@ -1,5 +1,40 @@
+import { FirebaseError } from 'firebase/app';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '../firebase/config';
+import { auth, storage } from '../firebase/config';
+
+type UploadResult = { success: boolean; url?: string; error?: string };
+type DeleteResult = { success: boolean; error?: string };
+
+function mapUploadError(error: unknown): UploadResult {
+  if (error instanceof FirebaseError) {
+    return { success: false, error: error.code };
+  }
+
+  if (error instanceof Error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: false, error: 'unknown_error' };
+}
+
+function validateCurrentUser(userId: string): UploadResult {
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    console.warn('❌ Profile picture upload attempted without authenticated user');
+    return { success: false, error: 'auth_required' };
+  }
+
+  if (currentUser.uid !== userId) {
+    console.warn('❌ Profile picture upload attempted for different user', {
+      requestedUserId: userId,
+      currentUserId: currentUser.uid,
+    });
+    return { success: false, error: 'user_mismatch' };
+  }
+
+  return { success: true };
+}
 
 /**
  * Downloads an image from a URL and uploads it to Firebase Storage
@@ -10,8 +45,13 @@ import { storage } from '../firebase/config';
 export async function uploadProfilePictureFromUrl(
   imageUrl: string,
   userId: string
-): Promise<{ success: boolean; url?: string; error?: string }> {
+): Promise<UploadResult> {
   try {
+    const authCheck = validateCurrentUser(userId);
+    if (!authCheck.success) {
+      return authCheck;
+    }
+
     console.log('📥 Downloading profile picture from URL...');
 
     // Fetch the image with no-cors mode as fallback
@@ -47,9 +87,7 @@ export async function uploadProfilePictureFromUrl(
     return { success: true, url: downloadURL };
   } catch (error) {
     console.error('❌ Error uploading profile picture:', error);
-    // Return error details for better debugging
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return { success: false, error: errorMessage };
+    return mapUploadError(error);
   }
 }
 
@@ -59,8 +97,13 @@ export async function uploadProfilePictureFromUrl(
 export async function uploadProfilePictureFile(
   file: File,
   userId: string
-): Promise<{ success: boolean; url?: string; error?: string }> {
+): Promise<UploadResult> {
   try {
+    const authCheck = validateCurrentUser(userId);
+    if (!authCheck.success) {
+      return authCheck;
+    }
+
     const storageRef = ref(storage, `profile-pictures/${userId}.jpg`);
 
     await uploadBytes(storageRef, file, {
@@ -72,7 +115,7 @@ export async function uploadProfilePictureFile(
     return { success: true, url: downloadURL };
   } catch (error) {
     console.error('❌ Error uploading profile picture file:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    return mapUploadError(error);
   }
 }
 
@@ -82,7 +125,7 @@ export async function uploadProfilePictureFile(
  */
 export async function deleteProfilePicture(
   userId: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<DeleteResult> {
   try {
     const storageRef = ref(storage, `profile-pictures/${userId}.jpg`);
     await deleteObject(storageRef);

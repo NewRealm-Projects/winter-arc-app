@@ -146,10 +146,42 @@ function SettingsPage() {
     setIsUploadingPhoto(true);
 
     try {
+      const currentUser = auth.currentUser;
+
+      if (!currentUser) {
+        alert(t('settings.profilePictureAuthRequired'));
+        return;
+      }
+
+      if (currentUser.uid !== user.id) {
+        alert(t('settings.profilePictureUnauthorized'));
+        return;
+      }
+
       const { uploadProfilePictureFile } = await import('../services/storageService');
       const uploadResult = await uploadProfilePictureFile(file, user.id);
 
       if (!uploadResult.success || !uploadResult.url) {
+        if (uploadResult.error === 'auth_required') {
+          alert(t('settings.profilePictureAuthRequired'));
+          return;
+        }
+
+        if (uploadResult.error === 'user_mismatch') {
+          alert(t('settings.profilePictureUnauthorized'));
+          return;
+        }
+
+        if (uploadResult.error === 'storage/unauthenticated') {
+          alert(t('settings.profilePictureAuthRequired'));
+          return;
+        }
+
+        if (uploadResult.error === 'storage/unauthorized') {
+          alert(t('settings.profilePictureUnauthorized'));
+          return;
+        }
+
         throw new Error(uploadResult.error || 'upload_failed');
       }
 
