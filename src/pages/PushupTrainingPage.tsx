@@ -14,8 +14,12 @@ import {
 import { useCombinedTracking } from '../hooks/useCombinedTracking';
 import { combineTrackingWithSmart } from '../utils/tracking';
 import { glassCardClasses, designTokens } from '../theme/tokens';
+import { useTrackingEntries } from '../hooks/useTrackingEntries';
+import { useTranslation } from '../hooks/useTranslation';
 
 function PushupTrainingPage() {
+  const { t } = useTranslation();
+  const { error: trackingError, retry: retryTracking } = useTrackingEntries();
   const navigate = useNavigate();
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
@@ -54,6 +58,23 @@ function PushupTrainingPage() {
   const headlineCardClasses = `${glassCardClasses} ${designTokens.padding.compact} text-white flex items-center gap-3`;
   const statsCardClasses = `${glassCardClasses} ${designTokens.padding.spacious} text-white space-y-6`;
   const motivationCardClasses = `${glassCardClasses} ${designTokens.padding.compact} text-white text-center space-y-2`;
+
+  const trackingPermissionNotice = trackingError ? (
+    <div className="rounded-3xl border border-amber-300/30 bg-amber-500/10 p-4 text-amber-100 shadow-[0_8px_20px_rgba(245,158,11,0.2)]">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <p className="text-sm font-medium">
+          {trackingError === 'no-permission' ? t('tracking.permissionDeniedMessage') : t('tracking.unavailableMessage')}
+        </p>
+        <button
+          type="button"
+          onClick={retryTracking}
+          className="self-start rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors hover:border-white/40 hover:bg-white/10 md:self-auto"
+        >
+          {t('common.retry')}
+        </button>
+      </div>
+    </div>
+  ) : null;
 
   // Start countdown timer
   useEffect(() => {
@@ -155,6 +176,7 @@ function PushupTrainingPage() {
     return (
       <div className={containerClasses}>
         <div className={contentClasses}>
+          {trackingPermissionNotice}
           <header className={headlineCardClasses}>
             <button
               onClick={() => { navigate(-1); }}
@@ -246,7 +268,8 @@ function PushupTrainingPage() {
   if (!isStarted) {
     return (
       <div className={containerClasses}>
-        <div className="mobile-container dashboard-container safe-pb px-3 pt-10 md:px-6 md:pt-16 lg:px-0 flex items-center justify-center">
+        <div className="mobile-container dashboard-container safe-pb px-3 pt-10 md:px-6 md:pt-16 lg:px-0 flex flex-col items-center gap-4">
+          {trackingPermissionNotice}
           <div className={`${glassCardClasses} ${designTokens.padding.spacious} text-white text-center space-y-4 animate-fade-in`}>
             <div className="text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-winter-200 via-winter-100 to-winter-300">
               {startCountdown}
@@ -261,6 +284,7 @@ function PushupTrainingPage() {
   return (
     <div className={containerClasses}>
       <div className={contentClasses}>
+        {trackingPermissionNotice}
         <header className={`${headlineCardClasses} justify-between`}>
           <button
             onClick={() => { navigate(-1); }}

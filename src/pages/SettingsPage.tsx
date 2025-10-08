@@ -1,12 +1,14 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import * as Sentry from '@sentry/react';
+import { auth } from '../firebase';
 import { auth } from '../firebase/config';
 import { useStore } from '../store/useStore';
 import { Language, Activity } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { glassCardClasses, glassCardHoverClasses, designTokens } from '../theme/tokens';
+import { SentryErrorButton } from '../components/SentryErrorButton';
 
 type SectionId = 'general' | 'profile' | 'account';
 
@@ -218,16 +220,6 @@ function SettingsPage() {
     } finally {
       setShowGroupInput(false);
       setGroupCode('');
-    }
-  };
-
-  const handleTestError = () => {
-    try {
-      console.warn('🧪 Testing Sentry error capture...');
-      throw new Error('Test error for Sentry - triggered from Settings page');
-    } catch (error) {
-      Sentry.captureException(error);
-      alert('Test-Fehler wurde an Sentry gesendet! Prüfe dein Sentry Dashboard.');
     }
   };
 
@@ -1101,19 +1093,24 @@ function SettingsPage() {
                 {import.meta.env.DEV && (
                   <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} border border-yellow-300/40 bg-yellow-500/10 text-yellow-50`}>
                     <div className="flex flex-col gap-4">
-                      <h2 className="flex items-center gap-2 text-lg font-semibold">
-                        <span aria-hidden="true">🧪</span>
-                        Debug Tools
-                      </h2>
-                      <button
-                        type="button"
-                        onClick={handleTestError}
+                      <div>
+                        <h2 className="flex items-center gap-2 text-lg font-semibold">
+                          <span aria-hidden="true">🧪</span>
+                          {t('settings.debugToolsTitle')}
+                        </h2>
+                        <p className="text-sm text-yellow-100/80">{t('settings.debugToolsDescription')}</p>
+                      </div>
+                      <SentryErrorButton
+                        label={t('settings.debugToolsTrigger')}
+                        errorMessage={t('settings.debugToolsErrorMessage')}
                         className="rounded-xl border border-yellow-200/40 bg-yellow-400/20 px-4 py-3 text-left text-sm font-semibold text-yellow-50 transition hover:border-yellow-200/60 hover:bg-yellow-400/30"
-                      >
-                        Test Sentry Error Tracking
-                      </button>
+                      />
                       <div className="text-xs text-yellow-100/80">
-                        Sentry Status: {import.meta.env.VITE_SENTRY_DSN ? '✅ Konfiguriert' : '⚠️ Nicht konfiguriert'}
+                        {t('settings.debugToolsStatus', {
+                          status: import.meta.env.VITE_SENTRY_DSN
+                            ? t('settings.debugToolsStatusConfigured')
+                            : t('settings.debugToolsStatusMissing'),
+                        })}
                       </div>
                     </div>
                   </section>

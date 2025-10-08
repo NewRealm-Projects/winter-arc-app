@@ -5,16 +5,16 @@ import WaterTile from '../components/WaterTile';
 import ProteinTile from '../components/ProteinTile';
 import WeightTile from '../components/WeightTile';
 import TrainingLoadTile from '../components/TrainingLoadTile';
-import WeekCirclesCard from '../components/dashboard/WeekCirclesCard';
 import { useTracking } from '../hooks/useTracking';
 import { useWeeklyTop3 } from '../hooks/useWeeklyTop3';
 import { useStore } from '../store/useStore';
-import HeaderSummaryCard from '../components/header/HeaderSummaryCard';
 import { WeekProvider } from '../contexts/WeekContext';
-import WeekOverview from '../components/WeekOverview';
+import WeeklyTile from '../components/dashboard/WeeklyTile';
 
 function DashboardPage() {
+  const { t } = useTranslation();
   const user = useStore((state) => state.user);
+  const { error: trackingError, retry: retryTracking } = useTrackingEntries();
 
   // Auto-save tracking data to Firebase
   useTracking();
@@ -33,18 +33,27 @@ function DashboardPage() {
             className="flex flex-col gap-3 md:gap-4"
             data-testid="dashboard-content-sections"
           >
+            {trackingError && (
+              <div className="rounded-3xl border border-amber-300/30 bg-amber-500/10 p-4 text-amber-100 shadow-[0_8px_20px_rgba(245,158,11,0.2)]">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <p className="text-sm font-medium">
+                    {trackingError === 'no-permission'
+                      ? t('tracking.permissionDeniedMessage')
+                      : t('tracking.unavailableMessage')}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={retryTracking}
+                    className="self-start rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors hover:border-white/40 hover:bg-white/10 md:self-auto"
+                  >
+                    {t('common.retry')}
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="animate-fade-in-up">
-              <HeaderSummaryCard />
-            </div>
-
-            {/* Week Compact Card */}
-            <div className="animate-fade-in-up delay-100">
-              <WeekOverview />
-            </div>
-
-            {/* Week Circles Card */}
-            <div className="mb-3 animate-fade-in-up delay-150">
-              <WeekCirclesCard />
+              <WeeklyTile />
             </div>
             {/* Training Load Tile */}
             <div className="animate-fade-in-up delay-150">

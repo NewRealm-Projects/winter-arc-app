@@ -1,5 +1,5 @@
 import { doc, setDoc, getDoc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { db } from '../firebase';
 import type { User, DailyTracking, GroupMember, TrackingRecord } from '../types';
 import { countActiveSports } from '../utils/sports';
 
@@ -79,7 +79,7 @@ export async function updateUser(userId: string, updates: Partial<Omit<User, 'id
 // Tracking operations
 export async function saveDailyTracking(userId: string, date: string, tracking: DailyTracking) {
   try {
-    const trackingRef = doc(db, 'tracking', userId, 'days', date);
+    const trackingRef = doc(db, 'tracking', userId, 'entries', date);
     const sanitizedTracking = sanitizeForFirestore(tracking);
     await setDoc(trackingRef, sanitizedTracking);
     return { success: true };
@@ -91,7 +91,7 @@ export async function saveDailyTracking(userId: string, date: string, tracking: 
 
 export async function getDailyTracking(userId: string, date: string) {
   try {
-    const trackingRef = doc(db, 'tracking', userId, 'days', date);
+    const trackingRef = doc(db, 'tracking', userId, 'entries', date);
     const trackingDoc = await getDoc(trackingRef);
 
     if (trackingDoc.exists()) {
@@ -106,7 +106,7 @@ export async function getDailyTracking(userId: string, date: string) {
 
 export async function getTrackingRange(userId: string, startDate: string, endDate: string) {
   try {
-    const trackingRef = collection(db, 'tracking', userId, 'days');
+    const trackingRef = collection(db, 'tracking', userId, 'entries');
     const q = query(
       trackingRef,
       where('date', '>=', startDate),
@@ -181,7 +181,7 @@ export async function getGroupMembers(groupCode: string, startDate?: Date, endDa
           if (!result.success || !result.data) return null;
 
           // Fetch all tracking data for this member
-          const trackingCollectionRef = collection(db, 'tracking', memberId, 'days');
+          const trackingCollectionRef = collection(db, 'tracking', memberId, 'entries');
           const trackingSnapshot = await getDocs(trackingCollectionRef);
 
           const allTrackingData: TrackingRecord = {};
