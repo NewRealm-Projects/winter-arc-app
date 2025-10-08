@@ -5,11 +5,13 @@ import WaterTile from '../components/WaterTile';
 import ProteinTile from '../components/ProteinTile';
 import WeightTile from '../components/WeightTile';
 import TrainingLoadTile from '../components/TrainingLoadTile';
+import WeeklyTile from '../components/dashboard/WeeklyTile';
+import { WeekProvider } from '../contexts/WeekContext';
+import { useTrackingEntries } from '../hooks/useTrackingEntries';
+import { useTranslation } from '../hooks/useTranslation';
 import { useTracking } from '../hooks/useTracking';
 import { useWeeklyTop3 } from '../hooks/useWeeklyTop3';
 import { useStore } from '../store/useStore';
-import { WeekProvider } from '../contexts/WeekContext';
-import WeeklyTile from '../components/dashboard/WeeklyTile';
 
 function DashboardPage() {
   const { t } = useTranslation();

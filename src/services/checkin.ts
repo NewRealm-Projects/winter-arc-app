@@ -16,7 +16,7 @@ import {
   where,
 } from 'firebase/firestore';
 import packageJson from '../../package.json';
-import { auth, db } from '../firebase/config';
+import { auth, db } from '../firebase';
 import type { DailyTracking, DailyCheckIn, DailyTrainingLoad, User } from '../types';
 import {
   buildWorkoutEntriesFromTracking,
