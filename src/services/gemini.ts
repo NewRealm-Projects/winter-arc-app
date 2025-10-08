@@ -147,10 +147,15 @@ export async function summarizeAndValidate(
                   ts: { type: SchemaType.NUMBER },
                   kind: {
                     type: SchemaType.STRING,
+                    format: 'enum',
                     enum: ['drink', 'protein', 'pushups', 'workout', 'rest', 'weight', 'bfp', 'food'],
                   },
                   confidence: { type: SchemaType.NUMBER },
-                  source: { type: SchemaType.STRING, enum: ['heuristic', 'llm'] },
+                  source: {
+                    type: SchemaType.STRING,
+                    format: 'enum',
+                    enum: ['heuristic', 'llm'],
+                  },
                 },
                 required: ['id', 'ts', 'kind', 'confidence', 'source'],
               },
