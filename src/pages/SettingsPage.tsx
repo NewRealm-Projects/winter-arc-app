@@ -207,7 +207,7 @@ function SettingsPage() {
 
   const handleTestError = () => {
     try {
-      console.log('🧪 Testing Sentry error capture...');
+      console.warn('🧪 Testing Sentry error capture...');
       throw new Error('Test error for Sentry - triggered from Settings page');
     } catch (error) {
       Sentry.captureException(error);
@@ -224,7 +224,7 @@ function SettingsPage() {
         if (permission === 'granted') {
           setNotificationsEnabled(true);
           scheduleNotification(notificationTime);
-          console.log('✅ Benachrichtigungen aktiviert für', notificationTime);
+          console.warn('✅ Benachrichtigungen aktiviert für', notificationTime);
         } else if (permission === 'denied') {
           alert('❌ Benachrichtigungs-Berechtigung wurde verweigert. Bitte erlaube Benachrichtigungen in deinen Browser-Einstellungen.');
         } else {
@@ -236,7 +236,7 @@ function SettingsPage() {
     } else {
       // Disable notifications
       setNotificationsEnabled(false);
-      console.log('🔕 Benachrichtigungen deaktiviert');
+      console.warn('🔕 Benachrichtigungen deaktiviert');
     }
   };
 
@@ -266,7 +266,7 @@ function SettingsPage() {
       }
     }, timeUntilNotification);
 
-    console.log(`🔔 Benachrichtigung geplant für ${scheduledTime.toLocaleString()}`);
+    console.warn(`🔔 Benachrichtigung geplant für ${scheduledTime.toLocaleString()}`);
   };
 
   const sendTestNotification = () => {
@@ -276,7 +276,7 @@ function SettingsPage() {
         icon: '/icon-192.png',
         badge: '/icon-192.png',
       });
-      console.log('📬 Test-Benachrichtigung gesendet');
+      console.warn('📬 Test-Benachrichtigung gesendet');
     } else {
       alert('❌ Benachrichtigungen sind nicht aktiviert oder die Berechtigung wurde verweigert.');
     }

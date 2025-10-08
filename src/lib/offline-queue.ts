@@ -54,7 +54,7 @@ export async function queueMutation(type: string, data: unknown): Promise<void> 
     };
 
     await store.add(mutation);
-    console.info('[Offline Queue] Mutation queued:', type);
+    console.warn('[Offline Queue] Mutation queued:', type);
   } catch (error) {
     console.error('[Offline Queue] Failed to queue mutation:', error);
   }
@@ -128,7 +128,7 @@ export async function processQueue(
     try {
       await handler(mutation.type, mutation.data);
       await removeMutation(mutation.id);
-      console.info('[Offline Queue] Mutation processed:', mutation.type);
+      console.warn('[Offline Queue] Mutation processed:', mutation.type);
     } catch (error) {
       const newRetryCount = mutation.retries + 1;
 

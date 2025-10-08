@@ -55,7 +55,7 @@ export function useWeeklyTop3() {
 
           // Mark as saved in localStorage
           localStorage.setItem(storageKey, 'true');
-          console.log('✅ Weekly Top 3 saved:', { weekStartKey, top3UserIds });
+          console.warn('✅ Weekly Top 3 saved:', { weekStartKey, top3UserIds });
         }
       } catch (error) {
         console.error('Error saving weekly top 3:', error);
