@@ -1,3 +1,5 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig, type PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -86,6 +88,11 @@ if (shouldUploadSourcemaps) {
 export default defineConfig({
   base: '/',
   plugins,
+  resolve: {
+    alias: {
+      '@': path.resolve(fileURLToPath(new URL('./src', import.meta.url))),
+    },
+  },
   build: {
     sourcemap: shouldUploadSourcemaps,
     rollupOptions: {
