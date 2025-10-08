@@ -1,21 +1,10 @@
-import { ReactElement, ReactNode } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { MemoryRouter, MemoryRouterProps } from 'react-router-dom';
 import { render, RenderOptions } from '@testing-library/react';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 
 interface ProvidersProps {
   children: ReactNode;
-  route?: string;
-  routerProps?: Omit<MemoryRouterProps, 'children'>;
-}
-
-function Providers({ children, route = '/', routerProps }: ProvidersProps) {
-  const initialEntries = routerProps?.initialEntries ?? [route];
-  return (
-    <MemoryRouter {...routerProps} initialEntries={initialEntries}>
-      <ThemeProvider>{children}</ThemeProvider>
-    </MemoryRouter>
-  );
 }
 
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
@@ -27,14 +16,18 @@ export function renderWithProviders(
   ui: ReactElement,
   { route = '/', routerProps, ...options }: CustomRenderOptions = {}
 ) {
+  const initialEntries = routerProps?.initialEntries ?? [route];
+
   return render(ui, {
-    wrapper: ({ children }) => (
-      <Providers route={route} routerProps={routerProps}>
-        {children}
-      </Providers>
-    ),
+    wrapper: function ProvidersWrapper({ children }: ProvidersProps) {
+      return (
+        <MemoryRouter {...routerProps} initialEntries={initialEntries}>
+          <ThemeProvider>{children}</ThemeProvider>
+        </MemoryRouter>
+      );
+    },
     ...options,
   });
 }
 
-export * from '@testing-library/react';
+export { fireEvent, screen, waitFor } from '@testing-library/react';
