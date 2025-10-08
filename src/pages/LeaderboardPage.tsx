@@ -19,9 +19,11 @@ import { useTranslation } from '../hooks/useTranslation';
 import type { Activity, GroupMember } from '../types';
 import { useCombinedTracking } from '../hooks/useCombinedTracking';
 import { glassCardClasses, glassCardHoverClasses, designTokens } from '../theme/tokens';
+import { useTrackingEntries } from '../hooks/useTrackingEntries';
 
 function LeaderboardPage() {
   const { t, language } = useTranslation();
+  const { error: trackingError, retry: retryTracking } = useTrackingEntries();
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [leaderboardData, setLeaderboardData] = useState<GroupMember[]>([]);
   const [loading, setLoading] = useState(false);
@@ -234,6 +236,25 @@ function LeaderboardPage() {
     <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe" data-testid="leaderboard-page">
       <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0">
         <div className="flex flex-col gap-3 md:gap-4">
+          {trackingError && (
+            <div className="rounded-3xl border border-amber-300/30 bg-amber-500/10 p-4 text-amber-100 shadow-[0_8px_20px_rgba(245,158,11,0.2)]">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <p className="text-sm font-medium">
+                  {trackingError === 'no-permission'
+                    ? t('tracking.permissionDeniedMessage')
+                    : t('tracking.unavailableMessage')}
+                </p>
+                <button
+                  type="button"
+                  onClick={retryTracking}
+                  className="self-start rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors hover:border-white/40 hover:bg-white/10 md:self-auto"
+                >
+                  {t('common.retry')}
+                </button>
+              </div>
+            </div>
+          )}
+
           <section className={`${glassCardClasses} ${designTokens.padding.spacious} text-white`}>
             <div className="flex flex-col gap-5">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

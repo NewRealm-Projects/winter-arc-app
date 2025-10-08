@@ -48,7 +48,7 @@ if (!('crypto' in globalThis) || !globalThis.crypto?.randomUUID) {
   } as Crypto;
 }
 
-vi.mock('@/firebase/config', () => ({
+vi.mock('@/firebase', () => ({
   auth: { currentUser: null },
   db: {},
   storage: {},

@@ -1,6 +1,6 @@
 import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import packageJson from '../../package.json';
-import { auth, db } from '../firebase/config';
+import { auth, db } from '../firebase';
 import type { DailyTracking, DailyCheckIn, DailyTrainingLoad } from '../types';
 import {
   buildWorkoutEntriesFromTracking,
@@ -22,7 +22,7 @@ export async function saveDailyCheckInAndRecalc(
   const userId = currentUser.uid;
   const checkinRef = doc(db, 'users', userId, 'checkins', dateKey);
   const trainingLoadRef = doc(db, 'users', userId, 'trainingLoad', dateKey);
-  const trackingRef = doc(db, 'tracking', userId, 'days', dateKey);
+  const trackingRef = doc(db, 'tracking', userId, 'entries', dateKey);
 
   const [checkinSnapshot, trainingLoadSnapshot, trackingSnapshot] = await Promise.all([
     getDoc(checkinRef),

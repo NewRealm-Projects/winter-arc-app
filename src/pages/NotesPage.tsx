@@ -405,7 +405,7 @@ function NotesPage() {
   type SubmissionState = { error: string | null };
 
   const [submissionState, submitNote, isSubmitting] = useActionState<SubmissionState, FormData>(
-    async (_previous, formData) => {
+    async (_previous: SubmissionState, formData: FormData) => {
       const rawValue = formData.get('smart-note-input');
       const value = typeof rawValue === 'string' ? rawValue.trim() : '';
 
@@ -467,6 +467,7 @@ function NotesPage() {
 
           <form
             data-testid="smart-note-form"
+            // @ts-expect-error Experimental React action signature not yet available in @types/react
             action={submitNote}
             className={[glassCardHoverClasses, designTokens.padding.spacious, 'flex flex-col gap-4 text-white', 'animate-fade-in-up delay-100'].join(' ')}
           >
@@ -573,7 +574,9 @@ function NotesPage() {
             </div>
           ) : (
             <div data-testid="smart-note-list" className="flex flex-col gap-3">
-              {optimisticNotes.map((note) => <NoteCard key={note.id} note={note} />)}
+              {optimisticNotes.map((note: SmartNote) => (
+                <NoteCard key={note.id} note={note} />
+              ))}
             </div>
           )}
 

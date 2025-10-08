@@ -125,7 +125,7 @@ async function getFirebaseAuth(): Promise<Auth | null> {
   }
 
   try {
-    const module = await import('../firebase/config');
+    const module = await import('../firebase');
     cachedAuth = module.auth;
     return cachedAuth;
   } catch (error) {

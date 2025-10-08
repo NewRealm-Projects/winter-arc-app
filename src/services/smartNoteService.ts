@@ -87,7 +87,7 @@ async function getFirestoreInstance(): Promise<Firestore | null> {
   }
 
   try {
-    const module = await import('../firebase/config');
+    const module = await import('../firebase');
     cachedDb = module.db;
     return cachedDb;
   } catch (error) {
@@ -108,7 +108,7 @@ async function getStorageInstance(): Promise<FirebaseStorage | null> {
   }
 
   try {
-    const module = await import('../firebase/config');
+    const module = await import('../firebase');
     cachedStorage = module.storage;
     return cachedStorage;
   } catch (error) {

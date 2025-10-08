@@ -67,7 +67,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
 
   const handleComplete = async () => {
     // Get current Firebase user
-    const { auth } = await import('../firebase/config');
+    const { auth } = await import('../firebase');
     const currentUser = auth.currentUser;
 
     if (!currentUser) {

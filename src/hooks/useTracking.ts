@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { saveDailyTracking } from '../services/firestoreService';
+import { getLastRemoteTracking } from './useTrackingEntries';
 
 /**
  * Hook that auto-saves tracking data to Firebase when it changes
@@ -11,6 +12,10 @@ export function useTracking() {
 
   useEffect(() => {
     if (!user) return;
+
+    if (tracking === getLastRemoteTracking()) {
+      return;
+    }
 
     // Debounce saving to Firebase (wait 1 second after last change)
     const timeoutId = setTimeout(() => {
