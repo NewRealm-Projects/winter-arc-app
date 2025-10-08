@@ -2,6 +2,7 @@ import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from './routes';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastProvider } from './components/ui/ToastProvider';
 import { useAuth } from './hooks/useAuth';
 import { usePagePerf, useNetworkToast } from './hooks/usePagePerf';
 import packageJson from '../package.json';
@@ -20,20 +21,22 @@ function App() {
   useNetworkToast();
 
   return (
-    <ErrorBoundary>
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true
-        }}
-      >
-        <AppRoutes />
-        <PWAInstallPrompt />
-        <div className="version-bubble" aria-label={`App version ${appVersion}`}>
-          {versionLabel}
-        </div>
-      </BrowserRouter>
-    </ErrorBoundary>
+    <ToastProvider>
+      <ErrorBoundary>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true
+          }}
+        >
+          <AppRoutes />
+          <PWAInstallPrompt />
+          <div className="version-bubble" aria-label={`App version ${appVersion}`}>
+            {versionLabel}
+          </div>
+        </BrowserRouter>
+      </ErrorBoundary>
+    </ToastProvider>
   );
 }
 

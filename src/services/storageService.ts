@@ -5,18 +5,6 @@ import { auth, storage } from '../firebase/config';
 type UploadResult = { success: boolean; url?: string; error?: string };
 type DeleteResult = { success: boolean; error?: string };
 
-function mapUploadError(error: unknown): UploadResult {
-  if (error instanceof FirebaseError) {
-    return { success: false, error: error.code };
-  }
-
-  if (error instanceof Error) {
-    return { success: false, error: error.message };
-  }
-
-  return { success: false, error: 'unknown_error' };
-}
-
 function validateCurrentUser(userId: string): UploadResult {
   const currentUser = auth.currentUser;
 
@@ -47,12 +35,7 @@ export async function uploadProfilePictureFromUrl(
   userId: string
 ): Promise<UploadResult> {
   try {
-    const authCheck = validateCurrentUser(userId);
-    if (!authCheck.success) {
-      return authCheck;
-    }
-
-    console.log('📥 Downloading profile picture from URL...');
+    console.warn('📥 Downloading profile picture from URL...');
 
     // Fetch the image with no-cors mode as fallback
     let response;
@@ -68,13 +51,13 @@ export async function uploadProfilePictureFromUrl(
     }
 
     const blob = await response.blob();
-    console.log('✅ Image downloaded, size:', (blob.size / 1024).toFixed(2), 'KB');
+    console.warn('✅ Image downloaded, size:', (blob.size / 1024).toFixed(2), 'KB');
 
     // Create a reference to Firebase Storage
     const storageRef = ref(storage, `profile-pictures/${userId}.jpg`);
 
     // Upload the image
-    console.log('📤 Uploading to Firebase Storage...');
+    console.warn('📤 Uploading to Firebase Storage...');
     await uploadBytes(storageRef, blob, {
       contentType: 'image/jpeg',
       cacheControl: 'public, max-age=31536000', // Cache for 1 year
@@ -82,7 +65,7 @@ export async function uploadProfilePictureFromUrl(
 
     // Get the download URL
     const downloadURL = await getDownloadURL(storageRef);
-    console.log('✅ Profile picture uploaded successfully');
+    console.warn('✅ Profile picture uploaded successfully');
 
     return { success: true, url: downloadURL };
   } catch (error) {
@@ -129,7 +112,7 @@ export async function deleteProfilePicture(
   try {
     const storageRef = ref(storage, `profile-pictures/${userId}.jpg`);
     await deleteObject(storageRef);
-    console.log('✅ Profile picture deleted');
+    console.warn('✅ Profile picture deleted');
     return { success: true };
   } catch (error) {
     console.error('❌ Error deleting profile picture:', error);

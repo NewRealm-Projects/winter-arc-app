@@ -91,7 +91,7 @@ export async function generateDailyMotivation(
       if (tracking[date]) trackingLast7[date] = tracking[date];
     }
     // Debug: Logge alle AI-relevanten Userdaten für das Prompt
-    console.log('[AI PROMPT DEBUG] Userdaten für Motivation (letzte 7 Tage):', {
+    console.warn('[AI PROMPT DEBUG] Userdaten für Motivation (letzte 7 Tage):', {
       nickname,
       birthday,
       weatherContext,

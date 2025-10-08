@@ -20,7 +20,7 @@ function Layout({ children }: LayoutProps) {
   ];
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen" data-testid="app-layout">
       {/* Main Content */}
       <main
         key={location.pathname}
@@ -30,10 +30,14 @@ function Layout({ children }: LayoutProps) {
       </main>
 
       {/* Floating Bottom Navigation - Glassmorphism Style */}
-      <nav className="fixed left-1/2 -translate-x-1/2 bottom-5 z-50 rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] px-4 py-2">
+      <nav
+        className="fixed left-1/2 -translate-x-1/2 bottom-5 z-50 rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] px-4 py-2"
+        data-testid="bottom-navigation"
+      >
         <div className="flex items-center justify-center gap-4 animate-fade-in-up delay-400">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
+            const slug = item.path.replace(/^\//, '').replace(/\//g, '-') || 'dashboard';
             return (
               <Link
                 key={item.path}
@@ -44,6 +48,7 @@ function Layout({ children }: LayoutProps) {
                     : 'text-blue-100/70 hover:bg-white/10'
                 }`}
                 aria-label={t(item.labelKey)}
+                data-testid={`nav-link-${slug}`}
               >
                 {item.image ? (
                   <img

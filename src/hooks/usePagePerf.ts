@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useToast } from './useToast';
 
 interface PagePerformanceMetrics {
   ttfb?: number; // Time to First Byte
@@ -94,7 +95,7 @@ export function usePagePerf() {
       getNavigationMetrics();
       getPaintMetrics();
 
-      console.info('[Performance Metrics]', {
+      console.warn('[Performance Metrics]', {
         'TTFB (ms)': metrics.ttfb,
         'FCP (ms)': metrics.fcp,
         'LCP (ms)': metrics.lcp,
@@ -128,7 +129,7 @@ export function usePagePerf() {
       if (issues.length > 0) {
         console.warn('[Performance Issues]', issues);
       } else {
-        console.info('✅ All Core Web Vitals within thresholds');
+        console.warn('✅ All Core Web Vitals within thresholds');
       }
 
       // Future: Send to analytics
@@ -150,16 +151,21 @@ export function usePagePerf() {
  * Hook for monitoring network status and showing toast
  */
 export function useNetworkToast() {
+  const { showToast } = useToast();
+
   useEffect(() => {
     const handleOffline = () => {
-      console.warn('[Network] Offline - mutations will be queued');
-      // Show toast notification
-      showToast('You are offline. Changes will sync when connection is restored.', 'warning');
+      showToast({
+        message: 'You are offline. Changes will sync when connection is restored.',
+        type: 'warning',
+      });
     };
 
     const handleOnline = () => {
-      console.info('[Network] Online - processing queued mutations');
-      showToast('Back online! Syncing changes...', 'success');
+      showToast({
+        message: 'Back online! Syncing changes...',
+        type: 'success',
+      });
     };
 
     window.addEventListener('offline', handleOffline);
@@ -169,15 +175,5 @@ export function useNetworkToast() {
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('online', handleOnline);
     };
-  }, []);
-}
-
-/**
- * Simple toast notification (can be replaced with a proper toast library)
- */
-function showToast(message: string, type: 'success' | 'warning' | 'error') {
-  // For now, just console log
-  // In production, use a toast library like react-hot-toast or sonner
-  const emoji = type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '❌';
-  console.info(`${emoji} ${message}`);
+  }, [showToast]);
 }

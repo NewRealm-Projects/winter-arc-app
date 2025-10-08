@@ -17,6 +17,23 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow write: if isOwner(userId);
+
+      match /checkins/{date} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId)
+          && request.resource.data.sleepScore is int
+          && request.resource.data.recoveryScore is int
+          && request.resource.data.sleepScore >= 1
+          && request.resource.data.sleepScore <= 10
+          && request.resource.data.recoveryScore >= 1
+          && request.resource.data.recoveryScore <= 10
+          && request.resource.data.sick is bool;
+      }
+
+      match /trainingLoad/{date} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId);
+      }
     }
 
     // Tracking collection - users can only read/write their own tracking data
