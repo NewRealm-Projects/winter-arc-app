@@ -2,13 +2,22 @@ import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:4173';
 
-const workers = process.env.CI ? 2 : undefined;
+const isCI = Boolean(process.env.CI);
+const workers = isCI ? 2 : undefined;
 
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
   retries: 1,
   ...(typeof workers === 'number' ? { workers } : {}),
+  webServer: {
+    command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4173',
+    url: baseURL,
+    reuseExistingServer: !isCI,
+    stdout: 'pipe',
+    stderr: 'pipe',
+    timeout: 180_000,
+  },
   reporter: [
     ['list'],
     ['html', { outputFolder: 'artifacts/playwright-report', open: 'never' }],
