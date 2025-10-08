@@ -103,7 +103,6 @@ function TrainingLoadTile() {
     : '—';
   const sleepDisplay = recoveryTracked ? `${formatScore(sleepQuality)}/10` : '—';
   const recoveryDisplay = recoveryTracked ? `${formatScore(recoveryScore)}/10` : '—';
-  const pushupDisplay = pushupsTracked ? `${pushupsTotal}` : '—';
 
   return (
     <div
@@ -174,16 +173,6 @@ function TrainingLoadTile() {
             {workoutsDisplay}
           </div>
         </div>
-      </div>
-
-      <div className="mt-3 rounded-xl bg-white/5 px-3 py-2 text-[11px] text-gray-100/80">
-        <span className="text-gray-100/60">{t('dashboard.trainingLoadPushups')}:</span>{' '}
-        <span
-          className="font-semibold text-gray-50 dark:text-white"
-          data-testid="training-load-pushups-value"
-        >
-          {pushupDisplay}
-        </span>
       </div>
     </div>
   );

@@ -80,7 +80,7 @@ afterEach(async () => {
     expect(screen.getByText('Training Load')).toBeInTheDocument();
     expect(screen.getByText('300')).toBeInTheDocument();
     expect(screen.getByTestId('training-load-sleep-value').textContent).toContain('8');
-    expect(screen.getByTestId('training-load-pushups-value').textContent).toContain('50');
+    expect(screen.queryByTestId('training-load-pushups-value')).toBeNull();
   });
 
   it('shows fallback state when no data is present', async () => {
