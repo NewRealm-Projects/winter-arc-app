@@ -80,7 +80,7 @@ export async function saveDailyCheckInAndRecalc(
   const userId = currentUser.uid;
   const checkinRef = doc(db, 'users', userId, 'checkins', dateKey);
   const trainingLoadRef = doc(db, 'users', userId, 'trainingLoad', dateKey);
-  const trackingRef = doc(db, 'tracking', userId, 'days', dateKey);
+  const trackingRef = doc(db, 'tracking', userId, 'entries', dateKey);
 
   const [checkinSnapshot, trainingLoadSnapshot, trackingSnapshot] = await Promise.all([
     getDoc(checkinRef),

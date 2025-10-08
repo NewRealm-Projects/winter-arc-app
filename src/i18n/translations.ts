@@ -52,6 +52,8 @@ export const translations = {
       history: 'Historie',
       historyTitle: 'Historie',
       historySubtitle: 'Alle deine Tracking-Einträge',
+      permissionDeniedMessage: 'Keine Berechtigung für diese Daten. Bitte prüfe deine Gruppenzugehörigkeit.',
+      unavailableMessage: 'Die Datenbank ist aktuell nicht erreichbar. Versuche es gleich noch einmal.',
       back: 'Zurück',
       noEntries: 'Noch keine Einträge',
       trackFirst: 'Tracke deine erste Session!',
@@ -323,6 +325,7 @@ export const translations = {
       cancel: 'Abbrechen',
       close: 'Schließen',
       saving: 'Speichern…',
+      retry: 'Erneut versuchen',
     },
   },
   en: {
@@ -378,6 +381,8 @@ export const translations = {
       history: 'History',
       historyTitle: 'History',
       historySubtitle: 'All your tracking entries',
+      permissionDeniedMessage: 'You do not have permission to view these entries. Please verify your group access.',
+      unavailableMessage: 'The database is temporarily unavailable. Please try again in a moment.',
       back: 'Back',
       noEntries: 'No entries yet',
       trackFirst: 'Track your first session!',
@@ -649,6 +654,7 @@ export const translations = {
       cancel: 'Cancel',
       close: 'Close',
       saving: 'Saving…',
+      retry: 'Retry',
     },
   },
 };

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase/config';
+import { auth, googleProvider } from '../firebase';
 import { useStore } from '../store/useStore';
 import { markDemoModeActive } from '../constants/demo';
 

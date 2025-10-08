@@ -586,7 +586,9 @@ function NotesPage() {
             </div>
           ) : (
             <div data-testid="smart-note-list" className="flex flex-col gap-3">
-              {optimisticNotes.map((note) => <NoteCard key={note.id} note={note} />)}
+              {optimisticNotes.map((note: SmartNote) => (
+                <NoteCard key={note.id} note={note} />
+              ))}
             </div>
           )}
 

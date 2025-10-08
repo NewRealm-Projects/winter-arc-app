@@ -131,6 +131,17 @@ Falls die Generierung bei dir regelmäßig durch ein Timeout abbricht, kannst du
 4. Erstelle **Firestore Database** (Production mode)
 5. (Optional) Aktiviere **App Check** mit reCAPTCHA v3
 
+### Firebase Emulator Setup (optional)
+
+Für lokales Entwickeln ohne Produktionszugriff kannst du die Firebase Emulator Suite nutzen:
+
+1. Installiere die Firebase CLI (`npm install -g firebase-tools`).
+2. Starte die gewünschten Emulatoren: `firebase emulators:start --only auth,firestore` (Ports 9099 und 8080).
+3. Setze in deiner `.env.local` oder `.env` den Schalter `VITE_USE_FIREBASE_EMULATORS=true`.
+4. Starte den Dev-Server neu (`npm run dev`). Die App verbindet sich automatisch mit den Emulatoren.
+
+> Hinweis: Der Emulator-Schalter ist rein für DEV gedacht. Für Builds bleibt die Variable auf `false`.
+
 ---
 
 ## 📦 Development Scripts

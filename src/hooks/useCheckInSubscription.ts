@@ -1,6 +1,6 @@
 import { doc, onSnapshot, type FirestoreError } from 'firebase/firestore';
 import { useEffect } from 'react';
-import { auth, db } from '../firebase/config';
+import { auth, db } from '../firebase';
 import { useStore } from '../store/useStore';
 import type { DailyCheckIn } from '../types';
 import { isDemoModeActive } from '../constants/demo';
@@ -23,6 +23,13 @@ export function useCheckInSubscription(dateKey?: string): void {
     }
 
     const ref = doc(db, 'users', userId, 'checkins', dateKey);
+    const pathString = `users/${userId}/checkins/${dateKey}`;
+    // eslint-disable-next-line no-console
+    console.debug('[Auth]', auth.currentUser?.uid ?? null);
+    // eslint-disable-next-line no-console
+    console.debug('[Subscribe]', pathString);
+    // eslint-disable-next-line no-console
+    console.debug('[FS]', { userId, path: pathString });
 
     const unsubscribe = onSnapshot(
       ref,
@@ -34,6 +41,7 @@ export function useCheckInSubscription(dateKey?: string): void {
         }
       },
       (error: FirestoreError) => {
+        console.warn('[FirestoreError]', { code: error.code, message: error.message, path: pathString });
         if (error.code === 'permission-denied') {
           setCheckInForDate(dateKey, null);
         }

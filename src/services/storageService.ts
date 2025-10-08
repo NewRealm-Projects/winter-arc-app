@@ -1,6 +1,6 @@
 import { FirebaseError } from 'firebase/app';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { auth, storage } from '../firebase/config';
+import { auth, storage } from '../firebase';
 
 type UploadResult = { success: boolean; url?: string; error?: string };
 type DeleteResult = { success: boolean; error?: string };

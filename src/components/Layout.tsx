@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
-import { auth } from '../firebase/config';
+import { auth } from '../firebase';
 
 interface LayoutProps {
   children: ReactNode;

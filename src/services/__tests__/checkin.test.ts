@@ -28,7 +28,7 @@ vi.mock('firebase/firestore', () => ({
   serverTimestamp: firestoreMocks.serverTimestamp,
 }));
 
-vi.mock('../../firebase/config', () => ({
+vi.mock('../../firebase', () => ({
   auth: {
     currentUser: { uid: 'user-1' },
   },

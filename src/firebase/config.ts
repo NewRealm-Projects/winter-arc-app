@@ -1,6 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { GoogleAuthProvider } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
@@ -96,9 +95,7 @@ if (!isTestEnv && isLocalhost && recaptchaSiteKey && recaptchaSiteKey.length > 1
   );
 }
 
-// Initialize Firebase services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Initialize Firebase services that do not require conditional setup
 export const storage = getStorage(app);
 
 // Configure Google Auth Provider

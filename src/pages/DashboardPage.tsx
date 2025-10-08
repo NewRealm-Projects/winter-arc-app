@@ -12,7 +12,9 @@ import { WeekProvider } from '../contexts/WeekContext';
 import WeeklyTile from '../components/dashboard/WeeklyTile';
 
 function DashboardPage() {
+  const { t } = useTranslation();
   const user = useStore((state) => state.user);
+  const { error: trackingError, retry: retryTracking } = useTrackingEntries();
 
   // Auto-save tracking data to Firebase
   useTracking();
@@ -31,6 +33,25 @@ function DashboardPage() {
             className="flex flex-col gap-3 md:gap-4"
             data-testid="dashboard-content-sections"
           >
+            {trackingError && (
+              <div className="rounded-3xl border border-amber-300/30 bg-amber-500/10 p-4 text-amber-100 shadow-[0_8px_20px_rgba(245,158,11,0.2)]">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <p className="text-sm font-medium">
+                    {trackingError === 'no-permission'
+                      ? t('tracking.permissionDeniedMessage')
+                      : t('tracking.unavailableMessage')}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={retryTracking}
+                    className="self-start rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors hover:border-white/40 hover:bg-white/10 md:self-auto"
+                  >
+                    {t('common.retry')}
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="animate-fade-in-up">
               <WeeklyTile />
             </div>

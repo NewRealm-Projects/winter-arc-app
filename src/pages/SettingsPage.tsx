@@ -1,5 +1,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
+import * as Sentry from '@sentry/react';
+import { auth } from '../firebase';
 import { auth } from '../firebase/config';
 import { useStore } from '../store/useStore';
 import { Language, Activity } from '../types';

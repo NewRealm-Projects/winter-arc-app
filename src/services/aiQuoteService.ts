@@ -1,5 +1,5 @@
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { db } from '../firebase';
 
 export type QuoteTimePeriod = 'morning' | 'noon' | 'evening';
 

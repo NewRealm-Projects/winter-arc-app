@@ -35,7 +35,7 @@ if (import.meta.env.VITE_SENTRY_DSN) {
   });
   console.warn('✅ Sentry initialized');
 } else {
-  console.warn('⚠️ Sentry DSN not configured')
+  console.warn('⚠️ Sentry DSN not configured');
   Sentry.init({
     dsn:
       import.meta.env.VITE_SENTRY_DSN ??

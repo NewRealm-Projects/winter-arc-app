@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, collection, getDocs, setDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase/config';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 import { useStore } from '../store/useStore';
-import type { User, DailyTracking, Activity } from '../types';
+import type { User, Activity } from '../types';
 import { clearDemoModeMarker, isDemoModeActive } from '../constants/demo';
 
 export function useAuth() {
@@ -102,14 +102,6 @@ export function useAuth() {
             });
             setIsOnboarded(false);
           }
-          // Tracking laden
-          const trackingRef = collection(db, 'tracking', firebaseUser.uid, 'days');
-          const trackingSnapshot = await getDocs(trackingRef);
-          const trackingData: Record<string, DailyTracking> = {};
-          trackingSnapshot.forEach((doc) => {
-            trackingData[doc.id] = doc.data() as DailyTracking;
-          });
-          setTracking(trackingData);
         } catch {
           setUser(null);
           setIsOnboarded(false);
