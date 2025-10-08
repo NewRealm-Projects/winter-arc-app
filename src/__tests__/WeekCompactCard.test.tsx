@@ -78,6 +78,7 @@ describe('WeekCompactCard', () => {
     const { container } = rendered!;
     const dayButtons = container.querySelectorAll('button[aria-pressed]');
     expect(dayButtons.length).toBe(7);
+    expect(container).toMatchSnapshot();
     expect(container.textContent).not.toContain('NaN');
     expect(dayButtons[0]?.getAttribute('aria-label')).toContain('2.6/2.5');
   });

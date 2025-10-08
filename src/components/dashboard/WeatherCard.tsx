@@ -22,7 +22,7 @@ export default function WeatherCard({ tempC, condition, location = "Aachen", loa
   if (loading) {
     return (
       <div
-        className="rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] p-4 h-[88px] sm:h-[76px] lg:h-[88px] flex items-center justify-center"
+        className="relative w-full rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] p-4 h-[88px] sm:h-[76px] lg:h-[88px] flex items-center justify-center"
         data-testid="weather-card-skeleton"
       >
         <div className="animate-pulse flex items-center gap-3 w-full">
@@ -38,7 +38,7 @@ export default function WeatherCard({ tempC, condition, location = "Aachen", loa
 
   return (
     <div
-      className="rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] p-4 h-[88px] sm:h-[76px] lg:h-[88px] flex items-center gap-3 transition-all duration-200 hover:bg-white/8"
+      className="relative w-full rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] p-4 h-[88px] sm:h-[76px] lg:h-[88px] flex items-center gap-3 transition-all duration-200 hover:bg-white/8"
       data-testid="weather-card"
     >
       {/* Weather Icon */}
