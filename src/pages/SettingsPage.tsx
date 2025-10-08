@@ -43,6 +43,8 @@ function SettingsPage() {
   const [showInstallHelp, setShowInstallHelp] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionId>('general');
   const [activeLegalDocument, setActiveLegalDocument] = useState<'privacy' | 'terms' | null>(null);
+  const showDebugTools =
+    import.meta.env.DEV || (import.meta.env.VITE_ENABLE_DEBUG_TOOLS ?? '').toLowerCase() === 'true';
 
   const user = useStore((state) => state.user);
   const setUser = useStore((state) => state.setUser);
@@ -1088,7 +1090,7 @@ function SettingsPage() {
                   </div>
                 </section>
 
-                {import.meta.env.DEV && (
+                {showDebugTools && (
                   <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} border border-yellow-300/40 bg-yellow-500/10 text-yellow-50`}>
                     <div className="flex flex-col gap-4">
                       <div>
