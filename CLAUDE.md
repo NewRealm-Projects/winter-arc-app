@@ -274,6 +274,7 @@ und arbeitet in isolierten Feature Branches.
      Versioning
    - **Output**: Aktualisierte Markdown-Dateien, Screenshots, Version Bump
    - **Quality Gates**: Links funktionieren, Screenshots aktuell, Version korrekt
+   - **Legal Pflege**: Inhalte für Privatsphäre & Nutzungsbedingungen im Settings-Screen (Deutsch & Englisch) aktuell halten
 
 #### Agent-Workflow
 
