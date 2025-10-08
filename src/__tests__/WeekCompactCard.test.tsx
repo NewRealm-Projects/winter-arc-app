@@ -1,8 +1,10 @@
 import { act, render } from '@testing-library/react';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import WeekCompactCard from '../components/dashboard/WeekCompactCard';
+import { WeekProvider } from '../contexts/WeekContext';
 import { useStore } from '../store/useStore';
 import type { SportTracking } from '../types';
+import { MemoryRouter } from 'react-router-dom';
 
 const originalSelectedDate = useStore.getState().selectedDate;
 
@@ -70,7 +72,13 @@ describe('WeekCompactCard', () => {
     let rendered: ReturnType<typeof render> | undefined;
 
     await act(async () => {
-      rendered = render(<WeekCompactCard />);
+      rendered = render(
+        <MemoryRouter>
+          <WeekProvider>
+            <WeekCompactCard />
+          </WeekProvider>
+        </MemoryRouter>
+      );
     });
 
     await act(async () => {});
