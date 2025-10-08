@@ -1,5 +1,11 @@
-import { renderWithProviders, screen, waitFor } from 'test/test-utils';
+import { renderWithProviders, screen, waitFor, fireEvent } from 'test/test-utils';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { todayKey } from '../../lib/date';
+
+const today = todayKey();
+const yesterdayDate = new Date(today);
+yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+const yesterday = yesterdayDate.toISOString().split('T')[0];
 
 const storeState = {
   user: {
@@ -11,6 +17,10 @@ const storeState = {
   smartContributions: {} as Record<string, unknown>,
   setCheckInForDate: vi.fn(),
   setTrainingLoadForDate: vi.fn(),
+  selectedDate: today,
+  setSelectedDate: vi.fn((date: string) => {
+    storeState.selectedDate = date;
+  }),
 };
 
 vi.mock('../../components/PushupTile', () => ({
@@ -47,6 +57,11 @@ vi.mock('../../components/TrainingLoadTile', () => ({
   default: () => <div data-testid="training-load-tile" />,
 }));
 
+vi.mock('../../components/checkin/CheckInModal', () => ({
+  default: ({ isOpen }: { isOpen: boolean }) =>
+    isOpen ? <div data-testid="check-in-modal">open</div> : null,
+}));
+
 let DashboardPage: typeof import('../DashboardPage').default;
 
 beforeAll(async () => {
@@ -61,9 +76,21 @@ vi.mock('../../hooks/useWeeklyTop3', () => ({
   useWeeklyTop3: vi.fn(),
 }));
 
-const mockCombinedTracking: Record<string, { completed: boolean }> = {
-  '2025-01-01': { completed: true },
-  '2025-01-02': { completed: true },
+const mockCombinedTracking: Record<string, Record<string, unknown>> = {
+  [today]: {
+    pushups: { total: 50 },
+    sports: { hiit: { active: true } },
+    water: 2500,
+    protein: 120,
+    weight: { value: 80 },
+  },
+  [yesterday]: {
+    pushups: { total: 30 },
+    sports: { hiit: { active: true } },
+    water: 2000,
+    protein: 110,
+    weight: { value: 80 },
+  },
 };
 
 vi.mock('../../hooks/useCombinedTracking', () => ({
@@ -91,6 +118,7 @@ vi.mock('../../services/weatherService', () => ({
 describe('DashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    storeState.selectedDate = today;
   });
 
   it('renders key dashboard widgets and hydration tile', async () => {
@@ -105,6 +133,8 @@ describe('DashboardPage', () => {
     });
 
     expect(screen.getByTestId('training-load-tile')).toBeInTheDocument();
+    expect(screen.getByTestId('header-summary-card')).toBeInTheDocument();
+    expect(screen.getByTestId('header-streak-value')).toHaveTextContent('2');
   });
 
   it('falls back to default weather state on failure', async () => {
@@ -120,5 +150,14 @@ describe('DashboardPage', () => {
     });
 
     expect(getWeatherForAachen).toHaveBeenCalled();
+  });
+
+  it('opens check-in modal from header button', async () => {
+    renderWithProviders(<DashboardPage />);
+
+    const button = await screen.findByRole('button', { name: /check-in/i });
+    fireEvent.click(button);
+
+    expect(screen.getByTestId('check-in-modal')).toBeInTheDocument();
   });
 });

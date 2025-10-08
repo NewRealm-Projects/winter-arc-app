@@ -1,17 +1,6 @@
-import {
-  addDays,
-  addWeeks,
-  differenceInCalendarDays,
-  differenceInCalendarWeeks,
-  format,
-  isAfter,
-  isSameDay,
-  isValid,
-  parseISO,
-  startOfWeek,
-} from 'date-fns';
+import { addDays, format, isSameDay } from 'date-fns';
 import { de, enUS } from 'date-fns/locale';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import WeekDayCircle from './WeekDayCircle';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -24,6 +13,7 @@ import {
   formatMl,
   getDayCompletion,
 } from '../../utils/progress';
+import { useWeekContext } from '../../contexts/WeekContext';
 
 const DEFAULT_ACTIVITIES: Activity[] = ['pushups', 'sports', 'water', 'protein'];
 
@@ -31,65 +21,27 @@ export default function WeekCompactCard() {
   const { t, language } = useTranslation();
   const combinedTracking = useCombinedTracking();
   const user = useStore((state) => state.user);
-  const selectedDate = useStore((state) => state.selectedDate);
-  const setSelectedDate = useStore((state) => state.setSelectedDate);
-
-  const todayKey = format(new Date(), 'yyyy-MM-dd');
-  const today = useMemo(() => parseISO(todayKey), [todayKey]);
-  const activeDate = selectedDate || todayKey;
+  const {
+    selectedDate,
+    setSelectedDate,
+    activeWeekStart,
+    activeWeekEnd,
+    weekOffset,
+    setWeekOffset,
+    isCurrentWeek,
+  } = useWeekContext();
+  const today = useMemo(() => new Date(), []);
   const locale = language === 'de' ? de : enUS;
   const localeCode = language === 'de' ? 'de-DE' : 'en-US';
 
-  const parseActiveDate = () => {
-    if (!activeDate) {
-      return today;
-    }
-    const parsed = parseISO(activeDate);
-    return isValid(parsed) ? parsed : today;
-  };
-
-  const [weekOffset, setWeekOffset] = useState(() => {
-    const todayStart = parseISO(todayKey);
-    const parsedDate = activeDate ? parseISO(activeDate) : null;
-    const validDate = parsedDate && isValid(parsedDate) ? parsedDate : todayStart;
-    return differenceInCalendarWeeks(
-      startOfWeek(validDate, { weekStartsOn: 1 }),
-      startOfWeek(todayStart, { weekStartsOn: 1 }),
-      { weekStartsOn: 1 }
-    );
-  });
-
-  useEffect(() => {
-    const todayStart = parseISO(todayKey);
-    const parsedDate = activeDate ? parseISO(activeDate) : null;
-    const validDate = parsedDate && isValid(parsedDate) ? parsedDate : todayStart;
-    const offset = differenceInCalendarWeeks(
-      startOfWeek(validDate, { weekStartsOn: 1 }),
-      startOfWeek(todayStart, { weekStartsOn: 1 }),
-      { weekStartsOn: 1 }
-    );
-    setWeekOffset(offset);
-  }, [activeDate, todayKey]);
-
-  const currentWeekStart = startOfWeek(today, { weekStartsOn: 1 });
-  const displayedWeekStart = addWeeks(currentWeekStart, weekOffset);
-  const displayedWeekEnd = addDays(displayedWeekStart, 6);
-
-  const activeDateObj = parseActiveDate();
-  const activeWeekStart = startOfWeek(activeDateObj, { weekStartsOn: 1 });
-  const activeDayIndex = Math.min(
-    Math.max(differenceInCalendarDays(activeDateObj, activeWeekStart), 0),
-    6
-  );
-
   const weekRangeFormat = language === 'de' ? 'd. MMM' : 'MMM d';
-  const weekRangeLabel = `${format(displayedWeekStart, weekRangeFormat, { locale })} – ${format(
-    displayedWeekEnd,
+  const weekRangeLabel = `${format(activeWeekStart, weekRangeFormat, { locale })} – ${format(
+    activeWeekEnd,
     weekRangeFormat,
     { locale }
   )}`;
 
-  const isoWeekNumber = format(displayedWeekStart, 'I');
+  const isoWeekNumber = format(activeWeekStart, 'I');
   const headingLabel = (() => {
     if (weekOffset === 0) {
       return t('dashboard.weekOverview');
@@ -100,7 +52,7 @@ export default function WeekCompactCard() {
     return t('dashboard.weekNumberTitle', { week: isoWeekNumber });
   })();
 
-  const disableNextWeek = weekOffset >= 0;
+  const disableNextWeek = isCurrentWeek;
 
   const handleWeekChange = (direction: 'previous' | 'next') => {
     if (direction === 'next' && disableNextWeek) {
@@ -108,15 +60,7 @@ export default function WeekCompactCard() {
     }
 
     const delta = direction === 'previous' ? -1 : 1;
-    const newWeekOffset = weekOffset + delta;
-    const newWeekStart = addWeeks(displayedWeekStart, delta);
-    const targetDate = addDays(newWeekStart, activeDayIndex);
-
-    const safeTargetDate =
-      newWeekOffset === 0 && isAfter(targetDate, today) ? today : targetDate;
-
-    setWeekOffset(newWeekOffset);
-    setSelectedDate(format(safeTargetDate, 'yyyy-MM-dd'));
+    setWeekOffset((previous) => previous + delta);
   };
 
   const enabledActivities = useMemo(
@@ -131,11 +75,11 @@ export default function WeekCompactCard() {
 
   const weekDays = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
-      const date = addDays(displayedWeekStart, i);
+      const date = addDays(activeWeekStart, i);
       const dateStr = format(date, 'yyyy-MM-dd');
       const dayTracking = combinedTracking[dateStr];
       const isToday = isSameDay(date, today);
-      const isSelected = dateStr === activeDate;
+      const isSelected = dateStr === selectedDate;
 
       const completion = getDayCompletion({
         tracking: dayTracking,
@@ -194,9 +138,9 @@ export default function WeekCompactCard() {
       };
     });
   }, [
-    activeDate,
     combinedTracking,
-    displayedWeekStart,
+    selectedDate,
+    activeWeekStart,
     enabledActivities,
     locale,
     localeCode,
