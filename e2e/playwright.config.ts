@@ -2,16 +2,18 @@ import { defineConfig, devices } from '@playwright/test';
 
 const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:4173';
 
+const workers = process.env.CI ? 2 : undefined;
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
   retries: 1,
-  workers: 'auto',
+  ...(typeof workers === 'number' ? { workers } : {}),
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'e2e/artifacts/playwright-report', open: 'never' }],
+    ['html', { outputFolder: 'artifacts/playwright-report', open: 'never' }],
   ],
-  outputDir: 'e2e/artifacts',
+  outputDir: 'artifacts/test-results',
   use: {
     baseURL,
     trace: 'retain-on-failure',
