@@ -128,6 +128,7 @@ function LoginPage() {
 
     setUser(demoUser);
     setIsOnboarded(true);
+    navigate('/', { replace: true });
   };
 
   return (
