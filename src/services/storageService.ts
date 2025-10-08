@@ -1,3 +1,4 @@
+import { FirebaseError } from 'firebase/app';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { auth, storage } from '../firebase/config';
 
@@ -69,9 +70,7 @@ export async function uploadProfilePictureFromUrl(
     return { success: true, url: downloadURL };
   } catch (error) {
     console.error('❌ Error uploading profile picture:', error);
-    // Return error details for better debugging
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return { success: false, error: errorMessage };
+    return mapUploadError(error);
   }
 }
 
@@ -99,7 +98,7 @@ export async function uploadProfilePictureFile(
     return { success: true, url: downloadURL };
   } catch (error) {
     console.error('❌ Error uploading profile picture file:', error);
-    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    return mapUploadError(error);
   }
 }
 
