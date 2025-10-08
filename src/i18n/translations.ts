@@ -22,7 +22,7 @@ export const translations = {
       completed: 'abgeschlossen',
       streak: 'Tage Streak',
       streakDays: 'Tage Streak',
-      streakInfo: 'Streak zählt ab 50% Tageserfüllung',
+      streakInfo: 'Streak zählt ab 50% Tageserfüllung (2/3 Aufgaben)',
       tasks: 'Aufgaben',
       pushupsToday: 'Liegestütze heute',
       tapToEdit: 'Tippe auf einen Tag, um ihn zu bearbeiten',
@@ -32,6 +32,7 @@ export const translations = {
       today: 'Heute',
       trainingLoad: 'Trainingslast',
       trainingLoadSubtitle: 'Berechnet aus Schlaf, Regeneration & Workouts',
+      trainingLoadLevelLabel: 'Level',
       trainingLoadStatus: {
         low: 'Niedrig',
         optimal: 'Optimal',
@@ -340,7 +341,7 @@ export const translations = {
       completed: 'completed',
       streak: 'Day Streak',
       streakDays: 'Day Streak',
-      streakInfo: 'Streak counts once the day hits 50%',
+      streakInfo: 'Streak counts once the day hits 50% (2/3 tasks)',
       tasks: 'tasks',
       pushupsToday: 'Pushups today',
       tapToEdit: 'Tap a day to edit or update',
@@ -350,6 +351,7 @@ export const translations = {
       today: 'Today',
       trainingLoad: 'Training Load',
       trainingLoadSubtitle: 'Calculated from sleep, recovery & workouts',
+      trainingLoadLevelLabel: 'Level',
       trainingLoadStatus: {
         low: 'Low',
         optimal: 'Optimal',

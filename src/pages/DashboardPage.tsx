@@ -4,13 +4,11 @@ import WaterTile from '../components/WaterTile';
 import ProteinTile from '../components/ProteinTile';
 import WeightTile from '../components/WeightTile';
 import TrainingLoadTile from '../components/TrainingLoadTile';
-import WeekCirclesCard from '../components/dashboard/WeekCirclesCard';
 import { useTracking } from '../hooks/useTracking';
 import { useWeeklyTop3 } from '../hooks/useWeeklyTop3';
 import { useStore } from '../store/useStore';
-import HeaderSummaryCard from '../components/header/HeaderSummaryCard';
 import { WeekProvider } from '../contexts/WeekContext';
-import WeekOverview from '../components/WeekOverview';
+import WeeklyTile from '../components/dashboard/WeeklyTile';
 
 function DashboardPage() {
   const user = useStore((state) => state.user);
@@ -33,17 +31,7 @@ function DashboardPage() {
             data-testid="dashboard-content-sections"
           >
             <div className="animate-fade-in-up">
-              <HeaderSummaryCard />
-            </div>
-
-            {/* Week Compact Card */}
-            <div className="animate-fade-in-up delay-100">
-              <WeekOverview />
-            </div>
-
-            {/* Week Circles Card */}
-            <div className="mb-3 animate-fade-in-up delay-150">
-              <WeekCirclesCard />
+              <WeeklyTile />
             </div>
             {/* Training Load Tile */}
             <div className="animate-fade-in-up delay-150">

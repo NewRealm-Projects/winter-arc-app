@@ -16,6 +16,7 @@ interface CheckInModalProps {
   dateKey: string;
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 const clampScore = (value: number): number => {
@@ -35,7 +36,12 @@ const getFocusableSelectors = (): string =>
     '[tabindex]:not([tabindex="-1"])',
   ].join(',');
 
-export default function CheckInModal({ dateKey, isOpen, onClose }: CheckInModalProps) {
+export default function CheckInModal({
+  dateKey,
+  isOpen,
+  onClose,
+  onSuccess,
+}: CheckInModalProps) {
   const { t } = useTranslation();
   const { showToast } = useToast();
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -200,6 +206,7 @@ export default function CheckInModal({ dateKey, isOpen, onClose }: CheckInModalP
         sick: isSick,
       });
       showToast({ message: t('checkIn.toastSuccess'), type: 'success' });
+      onSuccess?.();
       onClose();
     } catch {
       if (previousCheckIn) {
@@ -232,6 +239,7 @@ export default function CheckInModal({ dateKey, isOpen, onClose }: CheckInModalP
     sleepScore,
     t,
     onClose,
+    onSuccess,
   ]);
 
   if (!isOpen) {
