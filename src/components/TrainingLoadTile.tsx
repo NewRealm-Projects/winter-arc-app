@@ -160,8 +160,6 @@ function TrainingLoadTile() {
     : '—';
   const sleepDisplay = recoveryTracked ? `${formatScore(sleepQuality)}/10` : '—';
   const recoveryDisplay = recoveryTracked ? `${formatScore(recoveryScore)}/10` : '—';
-  const pushupDisplay = pushupsTracked ? `${pushupsDisplayTotal}` : '—';
-
   return (
     <div
       className={`w-full ${getTileClasses(hasData)} ${designTokens.padding.compact} text-left text-white`}
