@@ -1,5 +1,27 @@
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '../firebase/config';
+import { auth, storage } from '../firebase/config';
+
+type UploadResult = { success: boolean; url?: string; error?: string };
+type DeleteResult = { success: boolean; error?: string };
+
+function validateCurrentUser(userId: string): UploadResult {
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    console.warn('❌ Profile picture upload attempted without authenticated user');
+    return { success: false, error: 'auth_required' };
+  }
+
+  if (currentUser.uid !== userId) {
+    console.warn('❌ Profile picture upload attempted for different user', {
+      requestedUserId: userId,
+      currentUserId: currentUser.uid,
+    });
+    return { success: false, error: 'user_mismatch' };
+  }
+
+  return { success: true };
+}
 
 /**
  * Downloads an image from a URL and uploads it to Firebase Storage
@@ -10,7 +32,7 @@ import { storage } from '../firebase/config';
 export async function uploadProfilePictureFromUrl(
   imageUrl: string,
   userId: string
-): Promise<{ success: boolean; url?: string; error?: string }> {
+): Promise<UploadResult> {
   try {
     console.warn('📥 Downloading profile picture from URL...');
 
@@ -59,8 +81,13 @@ export async function uploadProfilePictureFromUrl(
 export async function uploadProfilePictureFile(
   file: File,
   userId: string
-): Promise<{ success: boolean; url?: string; error?: string }> {
+): Promise<UploadResult> {
   try {
+    const authCheck = validateCurrentUser(userId);
+    if (!authCheck.success) {
+      return authCheck;
+    }
+
     const storageRef = ref(storage, `profile-pictures/${userId}.jpg`);
 
     await uploadBytes(storageRef, file, {
@@ -82,7 +109,7 @@ export async function uploadProfilePictureFile(
  */
 export async function deleteProfilePicture(
   userId: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<DeleteResult> {
   try {
     const storageRef = ref(storage, `profile-pictures/${userId}.jpg`);
     await deleteObject(storageRef);
