@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
 import { useTranslation } from '../hooks/useTranslation';
 import type { SportEntry, SportKey } from '../types';
-import { countActiveSports, normalizeSports, toSportEntry } from '../utils/sports';
+import { countActiveSports, normalizeSports } from '../utils/sports';
 import { getTileClasses, designTokens } from '../theme/tokens';
 import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 
@@ -41,6 +41,8 @@ function SportTile() {
     [combinedDaily?.sports]
   );
 
+  const [draftSports, setDraftSports] = useState<Record<SportKey, SportEntry>>(currentSports);
+
   const sportOptions = useMemo(
     () =>
       SPORT_OPTION_CONFIG.map((config) => ({
@@ -50,20 +52,6 @@ function SportTile() {
     [t]
   );
 
-  const toggleRest = (sport: SportKey) => {
-    const previous = toSportEntry(activeTracking?.sports?.[sport] ? activeTracking.sports[sport] : currentSports[sport]);
-
-    updateDayTracking(activeDate, {
-      sports: {
-        ...activeTracking?.sports,
-        [sport]: {
-          ...previous,
-          active: !previous.active,
-        },
-      },
-    });
-  };
-
   const activeSportOptions = useMemo(
     () => sportOptions.filter((option) => displaySports[option.key].active),
     [displaySports, sportOptions]
@@ -71,6 +59,7 @@ function SportTile() {
 
   const openSportManager = (sport?: SportKey) => {
     const fallbackSport = sport ?? activeSportOptions[0]?.key ?? 'hiit';
+    setDraftSports(normalizeSports(currentSports));
     setSelectedSport(fallbackSport);
     setShowModal(true);
   };
@@ -80,49 +69,83 @@ function SportTile() {
       return;
     }
 
-    const sportData = currentSports[selectedSport as keyof typeof currentSports];
+    setDraftSports(normalizeSports(currentSports));
+  }, [showModal, currentSports]);
+
+  useEffect(() => {
+    if (!showModal) {
+      return;
+    }
+
+    const sportData = draftSports[selectedSport as keyof typeof draftSports];
     if (selectedSport === 'rest') {
       return;
     }
 
     setDuration(sportData.duration ?? 60);
     setIntensity(sportData.intensity ?? 5);
-  }, [showModal, selectedSport, currentSports]);
+  }, [showModal, selectedSport, draftSports]);
 
-  const saveSport = () => {
-    if (selectedSport === 'rest') {
-      toggleRest('rest');
-      setShowModal(false);
-      return;
-    }
+  const updateDraftSport = useCallback(
+    (sport: SportKey, updates: Partial<SportEntry>) => {
+      setDraftSports((prev) => ({
+        ...prev,
+        [sport]: {
+          ...prev[sport],
+          ...updates,
+        },
+      }));
+    },
+    []
+  );
 
+  const toggleSportActive = useCallback(
+    (sport: SportKey, nextActive: boolean) => {
+      setDraftSports((prev) => {
+        const previous = prev[sport];
+        const updated: SportEntry = {
+          ...previous,
+          active: nextActive,
+        };
+
+        if (sport === 'rest') {
+          updated.duration = undefined;
+          updated.intensity = undefined;
+        } else if (nextActive) {
+          updated.duration = previous.duration ?? 60;
+          updated.intensity = previous.intensity ?? 5;
+        } else {
+          updated.duration = undefined;
+          updated.intensity = undefined;
+        }
+
+        return {
+          ...prev,
+          [sport]: updated,
+        };
+      });
+    },
+    []
+  );
+
+  const saveSports = () => {
     updateDayTracking(activeDate, {
       sports: {
         ...activeTracking?.sports,
-        [selectedSport]: {
-          active: true,
-          duration,
-          intensity,
-        },
+        ...draftSports,
       },
     });
     setShowModal(false);
   };
 
   const removeSport = () => {
-    updateDayTracking(activeDate, {
-      sports: {
-        ...activeTracking?.sports,
-        [selectedSport]: { active: false },
-      },
-    });
-    setShowModal(false);
+    updateDraftSport(selectedSport, { active: false, duration: undefined, intensity: undefined });
   };
 
   const completedCount = countActiveSports(displaySports);
   const isTracked = completedCount > 0;
   const modalSport = sportOptions.find((option) => option.key === selectedSport);
-  const selectedIsActive = Object.prototype.hasOwnProperty.call(displaySports, selectedSport) && typeof displaySports[selectedSport] === 'object' ? displaySports[selectedSport].active : false;
+  const selectedIsActive = draftSports[selectedSport]?.active ?? false;
   const hasActiveSports = activeSportOptions.length > 0;
 
   return (
@@ -199,29 +222,40 @@ function SportTile() {
                   <div className="grid grid-cols-3 gap-1.5 text-center">
                     {sportOptions.map((sport) => {
                       const isSelected = sport.key === selectedSport;
-                      const isActive = displaySports[sport.key].active || false;
+                      const isActive = draftSports[sport.key]?.active ?? false;
 
                       return (
-                        <button
+                        <label
                           key={sport.key}
-                          type="button"
+                          className={`relative p-2 rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-1 border cursor-pointer ${
+                            isActive
+                              ? 'border-emerald-400 bg-emerald-600/30 shadow-[0_0_0_1px_rgba(16,185,129,0.35)]'
+                              : isSelected
+                                ? 'border-blue-400 bg-blue-600/30 shadow-inner'
+                                : 'border-transparent bg-white/5 hover:bg-white/10'
+                          } ${isSelected && isActive ? 'ring-1 ring-emerald-300/60' : ''}`}
                           onClick={() => { setSelectedSport(sport.key); }}
-                          className={`p-2 rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-1 border ${
-                            isSelected
-                              ? 'border-blue-400 bg-blue-600/30 shadow-inner'
-                              : 'border-transparent bg-white/5 hover:bg-white/10'
-                          }`}
                         >
+                          <input
+                            type="checkbox"
+                            className="sr-only"
+                            checked={isActive}
+                            onChange={(event) => {
+                              toggleSportActive(sport.key, event.target.checked);
+                              setSelectedSport(sport.key);
+                            }}
+                            onFocus={() => { setSelectedSport(sport.key); }}
+                          />
+                          {isActive && (
+                            <div className="absolute top-1 right-1 text-[10px] uppercase tracking-wide text-emerald-200">
+                              {t('tracking.trackedLabel')}
+                            </div>
+                          )}
                           <div className="text-xl">{sport.icon}</div>
                           <div className="text-xs text-white/80 font-medium">
                             {sport.label}
                           </div>
-                          {isActive && (
-                            <span className="text-[10px] uppercase tracking-wide text-blue-200">
-                              {t('tracking.trackedLabel')}
-                            </span>
-                          )}
-                        </button>
+                        </label>
                       );
                     })}
                   </div>
@@ -234,8 +268,8 @@ function SportTile() {
                     </p>
                     <button
                       onClick={() => {
-                        toggleRest('rest');
-                        setShowModal(false);
+                        const nextActive = !(draftSports.rest?.active ?? false);
+                        toggleSportActive('rest', nextActive);
                       }}
                       className={`w-full px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
                         selectedIsActive
@@ -256,7 +290,10 @@ function SportTile() {
                         {[30, 60, 90].map((min) => (
                           <button
                             key={min}
-                            onClick={() => { setDuration(min); }}
+                            onClick={() => {
+                              setDuration(min);
+                              updateDraftSport(selectedSport, { duration: min, active: true });
+                            }}
                             className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                               duration === min
                                 ? 'bg-blue-600 text-white'
@@ -270,7 +307,11 @@ function SportTile() {
                       <input
                         type="number"
                         value={duration}
-                        onChange={(e) => { setDuration(Number(e.target.value)); }}
+                        onChange={(e) => {
+                          const value = Number(e.target.value);
+                          setDuration(value);
+                          updateDraftSport(selectedSport, { duration: value, active: true });
+                        }}
                         className="w-full px-3 py-2 text-sm rounded-lg border border-white/20 bg-white/5 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-400 outline-none"
                         placeholder="Custom"
                       />
@@ -283,7 +324,10 @@ function SportTile() {
                         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((level) => (
                           <button
                             key={level}
-                            onClick={() => { setIntensity(level); }}
+                            onClick={() => {
+                              setIntensity(level);
+                              updateDraftSport(selectedSport, { intensity: level, active: true });
+                            }}
                             className={`px-2 py-2 rounded-lg text-sm font-medium transition-all ${
                               intensity === level
                                 ? 'bg-gradient-to-br from-orange-500 to-red-500 text-white scale-110'
@@ -295,25 +339,24 @@ function SportTile() {
                         ))}
                       </div>
                     </div>
-
-                    <div className="flex gap-2 pt-2">
-                      {currentSports[selectedSport].active && (
-                        <button
-                          onClick={removeSport}
-                          className="flex-1 px-4 py-2 text-sm bg-red-600/30 text-red-200 rounded-lg hover:bg-red-600/50 transition-colors"
-                        >
-                          {t('tracking.remove')}
-                        </button>
-                      )}
-                      <button
-                        onClick={saveSport}
-                        className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        {t('tracking.save')}
-                      </button>
-                    </div>
                   </div>
                 )}
+                <div className="flex gap-2 pt-2">
+                  {selectedSport !== 'rest' && (draftSports[selectedSport]?.active ?? false) && (
+                    <button
+                      onClick={removeSport}
+                      className="flex-1 px-4 py-2 text-sm bg-red-600/30 text-red-200 rounded-lg hover:bg-red-600/50 transition-colors"
+                    >
+                      {t('tracking.remove')}
+                    </button>
+                  )}
+                  <button
+                    onClick={saveSports}
+                    className="flex-1 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    {t('tracking.save')}
+                  </button>
+                </div>
               </div>
             </div>
           </div>,

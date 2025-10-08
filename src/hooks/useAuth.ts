@@ -12,12 +12,12 @@ export function useAuth() {
   const setAuthLoading = useStore((state) => state.setAuthLoading);
 
   useEffect(() => {
-    console.log('👤 Setting up auth state listener...');
+    console.warn('👤 Setting up auth state listener...');
 
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // User is signed in
-        console.log('✅ User authenticated:', {
+        console.warn('✅ User authenticated:', {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
         });
@@ -54,7 +54,7 @@ export function useAuth() {
             // Backward compatibility: Migrate existing users without enabledActivities
             if (!userData.enabledActivities) {
               const defaultActivities: Activity[] = ['pushups', 'sports', 'water', 'protein'];
-              console.log('🔄 Migrating existing user to have default enabledActivities');
+              console.warn('🔄 Migrating existing user to have default enabledActivities');
 
               // Update Firestore with default activities
               await setDoc(userDocRef, { enabledActivities: defaultActivities }, { merge: true });

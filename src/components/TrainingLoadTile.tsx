@@ -1,12 +1,18 @@
 import { useMemo } from 'react';
-import { computeTrainingLoad, type DayRecovery, type DaySession } from '../logic/trainingLoad';
 import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
+import { useCheckInSubscription } from '../hooks/useCheckInSubscription';
+import { useTrainingLoadSubscription } from '../hooks/useTrainingLoadSubscription';
+import {
+  buildWorkoutEntriesFromTracking,
+  computeDailyTrainingLoadV1,
+  resolvePushupsFromTracking,
+} from '../services/trainingLoad';
 import { useStore } from '../store/useStore';
 import { getTileClasses, designTokens } from '../theme/tokens';
 import { normalizeSports } from '../utils/sports';
 import { useTranslation } from '../hooks/useTranslation';
 
-const MAX_TRAINING_LOAD = 1500;
+const MAX_TRAINING_LOAD = 1000;
 
 const clampNumber = (value: number | undefined, fallback: number): number => {
   if (typeof value !== 'number' || Number.isNaN(value)) {
@@ -20,12 +26,18 @@ const formatScore = (value: number): string => {
   return Number.isInteger(rounded) ? `${rounded}` : rounded.toFixed(1);
 };
 
+interface SessionSummary {
+  type: string;
+  duration: number;
+  intensity: number;
+}
+
 function buildSessions(
   sportsSource: Parameters<typeof normalizeSports>[0]
-): DaySession[] {
+): SessionSummary[] {
   const normalized = normalizeSports(sportsSource);
 
-  return Object.entries(normalized).reduce<DaySession[]>((sessions, [key, entry]) => {
+  return Object.entries(normalized).reduce<SessionSummary[]>((sessions, [key, entry]) => {
     if (!entry.active) {
       return sessions;
     }
@@ -51,46 +63,91 @@ function TrainingLoadTile() {
   const { t } = useTranslation();
   const tracking = useStore((state) => state.tracking);
   const selectedDate = useStore((state) => state.selectedDate);
+  const trainingLoadMap = useStore((state) => state.trainingLoad);
+  const checkIns = useStore((state) => state.checkIns);
 
   const activeDate = selectedDate ?? new Date().toISOString().split('T')[0];
+
+  useTrainingLoadSubscription(activeDate);
+  useCheckInSubscription(activeDate);
+
   const combinedDaily = useCombinedDailyTracking(activeDate);
   const manualDaily = Object.prototype.hasOwnProperty.call(tracking, activeDate) ? tracking[activeDate] : undefined;
+  const aggregatedTracking = combinedDaily ?? manualDaily;
+  const aggregatedRecovery = aggregatedTracking?.recovery;
 
-  const recoverySource = manualDaily?.recovery ?? combinedDaily?.recovery;
   const sessions = useMemo(
-    () => buildSessions(combinedDaily?.sports ?? manualDaily?.sports),
-    [combinedDaily?.sports, manualDaily?.sports]
+    () => buildSessions(aggregatedTracking?.sports),
+    [aggregatedTracking?.sports]
   );
 
-  const pushupsTotal = clampNumber(
-    combinedDaily?.pushups?.total ?? manualDaily?.pushups?.total,
-    0
+  const pushupsDisplayTotal = useMemo(() => {
+    const pushups = aggregatedTracking?.pushups;
+    if (!pushups) {
+      return 0;
+    }
+    if (typeof pushups.total === 'number') {
+      return pushups.total;
+    }
+    const reps = pushups.workout?.reps ?? [];
+    return reps.reduce((total, value) => total + value, 0);
+  }, [aggregatedTracking?.pushups]);
+
+  const workoutsForCalculation = useMemo(
+    () => buildWorkoutEntriesFromTracking(aggregatedTracking),
+    [aggregatedTracking]
+  );
+  const pushupsReps = useMemo(
+    () => resolvePushupsFromTracking(aggregatedTracking),
+    [aggregatedTracking]
   );
 
-  const sleepQuality = clampNumber(recoverySource?.sleepQuality, 5);
-  const recoveryScore = clampNumber(recoverySource?.recovery, 5);
-  const illness = Boolean(recoverySource?.illness);
+  const storedTrainingLoad = trainingLoadMap[activeDate];
+  const checkIn = checkIns[activeDate];
+
+  const computedLoad = useMemo(() => {
+    const sleepScore = checkIn?.sleepScore ?? clampNumber(aggregatedRecovery?.sleepQuality, 5);
+    const recoveryScore = checkIn?.recoveryScore ?? clampNumber(aggregatedRecovery?.recovery, 5);
+    const sick = checkIn?.sick ?? Boolean(aggregatedRecovery?.illness);
+    return computeDailyTrainingLoadV1({
+      workouts: workoutsForCalculation,
+      pushupsReps,
+      sleepScore,
+      recoveryScore,
+      sick,
+    });
+  }, [
+    aggregatedRecovery?.illness,
+    aggregatedRecovery?.recovery,
+    aggregatedRecovery?.sleepQuality,
+    checkIn?.recoveryScore,
+    checkIn?.sick,
+    checkIn?.sleepScore,
+    pushupsReps,
+    workoutsForCalculation,
+  ]);
+
+  const loadValue = storedTrainingLoad?.load ?? computedLoad.load;
+  const inputs = storedTrainingLoad?.inputs ?? computedLoad.inputs;
+
+  const sleepQuality = inputs.sleepScore;
+  const recoveryScore = inputs.recoveryScore;
 
   const recoveryTracked =
-    recoverySource?.sleepQuality !== undefined || recoverySource?.recovery !== undefined;
-  const pushupsTracked = pushupsTotal > 0;
+    storedTrainingLoad !== undefined ||
+    checkIn !== undefined ||
+    aggregatedRecovery?.sleepQuality !== undefined ||
+    aggregatedRecovery?.recovery !== undefined;
+  const pushupsTracked = pushupsDisplayTotal > 0;
   const sportsTracked = sessions.length > 0;
 
-  const loadInput: DayRecovery = {
-    sleepQuality,
-    recovery: recoveryScore,
-    illness,
-    sessions,
-    pushupsTotal,
-  };
-
-  const trainingLoad = computeTrainingLoad(loadInput);
   const percent = Math.min(
     100,
-    Math.max(0, Math.round((trainingLoad / MAX_TRAINING_LOAD) * 100))
+    Math.max(0, Math.round((loadValue / MAX_TRAINING_LOAD) * 100))
   );
 
-  const statusKey: 'low' | 'optimal' | 'high' = trainingLoad >= 900 ? 'high' : trainingLoad >= 300 ? 'optimal' : 'low';
+  const statusKey: 'low' | 'optimal' | 'high' =
+    loadValue >= 600 ? 'high' : loadValue >= 200 ? 'optimal' : 'low';
   const statusLabel = t(`dashboard.trainingLoadStatus.${statusKey}`);
   const hasData = recoveryTracked || pushupsTracked || sportsTracked;
   const description = hasData
@@ -103,7 +160,7 @@ function TrainingLoadTile() {
     : '—';
   const sleepDisplay = recoveryTracked ? `${formatScore(sleepQuality)}/10` : '—';
   const recoveryDisplay = recoveryTracked ? `${formatScore(recoveryScore)}/10` : '—';
-  const pushupDisplay = pushupsTracked ? `${pushupsTotal}` : '—';
+  const pushupDisplay = pushupsTracked ? `${pushupsDisplayTotal}` : '—';
 
   return (
     <div
@@ -120,7 +177,7 @@ function TrainingLoadTile() {
           </h3>
         </div>
         <div className="text-sm font-bold text-winter-50 dark:text-winter-300">
-          {trainingLoad}
+          {loadValue}
         </div>
       </div>
 
@@ -174,16 +231,6 @@ function TrainingLoadTile() {
             {workoutsDisplay}
           </div>
         </div>
-      </div>
-
-      <div className="mt-3 rounded-xl bg-white/5 px-3 py-2 text-[11px] text-gray-100/80">
-        <span className="text-gray-100/60">{t('dashboard.trainingLoadPushups')}:</span>{' '}
-        <span
-          className="font-semibold text-gray-50 dark:text-white"
-          data-testid="training-load-pushups-value"
-        >
-          {pushupDisplay}
-        </span>
       </div>
     </div>
   );

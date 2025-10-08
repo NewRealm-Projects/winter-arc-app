@@ -37,12 +37,12 @@ function sanitizeForFirestore<T>(value: T): T {
 // User operations
 export async function saveUser(userId: string, userData: Omit<User, 'id'>) {
   try {
-    console.log('💾 Saving user data to Firestore...', { userId });
+    console.warn('💾 Saving user data to Firestore...', { userId });
     const userRef = doc(db, 'users', userId);
     // Remove undefined fields to avoid Firestore error
     const cleanedData = sanitizeForFirestore(userData);
     await setDoc(userRef, cleanedData);
-    console.log('✅ User data saved successfully');
+    console.warn('✅ User data saved successfully');
     return { success: true };
   } catch (error) {
     console.error('❌ Error saving user:', error);

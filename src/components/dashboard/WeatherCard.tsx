@@ -21,10 +21,7 @@ export default function WeatherCard({ tempC, condition, location = "Aachen", loa
   const { t } = useTranslation();
   if (loading) {
     return (
-      <div
-        className="relative w-full rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] p-4 h-[88px] sm:h-[76px] lg:h-[88px] flex items-center justify-center"
-        data-testid="weather-card-skeleton"
-      >
+      <div className="relative w-full rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] p-4 h-[88px] sm:h-[76px] lg:h-[88px] flex items-center justify-center">
         <div className="animate-pulse flex items-center gap-3 w-full">
           <div className="w-10 h-10 bg-white/10 rounded-full" />
           <div className="flex-1 space-y-2">
@@ -37,10 +34,7 @@ export default function WeatherCard({ tempC, condition, location = "Aachen", loa
   }
 
   return (
-    <div
-      className="relative w-full rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] p-4 h-[88px] sm:h-[76px] lg:h-[88px] flex items-center gap-3 transition-all duration-200 hover:bg-white/8"
-      data-testid="weather-card"
-    >
+    <div className="relative w-full rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] p-4 h-[88px] sm:h-[76px] lg:h-[88px] flex items-center gap-3 transition-all duration-200 hover:bg-white/8">
       {/* Weather Icon */}
       <div className="text-4xl flex-shrink-0">
         {weatherIcons[condition]}

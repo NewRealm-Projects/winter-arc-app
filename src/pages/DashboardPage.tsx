@@ -83,7 +83,7 @@ function DashboardPage() {
           </div>
 
           {/* Weather Card */}
-          <div className="h-full" data-testid="weather-card">
+          <div className="h-full">
             {weatherLoading ? (
               <WeatherCard tempC={0} condition="partly" loading={true} />
             ) : weather ? (

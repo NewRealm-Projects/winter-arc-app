@@ -1,4 +1,4 @@
-import { useRef, useState, ChangeEvent } from 'react';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import * as Sentry from '@sentry/react';
 import { auth } from '../firebase/config';
@@ -49,6 +49,7 @@ function SettingsPage() {
   const [showTimeModal, setShowTimeModal] = useState(false);
   const [showInstallHelp, setShowInstallHelp] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionId>('general');
+  const [activeLegalDocument, setActiveLegalDocument] = useState<'privacy' | 'terms' | null>(null);
 
   const user = useStore((state) => state.user);
   const setUser = useStore((state) => state.setUser);
@@ -207,7 +208,7 @@ function SettingsPage() {
 
   const handleTestError = () => {
     try {
-      console.log('🧪 Testing Sentry error capture...');
+      console.warn('🧪 Testing Sentry error capture...');
       throw new Error('Test error for Sentry - triggered from Settings page');
     } catch (error) {
       Sentry.captureException(error);
@@ -224,7 +225,7 @@ function SettingsPage() {
         if (permission === 'granted') {
           setNotificationsEnabled(true);
           scheduleNotification(notificationTime);
-          console.log('✅ Benachrichtigungen aktiviert für', notificationTime);
+          console.warn('✅ Benachrichtigungen aktiviert für', notificationTime);
         } else if (permission === 'denied') {
           alert('❌ Benachrichtigungs-Berechtigung wurde verweigert. Bitte erlaube Benachrichtigungen in deinen Browser-Einstellungen.');
         } else {
@@ -236,7 +237,7 @@ function SettingsPage() {
     } else {
       // Disable notifications
       setNotificationsEnabled(false);
-      console.log('🔕 Benachrichtigungen deaktiviert');
+      console.warn('🔕 Benachrichtigungen deaktiviert');
     }
   };
 
@@ -266,7 +267,7 @@ function SettingsPage() {
       }
     }, timeUntilNotification);
 
-    console.log(`🔔 Benachrichtigung geplant für ${scheduledTime.toLocaleString()}`);
+    console.warn(`🔔 Benachrichtigung geplant für ${scheduledTime.toLocaleString()}`);
   };
 
   const sendTestNotification = () => {
@@ -276,7 +277,7 @@ function SettingsPage() {
         icon: '/icon-192.png',
         badge: '/icon-192.png',
       });
-      console.log('📬 Test-Benachrichtigung gesendet');
+      console.warn('📬 Test-Benachrichtigung gesendet');
     } else {
       alert('❌ Benachrichtigungen sind nicht aktiviert oder die Berechtigung wurde verweigert.');
     }
@@ -336,6 +337,24 @@ function SettingsPage() {
     { label: t('settings.maxPushups'), value: `${user?.maxPushups ?? '—'}` },
   ];
 
+  useEffect(() => {
+    if (!activeLegalDocument) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActiveLegalDocument(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [activeLegalDocument]);
+
   const renderTimeModal = () => {
     if (!showTimeModal) {
       return null;
@@ -366,6 +385,121 @@ function SettingsPage() {
                 className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
               >
                 {t('common.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderLegalModal = () => {
+    if (!activeLegalDocument) {
+      return null;
+    }
+
+    const legalContent =
+      activeLegalDocument === 'privacy'
+        ? {
+            title: t('settings.privacy'),
+            intro: t('settings.privacyIntro'),
+            sections: [
+              {
+                heading: t('settings.privacyDataTitle'),
+                body: [t('settings.privacyDataBody1'), t('settings.privacyDataBody2')],
+              },
+              {
+                heading: t('settings.privacyUsageTitle'),
+                body: [t('settings.privacyUsageBody1'), t('settings.privacyUsageBody2')],
+              },
+              {
+                heading: t('settings.privacyRightsTitle'),
+                body: [t('settings.privacyRightsBody1'), t('settings.privacyRightsBody2')],
+              },
+            ],
+            lastUpdated: t('settings.privacyLastUpdated'),
+          }
+        : {
+            title: t('settings.terms'),
+            intro: t('settings.termsIntro'),
+            sections: [
+              {
+                heading: t('settings.termsUsageTitle'),
+                body: [t('settings.termsUsageBody1'), t('settings.termsUsageBody2')],
+              },
+              {
+                heading: t('settings.termsResponsibilitiesTitle'),
+                body: [t('settings.termsResponsibilitiesBody1'), t('settings.termsResponsibilitiesBody2')],
+              },
+              {
+                heading: t('settings.termsChangesTitle'),
+                body: [t('settings.termsChangesBody1'), t('settings.termsChangesBody2')],
+              },
+            ],
+            lastUpdated: t('settings.termsLastUpdated'),
+          };
+
+    return (
+      <div
+        className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="legal-modal-title"
+        aria-describedby="legal-modal-intro"
+        onClick={() => {
+          setActiveLegalDocument(null);
+        }}
+      >
+        <div
+          className={`${glassCardClasses} ${designTokens.padding.spacious} max-h-[80vh] w-full max-w-2xl overflow-y-auto text-white`}
+          onClick={(event) => {
+            event.stopPropagation();
+          }}
+        >
+          <div className="flex flex-col gap-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 id="legal-modal-title" className="text-2xl font-semibold">
+                  {legalContent.title}
+                </h2>
+                <p id="legal-modal-intro" className="text-sm text-white/70">
+                  {legalContent.intro}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveLegalDocument(null);
+                }}
+                className="rounded-full border border-white/20 bg-white/10 p-2 text-white transition hover:border-white/30 hover:bg-white/15"
+                aria-label={t('settings.legalClose')}
+              >
+                ×
+              </button>
+            </div>
+            <div className="flex flex-col gap-5 text-sm leading-relaxed text-white/80">
+              {legalContent.sections.map((section) => (
+                <section key={section.heading} className="flex flex-col gap-2">
+                  <h3 className="text-base font-semibold text-white">{section.heading}</h3>
+                  {section.body.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                </section>
+              ))}
+            </div>
+            <div className="flex flex-col gap-2 text-xs text-white/60">
+              <span>{legalContent.lastUpdated}</span>
+              <span>{t('settings.legalContact')}</span>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveLegalDocument(null);
+                }}
+                className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+              >
+                {t('settings.legalClose')}
               </button>
             </div>
           </div>
@@ -959,12 +1093,20 @@ function SettingsPage() {
                     <div className="flex flex-col gap-2">
                       <button
                         type="button"
+                        onClick={() => {
+                          setActiveLegalDocument('privacy');
+                        }}
+                        aria-haspopup="dialog"
                         className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
                       >
                         {t('settings.privacy')}
                       </button>
                       <button
                         type="button"
+                        onClick={() => {
+                          setActiveLegalDocument('terms');
+                        }}
+                        aria-haspopup="dialog"
                         className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-left text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
                       >
                         {t('settings.terms')}
@@ -1003,6 +1145,7 @@ function SettingsPage() {
         </div>
       </div>
 
+      {renderLegalModal()}
       {renderTimeModal()}
     </div>
   );

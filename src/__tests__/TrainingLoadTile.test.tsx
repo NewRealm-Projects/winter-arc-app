@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import TrainingLoadTile from '../components/TrainingLoadTile';
 import { useStore } from '../store/useStore';
 import type { SportTracking } from '../types';
+import { computeDailyTrainingLoadV1 } from '../services/trainingLoad';
 
 const originalSelectedDate = useStore.getState().selectedDate;
 
@@ -76,11 +77,19 @@ afterEach(async () => {
       render(<TrainingLoadTile />);
     });
 
+    const expectedLoad = computeDailyTrainingLoadV1({
+      workouts: [{ durationMinutes: 60, intensity: 6 }],
+      pushupsReps: 50,
+      sleepScore: 8,
+      recoveryScore: 7,
+      sick: false,
+    }).load;
+
     expect(screen.getByTestId('training-load-tile')).toBeInTheDocument();
     expect(screen.getByText('Training Load')).toBeInTheDocument();
-    expect(screen.getByText('300')).toBeInTheDocument();
+    expect(screen.getByText(String(expectedLoad))).toBeInTheDocument();
     expect(screen.getByTestId('training-load-sleep-value').textContent).toContain('8');
-    expect(screen.getByTestId('training-load-pushups-value').textContent).toContain('50');
+    expect(screen.queryByTestId('training-load-pushups-value')).toBeNull();
   });
 
   it('shows fallback state when no data is present', async () => {
