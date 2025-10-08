@@ -5,6 +5,27 @@ import { auth, storage } from '../firebase/config';
 type UploadResult = { success: boolean; url?: string; error?: string };
 type DeleteResult = { success: boolean; error?: string };
 
+const firebaseErrorMap: Record<string, string> = {
+  'storage/unauthorized': 'storage_unauthorized',
+  'storage/canceled': 'storage_canceled',
+  'storage/retry-limit-exceeded': 'storage_retry_limit_exceeded',
+  'storage/quota-exceeded': 'storage_quota_exceeded',
+  'storage/object-not-found': 'storage_object_not_found',
+};
+
+function mapUploadError(error: unknown): UploadResult {
+  if (error instanceof FirebaseError) {
+    const mappedError = firebaseErrorMap[error.code] ?? 'storage_error';
+    return { success: false, error: mappedError };
+  }
+
+  if (error instanceof Error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: false, error: 'unknown_error' };
+}
+
 function validateCurrentUser(userId: string): UploadResult {
   const currentUser = auth.currentUser;
 
