@@ -1,9 +1,50 @@
 import { defineConfig, devices } from '@playwright/test';
+import { AddressInfo, createServer } from 'node:net';
 
-const baseURL = process.env.E2E_BASE_URL || 'http://127.0.0.1:4173';
+const previewHost = process.env.E2E_HOST ?? '127.0.0.1';
+
+async function findAvailablePort(preferredPort: number, host: string): Promise<number> {
+  return new Promise<number>((resolve, reject) => {
+    const tester = createServer();
+    tester.unref();
+
+    const resolveWithPort = (port: number) => {
+      if (tester.listening) {
+        tester.close(() => resolve(port));
+        return;
+      }
+      resolve(port);
+    };
+
+    tester.once('error', (error: NodeJS.ErrnoException) => {
+      if (error.code !== 'EADDRINUSE') {
+        reject(error);
+        return;
+      }
+
+      const fallbackServer = createServer();
+      fallbackServer.unref();
+      fallbackServer.once('error', reject);
+      fallbackServer.listen(0, host, () => {
+        const address = fallbackServer.address() as AddressInfo;
+        fallbackServer.close(() => resolve(address.port));
+      });
+    });
+
+    tester.listen(preferredPort, host, () => {
+      const address = tester.address() as AddressInfo;
+      resolveWithPort(address.port);
+    });
+  });
+}
+
+const preferredPort = Number.parseInt(process.env.E2E_PORT ?? '', 10) || 4173;
+const resolvedPort = await findAvailablePort(preferredPort, previewHost);
+const baseURL = process.env.E2E_BASE_URL || `http://${previewHost}:${resolvedPort}`;
 
 const isCI = Boolean(process.env.CI);
 const workers = isCI ? 2 : undefined;
+const reuseExistingServer = !isCI;
 
 export default defineConfig({
   testDir: './tests',
@@ -11,9 +52,9 @@ export default defineConfig({
   retries: 1,
   ...(typeof workers === 'number' ? { workers } : {}),
   webServer: {
-    command: 'npm run build && npm run preview -- --host 127.0.0.1 --port 4173',
+    command: `npm run build && npm run preview -- --host ${previewHost} --port ${resolvedPort}`,
     url: baseURL,
-    reuseExistingServer: !isCI,
+    reuseExistingServer,
     stdout: 'pipe',
     stderr: 'pipe',
     timeout: 180_000,
