@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Reduce the streak completion threshold to 50% daily fulfillment to make progress streaks more attainable.
+- Upgrade the web client to React 19, Vite 7, and the latest Firebase/Sentry stack while adopting `useActionState`/`useOptimistic` on the Notes page for immediate feedback during smart note submissions.
 
 ## [0.1.0] - 2025-10-06
 
