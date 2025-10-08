@@ -1,4 +1,12 @@
-import { ChangeEvent, FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  ChangeEvent,
+  useActionState,
+  useCallback,
+  useEffect,
+  useOptimistic,
+  useRef,
+  useState,
+} from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from '../hooks/useTranslation';
 import { SmartNote, Event, SmartNoteAttachment } from '../types/events';
@@ -298,7 +306,6 @@ function NoteCard({ note }: { note: SmartNote }) {
 function NotesPage() {
   const { t } = useTranslation();
   const [input, setInput] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [notes, setNotes] = useState<SmartNote[]>([]);
   const [autoTracking, setAutoTracking] = useAutoTracking();
   const [hasMore, setHasMore] = useState(false);
@@ -306,6 +313,25 @@ function NotesPage() {
   const limitRef = useRef(PAGE_SIZE);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [attachments, setAttachments] = useState<SmartNoteAttachment[]>([]);
+  const attachmentsStateRef = useRef(attachments);
+  attachmentsStateRef.current = attachments;
+  const autoTrackingRef = useRef(autoTracking);
+  autoTrackingRef.current = autoTracking;
+
+  const [optimisticNotes, addOptimisticNote] = useOptimistic(
+    notes,
+    (currentNotes: SmartNote[], optimisticNote: SmartNote) => {
+      const withoutDuplicate = currentNotes.filter((note) => note.id !== optimisticNote.id);
+      return [optimisticNote, ...withoutDuplicate];
+    },
+  );
+
+  const createOptimisticNoteId = useCallback(() => {
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+      return `optimistic-${crypto.randomUUID()}`;
+    }
+    return `optimistic-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }, []);
 
   const createAttachmentId = useCallback(() => {
     if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -376,22 +402,45 @@ function NotesPage() {
     void noteStore.syncFromRemote();
   }, [user]);
 
-  const onSubmit = useCallback(
-    async (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      if (!input.trim()) return;
-      setIsSubmitting(true);
+  type SubmissionState = { error: string | null };
+
+  const [submissionState, submitNote, isSubmitting] = useActionState<SubmissionState, FormData>(
+    async (_previous, formData) => {
+      const rawValue = formData.get('smart-note-input');
+      const value = typeof rawValue === 'string' ? rawValue.trim() : '';
+
+      if (!value) {
+        return { error: 'Bitte gib eine Smart Note ein.' } satisfies SubmissionState;
+      }
+
+      const currentAttachments = attachmentsStateRef.current.map((attachment) => ({ ...attachment }));
+      const optimisticNote: SmartNote = {
+        id: createOptimisticNoteId(),
+        ts: Date.now(),
+        raw: value,
+        summary: value,
+        events: [],
+        pending: true,
+        attachments: currentAttachments.length ? currentAttachments : undefined,
+      };
+
+      addOptimisticNote(optimisticNote);
+      setInput('');
+      setAttachments([]);
+
       try {
-        await processSmartNote(input, { autoTracking, attachments: attachments.length ? attachments : undefined });
-        setInput('');
-        setAttachments([]);
+        await processSmartNote(value, {
+          autoTracking: autoTrackingRef.current,
+          attachments: currentAttachments.length ? currentAttachments : undefined,
+        });
+        return { error: null } satisfies SubmissionState;
       } catch (error) {
         console.error('Failed to process note', error);
-      } finally {
-        setIsSubmitting(false);
+        await loadNotes();
+        return { error: 'Smart Note konnte nicht gespeichert werden.' } satisfies SubmissionState;
       }
     },
-    [input, autoTracking, attachments]
+    { error: null },
   );
 
   const handleLoadMore = useCallback(async () => {
@@ -418,12 +467,13 @@ function NotesPage() {
 
           <form
             data-testid="smart-note-form"
-            onSubmit={onSubmit}
+            action={submitNote}
             className={[glassCardHoverClasses, designTokens.padding.spacious, 'flex flex-col gap-4 text-white', 'animate-fade-in-up delay-100'].join(' ')}
           >
             <div className="flex-1 w-full">
               <input
                 data-testid="smart-note-input"
+                name="smart-note-input"
                 value={input}
                 onChange={(e) => { setInput(e.target.value); }}
                 placeholder="Kurz notieren…"
@@ -487,6 +537,12 @@ function NotesPage() {
             </button>
           </form>
 
+          {submissionState.error ? (
+            <div className={[glassCardClasses, designTokens.padding.compact, 'text-sm text-red-200'].join(' ')}>
+              {submissionState.error}
+            </div>
+          ) : null}
+
           <section
             className={[glassCardClasses, designTokens.padding.spacious, 'text-white flex flex-col gap-4', 'animate-fade-in-up', 'delay-200'].join(' ')}
           >
@@ -504,7 +560,7 @@ function NotesPage() {
             </div>
           </section>
 
-          {notes.length === 0 ? (
+          {optimisticNotes.length === 0 ? (
             <div
               data-testid="smart-note-empty"
               className={[
@@ -517,7 +573,7 @@ function NotesPage() {
             </div>
           ) : (
             <div data-testid="smart-note-list" className="flex flex-col gap-3">
-              {notes.map((note) => <NoteCard key={note.id} note={note} />)}
+              {optimisticNotes.map((note) => <NoteCard key={note.id} note={note} />)}
             </div>
           )}
 

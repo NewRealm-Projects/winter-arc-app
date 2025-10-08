@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react';
 import PushupTile from '../components/PushupTile';
 import SportTile from '../components/SportTile';
 import WaterTile from '../components/WaterTile';
@@ -42,14 +43,14 @@ function DashboardPage() {
             <div className="mobile-stack animate-fade-in-up delay-200">
               {/* Render tiles in pairs for tile-grid-2 layout */}
               {(() => {
-                const tiles = [] as JSX.Element[];
+                const tiles: ReactElement[] = [];
                 if (enabledActivities.includes('pushups')) tiles.push(<PushupTile key="pushups" />);
                 if (enabledActivities.includes('sports')) tiles.push(<SportTile key="sports" />);
                 if (enabledActivities.includes('water')) tiles.push(<WaterTile key="water" />);
                 if (enabledActivities.includes('protein')) tiles.push(<ProteinTile key="protein" />);
 
                 // Group tiles into pairs for tile-grid-2 layout
-                const tileGroups = [] as JSX.Element[];
+                const tileGroups: ReactElement[] = [];
                 for (let i = 0; i < tiles.length; i += 2) {
                   const group = tiles.slice(i, i + 2);
                   tileGroups.push(
