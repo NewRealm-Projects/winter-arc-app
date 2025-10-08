@@ -99,6 +99,7 @@ pnpm test -- --coverage
 - [ ] Keine TODO/FIXME im Diff oder mit Issue verlinkt
 - [ ] Funktionslänge/Komplexität ok, Magic Numbers extrahiert
 - [ ] Neue/angepasste Funktionen mit Typen und Tests
+- [ ] Inhalte für **Privatsphäre** & **Nutzungsbedingungen** im Settings-Screen (inkl. Übersetzungen) geprüft und aktuell gehalten
 
 ### Wenn Codacy trotzdem rot ist
 
