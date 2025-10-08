@@ -4,13 +4,32 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
+function normalizeStorageBucket(rawBucket?: string): string | undefined {
+  if (!rawBucket) {
+    return rawBucket;
+  }
+
+  // Remove protocol prefixes and query params that may be pasted from URLs
+  const trimmed = rawBucket.trim();
+  const withoutScheme = trimmed
+    .replace(/^https?:\/\/(?:storage\.)?googleapis\.com\/v0\/b\//i, '')
+    .replace(/^gs:\/\//i, '');
+  const bucketOnly = withoutScheme.split(/[/?#]/)[0];
+
+  if (bucketOnly.endsWith('.firebasestorage.app')) {
+    return bucketOnly.replace(/\.firebasestorage\.app$/i, '.appspot.com');
+  }
+
+  return bucketOnly;
+}
+
 // Firebase configuration
 // Diese Werte sollten über Umgebungsvariablen gesetzt werden
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  storageBucket: normalizeStorageBucket(import.meta.env.VITE_FIREBASE_STORAGE_BUCKET),
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };

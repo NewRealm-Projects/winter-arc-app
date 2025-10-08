@@ -79,19 +79,19 @@ function DashboardPage() {
       {/* Content */}
       <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0 max-h-[calc(100vh-5rem)] viewport-safe">
         {/* Top Grid: Streak + Check-in + Weather */}
-        <div className="flex flex-col gap-2 lg:gap-4 mb-3 animate-fade-in-up sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <div className="grid grid-cols-3 gap-2 lg:gap-4 mb-3 animate-fade-in-up sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
           {/* Streak Card */}
-          <div>
+          <div className="h-full">
             <StreakMiniCard days={streak} />
           </div>
 
           {/* Check-in Button */}
-          <div className="sm:flex sm:items-stretch sm:justify-center">
+          <div className="flex items-stretch justify-center h-full">
             <CheckInButton />
           </div>
 
           {/* Weather Card */}
-          <div>
+          <div className="h-full">
             {weatherLoading ? (
               <WeatherCard tempC={0} condition="partly" loading={true} />
             ) : weather ? (
