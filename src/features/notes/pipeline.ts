@@ -9,7 +9,23 @@ function createEventId() {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
     return crypto.randomUUID();
   }
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  // Fallback: use crypto.getRandomValues for browsers (if available), or Node.js crypto.randomBytes.
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    // Browser environment: generate a 16-byte hex string (UUID-like)
+    const array = new Uint8Array(16);
+    crypto.getRandomValues(array);
+    return Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
+  }
+  // Node.js environment fallback
+  try {
+    // Avoid import if not present
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const nodeCrypto = require('crypto');
+    return nodeCrypto.randomBytes(16).toString('hex');
+  } catch (error) {
+    // Final fallback, should never hit unless very restricted env
+    throw new Error('No secure randomness available for event ID');
+  }
 }
 
 function normalizeEvent(event: Event, noteTs: number, source: Event['source']): Event {
