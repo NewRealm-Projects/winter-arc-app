@@ -44,14 +44,6 @@ export const translations = {
       trainingLoadPushups: 'Liegestütze',
       trainingLoadNoData: 'Noch keine Daten erfasst',
     },
-    // Weather
-    weather: {
-      sunny: 'Sonnig',
-      cloudy: 'Bewölkt',
-      rain: 'Regen',
-      snow: 'Schnee',
-      partly: 'Teils bewölkt',
-    },
     // Tracking
     tracking: {
       title: 'Heute tracken ✍️',
@@ -153,11 +145,9 @@ export const translations = {
       title: 'Einstellungen',
       subtitle: 'Passe dein Profil an',
       quickSettings: 'Schnelleinstellungen',
-      quickSettingsDesc: 'Passe Wetter, Aktivitäten und Erinnerungen für deinen Tag an.',
+      quickSettingsDesc: 'Passe Aktivitäten und Erinnerungen für deinen Tag an.',
       profileSettingsDesc: 'Aktualisiere persönliche Daten und teile Infos mit deiner Gruppe.',
       accountSettingsDesc: 'Verwalte Kontoaktionen, Rechtliches und Entwickler-Tools.',
-      weatherCity: 'Wetter-Stadt',
-      weatherCityDesc: 'Stadt für Wetterdaten auswählen',
       profile: 'Profil',
       editProfile: 'Profil bearbeiten',
       saveChanges: 'Änderungen speichern',
@@ -372,14 +362,6 @@ export const translations = {
       trainingLoadPushups: 'Pushups',
       trainingLoadNoData: 'No data yet',
     },
-    // Weather
-    weather: {
-      sunny: 'Sunny',
-      cloudy: 'Cloudy',
-      rain: 'Rain',
-      snow: 'Snow',
-      partly: 'Partly Cloudy',
-    },
     // Tracking
     tracking: {
       title: 'Track Today ✍️',
@@ -481,11 +463,9 @@ export const translations = {
       title: 'Settings',
       subtitle: 'Customize your profile',
       quickSettings: 'Quick actions',
-      quickSettingsDesc: 'Fine-tune weather, activities, and reminders for your day.',
+      quickSettingsDesc: 'Fine-tune activities and reminders for your day.',
       profileSettingsDesc: 'Update personal data and sharing preferences for your group.',
       accountSettingsDesc: 'Manage account actions, legal info, and developer tools.',
-      weatherCity: 'Weather City',
-      weatherCityDesc: 'Select city for weather data',
       profile: 'Profile',
       editProfile: 'Edit Profile',
       saveChanges: 'Save Changes',

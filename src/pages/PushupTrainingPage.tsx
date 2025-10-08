@@ -132,7 +132,7 @@ function PushupTrainingPage() {
             [activeDate]: newTracking,
           };
           const trackingForAi = combineTrackingWithSmart(updatedManual, smartContributions);
-          await generateDailyMotivation(trackingForAi, nickname, birthday, 'PushupTraining Abschluss');
+          await generateDailyMotivation(trackingForAi, nickname, birthday);
         } catch (e) {
           console.warn('AI Prompt Log (PushupTraining) Fehler:', e);
         }
