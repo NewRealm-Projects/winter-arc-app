@@ -17,10 +17,11 @@ declare global {
   }
 }
 
-// Initialize Sentry
-if (import.meta.env.VITE_SENTRY_DSN) {
+const sentryDsn = import.meta.env.VITE_SENTRY_DSN
+
+if (sentryDsn) {
   Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
+    dsn: sentryDsn,
     environment: import.meta.env.MODE,
     release: window.SENTRY_RELEASE?.id,
     integrations: [
@@ -47,10 +48,8 @@ if (import.meta.env.VITE_SENTRY_DSN) {
       Sentry.replayIntegration(),
     ],
     tracesSampleRate: 1.0,
-    tracePropagationTargets: ['localhost', /^https:\/\/yourserver\.io\/api/],
     replaysSessionSampleRate: 0.1,
     replaysOnErrorSampleRate: 1.0,
-    enableLogs: true,
   })
 }
 
