@@ -2,7 +2,10 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   calculateCompletionStreak,
   getDayCompletion,
+  getDayProgressSummary,
   getPercent,
+  resolveProteinGoal,
+  resolveWaterGoal,
 } from '../utils/progress';
 import type { DailyTracking, SportTracking } from '../types';
 
@@ -16,6 +19,34 @@ describe('getPercent', () => {
     expect(getPercent(50, 100)).toBe(50);
     expect(getPercent(150, 100)).toBe(100);
     expect(getPercent(-10, 100)).toBe(0);
+  });
+});
+
+describe('resolveWaterGoal', () => {
+  it('prefers explicit hydration goal when available', () => {
+    expect(resolveWaterGoal({ hydrationGoalLiters: 3 })).toBe(3000);
+  });
+
+  it('falls back to weight-based calculation', () => {
+    expect(resolveWaterGoal({ weight: 82 })).toBe(2870);
+  });
+
+  it('uses default when no data provided', () => {
+    expect(resolveWaterGoal(undefined)).toBe(3000);
+  });
+});
+
+describe('resolveProteinGoal', () => {
+  it('returns configured protein goal when valid', () => {
+    expect(resolveProteinGoal({ proteinGoalGrams: 160 })).toBe(160);
+  });
+
+  it('derives protein goal from weight when not configured', () => {
+    expect(resolveProteinGoal({ weight: 73 })).toBe(146);
+  });
+
+  it('returns 0 when input is missing', () => {
+    expect(resolveProteinGoal(undefined)).toBe(0);
   });
 });
 
@@ -71,6 +102,69 @@ describe('getDayCompletion', () => {
     expect(result.percent).toBe(83);
     expect(result.ratios.weight).toBe(0);
     expect(result.weight.logged).toBe(false);
+  });
+});
+
+describe('getDayProgressSummary', () => {
+  it('counts completed tasks and flags streaks at threshold', () => {
+    const summary = getDayProgressSummary({
+      tracking: {
+        water: 2600,
+        protein: 0,
+        sports: { hiit: { active: true } } as SportTracking,
+      },
+      user: {
+        hydrationGoalLiters: 2.5,
+        proteinGoalGrams: 150,
+      },
+      enabledActivities: ['water', 'protein', 'sports'],
+    });
+
+    expect(summary.tasksTotal).toBe(3);
+    expect(summary.tasksCompleted).toBe(2);
+    expect(summary.percent).toBe(67);
+    expect(summary.streakMet).toBe(true);
+  });
+
+  it('respects enabled activity overrides when calculating totals', () => {
+    const summary = getDayProgressSummary({
+      tracking: { water: 0, protein: 0 },
+      user: { hydrationGoalLiters: 2, proteinGoalGrams: 120 },
+      enabledActivities: ['protein'],
+    });
+
+    expect(summary.tasksTotal).toBe(1);
+    expect(summary.tasksCompleted).toBe(0);
+    expect(summary.percent).toBe(0);
+    expect(summary.streakMet).toBe(false);
+  });
+
+  it('ignores protein task when goal is zero', () => {
+    const summary = getDayProgressSummary({
+      tracking: { protein: 250 },
+      user: { proteinGoalGrams: 0 },
+      enabledActivities: ['protein'],
+    });
+
+    expect(summary.tasksTotal).toBe(0);
+    expect(summary.tasksCompleted).toBe(0);
+    expect(summary.percent).toBe(0);
+  });
+
+  it('uses user enabled activities when overrides are missing', () => {
+    const summary = getDayProgressSummary({
+      tracking: { pushups: { total: 30 } as DailyTracking['pushups'] },
+      user: {
+        hydrationGoalLiters: 2,
+        proteinGoalGrams: 100,
+        enabledActivities: ['pushups'],
+      },
+    });
+
+    expect(summary.tasksTotal).toBe(1);
+    expect(summary.tasksCompleted).toBe(1);
+    expect(summary.percent).toBe(100);
+    expect(summary.streakMet).toBe(true);
   });
 });
 
