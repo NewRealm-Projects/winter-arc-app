@@ -5,7 +5,7 @@ import ProteinTile from '../components/ProteinTile';
 import WeightTile from '../components/WeightTile';
 import TrainingLoadTile from '../components/TrainingLoadTile';
 import WeatherCard from '../components/dashboard/WeatherCard';
-import WeekCompactCard from '../components/dashboard/WeekCompactCard';
+import WeekCirclesCard from '../components/dashboard/WeekCirclesCard';
 import { useState, useEffect } from 'react';
 import { getWeatherForAachen } from '../services/weatherService';
 import { useTracking } from '../hooks/useTracking';
@@ -83,9 +83,9 @@ function DashboardPage() {
             )}
           </div>
 
-          {/* Week Compact Card */}
+          {/* Week Circles Card */}
           <div className="mb-3 animate-fade-in-up delay-150">
-            <WeekCompactCard />
+            <WeekCirclesCard />
           </div>
 
           {/* Training Load Tile */}

@@ -43,8 +43,8 @@ vi.mock('../../components/WeightTile', () => ({
   default: () => <div data-testid="weight-tile" />,
 }));
 
-vi.mock('../../components/dashboard/WeekCompactCard', () => ({
-  default: () => <div data-testid="week-compact-card" />,
+vi.mock('../../components/dashboard/WeekCirclesCard', () => ({
+  default: () => <div data-testid="week-circles-card" />,
 }));
 
 vi.mock('../../components/dashboard/WeatherCard', () => ({

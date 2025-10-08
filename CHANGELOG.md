@@ -117,7 +117,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🎨 **Dashboard Redesign** - New compact top layout with streak/weather cards
   - Added StreakMiniCard (168×88px compact card with fire icon)
   - Added WeatherCard with live Aachen weather data
-  - Added WeekCompactCard with horizontal chip-based week navigation
+  - Added WeekCirclesCard with horizontal chip-based week navigation
   - Removed "Hey, Lars!" header for cleaner layout
   - All cards use unified glass-card design
 - 🎨 **Standardized Glass-Card Design** - All tiles now use consistent styling
