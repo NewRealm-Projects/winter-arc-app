@@ -155,7 +155,7 @@ export function trackExperimentExposure(
   userId?: string
 ): void {
   // Log to console for now (replace with real analytics later)
-  console.info('[Experiment]', {
+  console.warn('[Experiment]', {
     experiment: experimentId,
     variant,
     userId: userId || getAnonymousId(),

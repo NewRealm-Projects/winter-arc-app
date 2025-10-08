@@ -298,6 +298,19 @@ export const translations = {
       saved: 'Notizen gespeichert!',
       saveError: 'Fehler beim Speichern der Notizen',
     },
+    // Check-in
+    checkIn: {
+      title: 'Täglicher Check-in',
+      subtitle: 'Bewerte Schlaf & Regeneration für den heutigen Tag.',
+      sleepLabel: 'Schlafqualität',
+      recoveryLabel: 'Recovery',
+      scoreMin: '1 = sehr schlecht',
+      scoreMax: '10 = top',
+      sickLabel: 'Krank?',
+      sickHint: 'Bei Krankheit wird die Tageslast automatisch gedrosselt.',
+      toastSuccess: 'Check-in gespeichert!',
+      toastError: 'Check-in konnte nicht gespeichert werden. Bitte versuche es erneut.',
+    },
     // Common
     common: {
       yes: 'Ja',
@@ -308,6 +321,8 @@ export const translations = {
       success: 'Erfolg',
       save: 'Speichern',
       cancel: 'Abbrechen',
+      close: 'Schließen',
+      saving: 'Speichern…',
     },
   },
   en: {
@@ -609,6 +624,19 @@ export const translations = {
       saved: 'Notes saved!',
       saveError: 'Error saving notes',
     },
+    // Check-in
+    checkIn: {
+      title: 'Daily check-in',
+      subtitle: 'Rate your sleep & recovery for today.',
+      sleepLabel: 'Sleep quality',
+      recoveryLabel: 'Recovery',
+      scoreMin: '1 = very poor',
+      scoreMax: '10 = perfect',
+      sickLabel: 'Feeling sick?',
+      sickHint: 'If you are sick we will automatically reduce today’s training load.',
+      toastSuccess: 'Check-in saved!',
+      toastError: 'Saving the check-in failed. Please try again.',
+    },
     // Common
     common: {
       yes: 'Yes',
@@ -619,6 +647,8 @@ export const translations = {
       success: 'Success',
       save: 'Save',
       cancel: 'Cancel',
+      close: 'Close',
+      saving: 'Saving…',
     },
   },
 };

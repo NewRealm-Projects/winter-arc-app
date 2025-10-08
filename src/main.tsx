@@ -23,7 +23,7 @@ if (import.meta.env.VITE_SENTRY_DSN) {
     replaysSessionSampleRate: 0.1, // 10% of sessions
     replaysOnErrorSampleRate: 1.0, // 100% of sessions with errors
   });
-  console.log('✅ Sentry initialized');
+  console.warn('✅ Sentry initialized');
 } else {
   console.warn('⚠️ Sentry DSN not configured');
 }
