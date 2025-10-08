@@ -74,7 +74,7 @@ function DashboardPage() {
   }, []);
 
   return (
-    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe">
+    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe" data-testid="dashboard-page">
       {/* Content */}
       <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0 max-h-[calc(100vh-5rem)] viewport-safe">
         {/* Top Grid: Streak + Weather - Always side-by-side */}
@@ -85,7 +85,7 @@ function DashboardPage() {
           </div>
 
           {/* Weather Card */}
-          <div>
+          <div data-testid="weather-card">
             {weatherLoading ? (
               <WeatherCard tempC={0} condition="partly" loading={true} />
             ) : weather ? (
