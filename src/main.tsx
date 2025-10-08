@@ -9,11 +9,20 @@ import { ThemeProvider } from './contexts/ThemeContext'
 import { ToastProvider } from './components/ui/ToastProvider'
 import './features/notes/trackingSync'
 
+declare global {
+  interface Window {
+    SENTRY_RELEASE?: {
+      id?: string
+    }
+  }
+}
+
 // Initialize Sentry
 if (import.meta.env.VITE_SENTRY_DSN) {
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
     environment: import.meta.env.MODE,
+    release: window.SENTRY_RELEASE?.id,
     integrations: [
       Sentry.browserTracingIntegration(),
       Sentry.replayIntegration(),

@@ -95,6 +95,8 @@ Use this checklist before deploying a new version of Winter Arc Tracker.
 - [ ] `VITE_GEMINI_API_KEY` set (optional)
 - [ ] `VITE_RECAPTCHA_SITE_KEY` set (recommended)
 - [ ] `VITE_SENTRY_DSN` set (optional)
+- [ ] `SENTRY_AUTH_TOKEN` set in CI/build pipeline for source map upload (optional)
+- [ ] `SENTRY_ORG`/`SENTRY_PROJECT` override set if different from defaults (optional)
 
 ### Firebase Console
 - [ ] Authorized domains include production domain
@@ -130,7 +132,7 @@ Use this checklist before deploying a new version of Winter Arc Tracker.
   npm run preview
   ```
 - [ ] Bundle size is reasonable (< 500KB gzipped)
-- [ ] Source maps generated (if desired)
+- [ ] Source maps uploaded to Sentry when credentials available
 
 ### Deployment
 - [ ] Deploy to staging environment first
