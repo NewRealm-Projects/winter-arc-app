@@ -4,15 +4,13 @@ import WaterTile from '../components/WaterTile';
 import ProteinTile from '../components/ProteinTile';
 import WeightTile from '../components/WeightTile';
 import TrainingLoadTile from '../components/TrainingLoadTile';
-import WeatherCard from '../components/dashboard/WeatherCard';
 import WeekCirclesCard from '../components/dashboard/WeekCirclesCard';
-import { useState, useEffect } from 'react';
-import { getWeatherForAachen } from '../services/weatherService';
 import { useTracking } from '../hooks/useTracking';
 import { useWeeklyTop3 } from '../hooks/useWeeklyTop3';
 import { useStore } from '../store/useStore';
 import HeaderSummaryCard from '../components/header/HeaderSummaryCard';
 import { WeekProvider } from '../contexts/WeekContext';
+import WeekOverview from '../components/WeekOverview';
 
 function DashboardPage() {
   const user = useStore((state) => state.user);
@@ -40,13 +38,13 @@ function DashboardPage() {
 
             {/* Week Compact Card */}
             <div className="animate-fade-in-up delay-100">
-              <WeekCompactCard />
+              <WeekOverview />
             </div>
 
-          {/* Week Circles Card */}
-          <div className="mb-3 animate-fade-in-up delay-150">
-            <WeekCirclesCard />
-          </div>
+            {/* Week Circles Card */}
+            <div className="mb-3 animate-fade-in-up delay-150">
+              <WeekCirclesCard />
+            </div>
             {/* Training Load Tile */}
             <div className="animate-fade-in-up delay-150">
               <TrainingLoadTile />
