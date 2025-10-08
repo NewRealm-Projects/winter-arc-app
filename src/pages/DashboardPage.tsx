@@ -36,14 +36,6 @@ function DashboardPage() {
   // Calculate streak
   const streak = calculateStreak(combinedTracking, enabledActivities);
 
-
-
-
-
-
-
-
-
   useEffect(() => {
     const loadWeather = async () => {
       setWeatherLoading(true);
@@ -75,7 +67,7 @@ function DashboardPage() {
   }, []);
 
   return (
-    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe">
+    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe" data-testid="dashboard-page">
       {/* Content */}
       <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0 max-h-[calc(100vh-5rem)] viewport-safe">
         {/* Top Grid: Streak + Check-in + Weather */}
@@ -120,14 +112,14 @@ function DashboardPage() {
         <div className="mobile-stack animate-fade-in-up delay-300">
           {/* Render tiles in pairs for desktop 2-column layout */}
           {(() => {
-            const tiles = [];
+            const tiles = [] as JSX.Element[];
             if (enabledActivities.includes('pushups')) tiles.push(<PushupTile key="pushups" />);
             if (enabledActivities.includes('sports')) tiles.push(<SportTile key="sports" />);
             if (enabledActivities.includes('water')) tiles.push(<WaterTile key="water" />);
             if (enabledActivities.includes('protein')) tiles.push(<ProteinTile key="protein" />);
 
             // Group tiles into pairs for tile-grid-2 layout
-            const tileGroups = [];
+            const tileGroups = [] as JSX.Element[];
             for (let i = 0; i < tiles.length; i += 2) {
               const group = tiles.slice(i, i + 2);
               tileGroups.push(

@@ -167,18 +167,54 @@ npm run scan:dep
 ### Testing
 
 ```bash
-# Alle Tests & Checks
+# Alle Tests & Checks (Lint, Typecheck, Unit, UI)
 npm run test:all
 
 # Unit Tests (Vitest)
-npm run test:unit
+npm run test
 
-# E2E Tests (Playwright)
-npm run test:e2e
+# Watch Mode für Unit-Tests
+npm run test:watch
 
-# Visual Regression Tests (Playwright)
+# Coverage Report generieren (HTML & lcov unter ./coverage)
+npm run test:coverage
+
+# End-to-End-Tests (Playwright)
+npm run e2e
+
+# Playwright UI Runner (lokal)
+npm run e2e:ui
+
+# Vitest UI (lokal)
 npm run test:ui
 ```
+
+## ✅ Tests & CI
+
+Die GitHub-Actions-Pipeline läuft vollständig auf den Depot-Runnern und erzwingt folgende Qualitätsstufen:
+
+- **lint_typecheck** – `npm run lint` und `npm run typecheck` müssen ohne Findings durchlaufen.
+- **unit_integration** – `npm run test:coverage` mit Vitest (Thresholds ≥ 80 % für Statements/Branches/Functions/Lines). Der HTML-Report liegt nach dem Lauf unter `coverage/index.html` und wird als Artifact `coverage-html` veröffentlicht.
+- **e2e** – `npm run e2e` startet die Playwright-Suites (`e2e/tests/*.spec.ts`) auf Desktop- und Mobile-Viewport. Der HTML-Report befindet sich unter `e2e/artifacts/playwright-report/index.html` (Artifact `e2e-report`).
+- **build** – `npm run build` erzeugt das Produktionsbundle (`dist/`) und packt es für GitHub Pages.
+- **deploy** – veröffentlicht das zuvor geprüfte Bundle mit `actions/deploy-pages@v4`.
+
+### Lokale End-to-End-Tests
+
+```bash
+npm run build
+npm run preview -- --host 0.0.0.0 --port 4173
+# Neues Terminal
+E2E_BASE_URL=http://127.0.0.1:4173 npm run e2e
+```
+
+Beende den Preview-Server anschließend mit `Ctrl+C`. Für explorative Runs steht `npm run e2e:ui` bereit.
+
+### Data-TestID Konventionen
+
+- Verwende `data-testid` mit sprechenden, kebab-case Bezeichnern (`nav-link-dashboard`, `smart-note-input`).
+- Kennzeichne Seiten-Roots, Navigationselemente und kritische Interaktionspunkte konsistent, damit Playwright- und Vitest-Specs stabile Selektoren besitzen.
+- Neue Komponenten sollten nur dann ein `data-testid` erhalten, wenn kein semantischer Selektor möglich ist.
 
 ### Performance & Analysis
 
@@ -297,7 +333,7 @@ Siehe [`.agent/README.md`](.agent/README.md) und [`.agent/policies.md`](.agent/p
 ### Unit Tests (Vitest)
 
 ```bash
-npm run test:unit
+npm run test
 ```
 
 **Coverage**:
@@ -305,28 +341,22 @@ npm run test:unit
 - Hooks: `src/hooks/`
 - Services: `src/services/`
 
-**Beispiel**: [`src/logic/motivation.test.ts`](src/logic/motivation.test.ts)
+**Beispiel**: [`src/store/__tests__/useStore.test.ts`](src/store/__tests__/useStore.test.ts)
 
 ### E2E Tests (Playwright)
 
 ```bash
-npm run test:e2e
+npm run e2e
 ```
 
 **Test Suites**:
-- **Tracking Flow** ([`tests/e2e/tracking.spec.ts`](tests/e2e/tracking.spec.ts)) - 8 Tests
-- **Navigation Flow** ([`tests/e2e/navigation.spec.ts`](tests/e2e/navigation.spec.ts)) - 9 Tests
-- **Training Flow** ([`tests/e2e/training.spec.ts`](tests/e2e/training.spec.ts)) - 9 Tests
+- **Smoke Flow** ([`e2e/tests/smoke.spec.ts`](e2e/tests/smoke.spec.ts)) – Login, Navigation & Responsiveness (Desktop/Mobile)
+- **Smart Notes Flow** ([`e2e/tests/notes.spec.ts`](e2e/tests/notes.spec.ts)) – Formularvalidierung & Persistenz
 
-**Status**: Spezifikationen erstellt, Firebase Auth Emulator Setup ausstehend (siehe [`tests/e2e/README.md`](tests/e2e/README.md))
+### Interaktive Test Runner
 
-### Visual Regression Tests (Playwright)
-
-```bash
-npm run test:ui
-```
-
-Screenshots für Light/Dark Mode in `tests/`
+- `npm run test:ui` – Vitest UI (lokal, Browser-gestütztes Debugging)
+- `npm run e2e:ui` – Playwright UI (lokal, Trace/Screenshot-Viewer)
 
 ---
 

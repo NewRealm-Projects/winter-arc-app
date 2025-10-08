@@ -1,5 +1,12 @@
 ﻿import { create } from 'zustand';
-import { User, DailyTracking, BeforeInstallPromptEvent, SmartTrackingContribution } from '../types';
+import {
+  User,
+  DailyTracking,
+  BeforeInstallPromptEvent,
+  SmartTrackingContribution,
+  DailyCheckIn,
+  DailyTrainingLoad,
+} from '../types';
 
 interface AppState {
   user: User | null;
@@ -11,6 +18,12 @@ interface AppState {
   tracking: Record<string, DailyTracking>;
   setTracking: (tracking: Record<string, DailyTracking>) => void;
   updateDayTracking: (date: string, data: Partial<DailyTracking>) => void;
+
+  checkIns: Record<string, DailyCheckIn>;
+  setCheckInForDate: (date: string, checkIn: DailyCheckIn | null) => void;
+
+  trainingLoad: Record<string, DailyTrainingLoad>;
+  setTrainingLoadForDate: (date: string, load: DailyTrainingLoad | null) => void;
 
   selectedDate: string;
   setSelectedDate: (date: string) => void;
@@ -82,6 +95,30 @@ export const useStore = create<AppState>((set) => ({
         },
       },
     })),
+
+  checkIns: {},
+  setCheckInForDate: (date, checkIn) =>
+    set((state) => {
+      const next = { ...state.checkIns };
+      if (checkIn) {
+        next[date] = checkIn;
+      } else {
+        delete next[date];
+      }
+      return { checkIns: next };
+    }),
+
+  trainingLoad: {},
+  setTrainingLoadForDate: (date, load) =>
+    set((state) => {
+      const next = { ...state.trainingLoad };
+      if (load) {
+        next[date] = load;
+      } else {
+        delete next[date];
+      }
+      return { trainingLoad: next };
+    }),
 
   selectedDate: getTodayDate(),
   setSelectedDate: (date) => set({ selectedDate: date }),

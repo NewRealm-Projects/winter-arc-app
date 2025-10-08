@@ -16,7 +16,7 @@ function LoginPage() {
   // Redirect if already logged in
   useEffect(() => {
     if (user) {
-      console.log('🔄 User already logged in, redirecting...');
+      console.warn('🔄 User already logged in, redirecting...');
       navigate('/', { replace: true });
     }
   }, [user, navigate]);
@@ -28,7 +28,7 @@ function LoginPage() {
         setLoading(true);
         const result = await getRedirectResult(auth);
         if (result) {
-          console.log('✅ Redirect login successful!', {
+          console.warn('✅ Redirect login successful!', {
             uid: result.user.uid,
             email: result.user.email,
           });
@@ -48,29 +48,29 @@ function LoginPage() {
     setLoading(true);
     setError(null);
 
-    console.log('🔐 Starting Google login...');
-    console.log('Firebase Auth Config:', {
+    console.warn('🔐 Starting Google login...');
+    console.warn('Firebase Auth Config:', {
       apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? '✓ Set' : '✗ Missing',
       authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
       projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
     });
-    console.log('Current URL:', window.location.href);
-    console.log('Current Domain:', window.location.hostname);
+    console.warn('Current URL:', window.location.href);
+    console.warn('Current Domain:', window.location.hostname);
 
     try {
       if (useRedirect) {
-        console.log('🔄 Using redirect-based login...');
+        console.warn('🔄 Using redirect-based login...');
         await signInWithRedirect(auth, googleProvider);
         // Page will reload after redirect, no need to handle result here
       } else {
-        console.log('📱 Opening Google Sign-In popup...');
+        console.warn('📱 Opening Google Sign-In popup...');
         const result = await signInWithPopup(auth, googleProvider);
-        console.log('✅ Login successful!', {
+        console.warn('✅ Login successful!', {
           uid: result.user.uid,
           email: result.user.email,
           displayName: result.user.displayName,
         });
-        console.log('🔄 Waiting for auth state to propagate...');
+        console.warn('🔄 Waiting for auth state to propagate...');
         // The useAuth hook will handle the rest via onAuthStateChanged
       }
     } catch (err) {
@@ -92,7 +92,7 @@ function LoginPage() {
         errorMessage = 'Login abgebrochen';
       } else if (errorCode === 'auth/popup-blocked') {
         errorMessage = 'Popup wurde blockiert. Versuche Redirect-Modus.';
-        console.log('💡 Switching to redirect mode...');
+        console.warn('💡 Switching to redirect mode...');
         setUseRedirect(true);
       } else if (errorCode === 'auth/network-request-failed') {
         errorMessage = 'Netzwerkfehler. Bitte überprüfe deine Internetverbindung.';
@@ -131,7 +131,10 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen-mobile flex items-center justify-center px-4 py-6 app-bg safe-pt safe-pb">
+    <div
+      className="min-h-screen-mobile flex items-center justify-center px-4 py-6 app-bg safe-pt safe-pb"
+      data-testid="login-page"
+    >
       <div className="w-full max-w-md">
         <div className="glass rounded-2xl shadow-xl p-6 md:p-8 text-center">
           {/* Logo/Icon */}
@@ -147,6 +150,7 @@ function LoginPage() {
 
           {/* Login Button */}
           <button
+            data-testid="google-login-button"
             onClick={handleGoogleLogin}
             disabled={loading}
             className="touch-target w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg px-6 py-3 font-semibold hover:bg-gray-50 dark:hover:bg-gray-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
@@ -207,6 +211,7 @@ function LoginPage() {
 
           {/* Demo Mode Button */}
           <button
+            data-testid="demo-login-button"
             onClick={handleDemoLogin}
             className="touch-target w-full mt-4 px-6 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 active:scale-95 transition-all flex items-center justify-center gap-2"
           >
