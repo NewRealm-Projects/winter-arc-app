@@ -13,7 +13,7 @@ import DayCircle, { DayCircleSkeleton } from '../ui/DayCircle';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useWeekContext } from '../../contexts/WeekContext';
 import { useStore } from '../../store/useStore';
-import { db } from '../../firebase/config';
+import { db } from '../../firebase';
 import type { Activity, DailyTracking } from '../../types';
 import { getDayProgressSummary } from '../../utils/progress';
 import CheckInModal from '../checkin/CheckInModal';
