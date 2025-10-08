@@ -403,7 +403,7 @@ function NotesPage() {
   }, [hasMore, loadingMore, loadNotes]);
 
   return (
-    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe">
+    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe" data-testid="notes-page">
       <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0">
         <div className="flex flex-col gap-3 md:gap-4">
           <section className={`${glassCardClasses} ${designTokens.padding.spacious} text-white animate-fade-in-up`}>
@@ -417,11 +417,13 @@ function NotesPage() {
           </section>
 
           <form
+            data-testid="smart-note-form"
             onSubmit={onSubmit}
             className={[glassCardHoverClasses, designTokens.padding.spacious, 'flex flex-col gap-4 text-white', 'animate-fade-in-up delay-100'].join(' ')}
           >
             <div className="flex-1 w-full">
               <input
+                data-testid="smart-note-input"
                 value={input}
                 onChange={(e) => { setInput(e.target.value); }}
                 placeholder="Kurz notieren…"
@@ -479,6 +481,7 @@ function NotesPage() {
                   ? 'bg-white/10 text-white/50 cursor-not-allowed'
                   : 'bg-gradient-to-r from-winter-400 to-winter-600 text-white shadow-[0_10px_30px_rgba(15,118,110,0.35)] hover:from-winter-300 hover:to-winter-500'
               }`}
+              data-testid="smart-note-submit"
             >
               {isSubmitting ? 'Wird hinzugefügt…' : 'Hinzufügen'}
             </button>
@@ -503,6 +506,7 @@ function NotesPage() {
 
           {notes.length === 0 ? (
             <div
+              data-testid="smart-note-empty"
               className={[
                 glassCardClasses,
                 designTokens.padding.spacious,
@@ -512,7 +516,9 @@ function NotesPage() {
               <p className="text-sm text-white/60">Noch keine Smart Notes vorhanden.</p>
             </div>
           ) : (
-            notes.map((note) => <NoteCard key={note.id} note={note} />)
+            <div data-testid="smart-note-list" className="flex flex-col gap-3">
+              {notes.map((note) => <NoteCard key={note.id} note={note} />)}
+            </div>
           )}
 
           {hasMore && (

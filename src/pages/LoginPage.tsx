@@ -131,7 +131,10 @@ function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen-mobile flex items-center justify-center px-4 py-6 app-bg safe-pt safe-pb">
+    <div
+      className="min-h-screen-mobile flex items-center justify-center px-4 py-6 app-bg safe-pt safe-pb"
+      data-testid="login-page"
+    >
       <div className="w-full max-w-md">
         <div className="glass rounded-2xl shadow-xl p-6 md:p-8 text-center">
           {/* Logo/Icon */}
@@ -147,6 +150,7 @@ function LoginPage() {
 
           {/* Login Button */}
           <button
+            data-testid="google-login-button"
             onClick={handleGoogleLogin}
             disabled={loading}
             className="touch-target w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 rounded-lg px-6 py-3 font-semibold hover:bg-gray-50 dark:hover:bg-gray-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
@@ -207,6 +211,7 @@ function LoginPage() {
 
           {/* Demo Mode Button */}
           <button
+            data-testid="demo-login-button"
             onClick={handleDemoLogin}
             className="touch-target w-full mt-4 px-6 py-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 active:scale-95 transition-all flex items-center justify-center gap-2"
           >
