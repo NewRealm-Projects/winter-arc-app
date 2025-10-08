@@ -19,7 +19,6 @@ export default defineConfig({
         'src/components/TrainingLoadTile.tsx',
         'src/pages/DashboardPage.tsx',
         'src/routes/**/*.{ts,tsx}',
-        'src/services/weatherService.ts',
         'src/store/useStore.ts',
         'src/logic/**/*.ts',
         'src/utils/progress.ts',
