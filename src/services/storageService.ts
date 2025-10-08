@@ -140,3 +140,13 @@ export async function deleteProfilePicture(
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
+
+function mapUploadError(error: unknown): UploadResult {
+  if (error instanceof FirebaseError) {
+    return { success: false, error: error.code };
+  }
+  if (error instanceof Error) {
+    return { success: false, error: error.message };
+  }
+  return { success: false, error: 'unknown_error' };
+}
