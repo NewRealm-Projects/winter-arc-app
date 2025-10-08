@@ -5,6 +5,12 @@ const storeState = {
   user: {
     enabledActivities: ['pushups', 'sports', 'water', 'protein'] as const,
   },
+  tracking: {} as Record<string, unknown>,
+  checkIns: {} as Record<string, unknown>,
+  trainingLoad: {} as Record<string, unknown>,
+  smartContributions: {} as Record<string, unknown>,
+  setCheckInForDate: vi.fn(),
+  setTrainingLoadForDate: vi.fn(),
 };
 
 vi.mock('../../components/PushupTile', () => ({
@@ -55,11 +61,16 @@ vi.mock('../../hooks/useWeeklyTop3', () => ({
   useWeeklyTop3: vi.fn(),
 }));
 
+const mockCombinedTracking: Record<string, { completed: boolean }> = {
+  '2025-01-01': { completed: true },
+  '2025-01-02': { completed: true },
+};
+
 vi.mock('../../hooks/useCombinedTracking', () => ({
-  useCombinedTracking: vi.fn(() => ({
-    '2025-01-01': { completed: true },
-    '2025-01-02': { completed: true },
-  })),
+  useCombinedTracking: vi.fn(() => mockCombinedTracking),
+  useCombinedDailyTracking: vi.fn((dateKey?: string) =>
+    dateKey ? mockCombinedTracking[dateKey] : undefined
+  ),
 }));
 
 vi.mock('../../store/useStore', () => ({

@@ -1,7 +1,14 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useStore } from '../useStore';
-import type { BeforeInstallPromptEvent, DailyTracking, SportTracking } from '../../types';
+import type {
+  BeforeInstallPromptEvent,
+  DailyCheckIn,
+  DailyTracking,
+  DailyTrainingLoad,
+  SportTracking,
+} from '../../types';
 import { normalizeSports } from '../../utils/sports';
+import type { Timestamp } from 'firebase/firestore';
 
 const initialState = useStore.getState();
 
@@ -9,6 +16,10 @@ describe('useStore', () => {
   beforeEach(() => {
     useStore.setState(initialState, true);
     localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('toggles dark mode and persists preference', () => {
@@ -109,5 +120,75 @@ describe('useStore', () => {
     expect(useStore.getState().tracking).toEqual(tracking);
     expect(useStore.getState().smartContributions.foo?.water).toBe(100);
     expect(useStore.getState().groupCache).toEqual({});
+  });
+
+  it('removes check-ins and training load entries when null is provided', () => {
+    const date = '2025-04-01';
+    const timestamp = { toMillis: () => Date.now() } as unknown as Timestamp;
+    const checkIn: DailyCheckIn = {
+      date,
+      sleepScore: 7,
+      recoveryScore: 6,
+      sick: false,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      source: 'manual',
+    };
+    const trainingLoad: DailyTrainingLoad = {
+      date,
+      load: 42,
+      components: {
+        baseFromWorkouts: 20,
+        modifierSleep: 5,
+        modifierRecovery: 10,
+        modifierSick: 7,
+      },
+      inputs: {
+        sleepScore: 7,
+        recoveryScore: 6,
+        sick: false,
+      },
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      calcVersion: 'v1',
+    };
+
+    useStore.setState({
+      checkIns: { [date]: checkIn },
+      trainingLoad: { [date]: trainingLoad },
+    });
+
+    useStore.getState().setCheckInForDate(date, null);
+    useStore.getState().setTrainingLoadForDate(date, null);
+
+    expect(useStore.getState().checkIns[date]).toBeUndefined();
+    expect(useStore.getState().trainingLoad[date]).toBeUndefined();
+  });
+
+  it('handles storage errors when toggling dark mode', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const failure = new Error('quota exceeded');
+    const setItemMock = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw failure;
+    });
+
+    useStore.setState({ darkMode: false });
+
+    expect(() => useStore.getState().toggleDarkMode()).not.toThrow();
+    expect(useStore.getState().darkMode).toBe(true);
+    expect(setItemMock).toHaveBeenCalledWith('darkMode', JSON.stringify(true));
+  });
+
+  it('handles storage errors when persisting leaderboard filter', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    const failure = new Error('storage blocked');
+    const setItemMock = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw failure;
+    });
+
+    useStore.getState().setLeaderboardFilter('all');
+
+    expect(useStore.getState().leaderboardFilter).toBe('all');
+    expect(setItemMock).toHaveBeenCalledWith('leaderboardFilter', 'all');
   });
 });

@@ -2,6 +2,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { MemoryRouter, MemoryRouterProps } from 'react-router-dom';
 import { render, RenderOptions } from '@testing-library/react';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ToastProvider } from '@/components/ui/ToastProvider';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -22,7 +23,9 @@ export function renderWithProviders(
     wrapper: function ProvidersWrapper({ children }: ProvidersProps) {
       return (
         <MemoryRouter {...routerProps} initialEntries={initialEntries}>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </ThemeProvider>
         </MemoryRouter>
       );
     },
