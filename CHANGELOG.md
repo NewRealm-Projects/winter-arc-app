@@ -9,10 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Profile picture management: Google avatars are uploaded to Firebase Storage during onboarding, users can replace them with custom uploads, and sharing preferences are configurable in-app. Updated Firebase Storage rules restrict access to shared photos.
+- `/clean` slash command for repository cleanup with confidence-based deletion and dry-run support
+- `/maintenance` slash command for orchestrating comprehensive repository maintenance tasks
+- Claude Code slash commands for agent workflows (UI-Refactor, PWA/Performance, Test/Guard, Docs/Changelog)
+- Training load revamp with activity tracking, check-in presets, and live preview
+- Git-Flow enforcement workflow for branch protection
 
 ### Changed
 - Reduce the streak completion threshold to 50% daily fulfillment to make progress streaks more attainable.
 - Upgrade the web client to React 19, Vite 7, and the latest Firebase/Sentry stack while adopting `useActionState`/`useOptimistic` on the Notes page for immediate feedback during smart note submissions.
+- Refactor Sentry integration with centralized service for improved error tracking
+- Migrate ESLint configuration from `.eslintignore` to `eslint.config.js` (ESLint 9 compatibility)
+
+### Fixed
+- WeeklyTile accessibility test by waiting for day data to load
+- WeeklyTile layout issues on mobile devices
+- Staging deployment with verification and git config
+- Security improvements and Husky hook enhancements
+
+### Maintenance
+- Remove temporary files (`nul`, `tmp_pwa_prompt.tsx`)
+- Archive old setup/report files (CLEANUP_REPORT.md, FIREBASE_AUTH_SETUP.md)
+- Add cleanup configuration (`cleanup.config.json`)
+- Improve ESLint configuration to suppress warnings in build artifacts
 
 ---
 
