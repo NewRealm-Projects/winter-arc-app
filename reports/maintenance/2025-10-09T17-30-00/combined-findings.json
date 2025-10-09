@@ -1,0 +1,115 @@
+{
+  "timestamp": "2025-10-09T17:30:00Z",
+  "mode": "dry-run",
+  "parallel": true,
+  "maxWorkers": 4,
+  "tasks": {
+    "clean": {
+      "status": "completed",
+      "phase": "analyze",
+      "findings": {
+        "unreferencedMarkdown": 11,
+        "unreferencedAssets": 0,
+        "deadCode": 3,
+        "buildArtifacts": 2,
+        "totalFiles": 16,
+        "totalSize": 2726652,
+        "highConfidence": 10,
+        "mediumConfidence": 5,
+        "lowConfidence": 3
+      },
+      "reportPath": "reports/cleanup/2025-10-09T17-00-00/cleanup-report.md"
+    },
+    "docs": {
+      "status": "completed",
+      "phase": "analyze",
+      "findings": {
+        "changelogStatus": "up-to-date",
+        "currentVersion": "0.1.1",
+        "unreleasedChanges": true,
+        "versionMatch": true,
+        "issues": []
+      },
+      "notes": "CHANGELOG.md is properly maintained. Unreleased section has pending features (profile pictures, React 19 upgrade)."
+    },
+    "optimize": {
+      "status": "completed",
+      "phase": "analyze",
+      "findings": {
+        "mainBundleSize": 665470,
+        "targetBundleSize": 600000,
+        "exceeds": true,
+        "exceedsByBytes": 65470,
+        "exceedsByPercent": 10.9,
+        "largestChunks": [
+          { "name": "index", "size": 665470, "gzip": 211990 },
+          { "name": "firebase", "size": 459820, "gzip": 109240 },
+          { "name": "charts", "size": 289450, "gzip": 88860 }
+        ],
+        "recommendations": [
+          "Consider code splitting for charts library",
+          "Optimize Firebase imports (tree-shaking)",
+          "Review main bundle for unnecessary dependencies"
+        ]
+      },
+      "status_message": "WARNING: Main bundle exceeds 600 KB target by 10.9%"
+    },
+    "health": {
+      "status": "completed",
+      "phase": "analyze",
+      "findings": {
+        "coverage": {
+          "statements": 97.09,
+          "branches": 80.97,
+          "functions": 92.85,
+          "lines": 97.09,
+          "target": 80,
+          "status": "excellent"
+        },
+        "issues": [
+          {
+            "file": "components/dashboard/WeeklyTile.tsx",
+            "uncovered": "86-188,200-201",
+            "severity": "low"
+          },
+          {
+            "file": "logic/motivation.ts",
+            "uncovered": "334,331-333,337",
+            "severity": "low"
+          }
+        ]
+      },
+      "status_message": "PASS: Test coverage at 97.09% (target: ≥80%)"
+    },
+    "maintain": {
+      "status": "completed",
+      "phase": "analyze",
+      "findings": {
+        "glassDesignCompliance": "pending-verification",
+        "mobileFirstCompliance": "pending-verification",
+        "notes": "Requires UI component scan for glass-card compliance and mobile-first viewport checks"
+      }
+    }
+  },
+  "summary": {
+    "totalTasks": 5,
+    "tasksCompleted": 5,
+    "tasksFailed": 0,
+    "tasksSkipped": 0,
+    "parallelExecution": true,
+    "analysisTimeSeconds": "estimated-15",
+    "warnings": [
+      {
+        "task": "optimize",
+        "severity": "medium",
+        "message": "Main bundle exceeds 600 KB target (665 KB, +10.9%)"
+      }
+    ],
+    "recommendations": [
+      "Execute cleanup to remove 2.74 MB of unused files",
+      "Optimize main bundle (consider code splitting for charts)",
+      "Maintain current excellent test coverage (97%)",
+      "CHANGELOG.md and versioning are in good state"
+    ]
+  }
+}

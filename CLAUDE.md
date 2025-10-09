@@ -12,6 +12,26 @@ Guidance for Claude Code when working with this repository.
 
 ---
 
+## Claude Code Workflow
+
+**MANDATORY**: Claude Code soll standardmäßig bis zu **10 Worker/Tasks parallel** ausführen, wenn sinnvoll.
+
+**Parallel-Richtlinien:**
+- Nutze parallele Tool-Aufrufe für unabhängige Operationen (Read, Glob, Grep, Bash)
+- Starte mehrere Tasks/Agents gleichzeitig in einem Response-Block
+- Beispiele:
+  - Mehrere Dateien parallel lesen
+  - Lint, TypeScript, Tests parallel ausführen
+  - Verschiedene Suchen parallel durchführen
+  - Mehrere unabhängige Agents gleichzeitig starten
+
+**Sequenziell nur bei Abhängigkeiten:**
+- Dateien erst lesen, dann editieren
+- Build erst nach Code-Änderungen
+- Commit erst nach erfolgreichen Tests
+
+---
+
 ## Codacy Compliance (MANDATORY)
 
 Every commit MUST pass Codacy checks:
