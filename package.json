@@ -34,10 +34,6 @@
     "agent:lighthouse": "node .agent/scripts/run-lighthouse.mjs",
     "agent:bundle": "node .agent/scripts/bundle-report.mjs",
     "agent:artifacts": "node .agent/scripts/prepare-artifacts.mjs",
-    "sync:staging-to-origin": "bash scripts/sync-remotes.sh develop staging-to-origin",
-    "sync:origin-to-staging": "bash scripts/sync-remotes.sh develop origin-to-staging",
-    "sync:main-staging-to-origin": "bash scripts/sync-remotes.sh main staging-to-origin",
-    "sync:main-origin-to-staging": "bash scripts/sync-remotes.sh main origin-to-staging",
     "prepare": "husky"
   },
   "dependencies": {
