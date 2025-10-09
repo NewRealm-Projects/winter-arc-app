@@ -1,0 +1,105 @@
+#
+# Production Deployment
+#
+# Trigger: Push to main branch + CI success
+# Target: winter-arc-app-prod repository
+# Domain: app.winterarc.newrealm.de
+#
+# This workflow deploys to production ONLY after CI passes successfully.
+# It uses the build artifact from CI to avoid redundant builds.
+#
+
+name: Deploy Production
+
+on:
+  # Trigger after CI workflow completes successfully on main branch
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+    branches: [main]
+
+  # Allow manual deployment
+  workflow_dispatch:
+
+# Only one production deployment at a time
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false  # Never cancel production deployments
+
+permissions:
+  contents: read
+
+jobs:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # DEPLOY TO PRODUCTION
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://app.winterarc.newrealm.de
+
+    # Only deploy if CI succeeded (or manual dispatch)
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-deps
+
+      - name: Build for production
+        uses: ./.github/actions/build-app
+        with:
+          firebase-api-key: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          firebase-auth-domain: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          firebase-project-id: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          firebase-storage-bucket: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          firebase-messaging-sender-id: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          firebase-app-id: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          recaptcha-site-key: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
+          gemini-api-key: ${{ secrets.VITE_GEMINI_API_KEY }}
+          sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          app-env: 'production'
+          base-path: '/'
+
+      - name: Copy CNAME for production
+        run: |
+          if [ -f "ops/pages/CNAME.prod" ]; then
+            echo "📄 Copying CNAME for production domain"
+            cp ops/pages/CNAME.prod dist/CNAME
+            cat dist/CNAME
+          else
+            echo "⚠️ No CNAME.prod file found"
+          fi
+
+      - name: Deploy to production pages repository
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          repository-name: NewRealm-Projects/winter-arc-app-prod
+          branch: gh-pages
+          folder: dist
+          token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
+          clean: true
+          commit-message: |
+            🚀 Deploy production build from ${{ github.sha }}
+
+            Version: ${{ steps.build.outputs.version }}
+            Commit: ${{ github.event.head_commit.message }}
+            Author: ${{ github.event.head_commit.author.name }}
+
+      - name: Deployment summary
+        run: |
+          echo "✅ Production deployment successful!"
+          echo ""
+          echo "🌐 URL: https://app.winterarc.newrealm.de"
+          echo "📦 Version: $(node -p "require('./package.json').version")"
+          echo "🔖 Commit: ${{ github.sha }}"
+          echo "👤 Author: ${{ github.event.head_commit.author.name }}"
+          echo ""
+          echo "📊 Deployment time: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"

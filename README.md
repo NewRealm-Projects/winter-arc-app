@@ -36,12 +36,12 @@ Progressive Web App (PWA) für iOS und Android – umfassendes Fitness-Tracking 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React 18** + **TypeScript** (strict mode)
-- **Vite 6** - Build tool
+- **React 19** + **TypeScript** (strict mode)
+- **Vite 7** - Build tool
 - **Tailwind CSS** - Styling (Glassmorphism Design)
 - **Recharts** - Weight tracking graphs
 - **React Router** - Client-side routing
-- **i18next** - Internationalization (DE/EN)
+- **i18n** - Internationalization (DE/EN)
 
 ### Backend
 - **Firebase Auth** - Google SSO
@@ -67,6 +67,257 @@ Progressive Web App (PWA) für iOS und Android – umfassendes Fitness-Tracking 
 - **Bundle Analyzer** - Visualize bundle sizes
 - **Lazy Loading** - Route-based code splitting
 - **Performance Budgets** - Enforce bundle size limits
+
+---
+
+## 🚀 Release Management & Deployment
+
+### Architecture Overview
+
+This project implements a **three-environment deployment strategy** using GitHub Pages:
+
+| Environment | Branch | Domain | Purpose |
+|------------|--------|--------|---------|
+| **Production** | `main` | `app.winterarc.newrealm.de` | Live production environment |
+| **Staging** | `develop` | `staging.winterarc.newrealm.de` | Testing and QA |
+| **PR Previews** | Any PR | `staging.winterarc.newrealm.de/pr-<num>/` | Feature review |
+
+### Deployment Flow
+
+```
+┌──────────────┐     Push to main      ┌────────────────────────┐
+│   main       │ ───────────────────→  │  winter-arc-app-prod   │
+│   branch     │                       │  (GitHub Pages Repo)   │
+└──────────────┘                       └────────────────────────┘
+                                                ↓
+                                    app.winterarc.newrealm.de (PROD)
+
+┌──────────────┐    Push to develop   ┌────────────────────────┐
+│  develop     │ ───────────────────→  │ winter-arc-app-staging │
+│  branch      │                       │  (GitHub Pages Repo)   │
+└──────────────┘                       └────────────────────────┘
+                                                ↓
+                                  staging.winterarc.newrealm.de (TEST)
+
+┌──────────────┐     Open PR          ┌────────────────────────┐
+│  feat/...    │ ───────────────────→  │ winter-arc-app-staging │
+│  branch      │                       │    /pr-<number>/       │
+└──────────────┘                       └────────────────────────┘
+                                                ↓
+                          staging.winterarc.newrealm.de/pr-123/ (PREVIEW)
+```
+
+### Workflows
+
+Three GitHub Actions workflows handle deployments:
+
+1. **`.github/workflows/deploy-prod.yml`**
+   - Trigger: Push to `main` branch
+   - Deploy to: `NewRealm-Projects/winter-arc-app-prod` (gh-pages)
+   - Environment: `VITE_APP_ENV=production`
+   - Steps: Install → Build → Deploy
+   - Domain: `app.winterarc.newrealm.de`
+
+2. **`.github/workflows/deploy-staging.yml`**
+   - Trigger: Push to `develop` branch
+   - Deploy to: `NewRealm-Projects/winter-arc-app-staging` (gh-pages)
+   - Environment: `VITE_APP_ENV=staging`
+   - Domain: `staging.winterarc.newrealm.de`
+
+3. **`.github/workflows/pr-preview.yml`**
+   - Trigger: Pull Request (opened, synchronize, reopened)
+   - Deploy to: `NewRealm-Projects/winter-arc-app-staging/pr-<num>/`
+   - Environment: `VITE_APP_ENV=preview`
+   - Adds preview link as PR comment
+
+### Setup Instructions
+
+#### 1. Create GitHub Pages Repositories
+
+Create two separate repos for hosting:
+
+```bash
+# Production Pages Repo
+NewRealm-Projects/winter-arc-app-prod
+  - Settings → Pages → Source: Deploy from branch
+  - Branch: gh-pages, folder: / (root)
+
+# Staging Pages Repo
+NewRealm-Projects/winter-arc-app-staging
+  - Settings → Pages → Source: Deploy from branch
+  - Branch: gh-pages, folder: / (root)
+```
+
+#### 2. Configure GitHub Secret
+
+In the **source code repository** (`winter-arc-app`), add a secret:
+
+- Go to: **Settings → Secrets and variables → Actions**
+- Click **New repository secret**
+- Name: `PAGES_DEPLOY_TOKEN`
+- Value: Personal Access Token (PAT) with `repo` scope
+  - Generate at: https://github.com/settings/tokens
+  - Required scope: `repo` (full control of private repositories)
+
+#### 3. Configure DNS (Custom Domains)
+
+Add CNAME records in your DNS provider:
+
+```
+Type    Name        Value
+CNAME   app         newrealm-projects.github.io
+CNAME   staging     newrealm-projects.github.io
+```
+
+After DNS propagation, configure custom domains in GitHub Pages:
+
+- **Production Repo** → Settings → Pages → Custom domain: `app.winterarc.newrealm.de`
+- **Staging Repo** → Settings → Pages → Custom domain: `staging.winterarc.newrealm.de`
+
+✅ **Enforce HTTPS** (both repos)
+
+#### 4. Branch Protection (Optional but Recommended)
+
+**main branch:**
+- Require pull request reviews
+- Require status checks to pass (CI, tests)
+- Require branches to be up to date
+
+**develop branch:**
+- Require status checks to pass
+
+### System Indicator
+
+The app displays a **version + environment badge** in the bottom-right corner:
+
+| Environment | Display | Color |
+|------------|---------|-------|
+| **Production** | `vX.Y.Z – PROD` | 🟢 Green |
+| **Staging** | `vX.Y.Z – TEST` | 🟠 Orange |
+| **PR Preview** | `vX.Y.Z – PREVIEW` | 🔴 Red |
+| **Local** | `vX.Y.Z – LOCAL` | ⚪ Gray |
+
+**Implementation:**
+- Component: `src/components/SystemIndicator.tsx`
+- Reads `VITE_APP_ENV` from environment
+- Version from `package.json`
+- Fixed position, bottom-right, semi-transparent
+
+### Rollback Procedure
+
+#### Rollback Production
+
+**Option 1: Revert Git Commit**
+```bash
+# On main branch
+git revert <bad-commit-sha>
+git push origin main
+# Workflow auto-deploys reverted state
+```
+
+**Option 2: Reset to Previous Commit**
+```bash
+git reset --hard <good-commit-sha>
+git push origin main --force
+# ⚠️ Use with caution - rewrites history
+```
+
+**Option 3: Manual Rollback in Pages Repo**
+```bash
+cd winter-arc-app-prod
+git checkout gh-pages
+git log  # Find last good commit
+git reset --hard <last-good-commit>
+git push origin gh-pages --force
+```
+
+#### Rollback Staging
+
+Same procedure as production, but use `develop` branch and `winter-arc-app-staging` repo.
+
+### SPA Routing & 404 Handling
+
+GitHub Pages doesn't natively support client-side routing. We use a workaround:
+
+**`public/404.html`**
+- Intercepts 404 errors
+- Redirects to `index.html` with path preserved
+- Detects PR preview paths (`/pr-123/`) and adjusts routing
+- Client-side React Router handles the route
+
+**How it works:**
+1. User visits `app.winterarc.newrealm.de/leaderboard`
+2. GitHub Pages returns `404.html`
+3. JavaScript redirects to `/?/leaderboard`
+4. React Router parses and renders `/leaderboard`
+
+### PR Preview Workflow
+
+1. **Developer creates PR:**
+   ```bash
+   git checkout -b feat/new-feature
+   git push origin feat/new-feature
+   # Open PR on GitHub
+   ```
+
+2. **Workflow triggers automatically:**
+   - Builds app with `VITE_APP_ENV=preview`
+   - Builds with `VITE_BASE_PATH=/pr-<num>/`
+   - Deploys to `winter-arc-app-staging/pr-<num>/`
+
+3. **Bot comments on PR:**
+   ```
+   🚀 Preview deployed!
+   Your changes are available at:
+   https://staging.winterarc.newrealm.de/pr-123/
+
+   Environment: PREVIEW
+   ```
+
+4. **After PR merge/close:**
+   - Preview remains until manually cleaned up
+   - To remove: Delete `pr-<num>` folder from staging repo's gh-pages branch
+
+### Troubleshooting
+
+**Issue: "PAGES_DEPLOY_TOKEN" not found**
+- Ensure secret is set in **source repo** (winter-arc-app), not pages repos
+- Token must have `repo` scope
+
+**Issue: Deploy fails with "remote: Permission denied"**
+- Check PAT hasn't expired
+- Regenerate token and update secret
+
+**Issue: Custom domain shows 404**
+- Verify CNAME DNS record exists and propagated
+- Check GitHub Pages settings → Custom domain is set
+- Wait up to 24h for DNS propagation
+
+**Issue: PR preview broken / white screen**
+- Check `VITE_BASE_PATH` is set correctly in workflow
+- Verify `vite.config.ts` uses `process.env.VITE_BASE_PATH`
+- Check browser console for asset loading errors
+
+**Issue: Deep links (e.g., /leaderboard) don't work**
+- Verify `public/404.html` exists and is deployed
+- Check 404.html detects PR paths correctly
+
+### Cleanup Old PR Previews
+
+PR previews are **not** automatically deleted after merge/close. To clean up:
+
+```bash
+cd winter-arc-app-staging
+git checkout gh-pages
+rm -rf pr-<number>
+git commit -m "Clean up PR #<number> preview"
+git push origin gh-pages
+```
+
+Or use GitHub UI:
+1. Go to `winter-arc-app-staging` repo
+2. Navigate to `gh-pages` branch
+3. Delete `pr-<number>` folder
 
 ---
 

@@ -1,0 +1,42 @@
+name: 'Setup Dependencies'
+description: 'Setup Node.js and install dependencies with caching'
+inputs:
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+outputs:
+  cache-hit:
+    description: 'Whether dependencies were restored from cache'
+    value: ${{ steps.cache-deps.outputs.cache-hit }}
+
+runs:
+  using: 'composite'
+  steps:
+    # Setup Node.js with npm cache
+    - name: Setup Node.js ${{ inputs.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+
+    # Cache node_modules for faster subsequent jobs
+    - name: Cache node_modules
+      id: cache-deps
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-modules-
+
+    # Install dependencies if cache miss
+    - name: Install dependencies
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      shell: bash
+      run: npm ci --prefer-offline --no-audit
+
+    # Verify installation
+    - name: Verify dependencies
+      shell: bash
+      run: npm list --depth=0 || true

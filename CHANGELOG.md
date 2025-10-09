@@ -9,10 +9,113 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Profile picture management: Google avatars are uploaded to Firebase Storage during onboarding, users can replace them with custom uploads, and sharing preferences are configurable in-app. Updated Firebase Storage rules restrict access to shared photos.
-### Changed
 
+### Changed
 - Reduce the streak completion threshold to 50% daily fulfillment to make progress streaks more attainable.
 - Upgrade the web client to React 19, Vite 7, and the latest Firebase/Sentry stack while adopting `useActionState`/`useOptimistic` on the Notes page for immediate feedback during smart note submissions.
+
+---
+
+## [0.1.1] - 2025-10-09
+
+### 🚀 Added
+
+**Release Management System**
+- **Three-environment deployment strategy**: Production (`main`), Staging (`develop`), PR Previews
+- **GitHub Actions Workflows**:
+  - `deploy-prod.yml` - Deploy to `app.winterarc.newrealm.de` on push to `main`
+  - `deploy-staging.yml` - Deploy to `staging.winterarc.newrealm.de` on push to `develop`
+  - `pr-preview.yml` - Deploy PR previews to `staging.winterarc.newrealm.de/pr-<num>/`
+- **CNAME Management**: Separate CNAME files for production and staging (`ops/pages/`)
+- **PR Preview Comments**: Automated bot comments on PRs with preview links
+
+**System Indicator Component**
+- Version + Environment badge (bottom-right corner)
+- Color-coded environments:
+  - 🟢 Production: Green (`vX.Y.Z – PROD`)
+  - 🟠 Staging: Orange (`vX.Y.Z – TEST`)
+  - 🔴 PR Preview: Red (`vX.Y.Z – PREVIEW`)
+  - ⚪ Local: Gray (`vX.Y.Z – LOCAL`)
+- Reads `VITE_APP_ENV` from build environment
+- Replaces old `version-bubble` div
+
+**Logger System**
+- New centralized logger (`src/utils/logger.ts`)
+- Conditional logging (DEV: all logs, PROD: only errors)
+- Sentry integration for error reporting
+- Suppresses logs in test environment
+
+### ♻️ Changed
+
+**Firebase Configuration**
+- Migrated all `console.*` calls to new logger system
+- Improved error tracking with Sentry integration
+- Codacy-compliant (no direct console usage)
+
+**Store Error Handling**
+- Enhanced error handling with Sentry reporting
+- Added context tags for localStorage errors (`dark-mode`, `leaderboard-filter`)
+- Better debugging with extra metadata
+
+**Vite Configuration**
+- Added dynamic `base` path support for PR previews
+- Reads `VITE_BASE_PATH` environment variable
+- PWA manifest scope/start_url adjust to base path
+
+**404.html (SPA Routing)**
+- Added PR preview path detection (`/pr-123/`)
+- Dynamic `pathSegmentsToKeep` based on URL pattern
+- Improved client-side routing for deep links
+
+### 📚 Documentation
+
+**README.md**
+- Added comprehensive "Release Management & Deployment" section
+- Architecture overview with deployment flow diagram
+- Detailed setup instructions (GitHub Pages repos, DNS, secrets)
+- Rollback procedures (3 options: revert, reset, manual)
+- System Indicator documentation with color reference
+- SPA routing explanation (404.html workaround)
+- PR Preview workflow step-by-step guide
+- Troubleshooting section (common issues + fixes)
+- Cleanup guide for old PR previews
+
+### 🧹 Removed
+
+**Code Cleanup**
+- Deleted temporary Python scripts (`tmp_*.py`) from root directory
+- Deleted `nul` file
+- Removed old `version-bubble` implementation from `App.tsx`
+
+### 🔧 Technical Details
+
+**New Files (8):**
+1. `src/utils/logger.ts` - Centralized logging utility
+2. `src/components/SystemIndicator.tsx` - Environment badge component
+3. `.github/workflows/deploy-prod.yml` - Production deployment
+4. `.github/workflows/deploy-staging.yml` - Staging deployment
+5. `.github/workflows/pr-preview.yml` - PR preview deployment
+6. `ops/pages/CNAME.prod` - Production domain config
+7. `ops/pages/CNAME.staging` - Staging domain config
+
+**Modified Files (7):**
+1. `src/firebase/config.ts` - Logger integration
+2. `src/store/useStore.ts` - Enhanced error handling
+3. `src/App.tsx` - SystemIndicator integration
+4. `vite.config.ts` - Dynamic base path support
+5. `public/404.html` - PR preview path detection
+6. `package.json` - Version bump to 0.1.1
+7. `README.md` - Extensive deployment documentation
+
+**Deleted Files (6):**
+- `tmp_edit_store.py`
+- `tmp_pwa_prompt_edit.py`
+- `tmp_trans_install.py`
+- `tmp_update_import.py`
+- `tmp_update_trans_settings_de.py`
+- `nul`
+
+---
 
 ## [0.1.0] - 2025-10-06
 

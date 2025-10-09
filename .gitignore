@@ -47,8 +47,14 @@ preview/
 preview-screenshots/
 test-results/
 
+# Test coverage
+coverage/
+
 # TypeScript cache
 *.tsbuildinfo
 
 # Bundle analysis
 stats.html
+
+# Agent artifacts (generated reports, screenshots, etc.)
+artifacts/

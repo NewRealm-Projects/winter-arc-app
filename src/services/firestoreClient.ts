@@ -20,13 +20,12 @@ function assertUserId(userId: string | null | undefined): asserts userId is stri
 }
 
 function logSubscription(path: string, userId?: string): void {
-  // eslint-disable-next-line no-console
-  console.debug('[Auth]', auth.currentUser?.uid ?? null);
-  // eslint-disable-next-line no-console
-  console.debug('[Subscribe]', path);
-  if (userId) {
-    // eslint-disable-next-line no-console
-    console.debug('[FS]', { userId, path });
+  if (import.meta.env.DEV) {
+    console.warn('[Auth]', auth.currentUser?.uid ?? null);
+    console.warn('[Subscribe]', path);
+    if (userId) {
+      console.warn('[FS]', { userId, path });
+    }
   }
 }
 

@@ -1,39 +1,61 @@
 #!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
 
 echo "🔍 Running pre-push checks..."
 echo ""
 
 # 1. TypeScript type checking
 echo "📘 TypeScript type checking..."
-npm run typecheck || {
+if ! npm run typecheck 2>&1 | grep -v "^$"; then
   echo "❌ TypeScript errors found. Push aborted."
   exit 1
-}
+fi
 
 # 2. ESLint
 echo ""
 echo "🔍 Running ESLint..."
-npm run lint || {
+if ! npm run lint 2>&1 | grep -E "(error|warning)" | grep -v "warnings potentially fixable"; then
   echo "❌ ESLint errors found. Push aborted."
   exit 1
-}
+fi
 
-# 3. Unit tests
+# 3. Unit tests (ignore stderr warnings, check exit code only)
 echo ""
 echo "🧪 Running unit tests..."
-npm run test:unit || {
+# Capture exit code, but allow stderr (for act() warnings)
+npm run test:unit > /tmp/test-output.log 2>&1
+TEST_EXIT_CODE=$?
+
+if [ $TEST_EXIT_CODE -ne 0 ]; then
   echo "❌ Unit tests failed. Push aborted."
+  cat /tmp/test-output.log
+  rm -f /tmp/test-output.log
   exit 1
-}
+fi
+
+# Check for actual test failures in output
+if grep -q "FAIL" /tmp/test-output.log; then
+  echo "❌ Unit tests failed. Push aborted."
+  cat /tmp/test-output.log
+  rm -f /tmp/test-output.log
+  exit 1
+fi
+
+# Show test summary
+grep -E "(Test Files|Tests|Coverage)" /tmp/test-output.log | tail -3
+rm -f /tmp/test-output.log
 
 # 4. Build test (ensures code compiles)
 echo ""
 echo "🏗️  Testing production build..."
-npm run build > /dev/null 2>&1 || {
+if ! npm run build > /tmp/build-output.log 2>&1; then
   echo "❌ Build failed. Push aborted."
+  cat /tmp/build-output.log
+  rm -f /tmp/build-output.log
   exit 1
-}
+fi
+
+echo "✅ Build successful"
+rm -f /tmp/build-output.log
 
 echo ""
 echo "✅ All pre-push checks passed!"

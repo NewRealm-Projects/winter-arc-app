@@ -68,7 +68,7 @@ describe('saveDailyCheckInAndRecalc', () => {
       },
     });
     setDoc.mockImplementation((path: string, data: Record<string, unknown>) => {
-      if (path.startsWith('tracking/user-1/days/')) {
+      if (path.startsWith('tracking/user-1/entries/') || path.startsWith('tracking/user-1/days/')) {
         const key = path.split('/').pop() ?? '';
         const current = weekDocuments.get(key) ?? {};
         weekDocuments.set(key, { ...current, ...data });
@@ -100,7 +100,7 @@ describe('saveDailyCheckInAndRecalc', () => {
 
     expect(doc).toHaveBeenCalledWith({}, 'users', 'user-1', 'checkins', '2024-01-05');
     expect(doc).toHaveBeenCalledWith({}, 'users', 'user-1', 'trainingLoad', '2024-01-05');
-    expect(doc).toHaveBeenCalledWith({}, 'tracking', 'user-1', 'days', '2024-01-05');
+    expect(doc).toHaveBeenCalledWith({}, 'tracking', 'user-1', 'entries', '2024-01-05');
     expect(doc).toHaveBeenCalledWith({}, 'tracking', 'user-1', 'weeks', '2024-W01');
 
     expect(setDoc).toHaveBeenNthCalledWith(
@@ -130,7 +130,7 @@ describe('saveDailyCheckInAndRecalc', () => {
 
     expect(setDoc).toHaveBeenNthCalledWith(
       3,
-      'tracking/user-1/days/2024-01-05',
+      'tracking/user-1/entries/2024-01-05',
       expect.objectContaining({
         date: '2024-01-05',
         tasksCompleted: expect.any(Number),
