@@ -1,45 +1,45 @@
 #
-# Staging Deployment
+# Production Deployment
 #
-# Trigger: Push to develop branch + CI success
-# Target: winter-arc-app-staging repository
-# Domain: staging.winterarc.newrealm.de
+# Trigger: Push to main branch + CI success
+# Target: winter-arc-app-prod repository
+# Domain: app.winterarc.newrealm.de
 #
-# This workflow deploys to staging ONLY after CI passes successfully.
-# Staging is used for testing before production releases.
+# This workflow deploys to production ONLY after CI passes successfully.
+# It uses the build artifact from CI to avoid redundant builds.
 #
 
-name: Deploy Staging
+name: Deploy Production
 
 on:
-  # Trigger after CI workflow completes successfully on develop branch
+  # Trigger after CI workflow completes successfully on main branch
   workflow_run:
     workflows: ['CI']
     types: [completed]
-    branches: [develop]
+    branches: [main]
 
   # Allow manual deployment
   workflow_dispatch:
 
-# Only one staging deployment at a time
+# Only one production deployment at a time
 concurrency:
-  group: deploy-staging
-  cancel-in-progress: false  # Don't cancel staging deployments
+  group: deploy-production
+  cancel-in-progress: false  # Never cancel production deployments
 
 permissions:
   contents: read
 
 jobs:
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # DEPLOY TO STAGING
+  # DEPLOY TO PRODUCTION
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   deploy:
-    name: Deploy to Staging
+    name: Deploy to Production
     runs-on: ubuntu-latest
     timeout-minutes: 15
     environment:
-      name: staging
-      url: https://staging.winterarc.newrealm.de
+      name: production
+      url: https://app.winterarc.newrealm.de
 
     # Only deploy if CI succeeded (or manual dispatch)
     if: |
@@ -53,7 +53,7 @@ jobs:
       - name: Setup dependencies
         uses: ./.github/actions/setup-deps
 
-      - name: Build for staging
+      - name: Build for production
         uses: ./.github/actions/build-app
         with:
           firebase-api-key: ${{ secrets.VITE_FIREBASE_API_KEY }}
@@ -65,29 +65,29 @@ jobs:
           recaptcha-site-key: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
           gemini-api-key: ${{ secrets.VITE_GEMINI_API_KEY }}
           sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          app-env: 'staging'
+          app-env: 'production'
           base-path: '/'
 
-      - name: Copy CNAME for staging
+      - name: Copy CNAME for production
         run: |
-          if [ -f "ops/pages/CNAME.staging" ]; then
-            echo "📄 Copying CNAME for staging domain"
-            cp ops/pages/CNAME.staging dist/CNAME
+          if [ -f "ops/pages/CNAME.prod" ]; then
+            echo "📄 Copying CNAME for production domain"
+            cp ops/pages/CNAME.prod dist/CNAME
             cat dist/CNAME
           else
-            echo "⚠️ No CNAME.staging file found"
+            echo "⚠️ No CNAME.prod file found"
           fi
 
-      - name: Deploy to staging pages repository
+      - name: Deploy to production pages repository
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          repository-name: NewRealm-Projects/winter-arc-app-staging
+          repository-name: NewRealm-Projects/winter-arc-app-prod
           branch: gh-pages
           folder: dist
           token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
           clean: true
           commit-message: |
-            🧪 Deploy staging build from ${{ github.sha }}
+            🚀 Deploy production build from ${{ github.sha }}
 
             Version: ${{ steps.build.outputs.version }}
             Commit: ${{ github.event.head_commit.message }}
@@ -95,9 +95,9 @@ jobs:
 
       - name: Deployment summary
         run: |
-          echo "✅ Staging deployment successful!"
+          echo "✅ Production deployment successful!"
           echo ""
-          echo "🌐 URL: https://staging.winterarc.newrealm.de"
+          echo "🌐 URL: https://app.winterarc.newrealm.de"
           echo "📦 Version: $(node -p "require('./package.json').version")"
           echo "🔖 Commit: ${{ github.sha }}"
           echo "👤 Author: ${{ github.event.head_commit.author.name }}"

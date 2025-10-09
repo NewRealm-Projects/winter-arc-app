@@ -1,72 +1,177 @@
+#
+# E2E Tests with Playwright
+#
+# Trigger: After successful deployment (production/staging) or manually
+# Purpose: Test deployed applications with end-to-end tests
+#
+# This workflow runs Playwright tests against deployed environments
+# to ensure everything works correctly in production-like conditions.
+#
+
 name: E2E Tests
 
 on:
-  push:
-    branches: ["main"]
+  # Trigger after successful deployments
+  workflow_run:
+    workflows: ['Deploy Production', 'Deploy Staging']
+    types: [completed]
+
+  # Manual trigger with environment selection
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to test'
+        required: true
+        type: choice
+        options:
+          - production
+          - staging
+          - local
+        default: 'staging'
+
+# Only one E2E run at a time per environment
+concurrency:
+  group: e2e-${{ github.event.inputs.environment || 'auto' }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
 
-concurrency:
-  group: e2e-tests
-  cancel-in-progress: true
-
 jobs:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # E2E TESTS
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   e2e:
-    runs-on: depot-ubuntu-latest
+    name: Playwright E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Only run if deployment succeeded (or manual dispatch)
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-deps
 
-      - name: Install dependencies
-        run: npm ci
+      # Cache Playwright browsers for faster runs
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium firefox webkit
 
-      - name: Build application for preview
-        env:
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
-          VITE_RECAPTCHA_SITE_KEY: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
-        run: npm run build
+      - name: Install Playwright dependencies only
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps
+
+      # Determine test environment
+      - name: Set test environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            ENV="${{ github.event.inputs.environment }}"
+          elif [ "${{ github.event.workflow_run.name }}" = "Deploy Production" ]; then
+            ENV="production"
+          elif [ "${{ github.event.workflow_run.name }}" = "Deploy Staging" ]; then
+            ENV="staging"
+          else
+            ENV="local"
+          fi
+
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          echo "🎯 Testing environment: $ENV"
+
+          # Set base URL based on environment
+          case $ENV in
+            production)
+              echo "base_url=https://app.winterarc.newrealm.de" >> $GITHUB_OUTPUT
+              ;;
+            staging)
+              echo "base_url=https://staging.winterarc.newrealm.de" >> $GITHUB_OUTPUT
+              ;;
+            local)
+              echo "base_url=http://127.0.0.1:4173" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      # Build and preview for local testing
+      - name: Build application for local preview
+        if: steps.env.outputs.environment == 'local'
+        uses: ./.github/actions/build-app
+        with:
+          firebase-api-key: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          firebase-auth-domain: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          firebase-project-id: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          firebase-storage-bucket: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          firebase-messaging-sender-id: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          firebase-app-id: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          recaptcha-site-key: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
+          gemini-api-key: ${{ secrets.VITE_GEMINI_API_KEY }}
+          app-env: 'local'
 
       - name: Start preview server
+        if: steps.env.outputs.environment == 'local'
         run: |
           npm run preview -- --host 0.0.0.0 --port 4173 &
           echo $! > preview.pid
+          echo "Preview server started (PID: $(cat preview.pid))"
 
-      - name: Wait for preview server
-        run: npx wait-on http://127.0.0.1:4173
+      - name: Wait for server
+        if: steps.env.outputs.environment == 'local'
+        run: npx wait-on ${{ steps.env.outputs.base_url }} --timeout 30000
 
+      # Run Playwright tests
       - name: Run Playwright tests
         env:
-          E2E_BASE_URL: http://127.0.0.1:4173
+          E2E_BASE_URL: ${{ steps.env.outputs.base_url }}
         run: npm run e2e
 
+      # Stop preview server
       - name: Stop preview server
-        if: always()
+        if: always() && steps.env.outputs.environment == 'local'
         run: |
           if [ -f preview.pid ]; then
             kill $(cat preview.pid) || true
+            echo "Preview server stopped"
           fi
 
+      # Upload test results
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-report
+          name: e2e-report-${{ steps.env.outputs.environment }}
           path: e2e/artifacts/playwright-report
+          retention-days: 14
+
+      - name: Upload test videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-videos-${{ steps.env.outputs.environment }}
+          path: e2e/artifacts/videos
           retention-days: 7
+
+      - name: Test summary
+        if: always()
+        run: |
+          echo "🧪 E2E Tests Complete"
+          echo ""
+          echo "🌍 Environment: ${{ steps.env.outputs.environment }}"
+          echo "🔗 Base URL: ${{ steps.env.outputs.base_url }}"
+          echo ""
+          if [ -f e2e/artifacts/playwright-report/index.html ]; then
+            echo "📊 Report available in artifacts"
+          fi
