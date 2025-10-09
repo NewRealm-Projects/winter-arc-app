@@ -15,6 +15,7 @@ const storeState = {
   checkIns: {} as Record<string, unknown>,
   trainingLoad: {} as Record<string, unknown>,
   smartContributions: {} as Record<string, unknown>,
+  setTracking: vi.fn(),
   setCheckInForDate: vi.fn(),
   setTrainingLoadForDate: vi.fn(),
   selectedDate: today,
