@@ -20,7 +20,7 @@ runs:
         node-version: ${{ inputs.node-version }}
         cache: 'npm'
 
-    # Cache node_modules for faster subsequent jobs
+    # Multi-layer caching for maximum speed
     - name: Cache node_modules
       id: cache-deps
       uses: actions/cache@v4
@@ -30,11 +30,56 @@ runs:
         restore-keys: |
           ${{ runner.os }}-node-modules-
 
+    # Cache Vite build artifacts
+    - name: Cache Vite build cache
+      uses: actions/cache@v4
+      with:
+        path: node_modules/.vite
+        key: ${{ runner.os }}-vite-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx') }}
+        restore-keys: |
+          ${{ runner.os }}-vite-${{ hashFiles('**/package-lock.json') }}-
+          ${{ runner.os }}-vite-
+
+    # Cache TypeScript build info
+    - name: Cache TypeScript build info
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.tsbuildinfo
+          node_modules/.cache/typescript
+        key: ${{ runner.os }}-tsc-${{ hashFiles('**/tsconfig.json', '**/*.ts', '**/*.tsx') }}
+        restore-keys: |
+          ${{ runner.os }}-tsc-
+
+    # Cache ESLint
+    - name: Cache ESLint
+      uses: actions/cache@v4
+      with:
+        path: .eslintcache
+        key: ${{ runner.os }}-eslint-${{ hashFiles('**/package-lock.json', '**/.eslintrc*', '**/eslint.config.js') }}
+        restore-keys: |
+          ${{ runner.os }}-eslint-
+
+    # Cache Vitest
+    - name: Cache Vitest
+      uses: actions/cache@v4
+      with:
+        path: node_modules/.vitest
+        key: ${{ runner.os }}-vitest-${{ hashFiles('**/package-lock.json', '**/*.test.ts', '**/*.test.tsx') }}
+        restore-keys: |
+          ${{ runner.os }}-vitest-
+
     # Install dependencies if cache miss
     - name: Install dependencies
       if: steps.cache-deps.outputs.cache-hit != 'true'
       shell: bash
-      run: npm ci --prefer-offline --no-audit
+      run: npm ci --prefer-offline --no-audit --ignore-scripts
+
+    # Run postinstall scripts if needed
+    - name: Run postinstall
+      if: steps.cache-deps.outputs.cache-hit != 'true'
+      shell: bash
+      run: npm rebuild && npm run --if-present prepare
 
     # Verify installation
     - name: Verify dependencies
