@@ -59,3 +59,23 @@ export interface TrainingLoadComputationResult {
   components: TrainingLoadComponents;
   inputs: TrainingLoadInputs;
 }
+
+export type ActivityType = 'running' | 'cycling' | 'strength' | 'hiit' | 'mobility' | 'other';
+
+export type IntensityLevel = 'low' | 'medium' | 'high';
+
+export interface CheckInActivity {
+  id: string;
+  type: ActivityType;
+  durationMinutes: number;
+  intensity: number; // 1-10 scale
+}
+
+export interface CheckInPreset {
+  id: string;
+  nameKey: string;
+  sleepScore: number;
+  recoveryScore: number;
+  sick: boolean;
+  activities: Omit<CheckInActivity, 'id'>[];
+}

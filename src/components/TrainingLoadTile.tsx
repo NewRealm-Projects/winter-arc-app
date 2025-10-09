@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 import { useCheckInSubscription } from '../hooks/useCheckInSubscription';
 import { useTrainingLoadSubscription } from '../hooks/useTrainingLoadSubscription';
@@ -11,6 +11,7 @@ import { useStore } from '../store/useStore';
 import { getTileClasses, designTokens } from '../theme/tokens';
 import { normalizeSports } from '../utils/sports';
 import { useTranslation } from '../hooks/useTranslation';
+import CheckInModal from './checkin/CheckInModal';
 
 const MAX_TRAINING_LOAD = 1000;
 
@@ -65,6 +66,7 @@ function TrainingLoadTile() {
   const selectedDate = useStore((state) => state.selectedDate);
   const trainingLoadMap = useStore((state) => state.trainingLoad);
   const checkIns = useStore((state) => state.checkIns);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const activeDate = selectedDate ?? new Date().toISOString().split('T')[0];
 
@@ -161,10 +163,13 @@ function TrainingLoadTile() {
   const sleepDisplay = recoveryTracked ? `${formatScore(sleepQuality)}/10` : '—';
   const recoveryDisplay = recoveryTracked ? `${formatScore(recoveryScore)}/10` : '—';
   return (
-    <div
-      className={`w-full ${getTileClasses(hasData)} ${designTokens.padding.compact} text-left text-white`}
-      data-testid="training-load-tile"
-    >
+    <>
+      <button
+        type="button"
+        onClick={() => setIsModalOpen(true)}
+        className={`w-full ${getTileClasses(hasData)} ${designTokens.padding.compact} text-left text-white transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-winter-500`}
+        data-testid="training-load-tile"
+      >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="text-xl" aria-hidden>
@@ -230,7 +235,14 @@ function TrainingLoadTile() {
           </div>
         </div>
       </div>
-    </div>
+      </button>
+
+      <CheckInModal
+        dateKey={activeDate}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+    </>
   );
 }
 
