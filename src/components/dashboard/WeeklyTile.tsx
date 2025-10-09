@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   addDays,
   format,
@@ -70,7 +70,7 @@ function getWeekLabel(
   return `${format(start, pattern, { locale })} – ${format(end, pattern, { locale })}`;
 }
 
-export default function WeeklyTile() {
+const WeeklyTile = memo(function WeeklyTile() {
   const { t, language } = useTranslation();
   const {
     activeWeekStart,
@@ -221,16 +221,15 @@ export default function WeeklyTile() {
     >
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5" />
       <div className="relative flex flex-col gap-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
-            <div className="flex items-center gap-3 text-lg font-semibold md:text-xl">
-              <span>{t('dashboard.weekOverview')}</span>
+            <div className="flex items-center gap-3">
+              <h3 className="text-lg font-semibold md:text-xl">{t('dashboard.weekOverview')}</h3>
               <span className="text-sm font-medium text-white/70">
                 {t('dashboard.streakDays')}: {streakDays}
               </span>
             </div>
             <div className="text-sm text-white/70">{weekLabel}</div>
-            <div className="text-xs text-white/50">{t('dashboard.streakInfo')}</div>
           </div>
           <div className="flex items-start md:items-center">
             <button
@@ -295,12 +294,9 @@ export default function WeeklyTile() {
         </div>
 
         <div className="flex items-center justify-between text-xs text-white/50">
+          <span>Ø {averagePercent}%</span>
           <span>
-            Ø {averagePercent}% · {t('dashboard.streakDays')}: {streakDays}
-          </span>
-          <span>
-            {t('dashboard.trainingLoad')}: {loadSummary.score} | {t('dashboard.trainingLoadLevelLabel')}{' '}
-            {loadSummary.level}
+            {t('dashboard.trainingLoad')}: {loadSummary.score} | {loadSummary.level}
           </span>
         </div>
       </div>
@@ -313,4 +309,6 @@ export default function WeeklyTile() {
       />
     </div>
   );
-}
+});
+
+export default WeeklyTile;

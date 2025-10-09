@@ -30,11 +30,13 @@ function DashboardPage() {
     <WeekProvider>
       <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe" data-testid="dashboard-page">
         {/* Content */}
-        <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0 max-h-[calc(100vh-5rem)] viewport-safe">
-          <div
-            className="flex flex-col gap-3 md:gap-4"
-            data-testid="dashboard-content-sections"
-          >
+        <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 max-h-[calc(100vh-5rem)] viewport-safe">
+          {/* Max-width container for desktop content alignment */}
+          <div className="mx-auto max-w-[700px]">
+            <div
+              className="flex flex-col gap-3 md:gap-4"
+              data-testid="dashboard-content-sections"
+            >
             {trackingError && (
               <div className="rounded-3xl border border-amber-300/30 bg-amber-500/10 p-4 text-amber-100 shadow-[0_8px_20px_rgba(245,158,11,0.2)]">
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -88,6 +90,7 @@ function DashboardPage() {
 
             <div className="animate-fade-in-up delay-300">
               <WeightTile />
+            </div>
             </div>
           </div>
         </div>
