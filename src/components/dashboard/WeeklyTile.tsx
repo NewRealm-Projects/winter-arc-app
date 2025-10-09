@@ -216,14 +216,14 @@ const WeeklyTile = memo(function WeeklyTile() {
 
   return (
     <div
-      className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-4 text-white shadow-[0_10px_40px_rgba(0,0,0,0.35)] backdrop-blur-md md:p-6"
+      className="relative overflow-visible rounded-3xl border border-white/10 bg-white/5 p-4 text-white shadow-[0_10px_40px_rgba(0,0,0,0.35)] backdrop-blur-md md:p-6"
       data-testid="weekly-tile"
     >
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5" />
+      <div className="pointer-events-none absolute inset-0 rounded-3xl bg-gradient-to-br from-white/5 via-transparent to-white/5" />
       <div className="relative flex flex-col gap-4">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
+        <div className="flex flex-row items-start justify-between gap-2 md:items-center">
+          <div className="flex-1 space-y-1">
+            <div className="flex flex-col gap-1 md:flex-row md:items-center md:gap-3">
               <h3 className="text-lg font-semibold md:text-xl">{t('dashboard.weekOverview')}</h3>
               <span className="text-sm font-medium text-white/70">
                 {t('dashboard.streakDays')}: {streakDays}
@@ -231,7 +231,7 @@ const WeeklyTile = memo(function WeeklyTile() {
             </div>
             <div className="text-sm text-white/70">{weekLabel}</div>
           </div>
-          <div className="flex items-start md:items-center">
+          <div className="flex shrink-0 items-center">
             <button
               type="button"
               onClick={openCheckIn}
@@ -258,7 +258,7 @@ const WeeklyTile = memo(function WeeklyTile() {
             <span aria-hidden>‹</span>
           </button>
 
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1">
             <div className="flex flex-nowrap items-center justify-start gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar lg:justify-center">
               {isLoading
                 ? Array.from({ length: 7 }).map((_, index) => (
