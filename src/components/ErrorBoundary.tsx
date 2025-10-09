@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
+import { captureException } from '../services/sentryService';
 
 interface Props {
   children: ReactNode;
@@ -14,7 +15,7 @@ interface State {
  * Global Error Boundary
  *
  * Catches React errors and displays fallback UI
- * Logs errors for debugging
+ * Sends errors to Sentry for tracking
  */
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
@@ -27,18 +28,17 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('[ErrorBoundary] Caught error:', error, errorInfo);
-
-    // Send to error tracking service (Sentry, etc.)
-    if (window.Sentry) {
-      window.Sentry.captureException(error, {
-        contexts: {
-          react: {
-            componentStack: errorInfo.componentStack,
-          },
-        },
-      });
+    // Log error in development
+    if (import.meta.env.DEV) {
+      console.error('[ErrorBoundary] Caught error:', error, errorInfo);
     }
+
+    // Send to Sentry with React context
+    captureException(error, {
+      react: {
+        componentStack: errorInfo.componentStack,
+      },
+    });
   }
 
   handleReset = () => {
@@ -90,14 +90,5 @@ export class ErrorBoundary extends Component<Props, State> {
     }
 
     return this.props.children;
-  }
-}
-
-// Declare Sentry global type
-declare global {
-  interface Window {
-    Sentry?: {
-  captureException(error: Error, context?: Record<string, unknown>): void;
-    };
   }
 }

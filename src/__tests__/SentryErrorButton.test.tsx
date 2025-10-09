@@ -1,9 +1,13 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, beforeEach, afterEach, vi } from 'vitest';
-import * as Sentry from '@sentry/react';
 import type { MockInstance } from 'vitest';
+import * as sentryService from '../services/sentryService';
 
 import { SentryErrorButton } from '../components/SentryErrorButton';
+
+vi.mock('../services/sentryService', () => ({
+  captureException: vi.fn(),
+}));
 
 describe('SentryErrorButton', () => {
   const label = 'Trigger test error';
@@ -12,8 +16,7 @@ describe('SentryErrorButton', () => {
   let consoleErrorSpy: MockInstance;
 
   beforeEach(() => {
-    const captureException = Sentry.captureException as unknown as MockInstance;
-    captureException.mockClear();
+    vi.clearAllMocks();
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
@@ -22,8 +25,6 @@ describe('SentryErrorButton', () => {
   });
 
   it('captures the error with Sentry and throws it to the nearest error boundary', () => {
-    const captureException = Sentry.captureException as unknown as MockInstance;
-
     render(<SentryErrorButton label={label} errorMessage={message} />);
 
     const button = screen.getByRole('button', { name: label });
@@ -32,8 +33,8 @@ describe('SentryErrorButton', () => {
       fireEvent.click(button);
     }).toThrow(message);
 
-    expect(captureException).toHaveBeenCalled();
-    const calls = captureException.mock.calls as unknown[];
+    expect(sentryService.captureException).toHaveBeenCalled();
+    const calls = (sentryService.captureException as unknown as MockInstance).mock.calls as unknown[];
     const lastCall = calls[calls.length - 1] as unknown[] | undefined;
     const capturedError = lastCall?.[0];
     expect(capturedError).toBeInstanceOf(Error);

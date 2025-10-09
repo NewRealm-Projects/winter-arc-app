@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import * as Sentry from '@sentry/react';
+import { captureException } from '../services/sentryService';
 
 interface SentryErrorButtonProps {
   readonly label: string;
@@ -12,7 +12,7 @@ export function SentryErrorButton({ label, errorMessage, className }: SentryErro
 
   if (shouldThrow) {
     const error = new Error(errorMessage);
-    Sentry.captureException(error);
+    captureException(error);
     throw error;
   }
 
