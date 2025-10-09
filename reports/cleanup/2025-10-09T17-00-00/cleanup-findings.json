@@ -1,0 +1,152 @@
+{
+  "timestamp": "2025-10-09T17:00:00Z",
+  "analysisMode": "dry-run",
+  "findings": {
+    "unreferencedMarkdown": [
+      {
+        "path": "AGENTS.md",
+        "size": 4348,
+        "confidence": 0.95,
+        "reason": "No references found in codebase",
+        "lastModified": "2025-10-09",
+        "recommendation": "SAFE_TO_DELETE"
+      },
+      {
+        "path": "CLEANUP_REPORT.md",
+        "size": 394,
+        "confidence": 0.50,
+        "reason": "Referenced only in .claude/commands/clean.md (context reference)",
+        "lastModified": "2025-10-06",
+        "recommendation": "REVIEW_NEEDED"
+      },
+      {
+        "path": "CODEX.md",
+        "size": 4483,
+        "confidence": 0.60,
+        "reason": "Self-referencing only",
+        "lastModified": "2025-10-08",
+        "recommendation": "REVIEW_NEEDED"
+      },
+      {
+        "path": "rules.md",
+        "size": 3500,
+        "confidence": 0.92,
+        "reason": "No references found in codebase",
+        "lastModified": "2025-10-09",
+        "recommendation": "SAFE_TO_DELETE"
+      },
+      {
+        "path": "FIREBASE_AUTH_SETUP.md",
+        "size": 4116,
+        "confidence": 0.85,
+        "reason": "No references found, appears to be setup documentation",
+        "lastModified": "2025-10-06",
+        "recommendation": "ARCHIVE_OR_DELETE"
+      },
+      {
+        "path": "docs/hygiene-report.md",
+        "size": 0,
+        "confidence": 0.95,
+        "reason": "No references found in codebase",
+        "lastModified": "unknown",
+        "recommendation": "SAFE_TO_DELETE"
+      },
+      {
+        "path": "docs/branch-protection.md",
+        "size": 0,
+        "confidence": 0.40,
+        "reason": "Referenced in .github/workflows/enforce-gitflow.yml (CI documentation)",
+        "lastModified": "unknown",
+        "recommendation": "KEEP"
+      },
+      {
+        "path": "docs/review-findings.md",
+        "size": 0,
+        "confidence": 0.95,
+        "reason": "No references found in codebase",
+        "lastModified": "unknown",
+        "recommendation": "SAFE_TO_DELETE"
+      },
+      {
+        "path": "docs/release-checklist.md",
+        "size": 0,
+        "confidence": 0.92,
+        "reason": "No references found in codebase",
+        "lastModified": "unknown",
+        "recommendation": "SAFE_TO_DELETE"
+      },
+      {
+        "path": "docs/training-load.md",
+        "size": 0,
+        "confidence": 0.95,
+        "reason": "No references found in codebase",
+        "lastModified": "unknown",
+        "recommendation": "SAFE_TO_DELETE"
+      },
+      {
+        "path": "docs/CONTRIBUTING.md",
+        "size": 0,
+        "confidence": 0.30,
+        "reason": "Referenced in scripts/cleanup-repo.mjs, duplicate of root CONTRIBUTING.md",
+        "lastModified": "unknown",
+        "recommendation": "REVIEW_DUPLICATE"
+      }
+    ],
+    "unreferencedAssets": [
+      {
+        "path": "public/vite.svg",
+        "size": 0,
+        "confidence": 0.20,
+        "reason": "Referenced in index.html, appears to be default Vite asset",
+        "usage": "Referenced in code",
+        "recommendation": "KEEP_OR_REPLACE"
+      }
+    ],
+    "deadCode": [
+      {
+        "path": "tmp_pwa_prompt.tsx",
+        "size": 0,
+        "confidence": 0.98,
+        "reason": "Temporary file with tmp_ prefix, no imports found",
+        "recommendation": "SAFE_TO_DELETE"
+      },
+      {
+        "path": "src/logic/motivation.ts",
+        "size": 0,
+        "confidence": 0.70,
+        "reason": "Archived logic file, may have been replaced",
+        "recommendation": "VERIFY_UNUSED"
+      },
+      {
+        "path": "src/logic/motivation.test.ts",
+        "size": 0,
+        "confidence": 0.70,
+        "reason": "Test file for archived logic",
+        "recommendation": "VERIFY_UNUSED"
+      }
+    ],
+    "buildArtifacts": [
+      {
+        "path": "dist/",
+        "estimatedSize": 2086521,
+        "confidence": 1.0,
+        "reason": "Build output directory",
+        "recommendation": "SAFE_TO_DELETE"
+      },
+      {
+        "path": "coverage/",
+        "estimatedSize": 636131,
+        "confidence": 1.0,
+        "reason": "Test coverage reports",
+        "recommendation": "SAFE_TO_DELETE"
+      }
+    ]
+  },
+  "summary": {
+    "totalFiles": 18,
+    "totalEstimatedSize": 2726652,
+    "highConfidence": 10,
+    "mediumConfidence": 5,
+    "lowConfidence": 3
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "task": "health",
+  "command": "/test-guard",
+  "phase": "analyze",
+  "status": "completed",
+  "timestamp": "2025-10-09T17:30:00Z",
+  "duration_seconds": 3,
+  "findings": {
+    "coverage": {
+      "statements": 97.09,
+      "branches": 80.97,
+      "functions": 92.85,
+      "lines": 97.09,
+      "target": 80,
+      "status": "excellent",
+      "aboveTarget": 17.09
+    },
+    "uncoveredFiles": [
+      {
+        "file": "components/dashboard/WeeklyTile.tsx",
+        "coverage": 96.06,
+        "uncoveredLines": "86-188,200-201"
+      },
+      {
+        "file": "logic/motivation.ts",
+        "coverage": 96.82,
+        "uncoveredLines": "334,331-333,337"
+      },
+      {
+        "file": "store/useStore.ts",
+        "coverage": 91.22,
+        "uncoveredLines": "71-72,77-78,106,118"
+      }
+    ]
+  },
+  "readyForApply": false,
+  "reason": "Health task is validation-only, does not modify repository"
+}

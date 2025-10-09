@@ -1,0 +1,18 @@
+{
+  "task": "clean",
+  "command": "/clean",
+  "phase": "analyze",
+  "status": "completed",
+  "timestamp": "2025-10-09T17:00:00Z",
+  "duration_seconds": 8,
+  "findings": {
+    "unreferencedMarkdown": 11,
+    "unreferencedAssets": 0,
+    "deadCode": 3,
+    "buildArtifacts": 2,
+    "totalFiles": 16,
+    "totalEstimatedSize": 2726652
+  },
+  "reportPath": "reports/cleanup/2025-10-09T17-00-00/cleanup-report.md",
+  "readyForApply": true
+}
