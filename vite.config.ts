@@ -103,6 +103,8 @@ export default defineConfig({
           'firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore'],
           'charts': ['recharts'],
           'ai': ['@google/generative-ai'],
+          'sentry': ['@sentry/react'],
+          'motion': ['framer-motion'],
         },
       },
     },
