@@ -24,12 +24,12 @@ export function useTrainingLoadSubscription(dateKey?: string): void {
 
     const ref = doc(db, 'users', userId, 'trainingLoad', dateKey);
     const pathString = `users/${userId}/trainingLoad/${dateKey}`;
-    // eslint-disable-next-line no-console
-    console.debug('[Auth]', auth.currentUser?.uid ?? null);
-    // eslint-disable-next-line no-console
-    console.debug('[Subscribe]', pathString);
-    // eslint-disable-next-line no-console
-    console.debug('[FS]', { userId, path: pathString });
+
+    if (import.meta.env.DEV) {
+      console.warn('[Auth]', auth.currentUser?.uid ?? null);
+      console.warn('[Subscribe]', pathString);
+      console.warn('[FS]', { userId, path: pathString });
+    }
 
     const unsubscribe = onSnapshot(
       ref,

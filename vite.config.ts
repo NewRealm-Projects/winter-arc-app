@@ -20,8 +20,8 @@ const plugins: PluginOption[] = [
       background_color: '#ffffff',
       display: 'standalone',
       orientation: 'portrait',
-      scope: '/',
-      start_url: '/',
+      scope: process.env.VITE_BASE_PATH || '/',
+      start_url: process.env.VITE_BASE_PATH || '/',
       icons: [
         {
           src: '/icon-192.png',
@@ -86,7 +86,8 @@ if (shouldUploadSourcemaps) {
 }
 
 export default defineConfig({
-  base: '/',
+  // Support dynamic base path for PR previews (e.g., /pr-123/)
+  base: process.env.VITE_BASE_PATH || '/',
   plugins,
   resolve: {
     alias: {

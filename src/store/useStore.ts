@@ -1,4 +1,5 @@
-﻿import { create } from 'zustand';
+import { create } from 'zustand';
+import * as Sentry from '@sentry/react';
 import {
   User,
   DailyTracking,
@@ -7,6 +8,7 @@ import {
   DailyCheckIn,
   DailyTrainingLoad,
 } from '../types';
+import { logger } from '../utils/logger';
 
 interface AppState {
   user: User | null;
@@ -146,7 +148,11 @@ export const useStore = create<AppState>((set) => ({
       try {
         localStorage.setItem('darkMode', JSON.stringify(newDarkMode));
       } catch (error) {
-        console.error('Failed to save dark mode preference:', error);
+        logger.error('Failed to save dark mode preference:', error);
+        Sentry.captureException(error, {
+          tags: { feature: 'dark-mode' },
+          extra: { newDarkMode },
+        });
       }
       return { darkMode: newDarkMode };
     }),
@@ -161,7 +167,11 @@ export const useStore = create<AppState>((set) => ({
     try {
       localStorage.setItem('leaderboardFilter', filter);
     } catch (error) {
-      console.error('Failed to save leaderboard filter preference:', error);
+      logger.error('Failed to save leaderboard filter preference:', error);
+      Sentry.captureException(error, {
+        tags: { feature: 'leaderboard-filter' },
+        extra: { filter },
+      });
     }
     set({ leaderboardFilter: filter });
   },
