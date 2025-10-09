@@ -34,6 +34,8 @@
     "agent:lighthouse": "node .agent/scripts/run-lighthouse.mjs",
     "agent:bundle": "node .agent/scripts/bundle-report.mjs",
     "agent:artifacts": "node .agent/scripts/prepare-artifacts.mjs",
+    "clean": "node scripts/cleanup-repo.mjs",
+    "clean:dry-run": "node scripts/cleanup-repo.mjs --dry-run",
     "prepare": "husky"
   },
   "dependencies": {
