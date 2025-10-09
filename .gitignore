@@ -47,6 +47,9 @@ preview/
 preview-screenshots/
 test-results/
 
+# Test coverage
+coverage/
+
 # TypeScript cache
 *.tsbuildinfo
 
