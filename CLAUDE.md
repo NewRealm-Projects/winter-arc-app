@@ -12,6 +12,26 @@ Guidance for Claude Code when working with this repository.
 
 ---
 
+## Claude Code Workflow
+
+**MANDATORY**: Claude Code soll standardmäßig bis zu **10 Worker/Tasks parallel** ausführen, wenn sinnvoll.
+
+**Parallel-Richtlinien:**
+- Nutze parallele Tool-Aufrufe für unabhängige Operationen (Read, Glob, Grep, Bash)
+- Starte mehrere Tasks/Agents gleichzeitig in einem Response-Block
+- Beispiele:
+  - Mehrere Dateien parallel lesen
+  - Lint, TypeScript, Tests parallel ausführen
+  - Verschiedene Suchen parallel durchführen
+  - Mehrere unabhängige Agents gleichzeitig starten
+
+**Sequenziell nur bei Abhängigkeiten:**
+- Dateien erst lesen, dann editieren
+- Build erst nach Code-Änderungen
+- Commit erst nach erfolgreichen Tests
+
+---
+
 ## Codacy Compliance (MANDATORY)
 
 Every commit MUST pass Codacy checks:
@@ -183,6 +203,33 @@ tracking/{userId}/days/{date}: { pushups, sports, water, protein, weight?, compl
 groups/{groupCode}: { name, members[], createdAt }
 ```
 
+### Error Tracking & Monitoring
+- **Sentry**: Real-time error tracking and performance monitoring (`src/services/sentryService.ts`)
+- **Integration**: All unhandled errors, promise rejections, and React errors are automatically captured
+- **Privacy**: Sensitive data (tokens, API keys) filtered via `beforeSend` hook
+- **Usage**:
+  ```typescript
+  import { captureException, setUser, addBreadcrumb } from '@/services/sentryService';
+
+  // Manual error capture
+  captureException(new Error('Something went wrong'), { userId: '123' });
+
+  // Set user context
+  setUser({ id: userId, email, nickname });
+
+  // Add debugging breadcrumb
+  addBreadcrumb('User clicked button', { buttonId: 'submit' });
+  ```
+- **Configuration**: Set `VITE_SENTRY_DSN` in `.env` to enable (see `.env.example`)
+- **Environment**:
+  - Dev: All errors logged to console, 100% traces sampled
+  - Production: Errors sent to Sentry, 10% traces sampled, session replay on errors
+- **Global Handlers**: Automatic capture of:
+  - Unhandled window errors
+  - Unhandled promise rejections
+  - React component errors (via ErrorBoundary)
+  - Logger errors in production
+
 ---
 
 ## App Structure
@@ -219,6 +266,7 @@ groups/{groupCode}: { name, members[], createdAt }
 ✅ Visual Regression Tests (Playwright)
 ✅ Lighthouse CI & Performance Budgets
 ✅ Vitest Unit Tests
+✅ Sentry Error Tracking (with privacy filtering)
 
 ### Archived Features
 ⚫ **AI Quotes** (2025-10-04): Gemini API removed, no user value. Fallback quotes remain.
@@ -251,6 +299,15 @@ VITE_FIREBASE_APP_ID=...
 **Optional:**
 ```bash
 VITE_RECAPTCHA_SITE_KEY=...  # Firebase App Check (production)
+VITE_SENTRY_DSN=...           # Sentry error tracking (recommended)
+VITE_GEMINI_API_KEY=...       # Gemini AI for Smart Notes
+```
+
+**CI/CD Only (GitHub Secrets):**
+```bash
+SENTRY_AUTH_TOKEN=...         # For source map upload
+SENTRY_ORG=...                # Your Sentry organization
+SENTRY_PROJECT=...            # Your Sentry project
 ```
 
 ---

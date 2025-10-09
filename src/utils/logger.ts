@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/react';
+import { captureException } from '../services/sentryService';
 
 /**
  * Logging utility with conditional output and Sentry integration
@@ -39,11 +39,9 @@ function log(level: LogLevel, message: string, ...args: unknown[]): void {
     }
   }
 
-  // In production, only send errors to Sentry
+  // In production, send errors to Sentry
   if (isProd && level === 'error') {
-    Sentry.captureException(new Error(message), {
-      extra: { args },
-    });
+    captureException(new Error(message), { args });
   }
 }
 

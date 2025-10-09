@@ -10,7 +10,11 @@ import { useCombinedDailyTracking } from '../../hooks/useCombinedTracking';
 import { useToast } from '../../hooks/useToast';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useStore } from '../../store/useStore';
-import type { DailyCheckIn, DailyTrainingLoad } from '../../types';
+import type { DailyCheckIn, DailyTrainingLoad, CheckInActivity, WorkoutEntry } from '../../types';
+import { ActivityList } from './ActivityList';
+import { LoadPreview } from './LoadPreview';
+import { PresetSelector } from './PresetSelector';
+import { CHECK_IN_PRESETS } from '../../config/checkInPresets';
 
 interface CheckInModalProps {
   dateKey: string;
@@ -58,6 +62,7 @@ export default function CheckInModal({
   const [sleepScore, setSleepScore] = useState<number>(checkIn?.sleepScore ?? 5);
   const [recoveryScore, setRecoveryScore] = useState<number>(checkIn?.recoveryScore ?? 5);
   const [isSick, setIsSick] = useState<boolean>(checkIn?.sick ?? false);
+  const [activities, setActivities] = useState<CheckInActivity[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -67,7 +72,25 @@ export default function CheckInModal({
     setSleepScore(checkIn?.sleepScore ?? 5);
     setRecoveryScore(checkIn?.recoveryScore ?? 5);
     setIsSick(checkIn?.sick ?? false);
+    setActivities([]);
   }, [isOpen, checkIn?.sleepScore, checkIn?.recoveryScore, checkIn?.sick]);
+
+  const handlePresetSelect = useCallback((presetId: string) => {
+    const preset = CHECK_IN_PRESETS.find((p) => p.id === presetId);
+    if (!preset) {
+      return;
+    }
+
+    setSleepScore(preset.sleepScore);
+    setRecoveryScore(preset.recoveryScore);
+    setIsSick(preset.sick);
+    setActivities(
+      preset.activities.map((activity, index) => ({
+        ...activity,
+        id: `activity-${Date.now()}-${index}`,
+      }))
+    );
+  }, []);
 
   useEffect(() => {
     if (!isOpen) {
@@ -125,6 +148,36 @@ export default function CheckInModal({
     return combinedDaily ?? manualDaily;
   }, [combinedDaily, manualDaily]);
 
+  // Convert manual activities to workout entries
+  const manualWorkoutEntries: WorkoutEntry[] = useMemo(() => {
+    return activities.map((activity) => ({
+      durationMinutes: activity.durationMinutes,
+      intensity: activity.intensity,
+    }));
+  }, [activities]);
+
+  // Combine existing workouts from tracking with manual activities
+  const allWorkouts = useMemo(() => {
+    const existingWorkouts = buildWorkoutEntriesFromTracking(aggregatedTracking);
+    return [...existingWorkouts, ...manualWorkoutEntries];
+  }, [aggregatedTracking, manualWorkoutEntries]);
+
+  const pushupsReps = useMemo(
+    () => resolvePushupsFromTracking(aggregatedTracking),
+    [aggregatedTracking]
+  );
+
+  // Live computation for preview
+  const liveComputation = useMemo(() => {
+    return computeDailyTrainingLoadV1({
+      workouts: allWorkouts,
+      pushupsReps,
+      sleepScore,
+      recoveryScore,
+      sick: isSick,
+    });
+  }, [allWorkouts, pushupsReps, sleepScore, recoveryScore, isSick]);
+
   const handleOverlayClick = useCallback(
     (event: MouseEvent<HTMLDivElement>) => {
       if (event.target === event.currentTarget && !isSaving) {
@@ -147,16 +200,8 @@ export default function CheckInModal({
     const previousCheckIn = checkIn ? { ...checkIn } : null;
     const previousTrainingLoad = existingTrainingLoad ? { ...existingTrainingLoad } : null;
 
-    const workouts = buildWorkoutEntriesFromTracking(aggregatedTracking);
-    const pushupsReps = resolvePushupsFromTracking(aggregatedTracking);
-
-    const computation = computeDailyTrainingLoadV1({
-      workouts,
-      pushupsReps,
-      sleepScore: normalizedSleep,
-      recoveryScore: normalizedRecovery,
-      sick: isSick,
-    });
+    // Use the live computation which includes manual activities
+    const computation = liveComputation;
 
     const optimisticTimestamp = Timestamp.now();
 
@@ -226,12 +271,12 @@ export default function CheckInModal({
       setIsSaving(false);
     }
   }, [
-    aggregatedTracking,
     checkIn,
     dateKey,
     existingTrainingLoad,
     isSick,
     isSaving,
+    liveComputation,
     recoveryScore,
     setCheckInForDate,
     setTrainingLoadForDate,
@@ -258,7 +303,7 @@ export default function CheckInModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="check-in-title"
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl focus:outline-none dark:bg-gray-900"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl focus:outline-none dark:bg-gray-900"
       >
         <div className="mb-4 flex items-start justify-between">
           <div>
@@ -279,6 +324,8 @@ export default function CheckInModal({
         </div>
 
         <div className="space-y-6">
+          <PresetSelector onSelectPreset={handlePresetSelect} isDisabled={isSaving} />
+
           <SliderField
             id="sleep-score"
             label={t('checkIn.sleepLabel')}
@@ -304,6 +351,10 @@ export default function CheckInModal({
             checked={isSick}
             onChange={setIsSick}
           />
+
+          <ActivityList activities={activities} onChange={setActivities} isDisabled={isSaving} />
+
+          <LoadPreview computation={liveComputation} />
         </div>
 
         <div className="mt-8 flex justify-end gap-3">

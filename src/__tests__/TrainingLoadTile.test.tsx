@@ -4,6 +4,7 @@ import TrainingLoadTile from '../components/TrainingLoadTile';
 import { useStore } from '../store/useStore';
 import type { SportTracking } from '../types';
 import { computeDailyTrainingLoadV1 } from '../services/trainingLoad';
+import { ToastProvider } from '../components/ui/ToastProvider';
 
 const originalSelectedDate = useStore.getState().selectedDate;
 
@@ -74,7 +75,11 @@ afterEach(async () => {
 
   it('renders computed training load and metrics', async () => {
     await act(async () => {
-      render(<TrainingLoadTile />);
+      render(
+        <ToastProvider>
+          <TrainingLoadTile />
+        </ToastProvider>
+      );
     });
 
     const expectedLoad = computeDailyTrainingLoadV1({
@@ -98,7 +103,11 @@ afterEach(async () => {
     });
 
     await act(async () => {
-      render(<TrainingLoadTile />);
+      render(
+        <ToastProvider>
+          <TrainingLoadTile />
+        </ToastProvider>
+      );
     });
 
     expect(screen.getByText('Training Load')).toBeInTheDocument();

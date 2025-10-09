@@ -1,6 +1,7 @@
 import { renderWithProviders, screen } from 'test/test-utils';
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { todayKey } from '../../lib/date';
+import type { TrackingListenerError } from '../../hooks/useTrackingEntries';
 
 const today = todayKey();
 const yesterdayDate = new Date(today);
@@ -9,7 +10,7 @@ const yesterday = yesterdayDate.toISOString().split('T')[0];
 
 const storeState = {
   user: {
-    enabledActivities: ['pushups', 'sports', 'water', 'protein'] as const,
+    enabledActivities: ['pushups', 'sports', 'water', 'protein'] as Array<'pushups' | 'sports' | 'water' | 'protein'>,
   },
   tracking: {} as Record<string, unknown>,
   checkIns: {} as Record<string, unknown>,
@@ -67,6 +68,17 @@ vi.mock('../../hooks/useWeeklyTop3', () => ({
   useWeeklyTop3: vi.fn(),
 }));
 
+const mockUseTrackingEntries = vi.fn().mockReturnValue({
+  data: {},
+  loading: false,
+  error: null as TrackingListenerError | null,
+  retry: vi.fn(),
+});
+
+vi.mock('../../hooks/useTrackingEntries', () => ({
+  useTrackingEntries: () => mockUseTrackingEntries(),
+}));
+
 const mockCombinedTracking: Record<string, Record<string, unknown>> = {
   [today]: {
     pushups: { total: 50 },
@@ -99,6 +111,12 @@ describe('DashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     storeState.selectedDate = today;
+    mockUseTrackingEntries.mockReturnValue({
+      data: {},
+      loading: false,
+      error: null,
+      retry: vi.fn(),
+    });
   });
 
   it('renders key dashboard widgets and layout spacing', async () => {
@@ -113,5 +131,76 @@ describe('DashboardPage', () => {
     expect(screen.getByTestId('dashboard-page')).toBeInTheDocument();
     expect(screen.getByTestId('weekly-tile')).toBeInTheDocument();
     expect(screen.getByTestId('training-load-tile')).toBeInTheDocument();
+  });
+
+  it('displays error banner when tracking data fails to load', async () => {
+    const retryMock = vi.fn();
+    mockUseTrackingEntries.mockReturnValue({
+      data: {},
+      loading: false,
+      error: 'unavailable' as TrackingListenerError,
+      retry: retryMock,
+    });
+
+    renderWithProviders(<DashboardPage />);
+
+    const errorBanner = await screen.findByText(/nicht erreichbar/i);
+    expect(errorBanner).toBeInTheDocument();
+
+    const retryButton = screen.getByRole('button', { name: /erneut/i });
+    expect(retryButton).toBeInTheDocument();
+    retryButton.click();
+    expect(retryMock).toHaveBeenCalledOnce();
+  });
+
+  it('displays permission denied message for no-permission error', async () => {
+    mockUseTrackingEntries.mockReturnValue({
+      data: {},
+      loading: false,
+      error: 'no-permission' as TrackingListenerError,
+      retry: vi.fn(),
+    });
+
+    renderWithProviders(<DashboardPage />);
+
+    const errorBanner = await screen.findByText(/keine berechtigung/i);
+    expect(errorBanner).toBeInTheDocument();
+  });
+
+  it('renders tiles based on enabledActivities configuration', async () => {
+    storeState.user.enabledActivities = ['pushups', 'water'];
+
+    renderWithProviders(<DashboardPage />);
+
+    expect(screen.getByTestId('pushup-tile')).toBeInTheDocument();
+    expect(screen.getByTestId('water-tile')).toBeInTheDocument();
+    expect(screen.queryByTestId('sport-tile')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('protein-tile')).not.toBeInTheDocument();
+  });
+
+  it('renders all tiles when all activities are enabled', async () => {
+    storeState.user.enabledActivities = ['pushups', 'sports', 'water', 'protein'];
+
+    renderWithProviders(<DashboardPage />);
+
+    expect(screen.getByTestId('pushup-tile')).toBeInTheDocument();
+    expect(screen.getByTestId('sport-tile')).toBeInTheDocument();
+    expect(screen.getByTestId('water-tile')).toBeInTheDocument();
+    expect(screen.getByTestId('protein-tile')).toBeInTheDocument();
+    expect(screen.getByTestId('weight-tile')).toBeInTheDocument();
+  });
+
+  it('does not display error banner when no tracking error occurs', async () => {
+    mockUseTrackingEntries.mockReturnValue({
+      data: {},
+      loading: false,
+      error: null,
+      retry: vi.fn(),
+    });
+
+    renderWithProviders(<DashboardPage />);
+
+    const errorBanner = screen.queryByText(/nicht erreichbar/i);
+    expect(errorBanner).not.toBeInTheDocument();
   });
 });

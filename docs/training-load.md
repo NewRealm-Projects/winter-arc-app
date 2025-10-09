@@ -4,6 +4,19 @@ Die Trainingslast ("DailyTrainingLoad") wird pro Tag je Nutzer*in berechnet und 
 `users/{uid}/trainingLoad/{yyyy-MM-dd}` persistiert. Grundlage ist das Workout- und
 Push-up-Tracking des Tages kombiniert mit dem manuellen Check-in.
 
+## Check-in Modal (Erweitert)
+
+Das Training Load Check-in Modal bietet folgende Funktionen:
+- **Schlafqualität**: Bewertung von 1-10
+- **Recovery**: Bewertung von 1-10
+- **Krankheits-Status**: Toggle für Krankheit
+- **Trainingsaktivitäten**: Dynamische Liste mit bis zu 5 Aktivitäten
+  - Typ: Laufen, Radfahren, Krafttraining, HIIT, Mobilität, Sonstiges
+  - Dauer in Minuten (>0)
+  - Intensität: 1-10 Skala
+- **Presets**: Vordefinierte Konfigurationen (z.B. "Lockerer Lauf", "Krafttraining", "Krankheit")
+- **Live-Vorschau**: Echtzeit-Berechnung der Trainingslast mit Aufschlüsselung der Komponenten
+
 ## Eingangsdaten
 
 | Parameter | Quelle | Beschreibung |

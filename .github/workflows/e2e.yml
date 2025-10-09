@@ -43,8 +43,8 @@ jobs:
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   e2e:
     name: Playwright E2E Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    runs-on: depot-ubuntu-22.04-8  # Depot.dev for faster E2E tests
+    timeout-minutes: 15
 
     # Only run if deployment succeeded (or manual dispatch)
     if: |

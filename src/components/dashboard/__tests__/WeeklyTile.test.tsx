@@ -462,8 +462,13 @@ describe('WeeklyTile', () => {
     expect(previous).toBeInTheDocument();
     expect(next).toBeInTheDocument();
 
+    // Wait for day data to load before checking day buttons
+    await waitFor(() => {
+      const dayButtons = screen.getAllByRole('button', { name: /%/ });
+      expect(dayButtons.length).toBe(7);
+    });
+
     const dayButtons = screen.getAllByRole('button', { name: /%/ });
-    expect(dayButtons.length).toBe(7);
     for (const button of dayButtons) {
       expect(button.getAttribute('aria-label')).toMatch(/%/);
     }
