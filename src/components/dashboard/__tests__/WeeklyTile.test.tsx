@@ -434,7 +434,7 @@ describe('WeeklyTile', () => {
 
     renderWeeklyTile();
 
-    expect(await screen.findByText(/Trainingslast: 720 \| Level Hoch/)).toBeInTheDocument();
+    expect(await screen.findByText(/Trainingslast: 720 \| Hoch/)).toBeInTheDocument();
   });
 
   it('renders without user context by skipping Firestore calls', async () => {
