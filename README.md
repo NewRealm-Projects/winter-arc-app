@@ -25,11 +25,13 @@ Progressive Web App (PWA) für iOS und Android – umfassendes Fitness-Tracking 
 
 ---
 
-## 📱 Screenshots
+## 📱 Live Demo & Screenshots
 
-| Dashboard (Light) | Dashboard (Dark) | Leaderboard |
-|-------------------|------------------|-------------|
-| ![Dashboard Light](./docs/screenshots/dashboard-light.png) | ![Dashboard Dark](./docs/screenshots/dashboard-dark.png) | ![Leaderboard](./docs/screenshots/leaderboard.png) |
+**🚀 Try it out:**
+- **Production:** [app.winterarc.newrealm.de](https://app.winterarc.newrealm.de)
+- **Staging:** [staging.winterarc.newrealm.de](https://staging.winterarc.newrealm.de)
+
+> 📸 Screenshots werden aktuell generiert und in Kürze hier verfügbar sein.
 
 ---
 
