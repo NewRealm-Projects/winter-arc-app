@@ -1,47 +1,86 @@
+#
+# PR Preview Deployment
+#
+# Trigger: Pull requests (opened, sync, reopen) + CI success
+# Target: winter-arc-app-staging repository (subfolder pr-{number})
+# URL: https://staging.winterarc.newrealm.de/pr-{number}/
+#
+# This workflow deploys PR previews ONLY after CI passes successfully.
+# Each PR gets its own subfolder for testing before merge.
+#
+
 name: PR Preview
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  # Trigger after CI workflow completes successfully on PRs
+  workflow_run:
+    workflows: ['CI']
+    types: [completed]
+
+  # Allow manual preview deployment
+  workflow_dispatch:
+
+# Only one preview deployment per PR at a time
+concurrency:
+  group: pr-preview-${{ github.event.workflow_run.pull_requests[0].number }}
+  cancel-in-progress: true  # Cancel older preview deployments
 
 permissions:
   contents: read
-  pull-requests: write  # For commenting on PRs
+  pull-requests: write  # To comment on PRs with preview link
 
 jobs:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # DEPLOY PR PREVIEW
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   preview:
+    name: Deploy PR Preview
     runs-on: ubuntu-latest
-    environment: preview
-    env:
-      VITE_APP_ENV: preview
-      VITE_BASE_PATH: /pr-${{ github.event.pull_request.number }}
+    timeout-minutes: 15
+    environment:
+      name: preview
+      url: https://staging.winterarc.newrealm.de/pr-${{ github.event.workflow_run.pull_requests[0].number }}/
+
+    # Only deploy if CI succeeded and this is a PR
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.pull_requests[0] != null
 
     steps:
+      - name: Get PR details
+        id: pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.workflow_run.pull_requests[0];
+            core.setOutput('number', pr.number);
+            core.setOutput('head_sha', pr.head.sha);
+            core.setOutput('head_ref', pr.head.ref);
+            console.log(`PR #${pr.number}: ${pr.title}`);
+
       - name: Checkout PR head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ steps.pr.outputs.head_sha }}
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-deps
+
+      - name: Build for PR preview
+        uses: ./.github/actions/build-app
         with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build application for PR preview
-        run: npm run build
-        env:
-          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
-          VITE_RECAPTCHA_SITE_KEY: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
-          VITE_GEMINI_API_KEY: ${{ secrets.VITE_GEMINI_API_KEY }}
+          firebase-api-key: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          firebase-auth-domain: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          firebase-project-id: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          firebase-storage-bucket: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          firebase-messaging-sender-id: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          firebase-app-id: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          recaptcha-site-key: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
+          gemini-api-key: ${{ secrets.VITE_GEMINI_API_KEY }}
+          sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          app-env: 'preview'
+          base-path: '/pr-${{ steps.pr.outputs.number }}/'
 
       - name: Deploy PR preview to staging repo
         uses: JamesIves/github-pages-deploy-action@v4
@@ -50,21 +89,74 @@ jobs:
           branch: gh-pages
           folder: dist
           token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
-          target-folder: pr-${{ github.event.pull_request.number }}
-          clean: false
-          commit-message: "Deploy PR #${{ github.event.pull_request.number }} preview"
+          target-folder: pr-${{ steps.pr.outputs.number }}
+          clean: false  # Keep other PR previews
+          commit-message: |
+            🔍 Deploy PR #${{ steps.pr.outputs.number }} preview
 
-      - name: Comment PR with preview link
+            Branch: ${{ steps.pr.outputs.head_ref }}
+            Commit: ${{ steps.pr.outputs.head_sha }}
+
+      - name: Comment on PR with preview link
         uses: actions/github-script@v7
         with:
           script: |
-            const prNumber = context.payload.pull_request.number;
+            const prNumber = ${{ steps.pr.outputs.number }};
             const previewUrl = `https://staging.winterarc.newrealm.de/pr-${prNumber}/`;
-            const body = `🚀 **Preview deployed!**\n\nYour changes are available at:\n${previewUrl}\n\n_Environment: PREVIEW_`;
+            const version = require('./package.json').version;
 
-            github.rest.issues.createComment({
-              issue_number: prNumber,
+            const body = `## 🚀 Preview Deployed!
+
+            Your changes are now available for testing:
+
+            🔗 **Preview URL:** ${previewUrl}
+
+            📦 **Version:** \`${version}\`
+            🔖 **Commit:** \`${{ steps.pr.outputs.head_sha }}\`.substring(0, 7)
+            🌍 **Environment:** \`PREVIEW\`
+
+            ---
+            _This preview will be automatically updated when you push new commits._`;
+
+            // Find existing preview comment
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: body
+              issue_number: prNumber,
             });
+
+            const existingComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('🚀 Preview Deployed!')
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: body
+              });
+              console.log('✅ Updated existing preview comment');
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: body
+              });
+              console.log('✅ Created new preview comment');
+            }
+
+      - name: Deployment summary
+        run: |
+          echo "✅ PR preview deployment successful!"
+          echo ""
+          echo "🔍 PR: #${{ steps.pr.outputs.number }}"
+          echo "🌐 URL: https://staging.winterarc.newrealm.de/pr-${{ steps.pr.outputs.number }}/"
+          echo "📦 Version: $(node -p "require('./package.json').version")"
+          echo "🔖 Commit: ${{ steps.pr.outputs.head_sha }}"
+          echo ""
+          echo "📊 Deployment time: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"

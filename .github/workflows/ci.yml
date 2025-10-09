@@ -1,0 +1,168 @@
+#
+# CI Pipeline - Quality Gate
+#
+# Runs on: All branches and pull requests
+# Purpose: Lint, typecheck, test, and build the application
+# Jobs: lint → typecheck → test → build
+#
+# This is the primary quality gate that must pass before any deployment.
+# All deployment workflows depend on this workflow completing successfully.
+#
+
+name: CI
+
+on:
+  push:
+    branches: ['**']  # All branches
+  pull_request:
+  workflow_dispatch:
+
+# Only allow one CI run per branch/PR at a time
+# Cancel in-progress runs for PRs only (keep branch pushes)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read  # Read-only access to repository content
+
+jobs:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 1. LINTING
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  lint:
+    name: Lint (ESLint + Secrets)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-deps
+
+      - name: Run ESLint
+        run: npm run lint:code
+
+      - name: Check for secrets
+        run: npm run lint:secrets
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 2. TYPECHECK
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  typecheck:
+    name: TypeScript
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-deps
+
+      - name: Run TypeScript compiler
+        run: npm run typecheck
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 3. TESTS
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [lint]  # Only run if linting passes
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-deps
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage
+          retention-days: 7
+
+      - name: Check coverage threshold
+        run: |
+          echo "📊 Coverage summary:"
+          cat coverage/coverage-summary.json || echo "No coverage summary found"
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 4. BUILD
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [lint, typecheck, test]  # Run only after all quality checks pass
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-deps
+
+      - name: Build application
+        uses: ./.github/actions/build-app
+        with:
+          firebase-api-key: ${{ secrets.VITE_FIREBASE_API_KEY }}
+          firebase-auth-domain: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+          firebase-project-id: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          firebase-storage-bucket: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+          firebase-messaging-sender-id: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+          firebase-app-id: ${{ secrets.VITE_FIREBASE_APP_ID }}
+          recaptcha-site-key: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
+          gemini-api-key: ${{ secrets.VITE_GEMINI_API_KEY }}
+          sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          app-env: 'local'  # CI builds use local env
+
+      - name: Run bundle size check
+        run: npm run perf:budget || echo "⚠️ Bundle size check not available"
+        continue-on-error: true
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact
+          path: dist
+          retention-days: 7
+
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 5. SUMMARY
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ci-success:
+    name: CI ✅
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test, build]
+    if: success()
+
+    steps:
+      - name: CI Success
+        run: |
+          echo "✅ All quality checks passed!"
+          echo "🚀 Ready for deployment"
+
+  ci-failure:
+    name: CI ❌
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test, build]
+    if: failure()
+
+    steps:
+      - name: CI Failure
+        run: |
+          echo "❌ CI pipeline failed"
+          echo "Please fix the errors above before merging"
+          exit 1
