@@ -1,0 +1,17 @@
+# Screenshots
+
+This directory will contain app screenshots for the README.
+
+To generate screenshots:
+1. Run `npm run dev`
+2. Navigate to different pages (Dashboard, Leaderboard)
+3. Take screenshots in both light and dark mode
+4. Save as:
+   - `dashboard-light.png`
+   - `dashboard-dark.png`
+   - `leaderboard.png`
+
+Alternatively, use Playwright to auto-generate:
+```bash
+npm run e2e:screenshots
+```
