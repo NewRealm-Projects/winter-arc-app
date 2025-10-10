@@ -58,7 +58,6 @@ function fingerprint(event: Event): string {
     case 'food':
       return `${event.kind}:${event.label}`;
   }
-  throw new Error('Unsupported event kind');
 }
 
 function isSimilarEvent(a: Event, b: Event): boolean {
@@ -93,7 +92,6 @@ function isSimilarEvent(a: Event, b: Event): boolean {
       if (b.kind !== 'food') return false;
       return a.label === b.label;
   }
-  return false;
 }
 
 function resolveKey(store: Map<string, Event>, event: Event): string {

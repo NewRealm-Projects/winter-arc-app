@@ -76,10 +76,23 @@ fi
 # 2. ESLint
 echo ""
 echo "🔍 Running ESLint..."
-if ! npm run lint 2>&1 | grep -E "(error|warning)" | grep -v "warnings potentially fixable"; then
+LINT_OUTPUT=$(npm run lint 2>&1)
+LINT_EXIT_CODE=$?
+
+if [ $LINT_EXIT_CODE -ne 0 ]; then
   echo "❌ ESLint errors found. Push aborted."
+  echo "$LINT_OUTPUT"
   exit 1
 fi
+
+# Check if there are actual errors or warnings (excluding fixable warnings message)
+if echo "$LINT_OUTPUT" | grep -E "([0-9]+ error|[0-9]+ warning)" | grep -v "warnings potentially fixable" | grep -q "[0-9]"; then
+  echo "❌ ESLint errors/warnings found. Push aborted."
+  echo "$LINT_OUTPUT"
+  exit 1
+fi
+
+echo "✅ ESLint passed"
 
 # 3. Unit tests (ignore stderr warnings, check exit code only)
 echo ""
