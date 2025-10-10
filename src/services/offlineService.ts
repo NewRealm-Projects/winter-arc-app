@@ -10,7 +10,7 @@ interface OfflineAction {
   id: string;
   type: 'tracking' | 'checkin' | 'note';
   action: 'create' | 'update' | 'delete';
-  data: any;
+  data: Record<string, unknown>;
   timestamp: number;
   retries: number;
 }
@@ -61,7 +61,7 @@ class OfflineService {
 
         // Register background sync
         if ('sync' in registration) {
-          await (registration as any).sync.register('winter-arc-sync');
+          await (registration as ServiceWorkerRegistration & { sync: { register: (tag: string) => Promise<void> } }).sync.register('winter-arc-sync');
           addBreadcrumb('Background sync registered', {}, 'info');
         }
       } catch (error) {

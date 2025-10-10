@@ -1,19 +1,19 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   checkMigrationStatus,
   migrateDaysToEntries,
   forceMigration,
 } from '../migration';
-import { doc, getDoc, getDocs, setDoc, writeBatch, collection } from 'firebase/firestore';
+import { getDoc, getDocs, setDoc, writeBatch, type DocumentSnapshot, type QuerySnapshot } from 'firebase/firestore';
 
 // Mock Firebase
 vi.mock('firebase/firestore', () => ({
-  doc: vi.fn(),
+  doc: vi.fn((..._args) => ({ id: 'mock-doc-ref' })),
+  collection: vi.fn((..._args) => ({ id: 'mock-collection-ref' })),
   getDoc: vi.fn(),
   getDocs: vi.fn(),
   setDoc: vi.fn(),
   writeBatch: vi.fn(),
-  collection: vi.fn(),
 }));
 
 vi.mock('../firebase', () => ({
@@ -42,7 +42,7 @@ describe('Migration Service', () => {
       vi.mocked(getDoc).mockResolvedValueOnce({
         exists: () => true,
         data: () => mockUserData,
-      } as any);
+      } as unknown as DocumentSnapshot);
 
       const status = await checkMigrationStatus('user123');
 
@@ -57,7 +57,7 @@ describe('Migration Service', () => {
     it('should return not migrated for non-existing user', async () => {
       vi.mocked(getDoc).mockResolvedValueOnce({
         exists: () => false,
-      } as any);
+      } as unknown as DocumentSnapshot);
 
       const status = await checkMigrationStatus('user123');
 
@@ -83,7 +83,7 @@ describe('Migration Service', () => {
           migratedAt: '2025-01-01T00:00:00Z',
           migratedCount: 50,
         }),
-      } as any);
+      } as unknown as DocumentSnapshot);
 
       const result = await migrateDaysToEntries('user123');
 
@@ -100,7 +100,7 @@ describe('Migration Service', () => {
       vi.mocked(getDoc).mockResolvedValueOnce({
         exists: () => true,
         data: () => ({ migrated: false }),
-      } as any);
+      } as unknown as DocumentSnapshot);
 
       // Mock days collection data
       const mockDaysData = [
@@ -110,17 +110,17 @@ describe('Migration Service', () => {
 
       vi.mocked(getDocs).mockResolvedValueOnce({
         empty: false,
-        forEach: (callback: any) => {
+        forEach: (callback: (doc: unknown) => void) => {
           mockDaysData.forEach(callback);
         },
-      } as any);
+      } as unknown as QuerySnapshot);
 
       // Mock batch operations
       const mockBatch = {
         set: vi.fn(),
         commit: vi.fn().mockResolvedValueOnce(undefined),
       };
-      vi.mocked(writeBatch).mockReturnValueOnce(mockBatch as any);
+      vi.mocked(writeBatch).mockReturnValueOnce(mockBatch as never);
 
       const result = await migrateDaysToEntries('user123');
 
@@ -139,12 +139,12 @@ describe('Migration Service', () => {
       vi.mocked(getDoc).mockResolvedValueOnce({
         exists: () => true,
         data: () => ({ migrated: false }),
-      } as any);
+      } as unknown as DocumentSnapshot);
 
       // Empty days collection
       vi.mocked(getDocs).mockResolvedValueOnce({
         empty: true,
-      } as any);
+      } as unknown as QuerySnapshot);
 
       const result = await migrateDaysToEntries('user123');
 
@@ -154,7 +154,7 @@ describe('Migration Service', () => {
       });
 
       expect(vi.mocked(setDoc)).toHaveBeenCalledWith(
-        undefined,
+        expect.objectContaining({ id: 'mock-doc-ref' }),
         expect.objectContaining({
           migrated: true,
           migratedCount: 0,
@@ -169,7 +169,7 @@ describe('Migration Service', () => {
       vi.mocked(getDoc).mockResolvedValueOnce({
         exists: () => true,
         data: () => ({ migrated: false }),
-      } as any);
+      } as unknown as DocumentSnapshot);
 
       // Simulate error during getDocs
       vi.mocked(getDocs).mockRejectedValueOnce(new Error('Firestore error'));
@@ -192,11 +192,11 @@ describe('Migration Service', () => {
       vi.mocked(getDoc).mockResolvedValueOnce({
         exists: () => true,
         data: () => ({ migrated: false }),
-      } as any);
+      } as unknown as DocumentSnapshot);
 
       vi.mocked(getDocs).mockResolvedValueOnce({
         empty: true,
-      } as any);
+      } as unknown as QuerySnapshot);
 
       // Second setDoc for marking as migrated
       vi.mocked(setDoc).mockResolvedValueOnce(undefined);
@@ -211,7 +211,7 @@ describe('Migration Service', () => {
       expect(vi.mocked(setDoc)).toHaveBeenCalledTimes(2);
       expect(vi.mocked(setDoc)).toHaveBeenNthCalledWith(
         1,
-        undefined,
+        expect.objectContaining({ id: 'mock-doc-ref' }),
         expect.objectContaining({
           migrated: false,
           migratedAt: null,

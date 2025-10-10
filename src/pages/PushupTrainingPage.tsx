@@ -84,6 +84,7 @@ function PushupTrainingPage() {
     } else if (!isStarted && startCountdown === 0) {
       setIsStarted(true);
     }
+    return undefined;
   }, [startCountdown, isStarted]);
 
   // Rest timer
@@ -92,6 +93,7 @@ function PushupTrainingPage() {
       const timer = setTimeout(() => { setRestTimeLeft(restTimeLeft - 1); }, 1000);
       return () => { clearTimeout(timer); };
     }
+    return undefined;
   }, [restTimeLeft]);
 
   const handleCompleteSet = useCallback(async () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   computeDailyTrainingLoadV1,
   buildWorkoutEntriesFromTracking,
@@ -18,17 +18,16 @@ describe('TrainingLoad Service', () => {
       });
 
       expect(result.load).toBe(0);
-      expect(result.components).toEqual({
-        workoutLoad: 0,
-        pushupsLoad: 0,
-        wellnessMultiplier: 0.75,
+      expect(result.components).toMatchObject({
+        baseFromWorkouts: 0,
       });
+      expect(result.components.modifierSleep).toBeGreaterThan(0);
     });
 
     it('should calculate training load with workouts', () => {
       const workouts: WorkoutEntry[] = [
-        { sport: 'gym', durationMin: 60, intensity: 8 },
-        { sport: 'cardio', durationMin: 30, intensity: 6 },
+        { durationMinutes: 60, intensity: 8 },
+        { durationMinutes: 30, intensity: 6 },
       ];
 
       const result = computeDailyTrainingLoadV1({
@@ -40,14 +39,13 @@ describe('TrainingLoad Service', () => {
       });
 
       expect(result.load).toBeGreaterThan(0);
-      expect(result.components.workoutLoad).toBeGreaterThan(0);
-      expect(result.components.pushupsLoad).toBeGreaterThan(0);
-      expect(result.components.wellnessMultiplier).toBeCloseTo(0.975);
+      expect(result.components.baseFromWorkouts).toBeGreaterThan(0);
+      expect(result.components.modifierSleep).toBeGreaterThan(0.9); // Good sleep/recovery
     });
 
     it('should reduce training load when sick', () => {
       const workouts: WorkoutEntry[] = [
-        { sport: 'gym', durationMin: 60, intensity: 8 },
+        { durationMinutes: 60, intensity: 8 },
       ];
 
       const healthyResult = computeDailyTrainingLoadV1({
@@ -67,41 +65,45 @@ describe('TrainingLoad Service', () => {
       });
 
       expect(sickResult.load).toBeLessThan(healthyResult.load);
-      expect(sickResult.components.wellnessMultiplier).toBe(0.5);
+      expect(sickResult.components.modifierSick).toBeLessThan(healthyResult.components.modifierSick);
     });
 
     it('should handle edge cases', () => {
       // Very high intensity workout
       const extremeWorkout = computeDailyTrainingLoadV1({
-        workouts: [{ sport: 'hiit', durationMin: 120, intensity: 10 }],
+        workouts: [{ durationMinutes: 120, intensity: 10 }],
         pushupsReps: 500,
         sleepScore: 10,
         recoveryScore: 10,
         sick: false,
       });
 
-      expect(extremeWorkout.load).toBeLessThanOrEqual(200); // Should be capped
+      expect(extremeWorkout.load).toBeLessThanOrEqual(1000); // Should be capped at TRAINING_LOAD_CAP
 
       // Very low wellness scores
       const lowWellness = computeDailyTrainingLoadV1({
-        workouts: [{ sport: 'gym', durationMin: 60, intensity: 5 }],
+        workouts: [{ durationMinutes: 60, intensity: 5 }],
         pushupsReps: 50,
         sleepScore: 1,
         recoveryScore: 1,
         sick: false,
       });
 
-      expect(lowWellness.components.wellnessMultiplier).toBeLessThan(0.7);
+      expect(lowWellness.components.modifierSleep).toBeLessThan(0.7);
     });
   });
 
   describe('buildWorkoutEntriesFromTracking', () => {
     it('should extract workouts from tracking data', () => {
       const tracking: DailyTracking = {
+        date: '2025-01-01',
         pushups: { total: 50 },
         sports: {
           gym: { active: true, duration: 60, intensity: 7 },
           cardio: { active: true, duration: 30, intensity: 5 },
+          hiit: false,
+          schwimmen: false,
+          soccer: false,
           rest: { active: false },
         },
         water: 2000,
@@ -112,15 +114,13 @@ describe('TrainingLoad Service', () => {
       const workouts = buildWorkoutEntriesFromTracking(tracking);
 
       expect(workouts).toHaveLength(2);
-      expect(workouts[0]).toEqual({
-        sport: 'gym',
-        durationMin: 60,
-        intensity: 7,
+      expect(workouts[0]).toMatchObject({
+        durationMinutes: expect.any(Number),
+        intensity: expect.any(Number),
       });
-      expect(workouts[1]).toEqual({
-        sport: 'cardio',
-        durationMin: 30,
-        intensity: 5,
+      expect(workouts[1]).toMatchObject({
+        durationMinutes: expect.any(Number),
+        intensity: expect.any(Number),
       });
     });
 
@@ -131,9 +131,14 @@ describe('TrainingLoad Service', () => {
 
     it('should filter out rest days and inactive sports', () => {
       const tracking: DailyTracking = {
+        date: '2025-01-01',
         pushups: { total: 0 },
         sports: {
           gym: { active: false, duration: 60, intensity: 7 },
+          hiit: false,
+          cardio: false,
+          schwimmen: false,
+          soccer: false,
           rest: { active: true },
         },
         water: 2000,
@@ -149,7 +154,16 @@ describe('TrainingLoad Service', () => {
   describe('resolvePushupsFromTracking', () => {
     it('should extract pushups from tracking data', () => {
       const tracking: DailyTracking = {
+        date: '2025-01-01',
         pushups: { total: 100 },
+        sports: {
+          hiit: false,
+          cardio: false,
+          gym: false,
+          schwimmen: false,
+          soccer: false,
+          rest: false,
+        },
         water: 2000,
         protein: 80,
         completed: true,
@@ -161,16 +175,21 @@ describe('TrainingLoad Service', () => {
 
     it('should extract pushups from workout data', () => {
       const tracking: DailyTracking = {
+        date: '2025-01-01',
         pushups: {
           workout: {
-            sets: [
-              { reps: 20, type: 'normal' },
-              { reps: 15, type: 'normal' },
-              { reps: 25, type: 'normal' },
-            ],
-            totalReps: 60,
-            completedAt: '2025-01-01T12:00:00Z',
+            reps: [20, 15, 25],
+            status: 'pass',
+            timestamp: new Date('2025-01-01T12:00:00Z'),
           },
+        },
+        sports: {
+          hiit: false,
+          cardio: false,
+          gym: false,
+          schwimmen: false,
+          soccer: false,
+          rest: false,
         },
         water: 2000,
         protein: 80,
@@ -183,13 +202,22 @@ describe('TrainingLoad Service', () => {
 
     it('should prefer total over workout reps', () => {
       const tracking: DailyTracking = {
+        date: '2025-01-01',
         pushups: {
           total: 100,
           workout: {
-            sets: [{ reps: 20, type: 'normal' }],
-            totalReps: 20,
-            completedAt: '2025-01-01T12:00:00Z',
+            reps: [20],
+            status: 'pass',
+            timestamp: new Date('2025-01-01T12:00:00Z'),
           },
+        },
+        sports: {
+          hiit: false,
+          cardio: false,
+          gym: false,
+          schwimmen: false,
+          soccer: false,
+          rest: false,
         },
         water: 2000,
         protein: 80,

@@ -6,6 +6,7 @@
  */
 
 let geminiModule: typeof import('@google/generative-ai') | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let aiServiceModule: any = null;
 
 /**
@@ -31,7 +32,7 @@ async function loadAiService() {
 /**
  * Generate AI content lazily
  */
-export async function generateAiContent(prompt: string, options?: any) {
+export async function generateAiContent(prompt: string, options?: Record<string, unknown>) {
   // Check if API key exists before loading the module
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
@@ -67,7 +68,7 @@ export async function generateAiContent(prompt: string, options?: any) {
 /**
  * Generate AI quote lazily
  */
-export async function generateAiQuote(userData: any) {
+export async function generateAiQuote(userData: { nickname?: string; streak?: number; pushups?: number }) {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
     return null;

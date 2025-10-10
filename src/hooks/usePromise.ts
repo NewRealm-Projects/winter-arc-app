@@ -12,6 +12,7 @@ type PromiseStatus<T> =
   | { status: 'rejected'; reason: unknown };
 
 // Cache for promises to enable Suspense
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const promiseCache = new WeakMap<Promise<any>, PromiseStatus<any>>();
 
 /**
@@ -91,7 +92,7 @@ export function createResource<T>(
  */
 export function useDeferredValue<T>(value: T, timeoutMs = 200): T {
   const [deferredValue, setDeferredValue] = useState(value);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     if (timeoutRef.current) {
@@ -187,7 +188,7 @@ export function useResource<T>(
   key: string,
   fetcher: () => Promise<T>
 ): T {
-  let resource = resourceMap.get(key);
+  let resource = resourceMap.get(key) as ReturnType<typeof createResource<T>> | undefined;
 
   if (!resource) {
     resource = createResource(fetcher);

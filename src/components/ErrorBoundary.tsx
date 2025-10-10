@@ -3,7 +3,8 @@ import { captureException } from '../services/sentryService';
 
 interface Props {
   children: ReactNode;
-  fallback?: ReactNode;
+  fallback?: ReactNode | ((error: Error, resetError: () => void) => ReactNode);
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
@@ -39,6 +40,11 @@ export class ErrorBoundary extends Component<Props, State> {
         componentStack: errorInfo.componentStack,
       },
     });
+
+    // Call custom error handler if provided
+    if (this.props.onError) {
+      this.props.onError(error, errorInfo);
+    }
   }
 
   handleReset = () => {
@@ -48,6 +54,10 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
+        // If fallback is a function, call it with error and reset handler
+        if (typeof this.props.fallback === 'function') {
+          return this.props.fallback(this.state.error!, this.handleReset);
+        }
         return this.props.fallback;
       }
 

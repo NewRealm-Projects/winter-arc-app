@@ -146,10 +146,10 @@ export function useSkipLinks() {
 /**
  * Keyboard navigation hook
  */
-export function useKeyboardNavigation(
-  items: any[],
+export function useKeyboardNavigation<T = unknown>(
+  items: T[],
   options: {
-    onSelect?: (item: any, index: number) => void;
+    onSelect?: (item: T, index: number) => void;
     onEscape?: () => void;
     orientation?: 'horizontal' | 'vertical' | 'both';
     loop?: boolean;
