@@ -49,6 +49,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: main  # Explicitly checkout main branch for production
 
       - name: Setup dependencies
         uses: ./.github/actions/setup-deps
