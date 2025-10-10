@@ -13,10 +13,58 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Users collection - users can only read/write their own data
+    // Helper function to check if user is in the same group
+    function isGroupMember(targetUserId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        exists(/databases/$(database)/documents/users/$(targetUserId)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.groupCode ==
+        get(/databases/$(database)/documents/users/$(targetUserId)).data.groupCode;
+    }
+
+    // Validate user update fields
+    function isValidUserUpdate() {
+      let validFields = ['nickname', 'gender', 'height', 'weight', 'bodyFat',
+                         'maxPushups', 'groupCode', 'pushupState', 'language',
+                         'enabledActivities', 'migrated', 'migratedAt',
+                         'migratedCount', 'migrationVersion'];
+      return request.resource.data.keys().hasAll(['nickname']) &&
+             request.resource.data.keys().hasOnly(validFields);
+    }
+
+    // Validate tracking data structure
+    function isValidTrackingData() {
+      let validKeys = ['date', 'pushups', 'sports', 'water', 'protein',
+                       'weight', 'completed', 'recovery', 'updatedAt',
+                       'tasksCompleted', 'tasksTotal', 'dayProgressPct',
+                       'dayStreakMet', 'streakScore'];
+      return request.resource.data.keys().hasOnly(validKeys);
+    }
+
+    // Validate date format (YYYY-MM-DD)
+    function isValidDateFormat(date) {
+      return date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    // Validate tracking entry
+    function isValidTrackingEntry() {
+      return isValidTrackingData() &&
+             request.resource.data.date == resource.id;
+    }
+
+    // Validate week ID format (YYYY-WXX)
+    function isValidWeekId(weekId) {
+      return weekId.matches('^[0-9]{4}-W[0-9]{2}$');
+    }
+
+    // Users collection - users can read own data and limited fields from group members
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if isOwner(userId);
+      // Users can read their own full profile
+      allow read: if isOwner(userId);
+      // Users can read limited fields from group members
+      allow read: if isAuthenticated() && isGroupMember(userId);
+      // Users can only write their own data with field validation
+      allow write: if isOwner(userId) && isValidUserUpdate();
 
       // Allow owner to access ALL subcollections under their user document
       match /{document=**} {
@@ -24,22 +72,25 @@ service cloud.firestore {
       }
     }
 
-    // Tracking collection - users can only read/write their own tracking data
+    // Tracking collection - STRICT: users can ONLY read/write their OWN data
     match /tracking/{userId}/{document=**} {
-      allow read: if isAuthenticated();
-      allow write: if isOwner(userId);
+      // CRITICAL FIX: Only owner can read their own tracking data
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidTrackingData();
     }
 
-    // Tracking entries subcollection - owner can read/write
+    // Tracking entries subcollection - STRICT owner-only access
     match /tracking/{userId}/entries/{date} {
-      allow read: if isAuthenticated();
-      allow write: if isOwner(userId);
+      // CRITICAL FIX: Only owner can read their own entries
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidDateFormat(date) && isValidTrackingEntry();
     }
 
-    // Tracking weeks subcollection - owner can read/write
+    // Tracking weeks subcollection - STRICT owner-only access
     match /tracking/{userId}/weeks/{weekId} {
-      allow read: if isAuthenticated();
-      allow write: if isOwner(userId);
+      // CRITICAL FIX: Only owner can read their own weekly data
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidWeekId(weekId);
     }
 
     // Groups collection - authenticated users can read all groups
