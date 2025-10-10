@@ -2,7 +2,7 @@ import { Suspense, type ReactNode, type ComponentType } from 'react';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Skeleton } from './ui/Skeleton';
 
-interface AsyncBoundaryProps {
+export interface AsyncBoundaryProps {
   children: ReactNode;
   fallback?: ReactNode;
   errorFallback?: ComponentType<{ error: Error; resetError: () => void }>;
@@ -89,22 +89,6 @@ function DefaultErrorFallback({
       </div>
     </div>
   );
-}
-
-/**
- * Higher-order component for async data fetching
- */
-export function withAsyncBoundary<P extends object>(
-  Component: ComponentType<P>,
-  options?: Omit<AsyncBoundaryProps, 'children'>
-) {
-  return function AsyncBoundaryWrapper(props: P) {
-    return (
-      <AsyncBoundary {...options}>
-        <Component {...props} />
-      </AsyncBoundary>
-    );
-  };
 }
 
 /**
