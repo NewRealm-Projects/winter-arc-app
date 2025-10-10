@@ -3,7 +3,8 @@ name: Validate Branch Name
 on:
   push:
     branches:
-      - '**' # Run on all branches
+      - develop
+      - main
   pull_request:
     branches:
       - develop

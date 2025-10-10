@@ -1,7 +1,7 @@
 #
 # CI Pipeline - Quality Gate (Optimized with Depot.dev)
 #
-# Runs on: All branches and pull requests
+# Runs on: Protected branches (develop/main) and pull requests
 # Purpose: Lint, typecheck, test, and build the application
 # Jobs: lint || typecheck || test → build (parallel where possible)
 #
@@ -19,8 +19,8 @@ name: CI
 
 on:
   push:
-    branches: ['**']  # All branches
-  pull_request:
+    branches: [develop, main]  # Only protected branches (triggers deployments)
+  pull_request:  # Runs on all PRs (no duplicates on feature branches)
   workflow_dispatch:
 
 # Only allow one CI run per branch/PR at a time
