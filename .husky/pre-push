@@ -1,5 +1,68 @@
 #!/usr/bin/env sh
 
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Pre-push Hook: Branch Name Validation (First Check)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo "${BLUE}🔍 Validating branch name...${NC}"
+
+# Get current branch name
+BRANCH_NAME=$(git symbolic-ref --short HEAD 2>/dev/null)
+
+if [ -z "$BRANCH_NAME" ]; then
+  echo "${RED}❌ Could not determine current branch${NC}"
+  exit 1
+fi
+
+echo "Branch: ${YELLOW}$BRANCH_NAME${NC}"
+
+# Protected branches - always allow
+if echo "$BRANCH_NAME" | grep -Eq "^(main|develop)$"; then
+  echo "${GREEN}✅ Protected branch - validation passed${NC}"
+else
+  # Valid branch pattern: <username>/<type>-<description>
+  VALID_TYPES="feature|fix|chore|refactor|docs|test|style"
+  BRANCH_PATTERN="^[a-z0-9_-]+/($VALID_TYPES)-[a-z0-9_-]+$"
+
+  if echo "$BRANCH_NAME" | grep -Eq "$BRANCH_PATTERN"; then
+    echo "${GREEN}✅ Valid branch name format${NC}"
+  else
+    echo ""
+    echo "${RED}❌ Invalid branch name format!${NC}"
+    echo ""
+    echo "Branch names must follow this pattern:"
+    echo "  ${YELLOW}<username>/<type>-<description>${NC}"
+    echo ""
+    echo "Valid types: ${GREEN}feature, fix, chore, refactor, docs, test, style${NC}"
+    echo ""
+    echo "Examples:"
+    echo "  ${GREEN}✓${NC} lars/feature-dashboard"
+    echo "  ${GREEN}✓${NC} niklas/chore-cleanup"
+    echo "  ${GREEN}✓${NC} daniel/fix-login-bug"
+    echo ""
+    echo "${YELLOW}💡 To rename your branch:${NC}"
+    echo "  ${BLUE}git branch -m <username>/<type>-<description>${NC}"
+    echo ""
+    echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    exit 1
+  fi
+fi
+
+echo "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Code Quality Checks
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 echo "🔍 Running pre-push checks..."
 echo ""
 

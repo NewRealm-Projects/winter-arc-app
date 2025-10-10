@@ -61,26 +61,33 @@ const computeBaseFromWorkouts = (workouts: WorkoutEntry[], pushupsReps: number):
 export function computeDailyTrainingLoadV1(
   params: TrainingLoadComputationInput
 ): TrainingLoadComputationResult {
-  const baseFromWorkouts = computeBaseFromWorkouts(params.workouts, params.pushupsReps);
+  const sessionLoad = computeBaseFromWorkouts(params.workouts, 0); // Base workouts without pushups
 
   const sleepScore = clamp(Math.round(params.sleepScore), 1, 10);
   const recoveryScore = clamp(Math.round(params.recoveryScore), 1, 10);
   const sick = Boolean(params.sick);
 
-  const modifierSleep = 0.8 + 0.04 * sleepScore;
-  const modifierRecovery = 0.7 + 0.03 * recoveryScore;
-  const modifierSick = sick ? 0.5 : 1.0;
+  // Wellness modifier: combines sleep, recovery, and sickness
+  // Formula: 0.6 + 0.04*recovery + 0.02*sleep - (sick? 0.3 : 0)
+  // Range: [0.4, 1.4] to prevent extreme values
+  const wellnessModRaw = 0.6 + 0.04 * recoveryScore + 0.02 * sleepScore - (sick ? 0.3 : 0);
+  const wellnessMod = clamp(wellnessModRaw, 0.4, 1.4);
 
-  const loadRaw = baseFromWorkouts * modifierSleep * modifierRecovery * modifierSick;
+  // Pushup adjustment: Add pushups as a bonus (capped at 20% of session load)
+  const pushupAdjRaw = (params.pushupsReps / 100) * sessionLoad;
+  const pushupAdj = Math.min(pushupAdjRaw, 0.2 * sessionLoad);
+
+  // Final training load
+  const loadRaw = (sessionLoad + pushupAdj) * wellnessMod;
   const load = Math.round(clamp(loadRaw, 0, TRAINING_LOAD_CAP));
 
   return {
     load,
     components: {
-      baseFromWorkouts,
-      modifierSleep,
-      modifierRecovery,
-      modifierSick,
+      baseFromWorkouts: sessionLoad,
+      modifierSleep: wellnessMod, // Store combined wellness mod for backwards compatibility
+      modifierRecovery: wellnessMod,
+      modifierSick: wellnessMod,
     },
     inputs: {
       sleepScore,

@@ -5,6 +5,7 @@ import { auth, db } from '../firebase';
 import { useStore } from '../store/useStore';
 import type { User, Activity } from '../types';
 import { clearDemoModeMarker, isDemoModeActive } from '../constants/demo';
+import { addBreadcrumb, captureException } from '../services/sentryService';
 
 export function useAuth() {
   const setUser = useStore((state) => state.setUser);
@@ -23,6 +24,7 @@ export function useAuth() {
           email: firebaseUser.email,
         });
 
+        addBreadcrumb('Auth: User authenticated', { uid: firebaseUser.uid });
         clearDemoModeMarker();
 
         try {
@@ -75,6 +77,23 @@ export function useAuth() {
               });
             }
             setIsOnboarded(!!userData.birthday);
+
+            // MIGRATION: days → entries (one-time, automatic)
+            try {
+              const { migrateDaysToEntries } = await import('../services/migration');
+              const migrationResult = await migrateDaysToEntries(firebaseUser.uid);
+
+              if (migrationResult.success && migrationResult.count && migrationResult.count > 0) {
+                addBreadcrumb('Auth: Migration completed', {
+                  count: migrationResult.count,
+                  uid: firebaseUser.uid,
+                });
+              }
+            } catch (migrationError) {
+              // Non-critical error - log but don't block login
+              console.error('Migration error (non-critical):', migrationError);
+              addBreadcrumb('Auth: Migration failed', { error: String(migrationError) }, 'error');
+            }
           } else {
             let uploadedPhotoUrl: string | undefined;
 
@@ -102,7 +121,10 @@ export function useAuth() {
             });
             setIsOnboarded(false);
           }
-        } catch {
+        } catch (error) {
+          console.error('Error loading user data:', error);
+          addBreadcrumb('Auth: Failed to load user data', { error: String(error) }, 'error');
+          captureException(error, { context: 'useAuth', uid: firebaseUser.uid });
           setUser(null);
           setIsOnboarded(false);
         } finally {

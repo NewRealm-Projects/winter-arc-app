@@ -59,7 +59,7 @@ function DayCircleComponent({
   return (
     <button
       type="button"
-      className={`group relative flex flex-col items-center gap-1.5 text-white transition-transform duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
+      className={`group relative flex flex-col items-center gap-1.5 text-white overflow-visible transition-transform duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
         isSelected ? 'scale-[1.04]' : 'scale-100'
       }`}
       onClick={handleClick}
@@ -99,7 +99,7 @@ function DayCircleComponent({
         <span className="relative text-xs font-semibold text-white sm:text-sm">{Math.round(safePercent)}%</span>
         <span className="absolute bottom-1 text-[9px] font-medium text-white/50 sm:text-[10px]">{dayNumber}</span>
         {streakMet ? (
-          <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-xs shadow-lg" aria-hidden>
+          <span className="absolute bottom-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-xs shadow-lg" aria-hidden>
             🔥
           </span>
         ) : null}

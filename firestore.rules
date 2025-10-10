@@ -18,26 +18,26 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if isOwner(userId);
 
-      match /checkins/{date} {
-        allow read: if isOwner(userId);
-        allow write: if isOwner(userId)
-          && request.resource.data.sleepScore is int
-          && request.resource.data.recoveryScore is int
-          && request.resource.data.sleepScore >= 1
-          && request.resource.data.sleepScore <= 10
-          && request.resource.data.recoveryScore >= 1
-          && request.resource.data.recoveryScore <= 10
-          && request.resource.data.sick is bool;
-      }
-
-      match /trainingLoad/{date} {
-        allow read: if isOwner(userId);
-        allow write: if isOwner(userId);
+      // Allow owner to access ALL subcollections under their user document
+      match /{document=**} {
+        allow read, write: if isOwner(userId);
       }
     }
 
     // Tracking collection - users can only read/write their own tracking data
     match /tracking/{userId}/{document=**} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+
+    // Tracking entries subcollection - owner can read/write
+    match /tracking/{userId}/entries/{date} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+
+    // Tracking weeks subcollection - owner can read/write
+    match /tracking/{userId}/weeks/{weekId} {
       allow read: if isAuthenticated();
       allow write: if isOwner(userId);
     }

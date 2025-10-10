@@ -40,6 +40,9 @@ export function calculateWaterGoal(
 }
 
 /**
+ * @deprecated Use `getDayStreakScore()` and `calculateCompletionStreak()` from `progress.ts` instead.
+ * This function uses hard-coded thresholds and does not support check-in data.
+ *
  * Berechnet den Streak (aufeinanderfolgende Tage mit ausreichender Tageserfüllung)
  * @param tracking Tracking-Daten (key: YYYY-MM-DD, value: DailyTracking)
  * @param enabledActivities Array of enabled activities (default: all)

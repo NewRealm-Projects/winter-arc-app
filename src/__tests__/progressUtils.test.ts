@@ -153,18 +153,23 @@ describe('getDayProgressSummary', () => {
 
   it('uses user enabled activities when overrides are missing', () => {
     const summary = getDayProgressSummary({
-      tracking: { pushups: { total: 30 } as DailyTracking['pushups'] },
+      tracking: {
+        pushups: { total: 30 } as DailyTracking['pushups'],
+        water: 2500, // Add water to meet 70% threshold
+        protein: 150, // Add protein to meet 70% threshold
+      },
       user: {
-        hydrationGoalLiters: 2,
-        proteinGoalGrams: 100,
-        enabledActivities: ['pushups'],
+        weight: 75,
+        hydrationGoalLiters: 2.5,
+        proteinGoalGrams: 150,
+        enabledActivities: ['pushups', 'water', 'protein'],
       },
     });
 
-    expect(summary.tasksTotal).toBe(1);
-    expect(summary.tasksCompleted).toBe(1);
+    expect(summary.tasksTotal).toBe(3);
+    expect(summary.tasksCompleted).toBe(3);
     expect(summary.percent).toBe(100);
-    expect(summary.streakMet).toBe(true);
+    expect(summary.streakMet).toBe(true); // Now meets 70% threshold
   });
 });
 
@@ -192,6 +197,7 @@ describe('calculateCompletionStreak', () => {
 
       const streak = calculateCompletionStreak(
         tracking,
+        null, // No check-ins
         { weight: 80, hydrationGoalLiters: 2.5, proteinGoalGrams: 150 },
         ['water', 'protein', 'sports', 'weight']
       );
@@ -202,7 +208,7 @@ describe('calculateCompletionStreak', () => {
     }
   });
 
-  it('counts days with at least 50% completion towards the streak', () => {
+  it('counts days with at least 70% weighted score towards the streak', () => {
     const today = new Date('2024-03-15T08:00:00Z');
     const tracking: Record<string, Partial<DailyTracking>> = {};
 
@@ -210,7 +216,7 @@ describe('calculateCompletionStreak', () => {
     vi.setSystemTime(today);
 
     try {
-      const createEntry = (offset: number, water: number, loggedWeight: boolean) => {
+      const createEntry = (offset: number, water: number, protein: number, hasSport: boolean) => {
         const date = new Date(today);
         date.setDate(today.getDate() - offset);
         const key = date.toISOString().split('T')[0];
@@ -222,22 +228,27 @@ describe('calculateCompletionStreak', () => {
         ) {
           tracking[key] = {
             water,
-            weight: loggedWeight ? { value: 80 } : undefined,
+            protein,
+            sports: hasSport ? ({ hiit: { active: true } } as SportTracking) : undefined,
           };
         }
       };
 
-      createEntry(0, 1500, true); // weight logged keeps completion above threshold
-      createEntry(1, 2000, false); // missing weight should end streak
-      createEntry(2, 1000, false); // below threshold, should break streak
+      // Day 0: Full completion (Movement + Water 100% + Protein 100% = 100%)
+      createEntry(0, 3000, 160, true);
+      // Day 1: Partial completion (Movement + Water 67% + Protein 0% = ~52%) - below 70% threshold
+      createEntry(1, 2000, 0, true);
+      // Day 2: Low completion (no movement, low water) - below threshold
+      createEntry(2, 1000, 50, false);
 
       const streak = calculateCompletionStreak(
         tracking,
-        { hydrationGoalLiters: 3, weight: 80 },
-        ['water', 'weight']
+        null, // No check-ins
+        { hydrationGoalLiters: 3, proteinGoalGrams: 160, weight: 80 },
+        ['water', 'protein', 'sports']
       );
 
-      expect(streak).toBe(1);
+      expect(streak).toBe(1); // Only day 0 meets the 70% threshold
     } finally {
       vi.useRealTimers();
     }

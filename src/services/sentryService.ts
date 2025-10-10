@@ -57,7 +57,7 @@ export function initializeSentry(config?: Partial<SentryConfig>): boolean {
       ],
 
       // Performance Monitoring
-      tracesSampleRate: config?.tracesSampleRate ?? (import.meta.env.PROD ? 0.1 : 1.0),
+      tracesSampleRate: config?.tracesSampleRate ?? (import.meta.env.PROD ? 0.2 : 1.0),
 
       // Session Replay
       replaysSessionSampleRate: config?.replaysSessionSampleRate ?? 0.1,
@@ -66,8 +66,15 @@ export function initializeSentry(config?: Partial<SentryConfig>): boolean {
       // Privacy
       sendDefaultPii: false,
 
-      // Before send hook - filter sensitive data
-      beforeSend(event) {
+      // Allow URLs - only send errors from our domains
+      allowUrls: [
+        /winterarc\.newrealm\.de/,
+        /.*github\.io/,
+        /localhost/,
+      ],
+
+      // Before send hook - filter sensitive data and handle 403s
+      beforeSend(event, hint) {
         // Filter out potential sensitive data from URLs and breadcrumbs
         if (event.request?.url) {
           event.request.url = filterSensitiveData(event.request.url);
@@ -78,6 +85,17 @@ export function initializeSentry(config?: Partial<SentryConfig>): boolean {
             ...breadcrumb,
             message: breadcrumb.message ? filterSensitiveData(breadcrumb.message) : undefined,
           }));
+        }
+
+        // Handle Sentry 403 errors gracefully
+        const originalException = hint?.originalException;
+        if (originalException && typeof originalException === 'object' && 'status' in originalException) {
+          const status = (originalException as { status?: number }).status;
+          if (status === 403) {
+            console.error('⚠️ Sentry: 403 Forbidden - Check your DSN and project permissions');
+            // Don't send this error to avoid infinite loops
+            return null;
+          }
         }
 
         return event;

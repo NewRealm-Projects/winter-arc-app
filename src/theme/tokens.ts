@@ -47,13 +47,13 @@ export const designTokens = {
     xl: '40px',
   },
 
-  // Glass/Blur Preset (Standard für Tiles)
+  // Modern Card Preset (OPAQUE, NO transparency)
   glass: {
-    background: 'bg-white/5 dark:bg-white/5',
-    backdropBlur: 'backdrop-blur-md',
-    border: 'border border-white/10',
-    shadow: 'shadow-[0_6px_24px_rgba(0,0,0,0.25)]',
-    rounded: 'rounded-2xl',
+    background: 'bg-[var(--card-bg)]',
+    backdropBlur: '', // REMOVED - no blur needed for opaque cards
+    border: 'border border-[var(--border-subtle)]',
+    shadow: 'shadow-[var(--shadow-card)]',
+    rounded: 'rounded-xl', // 12px - standardized
     transition: 'transition-all duration-200',
   },
 
@@ -98,20 +98,20 @@ export const designTokens = {
  * Kombinierte Utility-Klassen für Wiederverwendung
  */
 
-// Standard Glass-Card (für Tiles)
+// Standard Modern Card (für Tiles) - OPAQUE
 export const glassCardClasses = [
   designTokens.glass.rounded,
   designTokens.glass.background,
-  designTokens.glass.backdropBlur,
   designTokens.glass.border,
   designTokens.glass.shadow,
   designTokens.glass.transition,
 ].join(' ');
 
-// Glass-Card mit Hover-Effekt
+// Modern Card mit Hover-Effekt
 export const glassCardHoverClasses = [
   glassCardClasses,
-  designTokens.tile.hover,
+  'hover:bg-[var(--card-bg-hover)]',
+  'hover:shadow-[var(--shadow-card-hover)]',
 ].join(' ');
 
 // Tracked Tile (mit grünem Glow)

@@ -195,20 +195,32 @@ function SportTile() {
       {showModal && modalSport &&
         createPortal(
           <div
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md"
+            className="fixed inset-0 flex items-center justify-center p-4 animate-fade-in"
+            style={{
+              zIndex: 'var(--z-overlay)',
+              backgroundColor: 'var(--wa-overlay)',
+            }}
             onClick={() => { setShowModal(false); }}
           >
             <div
-              className="rounded-2xl bg-slate-800/95 dark:bg-slate-900/95 backdrop-blur-xl border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.5)] p-5 w-full max-w-sm"
+              className="w-full max-w-sm rounded-2xl p-5 shadow-2xl animate-scale-fade-in"
+              style={{
+                zIndex: 'var(--z-modal)',
+                backgroundColor: 'var(--wa-surface-elev)',
+                borderRadius: 'var(--wa-radius-xl)',
+                boxShadow: 'var(--wa-shadow-lg)',
+                border: '1px solid var(--wa-border)',
+              }}
               onClick={(e) => { e.stopPropagation(); }}
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {modalSport.icon} {modalSport.label}
                 </h3>
                 <button
                   onClick={() => { setShowModal(false); }}
-                  className="text-white/60 hover:text-white transition-colors"
+                  className="rounded-full p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors"
+                  aria-label="Close dialog"
                 >
                   ✕
                 </button>
@@ -216,7 +228,7 @@ function SportTile() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs text-white/70 mb-2">
+                  <label className="block text-xs text-gray-700 dark:text-gray-300 mb-2">
                     {t('tracking.chooseSport')}
                   </label>
                   <div className="grid grid-cols-3 gap-1.5 text-center">
@@ -229,10 +241,10 @@ function SportTile() {
                           key={sport.key}
                           className={`relative p-2 rounded-xl transition-all duration-200 flex flex-col items-center justify-center gap-1 border cursor-pointer ${
                             isActive
-                              ? 'border-emerald-400 bg-emerald-600/30 shadow-[0_0_0_1px_rgba(16,185,129,0.35)]'
+                              ? 'border-emerald-400 bg-emerald-100 dark:bg-emerald-600/30 shadow-[0_0_0_1px_rgba(16,185,129,0.35)]'
                               : isSelected
-                                ? 'border-blue-400 bg-blue-600/30 shadow-inner'
-                                : 'border-transparent bg-white/5 hover:bg-white/10'
+                                ? 'border-blue-400 bg-blue-100 dark:bg-blue-600/30 shadow-inner'
+                                : 'border-gray-200 dark:border-transparent bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10'
                           } ${isSelected && isActive ? 'ring-1 ring-emerald-300/60' : ''}`}
                           onClick={() => { setSelectedSport(sport.key); }}
                         >
@@ -247,12 +259,12 @@ function SportTile() {
                             onFocus={() => { setSelectedSport(sport.key); }}
                           />
                           {isActive && (
-                            <div className="absolute top-1 right-1 text-[10px] uppercase tracking-wide text-emerald-200">
+                            <div className="absolute top-1 right-1 text-[10px] uppercase tracking-wide text-emerald-700 dark:text-emerald-200">
                               {t('tracking.trackedLabel')}
                             </div>
                           )}
                           <div className="text-xl">{sport.icon}</div>
-                          <div className="text-xs text-white/80 font-medium">
+                          <div className="text-xs text-gray-800 dark:text-white/80 font-medium">
                             {sport.label}
                           </div>
                         </label>
@@ -263,7 +275,7 @@ function SportTile() {
 
                 {selectedSport === 'rest' ? (
                   <div className="space-y-3">
-                    <p className="text-sm text-white/70">
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
                       {t('tracking.restDescription')}
                     </p>
                     <button
@@ -273,7 +285,7 @@ function SportTile() {
                       }}
                       className={`w-full px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
                         selectedIsActive
-                          ? 'bg-red-500/30 text-red-100 hover:bg-red-500/40'
+                          ? 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-500/30 dark:text-red-100 dark:hover:bg-red-500/40'
                           : 'bg-blue-600 text-white hover:bg-blue-700'
                       }`}
                     >
@@ -283,7 +295,7 @@ function SportTile() {
                 ) : (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-xs text-white/70 mb-2">
+                      <label className="block text-xs text-gray-700 dark:text-gray-300 mb-2">
                         {t('tracking.duration')} ({t('tracking.minutes')})
                       </label>
                       <div className="flex gap-2 mb-2">
@@ -297,7 +309,7 @@ function SportTile() {
                             className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                               duration === min
                                 ? 'bg-blue-600 text-white'
-                                : 'bg-white/10 text-white/70 hover:bg-white/20'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-white/10 dark:text-white/70 dark:hover:bg-white/20'
                             }`}
                           >
                             {min} min
@@ -312,12 +324,12 @@ function SportTile() {
                           setDuration(value);
                           updateDraftSport(selectedSport, { duration: value, active: true });
                         }}
-                        className="w-full px-3 py-2 text-sm rounded-lg border border-white/20 bg-white/5 text-white placeholder:text-white/40 focus:ring-2 focus:ring-blue-400 outline-none"
+                        className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-400 outline-none dark:border-white/20 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
                         placeholder="Custom"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs text-white/70 mb-2">
+                      <label className="block text-xs text-gray-700 dark:text-gray-300 mb-2">
                         {t('tracking.intensity')} (1-10)
                       </label>
                       <div className="grid grid-cols-5 gap-1.5">
@@ -331,7 +343,7 @@ function SportTile() {
                             className={`px-2 py-2 rounded-lg text-sm font-medium transition-all ${
                               intensity === level
                                 ? 'bg-gradient-to-br from-orange-500 to-red-500 text-white scale-110'
-                                : 'bg-white/10 text-white/70 hover:bg-white/20'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-white/10 dark:text-white/70 dark:hover:bg-white/20'
                             }`}
                           >
                             {level}
@@ -341,11 +353,11 @@ function SportTile() {
                     </div>
                   </div>
                 )}
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                   {selectedSport !== 'rest' && (draftSports[selectedSport]?.active ?? false) && (
                     <button
                       onClick={removeSport}
-                      className="flex-1 px-4 py-2 text-sm bg-red-600/30 text-red-200 rounded-lg hover:bg-red-600/50 transition-colors"
+                      className="flex-1 px-4 py-2 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 dark:bg-red-600/30 dark:text-red-200 dark:hover:bg-red-600/50 transition-colors"
                     >
                       {t('tracking.remove')}
                     </button>

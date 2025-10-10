@@ -170,7 +170,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   };
 
   return (
-    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe">
+    <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe">
       <div className="mobile-container dashboard-container safe-pb px-4 pt-6 md:px-6 md:pt-10 lg:px-0">
         <div
           className={`${glassCardClasses} ${designTokens.padding.spacious} text-white rounded-[28px] shadow-[0_24px_60px_rgba(15,23,42,0.45)] space-y-8`}
@@ -233,7 +233,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                       onClick={() => {
                         setLanguage(option.value);
                       }}
-                      className={`flex w-full items-center gap-4 rounded-2xl border px-5 py-4 transition-all backdrop-blur-sm ${
+                      className={`flex w-full items-center gap-4 rounded-2xl border px-5 py-4 transition-all ${
                         language === option.value
                           ? 'border-transparent bg-gradient-to-r from-winter-500/90 via-sky-500/90 to-winter-400/90 text-white shadow-[0_12px_40px_rgba(56,189,248,0.35)]'
                           : 'border-white/10 bg-white/10 text-white/80 hover:border-white/20 hover:bg-white/10'

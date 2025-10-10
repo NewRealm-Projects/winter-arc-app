@@ -24,14 +24,14 @@ function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <main
         key={location.pathname}
-        className="flex-1 overflow-y-auto pb-20 md:pb-24 transition-opacity duration-200"
+        className="flex-1 overflow-y-auto transition-opacity duration-200"
       >
         <div className="animate-fade-in-up">{children}</div>
       </main>
 
-      {/* Floating Bottom Navigation - Glassmorphism Style */}
+      {/* Floating Bottom Navigation - Solid Modern Style */}
       <nav
-        className="fixed left-1/2 -translate-x-1/2 bottom-5 z-50 rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_6px_24px_rgba(0,0,0,0.25)] px-4 py-2"
+        className="fixed left-1/2 -translate-x-1/2 bottom-5 z-50 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg px-4 py-2"
         data-testid="bottom-navigation"
       >
         <div className="flex items-center justify-center gap-4 animate-fade-in-up delay-400">
@@ -44,8 +44,8 @@ function Layout({ children }: LayoutProps) {
                 to={item.path}
                 className={`touchable flex items-center justify-center w-12 h-12 rounded-[18px] transition-all duration-200 ${
                   isActive
-                    ? 'bg-gradient-to-b from-violet-600/40 to-blue-500/40 text-blue-100 shadow-[0_8px_24px_rgba(59,130,246,0.45)]'
-                    : 'text-blue-100/70 hover:bg-white/10'
+                    ? 'bg-blue-500 dark:bg-blue-600 text-white shadow-lg'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
                 aria-label={t(item.labelKey)}
                 data-testid={`nav-link-${slug}`}

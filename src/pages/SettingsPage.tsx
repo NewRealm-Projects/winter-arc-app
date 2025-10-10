@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useStore } from '../store/useStore';
@@ -7,6 +7,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { glassCardClasses, glassCardHoverClasses, designTokens } from '../theme/tokens';
 import { SentryErrorButton } from '../components/SentryErrorButton';
+import { UserAvatar } from '../components/ui/UserAvatar';
 
 type SectionId = 'general' | 'profile' | 'account';
 
@@ -52,9 +53,6 @@ function SettingsPage() {
   const setPwaInstallPrompt = useStore((state) => state.setPwaInstallPrompt);
   const isIOS = typeof window !== 'undefined' && /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
   const isStandalone = typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || ('standalone' in window.navigator && (window.navigator as { standalone?: boolean }).standalone));
-
-  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const profilePictureInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleInstallApp = async () => {
     if (pwaInstallPrompt) {
@@ -128,67 +126,8 @@ function SettingsPage() {
     }
   };
 
-  const handleChooseProfilePicture = () => {
-    profilePictureInputRef.current?.click();
-  };
-
-  const handleProfilePictureFileChange = async (event?: ChangeEvent<HTMLInputElement>) => {
-    if (!user) return;
-
-    const file = event?.target.files?.[0];
-    if (!file) return;
-
-    setIsUploadingPhoto(true);
-
-    try {
-      const currentUser = auth.currentUser;
-
-      if (!currentUser) {
-        alert(t('settings.profilePictureAuthRequired'));
-        return;
-      }
-
-      if (currentUser.uid !== user.id) {
-        alert(t('settings.profilePictureUnauthorized'));
-        return;
-      }
-
-      const { uploadProfilePictureFile } = await import('../services/storageService');
-      const uploadResult = await uploadProfilePictureFile(file, user.id);
-
-      if (!uploadResult.success || !uploadResult.url) {
-        if (uploadResult.error === 'auth_required') {
-          alert(t('settings.profilePictureAuthRequired'));
-          return;
-        }
-
-        if (uploadResult.error === 'user_mismatch') {
-          alert(t('settings.profilePictureUnauthorized'));
-          return;
-        }
-
-        throw new Error(uploadResult.error || 'upload_failed');
-      }
-
-      const { updateUser } = await import('../services/firestoreService');
-      const result = await updateUser(user.id, { photoURL: uploadResult.url });
-
-      if (!result.success) {
-        throw new Error('firestore_update_failed');
-      }
-
-      setUser({ ...user, photoURL: uploadResult.url });
-      alert(t('settings.profilePictureUpdated'));
-    } catch (error) {
-      console.error('Error uploading profile picture:', error);
-      alert(t('settings.profilePictureUploadError'));
-    } finally {
-      setIsUploadingPhoto(false);
-      if (event.target) {
-        event.target.value = '';
-      }
-    }
-  };
+  // REMOVED: Profile picture upload functionality
+  // Users now see their initials in a colored avatar instead
 
   const handleJoinGroup = async () => {
     if (!user) return;
@@ -520,7 +459,7 @@ function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe">
+    <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe">
       <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0">
         <div className="flex flex-col gap-3 md:gap-4">
           <section className={`${glassCardClasses} ${designTokens.padding.spacious} text-white`}>
@@ -748,17 +687,7 @@ function SettingsPage() {
                 <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
                   <div className="flex flex-col gap-5">
                     <div className="flex items-center gap-4">
-                      {user?.photoURL && (
-                        <img
-                          src={user.photoURL}
-                          alt={user.nickname}
-                          referrerPolicy="no-referrer"
-                          className="h-20 w-20 rounded-full border border-white/20 object-cover"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                      )}
+                      {user && <UserAvatar user={user} size="lg" />}
                       <div>
                         <h2 className="flex items-center gap-2 text-lg font-semibold">
                           <span aria-hidden="true">👤</span>
@@ -880,77 +809,6 @@ function SettingsPage() {
                         </button>
                       </div>
                     )}
-                  </div>
-                </section>
-
-                <section className={`${glassCardHoverClasses} ${designTokens.padding.spacious} text-white`}>
-                  <div className="flex flex-col gap-4">
-                    <div>
-                      <h2 className="flex items-center gap-2 text-lg font-semibold">
-                        <span aria-hidden="true">🔒</span>
-                        {t('settings.privacy')}
-                      </h2>
-                      <p className="text-sm text-white/70">{t('settings.profilePicturePrivacyDescription')}</p>
-                    </div>
-                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="h-16 w-16 overflow-hidden rounded-full border border-white/20 bg-white/10 shadow-inner">
-                          {user?.photoURL ? (
-                            <img src={user.photoURL} alt={t('settings.profilePictureAlt')} className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center text-2xl">👤</div>
-                          )}
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <button
-                            type="button"
-                            onClick={handleChooseProfilePicture}
-                            disabled={isUploadingPhoto}
-                            className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)] transition hover:shadow-[0_18px_50px_rgba(15,23,42,0.45)] disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            {isUploadingPhoto ? t('settings.uploadingPhoto') : t('settings.changeProfilePicture')}
-                          </button>
-                          <p className="text-xs text-white/70">{t('settings.profilePictureHint')}</p>
-                          <input
-                            ref={profilePictureInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={(event) => { void handleProfilePictureFileChange(event); }}
-                            className="hidden"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex flex-1 items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-                        <div>
-                          <p className="font-semibold text-white">{t('settings.shareProfilePicture')}</p>
-                          <p className="text-sm text-white/70">{t('settings.shareProfilePictureDesc')}</p>
-                        </div>
-                        <button
-                          type="button"
-                          aria-pressed={Boolean(user?.shareProfilePicture)}
-                          onClick={async () => {
-                            if (!user) return;
-                            const newValue = !user.shareProfilePicture;
-                            const { updateUser } = await import('../services/firestoreService');
-                            const result = await updateUser(user.id, { shareProfilePicture: newValue });
-                            if (result.success) {
-                              setUser({ ...user, shareProfilePicture: newValue });
-                            }
-                          }}
-                          className={`relative h-9 w-16 rounded-full border transition-all duration-200 ${
-                            user?.shareProfilePicture
-                              ? 'border-white/40 bg-gradient-to-r from-winter-400 to-winter-600 shadow-[0_14px_40px_rgba(15,23,42,0.45)]'
-                              : 'border-white/20 bg-white/10 hover:border-white/30'
-                          }`}
-                        >
-                          <span
-                            className={`absolute top-1 left-1 h-7 w-7 rounded-full bg-white transition-transform duration-200 ${
-                              user?.shareProfilePicture ? 'translate-x-7 drop-shadow-[0_8px_20px_rgba(15,23,42,0.35)]' : ''
-                            }`}
-                          />
-                        </button>
-                      </div>
-                    </div>
                   </div>
                 </section>
 
