@@ -17,6 +17,21 @@ Environment variables:
   GITHUB_TOKEN  Personal access token or fine-grained token with admin:repo or
                 appropriate repository administration permissions. When set,
                 the script will automatically export it so that `gh` can use it.
+
+Branch Naming Convention:
+  This script protects main/develop branches. Feature branches are validated
+  automatically via GitHub Actions (validate-branch.yml) and must follow:
+
+  Pattern: <username>/<type>-<description>
+
+  Valid types: feature, fix, chore, refactor, docs, test, style
+
+  Examples:
+    ✓ lars/feature-dashboard
+    ✓ niklas/chore-cleanup
+    ✓ daniel/fix-login-bug
+
+  PRs must target 'develop' (not 'main'). Direct pushes to 'main' are blocked.
 USAGE
 }
 
@@ -88,4 +103,10 @@ if [[ $STATUS -ne 0 ]]; then
 fi
 
 echo "$OUTPUT"
-echo "Branch protection applied to $REPO_SLUG:$BRANCH."
+echo "✅ Branch protection applied to $REPO_SLUG:$BRANCH."
+echo ""
+echo "ℹ️  Note: Feature branches must follow naming convention:"
+echo "   <username>/<type>-<description>"
+echo ""
+echo "   Validation is automatic via GitHub Actions (.github/workflows/validate-branch.yml)"
+echo "   and pre-push hooks (.husky/pre-push)"

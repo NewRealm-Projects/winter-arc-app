@@ -1,0 +1,140 @@
+name: Validate Branch Name
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+  validate-branch-name:
+    name: Check Branch Naming Convention
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get branch name
+        id: branch
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BRANCH_NAME="${{ github.head_ref }}"
+          else
+            BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          fi
+          echo "name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          echo "Branch name: $BRANCH_NAME"
+
+      - name: Validate branch name format
+        id: validate
+        run: |
+          BRANCH_NAME="${{ steps.branch.outputs.name }}"
+
+          # Protected branches - always allow
+          if [[ "$BRANCH_NAME" =~ ^(main|develop)$ ]]; then
+            echo "✅ Protected branch: $BRANCH_NAME"
+            echo "valid=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Valid branch pattern: <username>/<type>-<description>
+          # Examples: lars/feature-dashboard, niklas/chore-cleanup
+          VALID_TYPES="feature|fix|chore|refactor|docs|test|style"
+          BRANCH_PATTERN="^[a-z0-9_-]+/($VALID_TYPES)-[a-z0-9_-]+$"
+
+          if [[ "$BRANCH_NAME" =~ $BRANCH_PATTERN ]]; then
+            echo "✅ Valid branch name: $BRANCH_NAME"
+            echo "valid=true" >> $GITHUB_OUTPUT
+            exit 0
+          else
+            echo "valid=false" >> $GITHUB_OUTPUT
+            echo "❌ Invalid branch name: $BRANCH_NAME"
+            echo ""
+            echo "Branch names must follow this pattern:"
+            echo "  <username>/<type>-<description>"
+            echo ""
+            echo "Valid types: feature, fix, chore, refactor, docs, test, style"
+            echo ""
+            echo "Examples:"
+            echo "  ✓ lars/feature-dashboard"
+            echo "  ✓ niklas/chore-cleanup"
+            echo "  ✓ daniel/fix-login-bug"
+            echo "  ✗ feature/new-feature (missing username)"
+            echo "  ✗ lars-feature (missing slash and hyphen)"
+            echo ""
+            exit 1
+          fi
+
+      - name: Check legacy branches
+        if: always()
+        continue-on-error: true
+        run: |
+          echo "🔍 Checking for legacy branches that don't follow naming convention..."
+
+          VALID_TYPES="feature|fix|chore|refactor|docs|test|style"
+          BRANCH_PATTERN="^[a-z0-9_-]+/($VALID_TYPES)-[a-z0-9_-]+$"
+
+          # Get all remote branches (except main/develop)
+          LEGACY_BRANCHES=$(git branch -r | \
+            grep -v 'HEAD' | \
+            sed 's/origin\///' | \
+            grep -vE '^(main|develop)$' | \
+            grep -vE "$BRANCH_PATTERN" || true)
+
+          if [ -n "$LEGACY_BRANCHES" ]; then
+            echo "⚠️  WARNING: Found legacy branches that don't follow naming convention:"
+            echo "$LEGACY_BRANCHES" | while read -r branch; do
+              echo "  - $branch"
+            done
+            echo ""
+            echo "Please rename these branches or delete them if no longer needed."
+            echo "Use: git branch -m <old-name> <new-name>"
+          else
+            echo "✅ No legacy branches found. All branches follow naming convention!"
+          fi
+
+      - name: Validate PR target branch
+        if: github.event_name == 'pull_request'
+        run: |
+          TARGET_BRANCH="${{ github.base_ref }}"
+
+          # PRs should only target 'develop', not 'main'
+          if [ "$TARGET_BRANCH" = "main" ]; then
+            echo "❌ ERROR: Pull requests must target 'develop', not 'main'"
+            echo ""
+            echo "Workflow:"
+            echo "  1. Create feature branch: <username>/<type>-<description>"
+            echo "  2. Open PR to 'develop'"
+            echo "  3. After review, merge to 'develop'"
+            echo "  4. Release: merge 'develop' to 'main' (protected)"
+            echo ""
+            exit 1
+          fi
+
+          if [ "$TARGET_BRANCH" = "develop" ]; then
+            echo "✅ Valid PR target: develop"
+          else
+            echo "⚠️  WARNING: Unexpected PR target branch: $TARGET_BRANCH"
+            echo "Usually PRs should target 'develop'"
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "📊 Branch Validation Summary"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "Branch: ${{ steps.branch.outputs.name }}"
+          echo "Valid: ${{ steps.validate.outputs.valid }}"
+          echo "Event: ${{ github.event_name }}"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "PR Target: ${{ github.base_ref }}"
+          fi
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

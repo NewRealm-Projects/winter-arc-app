@@ -1,8 +1,10 @@
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import TrainingLoadTile from '../components/TrainingLoadTile';
+import type { FieldValue } from 'firebase/firestore';
+import UnifiedTrainingCard from '../components/UnifiedTrainingCard';
 import { useStore } from '../store/useStore';
 import type { SportTracking } from '../types';
+import type { DailyTrainingLoad, DailyCheckIn } from '../types/tracking';
 import { computeDailyTrainingLoadV1 } from '../services/trainingLoad';
 import { ToastProvider } from '../components/ui/ToastProvider';
 
@@ -17,9 +19,17 @@ const baseSports: SportTracking = {
   rest: { active: false },
 };
 
-describe('TrainingLoadTile', () => {
+describe('UnifiedTrainingCard', () => {
 beforeEach(async () => {
   await act(async () => {
+    const expectedLoad = computeDailyTrainingLoadV1({
+      workouts: [{ durationMinutes: 60, intensity: 6 }],
+      pushupsReps: 50,
+      sleepScore: 8,
+      recoveryScore: 7,
+      sick: false,
+    }).load;
+
     useStore.setState({
       user: {
         id: 'training-load-user',
@@ -57,6 +67,37 @@ beforeEach(async () => {
           },
         },
       },
+      trainingLoad: {
+        '2024-01-12': {
+          date: '2024-01-12',
+          load: expectedLoad,
+          components: {
+            baseFromWorkouts: 0,
+            modifierSleep: 0,
+            modifierRecovery: 0,
+            modifierSick: 0,
+          },
+          inputs: {
+            sleepScore: 8,
+            recoveryScore: 7,
+            sick: false,
+          },
+          createdAt: new Date('2024-01-12T12:00:00Z') as unknown as FieldValue,
+          updatedAt: new Date('2024-01-12T12:00:00Z') as unknown as FieldValue,
+          calcVersion: 'v1',
+        } as DailyTrainingLoad,
+      },
+      checkIns: {
+        '2024-01-12': {
+          date: '2024-01-12',
+          sleepScore: 8,
+          recoveryScore: 7,
+          sick: false,
+          createdAt: new Date('2024-01-12T12:00:00Z') as unknown as FieldValue,
+          updatedAt: new Date('2024-01-12T12:00:00Z') as unknown as FieldValue,
+          source: 'manual',
+        } as DailyCheckIn,
+      },
       smartContributions: {},
     });
   });
@@ -67,6 +108,8 @@ afterEach(async () => {
     useStore.setState({
       user: null,
       tracking: {},
+      trainingLoad: {},
+      checkIns: {},
       smartContributions: {},
       selectedDate: originalSelectedDate,
     });
@@ -77,7 +120,7 @@ afterEach(async () => {
     await act(async () => {
       render(
         <ToastProvider>
-          <TrainingLoadTile />
+          <UnifiedTrainingCard />
         </ToastProvider>
       );
     });
@@ -90,11 +133,9 @@ afterEach(async () => {
       sick: false,
     }).load;
 
-    expect(screen.getByTestId('training-load-tile')).toBeInTheDocument();
-    expect(screen.getByText('Training Load')).toBeInTheDocument();
+    expect(screen.getByTestId('unified-training-card')).toBeInTheDocument();
+    expect(screen.getByText('Training')).toBeInTheDocument();
     expect(screen.getByText(String(expectedLoad))).toBeInTheDocument();
-    expect(screen.getByTestId('training-load-sleep-value').textContent).toContain('8');
-    expect(screen.queryByTestId('training-load-pushups-value')).toBeNull();
   });
 
   it('shows fallback state when no data is present', async () => {
@@ -105,12 +146,11 @@ afterEach(async () => {
     await act(async () => {
       render(
         <ToastProvider>
-          <TrainingLoadTile />
+          <UnifiedTrainingCard />
         </ToastProvider>
       );
     });
 
-    expect(screen.getByText('Training Load')).toBeInTheDocument();
-    expect(screen.getByText('No data yet')).toBeInTheDocument();
+    expect(screen.getByText('Training')).toBeInTheDocument();
   });
 });

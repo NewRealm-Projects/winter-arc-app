@@ -6,6 +6,8 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+consistency_check_*.log
+inconsistencies_*.json
 
 node_modules
 dist
@@ -27,6 +29,8 @@ dist-ssr
 .firebase
 .firebaserc
 firebase-debug.log
+scripts/serviceAccountKey.json
+scripts/serviceaccountkey.json
 
 # Environment variables
 .env

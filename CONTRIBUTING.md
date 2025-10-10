@@ -4,58 +4,121 @@ Danke für dein Interesse an Winter Arc! Wir freuen uns über Beiträge. Bitte f
 
 ---
 
-## 🌳 Branching-Strategie
+## 🌳 Branch & Merge Konventionen
 
 ### Branch-Hierarchie
 
-- **main**: Production Branch (geschützt, nur via PR)
-- **dev**: Staging Branch (Integration Testing)
-- **feat/<topic>**: Feature Branches (von `dev` abzweigen)
-- **fix/<topic>**: Bug Fix Branches (von `dev` abzweigen)
-- **chore/<topic>**: Maintenance Branches (Dependencies, Config)
+- **main**: Production Branch (geschützt, nur via PR von `develop`)
+- **develop** (oder `dev`): Staging Branch (Integration Testing)
+- **`<username>/<type>-<description>`**: Feature/Fix/Chore Branches
 
-### Branch-Namen Konventionen
+### ⚠️ Branch-Naming-Schema (PFLICHT)
 
-Verwende beschreibende, kebab-case Namen:
+**Alle Branches** (außer `main` und `develop`) **MÜSSEN** diesem Pattern folgen:
+
+```
+<username>/<type>-<description>
+```
+
+#### Gültige Types
+
+| Type | Beschreibung | Beispiel |
+|------|--------------|----------|
+| `feature` | Neues Feature | `lars/feature-dashboard-refactor` |
+| `fix` | Bug Fix | `niklas/fix-login-error` |
+| `chore` | Maintenance (Deps, Config) | `daniel/chore-update-deps` |
+| `refactor` | Code-Umstrukturierung | `john/refactor-api-layer` |
+| `docs` | Dokumentation | `jane/docs-contributing` |
+| `test` | Test-Änderungen | `lars/test-e2e-checkout` |
+| `style` | UI/CSS-Änderungen | `niklas/style-button-hover` |
+
+#### ✅ Gültige Beispiele
 
 ```bash
-# Features
-feat/ui-refactor-glass-tiles
-feat/pwa-perf-lazy-loading
-feat/pushup-training-algorithm
-
-# Bug Fixes
-fix/pushup-algorithm-regression
-fix/dark-mode-background-image
-fix/firebase-auth-error-handling
-
-# Chores
-chore/update-dependencies
-chore/husky-deprecation-warnings
-chore/bundle-size-optimization
+lars/feature-dashboard-refactor
+niklas/fix-login-error
+daniel/chore-update-dependencies
+john/refactor-api-layer
+jane/docs-contributing-guide
 ```
+
+#### ❌ Ungültige Beispiele
+
+```bash
+feature/dashboard          # ❌ Fehlt Username
+lars-feature-dashboard     # ❌ Fehlt Slash und Hyphen
+lars/random-stuff          # ❌ Ungültiger Type
+fix-login-bug              # ❌ Fehlt Username und Slash
+```
+
+### Automatische Validierung
+
+Branches werden **automatisch validiert**:
+
+1. **Lokal (Pre-push Hook)**: `.husky/pre-push`
+   - Prüft Branch-Name **vor** dem Push
+   - Blockt Push bei ungültigem Namen
+
+2. **Remote (GitHub Actions)**: `.github/workflows/validate-branch.yml`
+   - Prüft Branch-Name bei jedem Push
+   - Scannt nach Legacy-Branches (ohne korrektes Format)
+   - Validiert PR-Target (nur `develop` erlaubt)
+
+3. **Branch Protection Rules**:
+   - **main**: Keine direkten Pushes, nur via PR von `develop`
+   - **develop**: PRs von Feature-Branches mit gültigem Namen
 
 ### Branch-Workflow
 
 ```bash
-# 1. Aktualisiere dev Branch
-git checkout dev
-git pull origin dev
+# 1. Aktualisiere develop Branch
+git checkout develop
+git pull origin develop
 
-# 2. Erstelle neuen Feature Branch
-git checkout -b feat/my-feature
+# 2. Erstelle neuen Branch mit KORREKTEM Namen
+git checkout -b <dein-username>/<type>-<beschreibung>
+
+# Beispiele:
+git checkout -b lars/feature-training-mode
+git checkout -b niklas/fix-streak-calculation
+git checkout -b daniel/chore-eslint-config
 
 # 3. Arbeite an deinem Feature (kleine, fokussierte Commits)
 git add .
 git commit -m "feat(scope): short description"
 
-# 4. Pushe Branch und erstelle PR
-git push -u origin feat/my-feature
-gh pr create --base dev --title "..." --body "..."
+# 4. Pushe Branch und erstelle PR (Target: develop)
+git push -u origin <dein-username>/<type>-<beschreibung>
+gh pr create --base develop --title "..." --body "..."
 
 # 5. Nach Merge: Branch löschen
-git branch -d feat/my-feature
+git branch -d <dein-username>/<type>-<beschreibung>
 ```
+
+### Branch umbenennen (falls falsch erstellt)
+
+```bash
+# Lokal umbenennen
+git branch -m <alter-name> <username>/<type>-<beschreibung>
+
+# Remote updaten (falls schon gepusht)
+git push origin :<alter-name>  # Alten Branch löschen
+git push -u origin <username>/<type>-<beschreibung>  # Neuen Branch pushen
+```
+
+### Merge-Flow
+
+```mermaid
+graph LR
+    A[lars/feature-x] -->|PR| B[develop]
+    C[niklas/fix-y] -->|PR| B
+    D[daniel/chore-z] -->|PR| B
+    B -->|Release PR| E[main]
+```
+
+**Regel**:
+- Feature/Fix/Chore → **develop** (immer)
+- **develop** → **main** (nur für Releases, via Admin)
 
 ---
 
@@ -138,20 +201,22 @@ perf(routes): lazy load all authenticated pages
 
 ### 1. Vor dem PR
 
-- [ ] Branch von `dev` erstellen (nicht von `main`)
+- [ ] **Branch-Name folgt Schema**: `<username>/<type>-<description>` ✨
+- [ ] Branch von `develop` erstellen (nicht von `main`)
 - [ ] Kleine, fokussierte Changes (≤ 300 Zeilen Diff empfohlen)
 - [ ] Commits folgen Conventional Commits Format
 - [ ] **CHANGELOG.md** aktualisiert (füge Eintrag zu `[Unreleased]` hinzu)
 - [ ] **package.json Version** gebumpt (falls relevant)
 - [ ] Alle Tests lokal grün: `npm run test:all`
-- [ ] Git Hooks bestanden (Pre-commit, Pre-push)
+- [ ] Git Hooks bestanden (Pre-commit, Pre-push mit Branch-Validierung)
 
 ### 2. PR erstellen
 
 Verwende die PR-Template aus `.agent/templates/PR_TEMPLATE.md`:
 
 ```bash
-gh pr create --base dev --title "[Agent] Feature Description" --body "$(cat <<'EOF'
+# PR MUSS 'develop' als Target haben (nicht 'main')!
+gh pr create --base develop --title "[Agent] Feature Description" --body "$(cat <<'EOF'
 # PR #XX: [Agent] Feature Description
 
 **Agent**: Agent-Name (oder "Manual" für manuellen PR)
@@ -236,7 +301,7 @@ EOF
 ### 4. Nach Merge
 
 - Branch wird automatisch gelöscht (via `gh pr merge --squash --delete-branch`)
-- Bei Bedarf: dev → main PR erstellen (für Production Release)
+- Bei Bedarf: `develop` → `main` PR erstellen (nur Admins, für Production Release)
 
 ---
 

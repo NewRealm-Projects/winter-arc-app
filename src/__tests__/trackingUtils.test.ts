@@ -187,4 +187,76 @@ describe('combineTrackingWithSmart', () => {
       intensity: 5,
     });
   });
+
+  it('handles undefined smart sports contribution gracefully', () => {
+    const manual: Record<string, DailyTracking> = {
+      '2025-07-01': {
+        date: '2025-07-01',
+        sports: normalizeSports({
+          gym: { active: true, duration: 60, intensity: 4 },
+        }) as SportTracking,
+        water: 1200,
+        protein: 80,
+        completed: false,
+      },
+    };
+
+    const contributions = {
+      '2025-07-01': {
+        water: 300,
+        protein: 20,
+        sports: undefined,
+      },
+    };
+
+    const result = combineTrackingWithSmart(manual, contributions);
+
+    expect(result['2025-07-01'].sports.gym).toMatchObject({
+      active: true,
+      duration: 60,
+      intensity: 4,
+    });
+    expect(result['2025-07-01'].water).toBe(1500);
+    expect(result['2025-07-01'].protein).toBe(100);
+  });
+
+  it('skips inactive smart sports contributions', () => {
+    const manual: Record<string, DailyTracking> = {
+      '2025-08-01': {
+        date: '2025-08-01',
+        sports: normalizeSports({
+          cardio: { active: true, duration: 30, intensity: 3 },
+        }) as SportTracking,
+        water: 1000,
+        protein: 70,
+        completed: false,
+      },
+    };
+
+    const contributions = {
+      '2025-08-01': {
+        water: 200,
+        protein: 15,
+        sports: {
+          cardio: { active: false, duration: 45, intensity: 5 },
+          gym: { active: true, duration: 60, intensity: 4 },
+        },
+      },
+    };
+
+    const result = combineTrackingWithSmart(manual, contributions);
+
+    // Cardio should remain as manual (not overridden by inactive smart contribution)
+    expect(result['2025-08-01'].sports.cardio).toMatchObject({
+      active: true,
+      duration: 30,
+      intensity: 3,
+    });
+    // Gym should be added from smart contribution
+    expect(result['2025-08-01'].sports.gym).toMatchObject({
+      active: true,
+      duration: 60,
+      intensity: 4,
+    });
+  });
 });

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase';
+import { getRedirectResult } from 'firebase/auth';
+import { auth } from '../firebase';
+import { startLogin } from '../firebase/auth';
 import { useStore } from '../store/useStore';
 import { markDemoModeActive } from '../constants/demo';
 
@@ -59,21 +60,10 @@ function LoginPage() {
     console.warn('Current Domain:', window.location.hostname);
 
     try {
-      if (useRedirect) {
-        console.warn('🔄 Using redirect-based login...');
-        await signInWithRedirect(auth, googleProvider);
-        // Page will reload after redirect, no need to handle result here
-      } else {
-        console.warn('📱 Opening Google Sign-In popup...');
-        const result = await signInWithPopup(auth, googleProvider);
-        console.warn('✅ Login successful!', {
-          uid: result.user.uid,
-          email: result.user.email,
-          displayName: result.user.displayName,
-        });
-        console.warn('🔄 Waiting for auth state to propagate...');
-        // The useAuth hook will handle the rest via onAuthStateChanged
-      }
+      // Automatic popup (dev) / redirect (prod) selection
+      await startLogin();
+      console.warn('✅ Login flow initiated');
+      // The useAuth hook will handle the rest via onAuthStateChanged
     } catch (err) {
       console.error('❌ Login error:', {
         code: err && typeof err === 'object' && 'code' in err ? err.code : 'unknown',

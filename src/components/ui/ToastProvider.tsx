@@ -17,12 +17,12 @@ interface ToastItem extends ToastOptions {
 const DEFAULT_DURATION = 4000;
 
 const toastBaseClass =
-  'pointer-events-auto flex min-w-[240px] max-w-sm items-start gap-3 rounded-xl px-4 py-3 text-sm shadow-lg ring-1 ring-black/5 backdrop-blur-sm transition-all duration-200';
+  'pointer-events-auto flex min-w-[240px] max-w-sm items-start gap-3 rounded-xl px-4 py-3 text-sm shadow-lg ring-1 ring-black/5 transition-all duration-200';
 
 const toastTypeClasses: Record<ToastType, string> = {
-  success: 'bg-emerald-500/90 text-white',
-  warning: 'bg-amber-400/90 text-black',
-  error: 'bg-rose-500/90 text-white',
+  success: 'bg-emerald-500 text-white',
+  warning: 'bg-amber-400 text-black',
+  error: 'bg-rose-500 text-white',
 };
 
 const iconForType: Record<ToastType, string> = {

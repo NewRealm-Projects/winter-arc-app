@@ -24,6 +24,7 @@ import {
   resolvePushupsFromTracking,
 } from './trainingLoad';
 import { getDayProgressSummary } from '../utils/progress';
+import { addBreadcrumb, captureException } from './sentryService';
 
 interface DayDocument extends Partial<DailyTracking> {
   readonly date?: string;
@@ -44,7 +45,7 @@ async function getDayDocumentsForWeek(
 ): Promise<Map<string, DayDocument>> {
   const startKey = format(weekStart, 'yyyy-MM-dd');
   const endKey = format(weekEnd, 'yyyy-MM-dd');
-  const collectionRef = collection(db, 'tracking', userId, 'days');
+  const collectionRef = collection(db, 'tracking', userId, 'entries');
   const weekQuery = query(
     collectionRef,
     where('date', '>=', startKey),
@@ -74,10 +75,12 @@ export async function saveDailyCheckInAndRecalc(
 ): Promise<void> {
   const currentUser = auth.currentUser;
   if (!currentUser) {
+    addBreadcrumb('Check-in: No authenticated user', {}, 'error');
     throw new Error('User must be authenticated to save a check-in');
   }
 
   const userId = currentUser.uid;
+  addBreadcrumb('Check-in: Starting save', { dateKey, userId, ...data });
   const checkinRef = doc(db, 'users', userId, 'checkins', dateKey);
   const trainingLoadRef = doc(db, 'users', userId, 'trainingLoad', dateKey);
   const trackingRef = doc(db, 'tracking', userId, 'entries', dateKey);
@@ -134,12 +137,28 @@ export async function saveDailyCheckInAndRecalc(
     ? trainingLoadPayload
     : { ...trainingLoadPayload, createdAt: timestamp };
 
-  await setDoc(trainingLoadRef, trainingLoadData, { merge: true });
+  try {
+    await setDoc(trainingLoadRef, trainingLoadData, { merge: true });
+    addBreadcrumb('Check-in: Training load saved', { dateKey, load: computation.load });
+  } catch (error) {
+    addBreadcrumb('Check-in: Failed to save training load', { error: String(error) }, 'error');
+    captureException(error, { context: 'saveDailyCheckInAndRecalc', dateKey, userId });
+    throw error;
+  }
 
   const userSnapshot = await getDoc(doc(db, 'users', userId));
   const userData = userSnapshot.exists() ? (userSnapshot.data() as Partial<User>) : undefined;
+
+  // Include check-in data in day progress calculation
+  const checkInData: Partial<DailyCheckIn> = {
+    sleepScore: data.sleepScore,
+    recoveryScore: data.recoveryScore,
+    sick: data.sick,
+  };
+
   const daySummary = getDayProgressSummary({
     tracking,
+    checkIn: checkInData,
     user: userData,
     enabledActivities: userData?.enabledActivities,
   });
@@ -152,6 +171,7 @@ export async function saveDailyCheckInAndRecalc(
       tasksTotal: daySummary.tasksTotal,
       dayProgressPct: daySummary.percent,
       dayStreakMet: daySummary.streakMet,
+      streakScore: daySummary.streakScore, // NEW: Store weighted streak score
       updatedAt: timestamp,
     },
     { merge: true }
@@ -161,12 +181,30 @@ export async function saveDailyCheckInAndRecalc(
   const { weekStart, weekEnd } = buildWeekRange(targetDate);
   const weekDays = await getDayDocumentsForWeek(userId, weekStart, weekEnd);
 
+  // Fetch check-in data for the entire week
+  const startKey = format(weekStart, 'yyyy-MM-dd');
+  const endKey = format(weekEnd, 'yyyy-MM-dd');
+  const checkInsCollectionRef = collection(db, 'users', userId, 'checkins');
+  const checkInsQuery = query(
+    checkInsCollectionRef,
+    where('date', '>=', startKey),
+    where('date', '<=', endKey),
+    orderBy('date', 'asc')
+  );
+  const checkInsSnapshot = await getDocs(checkInsQuery);
+  const weekCheckIns = new Map<string, Partial<DailyCheckIn>>();
+  checkInsSnapshot.forEach((document) => {
+    weekCheckIns.set(document.id, document.data() as DailyCheckIn);
+  });
+
   const metrics = Array.from({ length: 7 }, (_, index) => {
     const currentDate = addDays(weekStart, index);
     const key = format(currentDate, 'yyyy-MM-dd');
     const existing = weekDays.get(key);
+    const checkIn = weekCheckIns.get(key);
     return getDayProgressSummary({
       tracking: existing,
+      checkIn,
       user: userData,
       enabledActivities: userData?.enabledActivities,
     });
@@ -189,4 +227,10 @@ export async function saveDailyCheckInAndRecalc(
     },
     { merge: true }
   );
+
+  addBreadcrumb('Check-in: Save completed successfully', { dateKey, streakDays });
 }
+
+// MIGRATION NOTE:
+// This service now uses 'tracking/{userId}/entries/{date}' instead of 'days'
+// Legacy data will be migrated automatically on first login via useAuth hook

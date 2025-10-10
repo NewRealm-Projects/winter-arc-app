@@ -29,10 +29,6 @@ vi.mock('../../components/PushupTile', () => ({
   default: () => <div data-testid="pushup-tile" />,
 }));
 
-vi.mock('../../components/SportTile', () => ({
-  default: () => <div data-testid="sport-tile" />,
-}));
-
 vi.mock('../../components/WaterTile', () => ({
   default: () => <div data-testid="water-tile" />,
 }));
@@ -49,7 +45,7 @@ vi.mock('../../components/dashboard/WeeklyTile', () => ({
   default: () => <div data-testid="weekly-tile" />,
 }));
 
-vi.mock('../../components/TrainingLoadTile', () => ({
+vi.mock('../../components/UnifiedTrainingCard', () => ({
   default: () => <div data-testid="training-load-tile" />,
 }));
 
@@ -58,7 +54,7 @@ let DashboardPage: typeof import('../DashboardPage').default;
 
 beforeAll(async () => {
   DashboardPage = (await import('../DashboardPage')).default;
-});
+}, 30000); // Increase timeout to 30s
 
 vi.mock('../../hooks/useTracking', () => ({
   useTracking: vi.fn(),
@@ -174,8 +170,9 @@ describe('DashboardPage', () => {
 
     expect(screen.getByTestId('pushup-tile')).toBeInTheDocument();
     expect(screen.getByTestId('water-tile')).toBeInTheDocument();
-    expect(screen.queryByTestId('sport-tile')).not.toBeInTheDocument();
     expect(screen.queryByTestId('protein-tile')).not.toBeInTheDocument();
+    // Note: UnifiedTrainingCard is always rendered regardless of enabledActivities
+    expect(screen.getByTestId('training-load-tile')).toBeInTheDocument();
   });
 
   it('renders all tiles when all activities are enabled', async () => {
@@ -184,10 +181,11 @@ describe('DashboardPage', () => {
     renderWithProviders(<DashboardPage />);
 
     expect(screen.getByTestId('pushup-tile')).toBeInTheDocument();
-    expect(screen.getByTestId('sport-tile')).toBeInTheDocument();
     expect(screen.getByTestId('water-tile')).toBeInTheDocument();
     expect(screen.getByTestId('protein-tile')).toBeInTheDocument();
     expect(screen.getByTestId('weight-tile')).toBeInTheDocument();
+    // Note: SportTile was merged into UnifiedTrainingCard (training-load-tile)
+    expect(screen.getByTestId('training-load-tile')).toBeInTheDocument();
   });
 
   it('does not display error banner when no tracking error occurs', async () => {

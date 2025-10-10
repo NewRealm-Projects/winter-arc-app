@@ -1,8 +1,12 @@
 import { addDays, format } from 'date-fns';
-import type { DailyTracking, Activity, User } from '../types';
+import type { DailyTracking, Activity, User, DailyCheckIn } from '../types';
 import { countActiveSports } from './sports';
 import { calculateProteinGoal, calculateWaterGoal } from './calculations';
-import { STREAK_COMPLETION_THRESHOLD } from '../constants/streak';
+import {
+  STREAK_COMPLETION_THRESHOLD,
+  STREAK_WEIGHTS_BASE,
+  STREAK_WEIGHTS_WITH_CHECKIN,
+} from '../constants/streak';
 
 const DEFAULT_WATER_GOAL_ML = 3000;
 
@@ -18,6 +22,127 @@ export function clamp(value: number, min = 0, max = 1): number {
     return max;
   }
   return value;
+}
+
+export interface DayStreakScoreInput {
+  tracking?: Partial<DailyTracking>;
+  checkIn?: Partial<DailyCheckIn> | null;
+  user?: Partial<Pick<User, 'weight' | 'hydrationGoalLiters' | 'proteinGoalGrams'>> | null;
+  enabledActivities?: Activity[];
+}
+
+export interface DayStreakScoreResult {
+  score: number; // 0-100
+  streakMet: boolean;
+  components: {
+    movement: number;
+    water: number;
+    protein: number;
+    checkin?: number;
+  };
+  weights: {
+    movement: number;
+    water: number;
+    protein: number;
+    checkin?: number;
+  };
+}
+
+/**
+ * Calculates the weighted streak score for a day (0-100)
+ *
+ * Weights:
+ * - Without check-in: Movement 40%, Water 30%, Protein 30%
+ * - With check-in: Movement 35%, Water 25%, Protein 25%, Check-in 15%
+ *
+ * A day counts towards the streak if score >= STREAK_COMPLETION_THRESHOLD (70%)
+ *
+ * @param input - Day tracking data, optional check-in data, user data
+ * @returns Weighted score (0-100) and streak status
+ */
+export function getDayStreakScore({
+  tracking,
+  checkIn,
+  user,
+  enabledActivities,
+}: DayStreakScoreInput): DayStreakScoreResult {
+  const safeTracking = tracking ?? {};
+  const waterGoal = resolveWaterGoal(user);
+  const proteinGoal = resolveProteinGoal(user);
+
+  // Movement: Binary (0 or 1)
+  const pushupsDone = Boolean(safeTracking.pushups?.total && safeTracking.pushups.total > 0);
+  const sportsCount = countActiveSports(safeTracking.sports);
+  const movementDone = pushupsDone || sportsCount > 0;
+
+  const isPushupsEnabled = enabledActivities ? enabledActivities.includes('pushups') : true;
+  const isSportsEnabled = enabledActivities ? enabledActivities.includes('sports') : true;
+  const isMovementEnabled = isPushupsEnabled || isSportsEnabled;
+  const movementRatio = isMovementEnabled ? (movementDone ? 1 : 0) : 0;
+
+  // Water: Proportional to goal
+  const waterValue = Number.isFinite(safeTracking.water) ? Math.max(safeTracking.water ?? 0, 0) : 0;
+  const isWaterEnabled = enabledActivities ? enabledActivities.includes('water') : true;
+  const waterRatio = isWaterEnabled && waterGoal > 0 ? clamp(waterValue / waterGoal) : 0;
+
+  // Protein: Proportional to goal
+  const proteinValue = Number.isFinite(safeTracking.protein) ? Math.max(safeTracking.protein ?? 0, 0) : 0;
+  const isProteinEnabled = enabledActivities ? enabledActivities.includes('protein') : true;
+  const proteinRatio = isProteinEnabled && proteinGoal > 0 ? clamp(proteinValue / proteinGoal) : 0;
+
+  // Check-in: Average of sleep & recovery, reduced if sick
+  let checkinRatio = 0;
+  let hasCheckIn = false;
+  if (checkIn && (checkIn.sleepScore || checkIn.recoveryScore)) {
+    const sleepScore = Number.isFinite(checkIn.sleepScore) ? Math.max(Math.min(checkIn.sleepScore ?? 0, 10), 0) : 0;
+    const recoveryScore = Number.isFinite(checkIn.recoveryScore) ? Math.max(Math.min(checkIn.recoveryScore ?? 0, 10), 0) : 0;
+    const sick = Boolean(checkIn.sick);
+
+    // Average sleep and recovery (both 0-10), convert to 0-1
+    checkinRatio = ((sleepScore / 10) * 0.5 + (recoveryScore / 10) * 0.5) * (sick ? 0.5 : 1);
+    hasCheckIn = true;
+  }
+
+  // Choose weights based on check-in availability
+  const weights = hasCheckIn ? STREAK_WEIGHTS_WITH_CHECKIN : STREAK_WEIGHTS_BASE;
+
+  // Calculate weighted score
+  let score = 0;
+  if (hasCheckIn) {
+    const weightsWithCheckIn = weights as typeof STREAK_WEIGHTS_WITH_CHECKIN;
+    score =
+      movementRatio * weightsWithCheckIn.movement +
+      waterRatio * weightsWithCheckIn.water +
+      proteinRatio * weightsWithCheckIn.protein +
+      checkinRatio * weightsWithCheckIn.checkin;
+  } else {
+    score =
+      movementRatio * weights.movement +
+      waterRatio * weights.water +
+      proteinRatio * weights.protein;
+  }
+
+  const scorePercent = Math.round(clamp(score) * 100);
+  const streakMet = scorePercent >= STREAK_COMPLETION_THRESHOLD;
+
+  const result: DayStreakScoreResult = {
+    score: scorePercent,
+    streakMet,
+    components: {
+      movement: movementRatio,
+      water: waterRatio,
+      protein: proteinRatio,
+      ...(hasCheckIn && { checkin: checkinRatio }),
+    },
+    weights: {
+      movement: weights.movement,
+      water: weights.water,
+      protein: weights.protein,
+      ...(hasCheckIn && { checkin: (weights as typeof STREAK_WEIGHTS_WITH_CHECKIN).checkin }),
+    },
+  };
+
+  return result;
 }
 
 export function getPercent(value: unknown, goal: unknown): number {
@@ -218,10 +343,12 @@ export interface DayProgressSummary {
   readonly tasksTotal: number;
   readonly percent: number;
   readonly streakMet: boolean;
+  readonly streakScore?: number; // NEW: Weighted streak score (0-100)
 }
 
 interface DayTaskSummaryInput {
   readonly tracking?: Partial<DailyTracking>;
+  readonly checkIn?: Partial<DailyCheckIn> | null; // NEW: Optional check-in data
   readonly user?:
     | Partial<
         Pick<
@@ -253,8 +380,18 @@ function resolveEnabledActivities(
   return DEFAULT_ENABLED_ACTIVITIES;
 }
 
+/**
+ * Calculates daily progress summary with task completion and streak status
+ *
+ * This function now uses the new weighted streak score calculation (getDayStreakScore)
+ * which considers movement, water, protein, and optionally check-in data.
+ *
+ * @param input - Tracking data, optional check-in data, user data
+ * @returns Progress summary with task counts and streak status
+ */
 export function getDayProgressSummary({
   tracking,
+  checkIn,
   user,
   enabledActivities,
 }: DayTaskSummaryInput): DayProgressSummary {
@@ -290,19 +427,40 @@ export function getDayProgressSummary({
   const percent = Math.round(
     (tasksCompleted / Math.max(1, tasksTotal)) * 100
   );
-  const streakMet = percent >= STREAK_COMPLETION_THRESHOLD;
+
+  // NEW: Use weighted streak score calculation
+  const streakResult = getDayStreakScore({
+    tracking: safeTracking,
+    checkIn,
+    user,
+    enabledActivities: resolvedActivities,
+  });
 
   return {
     tasksCompleted,
     tasksTotal,
     percent,
-    streakMet,
+    streakMet: streakResult.streakMet, // Use new weighted calculation
+    streakScore: streakResult.score, // Include score for debugging/display
   };
 }
 
+/**
+ * Calculates the current streak (consecutive days meeting streak criteria)
+ *
+ * Uses the new weighted streak score calculation (getDayStreakScore).
+ * A day counts if score >= STREAK_COMPLETION_THRESHOLD (70%).
+ *
+ * @param tracking - All tracking data (key: YYYY-MM-DD)
+ * @param checkIns - Optional check-in data (key: YYYY-MM-DD)
+ * @param user - User data for goals
+ * @param enabledActivities - Activities to consider
+ * @returns Number of consecutive days meeting streak criteria
+ */
 export function calculateCompletionStreak(
   tracking: Record<string, Partial<DailyTracking>>,
-  user?: Pick<User, 'weight' | 'hydrationGoalLiters' | 'proteinGoalGrams'> | null,
+  checkIns?: Record<string, Partial<DailyCheckIn>> | null,
+  user?: Partial<Pick<User, 'weight' | 'hydrationGoalLiters' | 'proteinGoalGrams'>> | null,
   enabledActivities?: Activity[]
 ): number {
   const today = new Date();
@@ -316,9 +474,19 @@ export function calculateCompletionStreak(
     const dayTracking = Object.prototype.hasOwnProperty.call(tracking, key)
       ? tracking[key]
       : undefined;
+    const dayCheckIn = checkIns && Object.prototype.hasOwnProperty.call(checkIns, key)
+      ? checkIns[key]
+      : null;
 
-    const completion = getDayCompletion({ tracking: dayTracking, user, enabledActivities });
-    if (completion.percent < STREAK_COMPLETION_THRESHOLD) {
+    // Use new weighted streak score calculation
+    const streakResult = getDayStreakScore({
+      tracking: dayTracking,
+      checkIn: dayCheckIn,
+      user,
+      enabledActivities,
+    });
+
+    if (!streakResult.streakMet) {
       break;
     }
 

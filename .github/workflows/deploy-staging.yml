@@ -49,6 +49,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: develop  # Explicitly checkout develop branch for staging
 
       - name: Setup dependencies
         uses: ./.github/actions/setup-deps

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { Timestamp } from 'firebase/firestore';
 import { saveDailyCheckInAndRecalc } from '../../services/checkin';
 import {
@@ -10,11 +10,8 @@ import { useCombinedDailyTracking } from '../../hooks/useCombinedTracking';
 import { useToast } from '../../hooks/useToast';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useStore } from '../../store/useStore';
-import type { DailyCheckIn, DailyTrainingLoad, CheckInActivity, WorkoutEntry } from '../../types';
-import { ActivityList } from './ActivityList';
-import { LoadPreview } from './LoadPreview';
-import { PresetSelector } from './PresetSelector';
-import { CHECK_IN_PRESETS } from '../../config/checkInPresets';
+import type { DailyCheckIn, DailyTrainingLoad } from '../../types';
+import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from '../ui/AppModal';
 
 interface CheckInModalProps {
   dateKey: string;
@@ -30,16 +27,6 @@ const clampScore = (value: number): number => {
   return Math.min(10, Math.max(1, Math.round(value)));
 };
 
-const getFocusableSelectors = (): string =>
-  [
-    'a[href]',
-    'button:not([disabled])',
-    'input:not([disabled])',
-    'select:not([disabled])',
-    'textarea:not([disabled])',
-    '[tabindex]:not([tabindex="-1"])',
-  ].join(',');
-
 export default function CheckInModal({
   dateKey,
   isOpen,
@@ -48,7 +35,6 @@ export default function CheckInModal({
 }: CheckInModalProps) {
   const { t } = useTranslation();
   const { showToast } = useToast();
-  const dialogRef = useRef<HTMLDivElement | null>(null);
 
   const checkIn = useStore((state) => state.checkIns[dateKey]);
   const existingTrainingLoad = useStore((state) => state.trainingLoad[dateKey]);
@@ -62,7 +48,6 @@ export default function CheckInModal({
   const [sleepScore, setSleepScore] = useState<number>(checkIn?.sleepScore ?? 5);
   const [recoveryScore, setRecoveryScore] = useState<number>(checkIn?.recoveryScore ?? 5);
   const [isSick, setIsSick] = useState<boolean>(checkIn?.sick ?? false);
-  const [activities, setActivities] = useState<CheckInActivity[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -72,95 +57,16 @@ export default function CheckInModal({
     setSleepScore(checkIn?.sleepScore ?? 5);
     setRecoveryScore(checkIn?.recoveryScore ?? 5);
     setIsSick(checkIn?.sick ?? false);
-    setActivities([]);
   }, [isOpen, checkIn?.sleepScore, checkIn?.recoveryScore, checkIn?.sick]);
-
-  const handlePresetSelect = useCallback((presetId: string) => {
-    const preset = CHECK_IN_PRESETS.find((p) => p.id === presetId);
-    if (!preset) {
-      return;
-    }
-
-    setSleepScore(preset.sleepScore);
-    setRecoveryScore(preset.recoveryScore);
-    setIsSick(preset.sick);
-    setActivities(
-      preset.activities.map((activity, index) => ({
-        ...activity,
-        id: `activity-${Date.now()}-${index}`,
-      }))
-    );
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const previousActiveElement = document.activeElement as HTMLElement | null;
-
-    const focusFirstElement = () => {
-      const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(getFocusableSelectors());
-      focusable?.[0]?.focus();
-    };
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        if (!isSaving) {
-          onClose();
-        }
-        return;
-      }
-
-      if (event.key === 'Tab') {
-        const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(getFocusableSelectors());
-        if (!focusable || focusable.length === 0) {
-          event.preventDefault();
-          return;
-        }
-
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-
-        if (event.shiftKey) {
-          if (document.activeElement === first) {
-            event.preventDefault();
-            last.focus();
-          }
-        } else if (document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
-    };
-
-    focusFirstElement();
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      previousActiveElement?.focus();
-    };
-  }, [isOpen, isSaving, onClose]);
 
   const aggregatedTracking = useMemo(() => {
     return combinedDaily ?? manualDaily;
   }, [combinedDaily, manualDaily]);
 
-  // Convert manual activities to workout entries
-  const manualWorkoutEntries: WorkoutEntry[] = useMemo(() => {
-    return activities.map((activity) => ({
-      durationMinutes: activity.durationMinutes,
-      intensity: activity.intensity,
-    }));
-  }, [activities]);
-
-  // Combine existing workouts from tracking with manual activities
+  // Use existing workouts from tracking
   const allWorkouts = useMemo(() => {
-    const existingWorkouts = buildWorkoutEntriesFromTracking(aggregatedTracking);
-    return [...existingWorkouts, ...manualWorkoutEntries];
-  }, [aggregatedTracking, manualWorkoutEntries]);
+    return buildWorkoutEntriesFromTracking(aggregatedTracking);
+  }, [aggregatedTracking]);
 
   const pushupsReps = useMemo(
     () => resolvePushupsFromTracking(aggregatedTracking),
@@ -177,15 +83,6 @@ export default function CheckInModal({
       sick: isSick,
     });
   }, [allWorkouts, pushupsReps, sleepScore, recoveryScore, isSick]);
-
-  const handleOverlayClick = useCallback(
-    (event: MouseEvent<HTMLDivElement>) => {
-      if (event.target === event.currentTarget && !isSaving) {
-        onClose();
-      }
-    },
-    [isSaving, onClose]
-  );
 
   const handleSave = useCallback(async () => {
     if (isSaving) {
@@ -287,96 +184,53 @@ export default function CheckInModal({
     onSuccess,
   ]);
 
-  if (!isOpen) {
-    return null;
-  }
-
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      role="presentation"
-      onClick={handleOverlayClick}
-    >
-      <div
-        id="daily-check-in-modal"
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="check-in-title"
-        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl focus:outline-none dark:bg-gray-900"
-      >
-        <div className="mb-4 flex items-start justify-between">
-          <div>
-            <h2 id="check-in-title" className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {t('checkIn.title')}
-            </h2>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('checkIn.subtitle')}</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSaving}
-            className="rounded-full bg-gray-100 px-2 py-1 text-sm font-medium text-gray-600 transition hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-winter-500 disabled:opacity-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
-            aria-label={t('common.close')}
-          >
-            ×
-          </button>
-        </div>
-
-        <div className="space-y-6">
-          <PresetSelector onSelectPreset={handlePresetSelect} isDisabled={isSaving} />
-
-          <SliderField
-            id="sleep-score"
-            label={t('checkIn.sleepLabel')}
-            value={sleepScore}
-            onChange={setSleepScore}
-            minLabel={t('checkIn.scoreMin')}
-            maxLabel={t('checkIn.scoreMax')}
-          />
-
-          <SliderField
-            id="recovery-score"
-            label={t('checkIn.recoveryLabel')}
-            value={recoveryScore}
-            onChange={setRecoveryScore}
-            minLabel={t('checkIn.scoreMin')}
-            maxLabel={t('checkIn.scoreMax')}
-          />
-
-          <ToggleField
-            id="sick-toggle"
-            label={t('checkIn.sickLabel')}
-            hint={t('checkIn.sickHint')}
-            checked={isSick}
-            onChange={setIsSick}
-          />
-
-          <ActivityList activities={activities} onChange={setActivities} isDisabled={isSaving} />
-
-          <LoadPreview computation={liveComputation} />
-        </div>
-
-        <div className="mt-8 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSaving}
-            className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-winter-500 disabled:opacity-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
-          >
+    <AppModal
+      open={isOpen}
+      onClose={onClose}
+      title={t('checkIn.title')}
+      subtitle={t('checkIn.subtitle')}
+      size="lg"
+      preventCloseOnBackdrop={isSaving}
+      footer={
+        <>
+          <ModalSecondaryButton onClick={onClose} disabled={isSaving}>
             {t('common.cancel')}
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isSaving}
-            className="rounded-xl bg-winter-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-winter-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-winter-200 disabled:opacity-50"
-          >
+          </ModalSecondaryButton>
+          <ModalPrimaryButton onClick={handleSave} disabled={isSaving}>
             {isSaving ? t('common.saving') : t('common.save')}
-          </button>
-        </div>
+          </ModalPrimaryButton>
+        </>
+      }
+    >
+      <div className="space-y-6">
+        <SliderField
+          id="sleep-score"
+          label={t('checkIn.sleepLabel')}
+          value={sleepScore}
+          onChange={setSleepScore}
+          minLabel={t('checkIn.scoreMin')}
+          maxLabel={t('checkIn.scoreMax')}
+        />
+
+        <SliderField
+          id="recovery-score"
+          label={t('checkIn.recoveryLabel')}
+          value={recoveryScore}
+          onChange={setRecoveryScore}
+          minLabel={t('checkIn.scoreMin')}
+          maxLabel={t('checkIn.scoreMax')}
+        />
+
+        <ToggleField
+          id="sick-toggle"
+          label={t('checkIn.sickLabel')}
+          hint={t('checkIn.sickHint')}
+          checked={isSick}
+          onChange={setIsSick}
+        />
       </div>
-    </div>
+    </AppModal>
   );
 }
 

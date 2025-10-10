@@ -1,10 +1,9 @@
 import type { ReactElement } from 'react';
 import PushupTile from '../components/PushupTile';
-import SportTile from '../components/SportTile';
 import WaterTile from '../components/WaterTile';
 import ProteinTile from '../components/ProteinTile';
 import WeightTile from '../components/WeightTile';
-import TrainingLoadTile from '../components/TrainingLoadTile';
+import UnifiedTrainingCard from '../components/UnifiedTrainingCard';
 import WeeklyTile from '../components/dashboard/WeeklyTile';
 import { WeekProvider } from '../contexts/WeekContext';
 import { useTrackingEntries } from '../hooks/useTrackingEntries';
@@ -28,9 +27,9 @@ function DashboardPage() {
 
   return (
     <WeekProvider>
-      <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe" data-testid="dashboard-page">
+      <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe" data-testid="dashboard-page">
         {/* Content */}
-        <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 max-h-[calc(100vh-5rem)] viewport-safe">
+        <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 viewport-safe">
           {/* Max-width container for desktop content alignment */}
           <div className="mx-auto max-w-[700px]">
             <div
@@ -56,12 +55,14 @@ function DashboardPage() {
               </div>
             )}
 
+            {/* Week Overview */}
             <div className="animate-fade-in-up">
               <WeeklyTile />
             </div>
-            {/* Training Load Tile */}
-            <div className="animate-fade-in-up delay-150">
-              <TrainingLoadTile />
+
+            {/* Unified Training & Sport Card */}
+            <div className="animate-fade-in-up delay-100">
+              <UnifiedTrainingCard />
             </div>
 
             {/* Tracking Tiles - Dynamically rendered based on enabled activities */}
@@ -70,7 +71,6 @@ function DashboardPage() {
               {(() => {
                 const tiles: ReactElement[] = [];
                 if (enabledActivities.includes('pushups')) tiles.push(<PushupTile key="pushups" />);
-                if (enabledActivities.includes('sports')) tiles.push(<SportTile key="sports" />);
                 if (enabledActivities.includes('water')) tiles.push(<WaterTile key="water" />);
                 if (enabledActivities.includes('protein')) tiles.push(<ProteinTile key="protein" />);
 
@@ -88,6 +88,7 @@ function DashboardPage() {
               })()}
             </div>
 
+            {/* Weight Tile */}
             <div className="animate-fade-in-up delay-300">
               <WeightTile />
             </div>

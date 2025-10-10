@@ -134,20 +134,45 @@ npm run lhci:run         # Lighthouse CI
 
 ## UI/UX Guidelines
 
-### Tile Design System
+### Tile Design System - ENDUCO-INSPIRED (Updated 2025-10-09)
 
-**MANDATORY Glass-Card Classes (ALL tiles):**
+**Modern Card System (OPAQUE, NO transparency):**
+
+**Design Principles:**
+- **NO Glassmorphism**: Solid backgrounds, no `backdrop-blur`
+- **Clean Borders**: `1px solid var(--border-subtle)`
+- **Subtle Shadows**: `var(--shadow-card)` instead of heavy box-shadows
+- **Consistent Radius**: `12px` (`rounded-xl`) for all cards
+
+**Standard Tile Classes:**
+```typescript
+import { glassCardClasses, glassCardHoverClasses } from '@/theme/tokens';
+// Use: className={glassCardClasses}
+```
+
+**CSS Variables (theme.css):**
 ```css
-rounded-2xl bg-white/5 dark:bg-white/5 backdrop-blur-md border border-white/10
-shadow-[0_6px_24px_rgba(0,0,0,0.25)] transition-all duration-200
+/* Light Mode */
+--card-bg: #FFFFFF;
+--card-bg-hover: #FAFAFA;
+--shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+/* Dark Mode */
+--card-bg: #1F2937;
+--card-bg-hover: #374151;
+--shadow-card: 0 2px 8px rgba(0, 0, 0, 0.4);
 ```
 
 **Structure:**
 - Header: Icon (left) + Title + Metric (right) - LEFT-ALIGNED
 - Content: CENTERED (progress bars, buttons, inputs)
-- Padding: `p-3` (standard) or `p-6` (graphs)
+- Padding: `p-3` mobile, `p-4` desktop (from `designTokens.padding`)
 
-**❌ Never use:** `glass-dark` (deprecated) or custom glass styles
+**❌ DEPRECATED:**
+- `glass-dark` (removed)
+- `backdrop-blur-*` (no transparency)
+- `bg-white/5` (use `var(--card-bg)`)
+- Winter blue gradients (use `var(--accent-primary)` green)
 
 ### Mobile-First (One Screen Rule)
 
@@ -164,6 +189,98 @@ shadow-[0_6px_24px_rgba(0,0,0,0.25)] transition-all duration-200
 - **❌ Never use** `mobile-grid` for tracking tiles (breaks desktop alignment)
 - **Bottom nav**: 3 items only (Dashboard, Group, Notes) - Settings in header only
 
+### UI Popups & Modals (Updated 2025-10-09)
+
+**MANDATORY**: All dialogs/popups/modals MUST use the unified `AppModal` component.
+
+**Import:**
+```typescript
+import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from '@/components/ui/AppModal';
+```
+
+**Design Rules:**
+1. **Overlay**: `var(--wa-overlay)` - NO `backdrop-blur` on overlay
+2. **Dialog Panel**: Fully opaque background `var(--wa-surface-elev)` - NO transparency
+3. **Border & Shadow**: `1px solid var(--wa-border)` + `box-shadow: var(--wa-shadow-lg)`
+4. **Border Radius**: `border-radius: var(--wa-radius-xl)` (16px)
+5. **Animation**: 180ms fade+scale with `cubic-bezier(0.2, 0.8, 0.2, 1)`
+6. **Z-Index**: Overlay at `var(--z-overlay)`, Dialog at `var(--z-modal)`
+
+**Theme Compatibility:**
+- ✅ Light Mode: Dialog uses `var(--wa-surface-elev)` = `#FFFFFF`
+- ✅ Dark Mode: Dialog uses `var(--wa-surface-elev)` = `#1F2937`
+- ✅ All modals inherit theme from ThemeProvider
+- ✅ NO hard-coded colors (e.g., `bg-slate-800`, `text-white`)
+
+**Accessibility (A11y):**
+- ✅ ARIA: `role="dialog"`, `aria-modal="true"`, `aria-labelledby`
+- ✅ Focus Trap: Tab cycles within modal, Shift+Tab reverses
+- ✅ Escape Key: Closes modal (unless `preventCloseOnBackdrop={true}`)
+- ✅ Return Focus: Focus returns to trigger element on close
+- ✅ Body Scroll Lock: Prevents background scrolling when open
+
+**Usage Pattern:**
+```tsx
+<AppModal
+  open={isOpen}
+  onClose={handleClose}
+  title="Modal Title"
+  subtitle="Optional subtitle"
+  size="md" // sm | md | lg | xl
+  preventCloseOnBackdrop={false}
+  icon={<YourIcon />} // optional
+  footer={
+    <>
+      <ModalSecondaryButton onClick={handleClose}>Cancel</ModalSecondaryButton>
+      <ModalPrimaryButton onClick={handleSave}>Save</ModalPrimaryButton>
+    </>
+  }
+>
+  <div className="space-y-4">
+    {/* Modal content */}
+  </div>
+</AppModal>
+```
+
+**Size Options:**
+- `sm`: `max-w-md` (448px) - Quick confirmations
+- `md`: `max-w-lg` (512px) - Default, simple forms
+- `lg`: `max-w-2xl` (672px) - Complex forms (like CheckIn)
+- `xl`: `max-w-4xl` (896px) - Dashboards, data-heavy views
+
+**Z-Index Matrix:**
+| Layer | CSS Variable | Value | Usage |
+|-------|-------------|-------|-------|
+| Base | `--z-base` | 0 | Default layer |
+| Elevated | `--z-elevated` | 10 | Dropdowns |
+| Sticky | `--z-sticky` | 20 | Sticky headers |
+| Bottom Nav | `--z-bottom-nav` | 30 | Navigation bar |
+| FAB | `--z-fab` | 35 | Floating buttons |
+| Overlay | `--z-overlay` | 1000 | Modal backdrop |
+| Modal | `--z-modal` | 1010 | Dialog content |
+| Toast | `--z-toast` | 1100 | Notifications |
+| Tooltip | `--z-tooltip` | 1200 | Tooltips |
+
+**Common Mistakes to Avoid:**
+- ❌ NO `backdrop-blur` on dialog panel (only on overlay if needed)
+- ❌ NO custom z-index values - use CSS variables (`var(--z-overlay)`, `var(--z-modal)`)
+- ❌ NO inline modal implementations - use `AppModal`
+- ❌ NO `opacity` classes on dialog wrapper
+- ❌ NO `bg-white/80` or similar transparent backgrounds on dialog
+- ❌ NO manual focus management - `AppModal` handles it
+- ❌ NO hard-coded colors - use theme variables (`var(--text-primary)`, `var(--card-bg)`, etc.)
+
+**Light Mode Checklist:**
+- [ ] Modal background uses `var(--wa-surface-elev)` (NOT `bg-slate-800`)
+- [ ] Text uses `text-gray-900 dark:text-gray-100` (NOT `text-white`)
+- [ ] Buttons use theme-aware classes (NOT hard-coded dark colors)
+- [ ] Inputs use `border-gray-200 dark:border-white/20` (responsive)
+
+**Testing:**
+- E2E tests in `tests/e2e/modal.spec.ts`
+- Storybook stories in `src/components/ui/AppModal.stories.tsx`
+- Visual regression: All modal variants must pass screenshot tests
+
 ---
 
 ## Design Tokens
@@ -174,14 +291,23 @@ shadow-[0_6px_24px_rgba(0,0,0,0.25)] transition-all duration-200
 **Glass**: `--glass-blur: blur(16px)`, `--glass-border: rgba(255,255,255,0.12)`
 
 ### Typography
-`--text-xs` (12px) → `--text-4xl` (36px)
+- XS: `12px` | SM: `14px` | Base: `16px` | LG: `18px` | XL: `20px`
+- H1: `28px` | H2: `24px` | H3: `20px`
+- Font Stack: `-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto'`
 
 ### Spacing
-`--space-1` (4px) → `--space-12` (48px)
+- Standard: `4px, 8px, 12px, 16px, 20px, 24px`
+- Tile Padding: `12px` mobile, `16px` desktop
+- Gap: `8px` mobile, `16px` desktop
+
+### Shadows (Refined)
+- Card: `0 2px 8px rgba(0, 0, 0, 0.08)` light, `0 2px 8px rgba(0, 0, 0, 0.4)` dark
+- Card Hover: `0 4px 12px rgba(0, 0, 0, 0.12)` light, `0 4px 12px rgba(0, 0, 0, 0.5)` dark
 
 ### Backgrounds
-Light: `url('/bg/light/winter_arc_bg_light.webp')`
-Dark: `url('/bg/dark/winter_arc_bg_dark.webp')`
+**NO gradients or images** - Clean solid colors:
+- Light: `#F8FAFC`
+- Dark: `#0F172A`
 
 ---
 
@@ -234,25 +360,42 @@ groups/{groupCode}: { name, members[], createdAt }
 
 ## App Structure
 
-### 1. Dashboard
-- Header: Greeting + Weather (Open-Meteo API for Aachen)
-- Week tracking: Mon-Sun progress circles
-- Leaderboard preview: Top 5 group members
+### 1. Dashboard (Updated 2025-10-09)
 
-### 2. Tracking
-- **Pushup Tile**: Quick input OR Training mode (Base & Bump algorithm in `src/utils/pushupAlgorithm.ts`)
-- **Sport Tile**: HIIT/Cardio/Gym checkboxes
-- **Water Tile**: Progress bar, quick buttons (+250ml, +500ml, +1L)
-- **Protein Tile**: Goal based on weight (2g/kg), input field
-- **Weight Graph**: Line chart (30/90 days), BMI calculation
+**Layout:**
+1. **WeeklyTile** (`src/components/dashboard/WeeklyTile.tsx`)
+   - Week navigation (‹ ›)
+   - Mon-Sun progress circles (Mo-So)
+   - Clean, minimalist design (NO redundant info)
+   - Fixed: Kreise-Clipping behoben mit `overflow-visible`
 
-### 3. Leaderboard
+2. **UnifiedTrainingCard** (`src/components/UnifiedTrainingCard.tsx`) **[NEW]**
+   - **Ersetzt:** `TrainingLoadTile` + `SportTile`
+   - **Header:** Titel + Badge (Niedrig/Mittel/Hoch) + Check-in Button (rechts)
+   - **Subheader:** Wochenstatistik (Streak, Ø Erfüllung)
+   - **Section A:** Trainingslast-Graph (7 Tage)
+   - **Section B:** Sport-Status (Icons + "Training verwalten")
+   - **Hook:** `useTrainingLoadWeek()` für Wochenstatistiken
+
+3. **Tracking Tiles** (tile-grid-2)
+   - **Pushup Tile**: Quick input OR Training mode
+   - **Water Tile**: Progress bar, quick buttons
+   - **Protein Tile**: Goal based on weight (2g/kg)
+
+4. **WeightTile**: Line chart (30/90 days), BMI calculation
+
+**Check-in Flow:**
+- Check-in Button jetzt in `UnifiedTrainingCard` (vorher in `WeeklyTile`)
+- Modal: Schlaf (1-10), Regeneration (1-10), Krankheit (Toggle)
+- Speichern → Recompute Trainingslast + Graph update
+
+### 2. Leaderboard
 - Calendar heatmap, group stats, achievements
 
-### 4. Settings
+### 3. Settings
 - Profile, groups, notifications, privacy, account deletion
 
-### 5. History (Archived)
+### 4. History (Archived)
 **Status**: ⚫ Archived 2025-10-04 (redundant with week navigation)
 **Reactivate**: Set `HISTORY_ENABLED=true` in `src/config/features.ts`, uncomment routes
 
