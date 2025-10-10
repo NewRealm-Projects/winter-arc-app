@@ -676,12 +676,50 @@ Schützt Firebase Services vor Missbrauch und unbefugtem Zugriff.
 
 ---
 
-## 🌳 Branching Strategy
+## 🌳 Branching & Merge Konventionen
 
-- **main** - Production (geschützt, nur via PR)
-- **dev** - Staging (Integration Testing)
-- **feat/<topic>** - Feature Branches (von `dev` abzweigen)
-- **fix/<topic>** - Bug Fixes
+### Branch-Naming-Schema (PFLICHT)
+
+**Alle Feature-Branches** müssen folgendem Pattern folgen:
+
+```
+<username>/<type>-<description>
+```
+
+**Gültige Types**: `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `style`
+
+**Beispiele:**
+- ✅ `lars/feature-dashboard-refactor`
+- ✅ `niklas/fix-login-error`
+- ✅ `daniel/chore-update-dependencies`
+- ❌ `feat/new-feature` (missing username)
+- ❌ `lars-feature` (missing slash and hyphen)
+
+### Branch-Hierarchie
+
+- **main** - Production (geschützt, nur via PR von `develop`)
+- **develop** (oder `dev`) - Staging (Integration Testing)
+- **`<username>/<type>-<description>`** - Feature/Fix/Chore Branches
+
+### Automatische Validierung
+
+Branches werden automatisch validiert:
+1. **Lokal**: `.husky/pre-push` Hook blockt Pushes mit ungültigem Namen
+2. **Remote**: `.github/workflows/validate-branch.yml` prüft bei jedem Push
+3. **PRs**: Dürfen nur `develop` als Target haben (nicht `main`)
+
+### Quick Start
+
+```bash
+# Branch erstellen (mit korrektem Namen)
+git checkout -b <dein-username>/<type>-<beschreibung>
+
+# Beispiel
+git checkout -b lars/feature-training-mode
+
+# PR erstellen (Target: develop)
+gh pr create --base develop --title "..." --body "..."
+```
 
 **Commit-Konventionen**: Conventional Commits (siehe [CONTRIBUTING.md](CONTRIBUTING.md))
 

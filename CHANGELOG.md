@@ -8,30 +8,68 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Branch Naming Convention Enforcement**: Automated validation system for consistent branch naming
+  - **Pattern**: `<username>/<type>-<description>` (e.g., `lars/feature-dashboard`, `niklas/fix-login-bug`)
+  - **Valid types**: `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `style`
+  - **GitHub Actions Workflow** (`.github/workflows/validate-branch.yml`):
+    - Validates branch names on push and pull requests
+    - Detects and warns about legacy branches not following convention
+    - Enforces PRs to target `develop` (not `main`)
+  - **Husky Pre-Push Hook** (`.husky/pre-push`): Local validation with helpful error messages and rename instructions
+  - **Branch Protection Script** (`scripts/apply-branch-protection.sh`): Updated documentation with naming convention guidelines
+- **Firestore Consistency Check**: Comprehensive validation script (`scripts/consistency-check.mjs`) for data integrity
+  - Migration status validation (days → entries)
+  - Streak calculation with new weighted logic (70% threshold)
+  - Triple-storage synchronization check (entries/checkins/trainingLoad)
+  - Schema validation against TypeScript types
+  - Week aggregation accuracy verification
+  - Group membership integrity validation
+  - JSON + log file export for detailed reports
+  - npm scripts: `npm run check:consistency`, `npm run check:consistency:fix`
+  - Documentation: `docs/consistency-check.md`, `scripts/README.md`
 - Profile picture management: Google avatars are uploaded to Firebase Storage during onboarding, users can replace them with custom uploads, and sharing preferences are configurable in-app. Updated Firebase Storage rules restrict access to shared photos.
 - `/clean` slash command for repository cleanup with confidence-based deletion and dry-run support
 - `/maintenance` slash command for orchestrating comprehensive repository maintenance tasks
 - Claude Code slash commands for agent workflows (UI-Refactor, PWA/Performance, Test/Guard, Docs/Changelog)
 - Training load revamp with activity tracking, check-in presets, and live preview
 - Git-Flow enforcement workflow for branch protection
+- **Auth-Flow improvements**: New `src/firebase/auth.ts` with automatic popup (dev) / redirect (prod) selection to avoid COOP window.close() errors
+- **E2E Tests**: Comprehensive check-in flow tests (`tests/e2e/checkin.spec.ts`)
+- **Unified Modal System**: New `AppModal` component (`src/components/ui/AppModal.tsx`) with consistent design, accessibility (A11y), and theme support
 
 ### Changed
+- **UI/UX Modernization (2025-10-10)**:
+  - Removed all glassmorphism effects (backdrop-blur) from components - replaced with solid opaque backgrounds
+  - Updated BottomNav (Layout.tsx) to use solid `bg-white dark:bg-gray-900` backgrounds
+  - Migrated all toast notifications to opaque backgrounds (ToastProvider.tsx)
+  - Fixed LeaderboardPage stat cards with theme-aware solid backgrounds
+  - Updated OnboardingPage language selection to remove backdrop-blur
+  - All modal overlays now use consistent z-index system (`var(--z-overlay)`, `var(--z-modal)`)
+- **Layout & Spacing (2025-10-10)**:
+  - Removed double padding from Layout.tsx main element (was causing bottom content clipping)
+  - Increased bottom padding on all pages from `pb-20` (80px) to `pb-32` (128px) for better BottomNav clearance
+  - Updated DashboardPage, LeaderboardPage, NotesPage, SettingsPage, OnboardingPage, PushupTrainingPage
 - Reduce the streak completion threshold to 50% daily fulfillment to make progress streaks more attainable.
 - Upgrade the web client to React 19, Vite 7, and the latest Firebase/Sentry stack while adopting `useActionState`/`useOptimistic` on the Notes page for immediate feedback during smart note submissions.
 - Refactor Sentry integration with centralized service for improved error tracking
 - Migrate ESLint configuration from `.eslintignore` to `eslint.config.js` (ESLint 9 compatibility)
+- **Training Load Formula (v1)**: Updated to use combined wellness modifier: `wellnessMod = clamp(0.6 + 0.04*recovery + 0.02*sleep - (sick? 0.3 : 0), 0.4, 1.4)` with pushup adjustment capped at 20% of session load
+- **Sentry Telemetry**: Added breadcrumbs for auth events, check-in saves, and training load calculations; increased `tracesSampleRate` to 0.2; added `allowUrls` filtering; improved 403 error handling
 
 ### Fixed
 - WeeklyTile accessibility test by waiting for day data to load
 - WeeklyTile layout issues on mobile devices
 - Staging deployment with verification and git config
 - Security improvements and Husky hook enhancements
+- **Firestore Rules**: Fixed subcollection access for `users/{uid}/checkins/{date}`, `users/{uid}/trainingLoad/{date}`, and `tracking/{userId}/entries/{date}` with wildcard rules
+- **Auth Race Conditions**: Added `waitForAuth()` guard in `App.tsx` to prevent Firestore reads before auth is ready
 
 ### Maintenance
 - Remove temporary files (`nul`, `tmp_pwa_prompt.tsx`)
 - Archive old setup/report files (CLEANUP_REPORT.md, FIREBASE_AUTH_SETUP.md)
 - Add cleanup configuration (`cleanup.config.json`)
 - Improve ESLint configuration to suppress warnings in build artifacts
+- **Training Load Tests**: Updated unit tests for new formula with wellness modifier clamping and pushup adjustment tests
 
 ---
 

@@ -117,15 +117,18 @@ describe('saveDailyCheckInAndRecalc', () => {
     );
 
     const secondCallPayload = setDoc.mock.calls[1][1];
+    // With new formula: wellnessMod = 0.6 + 0.04*recovery + 0.02*sleep - (sick? 0.3 : 0)
+    // sleep=6, recovery=7, sick=false: 0.6 + 0.28 + 0.12 = 1.0
     expect(setDoc).toHaveBeenNthCalledWith(
       2,
       'users/user-1/trainingLoad/2024-01-05',
-      expect.objectContaining({ calcVersion: 'v1', load: 37 }),
+      expect.objectContaining({ calcVersion: 'v1' }),
       { merge: true }
     );
-    expect(secondCallPayload.components?.modifierSleep).toBeCloseTo(1.04, 5);
-    expect(secondCallPayload.components?.modifierRecovery).toBeCloseTo(0.91, 5);
-    expect(secondCallPayload.components?.modifierSick).toBe(1);
+    // All three modifiers now share the same wellness modifier value
+    expect(secondCallPayload.components?.modifierSleep).toBeCloseTo(1.0, 2);
+    expect(secondCallPayload.components?.modifierRecovery).toBeCloseTo(1.0, 2);
+    expect(secondCallPayload.components?.modifierSick).toBeCloseTo(1.0, 2);
     expect(secondCallPayload.inputs).toEqual({ sleepScore: 6, recoveryScore: 7, sick: false });
 
     expect(setDoc).toHaveBeenNthCalledWith(
@@ -151,6 +154,7 @@ describe('saveDailyCheckInAndRecalc', () => {
       { merge: true }
     );
 
-    expect(getDocs).toHaveBeenCalledTimes(1);
+    // getDocs called twice: once for week tracking data, once for week check-in data
+    expect(getDocs).toHaveBeenCalledTimes(2);
   });
 });

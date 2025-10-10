@@ -31,6 +31,9 @@ export const translations = {
       minTasks: 'Mind. {{minTasks}} Aufgaben ({{totalTasksDone}}/35 {{tasks}})',
       today: 'Heute',
       trainingLoad: 'Trainingslast',
+      trainingAndSport: 'Training & Sport',
+      training: 'Training',
+      completion: 'Erfüllung',
       trainingLoadSubtitle: 'Berechnet aus Schlaf, Regeneration & Workouts',
       trainingLoadLevelLabel: 'Level',
       trainingLoadStatus: {
@@ -360,6 +363,9 @@ export const translations = {
       minTasks: 'Min. {{minTasks}} tasks ({{totalTasksDone}}/35 {{tasks}})',
       today: 'Today',
       trainingLoad: 'Training Load',
+      trainingAndSport: 'Training & Sport',
+      training: 'Training',
+      completion: 'Completion',
       trainingLoadSubtitle: 'Calculated from sleep, recovery & workouts',
       trainingLoadLevelLabel: 'Level',
       trainingLoadStatus: {

@@ -49,7 +49,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-[var(--z-bottom-nav)] glass backdrop-blur-lg border-t border-white/10"
+      className="fixed inset-x-0 bottom-0 z-[var(--z-bottom-nav)] bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg"
       style={{ paddingBottom: 'var(--safe-area-bottom)' }}
     >
       <ul className="grid grid-cols-4 h-16 items-center max-w-7xl mx-auto">

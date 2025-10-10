@@ -1,7 +1,7 @@
 {
   "name": "winter-arc-tracker",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -36,6 +36,8 @@
     "agent:artifacts": "node .agent/scripts/prepare-artifacts.mjs",
     "clean": "node scripts/cleanup-repo.mjs",
     "clean:dry-run": "node scripts/cleanup-repo.mjs --dry-run",
+    "check:consistency": "node scripts/consistency-check.mjs",
+    "check:consistency:fix": "node scripts/consistency-check.mjs --fix",
     "prepare": "husky"
   },
   "dependencies": {
@@ -72,6 +74,7 @@
     "eslint-plugin-react-hooks": "^6.1.1",
     "eslint-plugin-react-refresh": "^0.4.16",
     "eslint-plugin-unused-imports": "^4.2.0",
+    "firebase-admin": "^13.5.0",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
     "jsdom": "^27.0.0",

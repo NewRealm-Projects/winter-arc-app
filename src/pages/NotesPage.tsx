@@ -465,7 +465,7 @@ function NotesPage() {
   }, [hasMore, loadingMore, loadNotes]);
 
   return (
-    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe" data-testid="notes-page">
+    <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe" data-testid="notes-page">
       <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0">
         <div className="flex flex-col gap-3 md:gap-4">
           <section className={`${glassCardClasses} ${designTokens.padding.spacious} text-white animate-fade-in-up`}>

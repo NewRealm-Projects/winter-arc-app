@@ -65,6 +65,7 @@ vi.mock('firebase/auth', () => ({
   signInWithRedirect: vi.fn(async () => undefined),
   getRedirectResult: vi.fn(async () => null),
   onAuthStateChanged: vi.fn(),
+  browserPopupRedirectResolver: {},
   GoogleAuthProvider: class {},
   getAuth: vi.fn(() => ({})),
 }));
@@ -84,6 +85,13 @@ vi.mock('firebase/storage', () => ({
 
 vi.mock('@sentry/react', () => ({
   captureException: vi.fn(),
+  captureMessage: vi.fn(),
+  addBreadcrumb: vi.fn(),
+  setUser: vi.fn(),
+  startSpan: vi.fn((_options, callback) => callback()),
+  browserTracingIntegration: vi.fn(() => ({})),
+  replayIntegration: vi.fn(() => ({})),
+  init: vi.fn(),
 }));
 
 vi.mock('@google/generative-ai', () => ({

@@ -9,9 +9,9 @@ import {
 } from '../services/trainingLoad';
 import { useStore } from '../store/useStore';
 import { getTileClasses, designTokens } from '../theme/tokens';
-import { normalizeSports } from '../utils/sports';
 import { useTranslation } from '../hooks/useTranslation';
 import CheckInModal from './checkin/CheckInModal';
+import TrainingLoadGraph from './TrainingLoadGraph';
 
 const MAX_TRAINING_LOAD = 1000;
 
@@ -26,39 +26,6 @@ const formatScore = (value: number): string => {
   const rounded = Math.round(value * 10) / 10;
   return Number.isInteger(rounded) ? `${rounded}` : rounded.toFixed(1);
 };
-
-interface SessionSummary {
-  type: string;
-  duration: number;
-  intensity: number;
-}
-
-function buildSessions(
-  sportsSource: Parameters<typeof normalizeSports>[0]
-): SessionSummary[] {
-  const normalized = normalizeSports(sportsSource);
-
-  return Object.entries(normalized).reduce<SessionSummary[]>((sessions, [key, entry]) => {
-    if (!entry.active) {
-      return sessions;
-    }
-
-    const duration = clampNumber(entry.duration, 0);
-    const intensity = clampNumber(entry.intensity, 0);
-
-    if (duration <= 0 || intensity <= 0) {
-      return sessions;
-    }
-
-    sessions.push({
-      type: key,
-      duration,
-      intensity,
-    });
-
-    return sessions;
-  }, []);
-}
 
 function TrainingLoadTile() {
   const { t } = useTranslation();
@@ -77,11 +44,6 @@ function TrainingLoadTile() {
   const manualDaily = Object.prototype.hasOwnProperty.call(tracking, activeDate) ? tracking[activeDate] : undefined;
   const aggregatedTracking = combinedDaily ?? manualDaily;
   const aggregatedRecovery = aggregatedTracking?.recovery;
-
-  const sessions = useMemo(
-    () => buildSessions(aggregatedTracking?.sports),
-    [aggregatedTracking?.sports]
-  );
 
   const pushupsDisplayTotal = useMemo(() => {
     const pushups = aggregatedTracking?.pushups;
@@ -141,7 +103,6 @@ function TrainingLoadTile() {
     aggregatedRecovery?.sleepQuality !== undefined ||
     aggregatedRecovery?.recovery !== undefined;
   const pushupsTracked = pushupsDisplayTotal > 0;
-  const sportsTracked = sessions.length > 0;
 
   const percent = Math.min(
     100,
@@ -151,15 +112,11 @@ function TrainingLoadTile() {
   const statusKey: 'low' | 'optimal' | 'high' =
     loadValue >= 600 ? 'high' : loadValue >= 200 ? 'optimal' : 'low';
   const statusLabel = t(`dashboard.trainingLoadStatus.${statusKey}`);
-  const hasData = recoveryTracked || pushupsTracked || sportsTracked;
+  const hasData = recoveryTracked || pushupsTracked;
   const description = hasData
     ? t('dashboard.trainingLoadSubtitle')
     : t('dashboard.trainingLoadNoData');
 
-  const totalDuration = sessions.reduce((total, session) => total + session.duration, 0);
-  const workoutsDisplay = sportsTracked
-    ? `${sessions.length} · ${Math.round(totalDuration)} min`
-    : '—';
   const sleepDisplay = recoveryTracked ? `${formatScore(sleepQuality)}/10` : '—';
   const recoveryDisplay = recoveryTracked ? `${formatScore(recoveryScore)}/10` : '—';
   return (
@@ -200,7 +157,7 @@ function TrainingLoadTile() {
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2 text-[10px] text-gray-100/80">
+      <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] text-gray-100/80">
         <div className="rounded-xl bg-white/10 px-2 py-2">
           <div className="text-[9px] uppercase tracking-wide text-gray-100/60">
             {t('dashboard.trainingLoadSleep')}
@@ -223,17 +180,10 @@ function TrainingLoadTile() {
             {recoveryDisplay}
           </div>
         </div>
-        <div className="rounded-xl bg-white/10 px-2 py-2">
-          <div className="text-[9px] uppercase tracking-wide text-gray-100/60">
-            {t('dashboard.trainingLoadWorkouts')}
-          </div>
-          <div
-            className="font-semibold text-gray-50 dark:text-white"
-            data-testid="training-load-workouts-value"
-          >
-            {workoutsDisplay}
-          </div>
-        </div>
+      </div>
+
+      <div className="mt-3">
+        <TrainingLoadGraph height={100} />
       </div>
       </button>
 

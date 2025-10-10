@@ -53,7 +53,7 @@ function PushupTrainingPage() {
 
   const restTime = 60; // 60 Sekunden Pause
 
-  const containerClasses = 'min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe';
+  const containerClasses = 'min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe';
   const contentClasses = 'mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0 space-y-4';
   const headlineCardClasses = `${glassCardClasses} ${designTokens.padding.compact} text-white flex items-center gap-3`;
   const statsCardClasses = `${glassCardClasses} ${designTokens.padding.spacious} text-white space-y-6`;

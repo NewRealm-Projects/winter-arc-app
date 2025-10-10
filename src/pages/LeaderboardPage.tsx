@@ -233,7 +233,7 @@ function LeaderboardPage() {
   };
 
   return (
-    <div className="min-h-screen-mobile safe-pt pb-20 overflow-y-auto viewport-safe" data-testid="leaderboard-page">
+    <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe" data-testid="leaderboard-page">
       <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0">
         <div className="flex flex-col gap-3 md:gap-4">
           {trackingError && (
@@ -275,7 +275,7 @@ function LeaderboardPage() {
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm px-4 py-4">
+                <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-card px-4 py-4">
                   <div className="flex items-center justify-between text-sm text-white/70">
                     <span className="flex items-center gap-2">
                       <span aria-hidden="true">🔥</span>
@@ -284,7 +284,7 @@ function LeaderboardPage() {
                   </div>
                   <div className="text-3xl font-semibold text-white mt-2">{userStats.streak}</div>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm px-4 py-4">
+                <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-card px-4 py-4">
                   <div className="flex items-center justify-between text-sm text-white/70">
                     <span className="flex items-center gap-2">
                       <span aria-hidden="true">💪</span>
@@ -293,7 +293,7 @@ function LeaderboardPage() {
                   </div>
                   <div className="text-3xl font-semibold text-white mt-2">{userStats.totalPushups}</div>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/10 backdrop-blur-sm px-4 py-4">
+                <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-card px-4 py-4">
                   <div className="flex items-center justify-between text-sm text-white/70">
                     <span className="flex items-center gap-2">
                       <span aria-hidden="true">🏃</span>

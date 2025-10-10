@@ -41,9 +41,9 @@ function HistoryPage() {
   };
 
   return (
-  <div className="min-h-screen glass-dark safe-area-inset-top">
+  <div className="min-h-screen bg-[var(--bg-base)] safe-area-inset-top">
       {/* Header */}
-  <div className="glass-dark text-white p-6 pb-8">
+  <div className="bg-[var(--bg-surface)] border-b border-[var(--border-subtle)] text-white p-6 pb-8">
         <div className="max-w-7xl mx-auto flex items-center gap-4">
           <button
             onClick={() => { navigate('/'); }}
@@ -63,7 +63,7 @@ function HistoryPage() {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 -mt-4 pb-20">
         {sortedEntries.length === 0 ? (
-          <div className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-12 text-center">
+          <div className="modern-card rounded-[20px] p-12 text-center">
             <div className="text-6xl mb-4">📭</div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               {t('tracking.noEntries')}
@@ -84,7 +84,7 @@ function HistoryPage() {
               return (
                 <div
                   key={date}
-                  className="glass dark:glass-dark rounded-[20px] hover:shadow-[0_8px_40px_rgba(0,0,0,0.25)] transition-all duration-300 p-4"
+                  className="modern-card rounded-[20px] p-4"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div>

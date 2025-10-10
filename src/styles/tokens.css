@@ -81,6 +81,7 @@
 
   /* ========================================
      Z-INDEX SCALE
+     Unified with theme.css
      ======================================== */
 
   --z-base: 0;
@@ -88,9 +89,10 @@
   --z-sticky: 20;
   --z-bottom-nav: 30;
   --z-fab: 35;
-  --z-modal-backdrop: 40;
-  --z-modal: 50;
-  --z-toast: 60;
+  --z-overlay: 1000;
+  --z-modal: 1010;
+  --z-toast: 1100;
+  --z-tooltip: 1200;
 }
 
 /* ========================================
