@@ -181,6 +181,51 @@ interface FoodEvent {
   carbsG?: number;    // NEW
   fatG?: number;      // NEW
 }
+
+interface SmartTrackingContribution {
+  water?: number;           // ml (existing)
+  protein?: number;         // g (existing)
+  calories?: number;        // kcal (NEW)
+  carbsG?: number;          // g (NEW)
+  fatG?: number;            // g (NEW)
+  pushups?: number;         // reps (existing)
+  sports?: Partial<Record<SportKey, SportEntry>>; // existing
+  weight?: {                // existing
+    value?: number;         // kg
+    bodyFat?: number;       // %
+  };
+}
+```
+
+**Field Descriptions:**
+- **water**: Total water intake in ml (synced from drink events)
+- **protein**: Total protein in grams (synced from food events)
+- **calories**: Total calories in kcal (synced from food events) **[NEW]**
+- **carbsG**: Total carbohydrates in grams (synced from food events) **[NEW]**
+- **fatG**: Total fat in grams (synced from food events) **[NEW]**
+- **pushups**: Total pushup reps (synced from pushup events)
+- **sports**: Active sports with duration/intensity (synced from workout events)
+- **weight**: Body weight and body fat % (synced from weight/bfp events)
+
+**Location:** `src/types/index.ts:78-87`
+
+**Usage:**
+```typescript
+// trackingSync.ts - buildContributionFromEvent()
+case 'food':
+  if (typeof event.proteinG === 'number') {
+    contribution.protein = (contribution.protein ?? 0) + event.proteinG;
+  }
+  if (typeof event.calories === 'number') {
+    contribution.calories = (contribution.calories ?? 0) + event.calories; // NEW
+  }
+  if (typeof event.carbsG === 'number') {
+    contribution.carbsG = (contribution.carbsG ?? 0) + event.carbsG; // NEW
+  }
+  if (typeof event.fatG === 'number') {
+    contribution.fatG = (contribution.fatG ?? 0) + event.fatG; // NEW
+  }
+  break;
 ```
 
 ### Dependencies

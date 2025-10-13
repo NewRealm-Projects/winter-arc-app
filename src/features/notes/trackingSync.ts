@@ -70,6 +70,15 @@ function buildContributionFromEvent(event: Event, contribution: SmartTrackingCon
       if (typeof event.proteinG === 'number') {
         contribution.protein = (contribution.protein ?? 0) + event.proteinG;
       }
+      if (typeof event.carbsG === 'number') {
+        contribution.carbsG = (contribution.carbsG ?? 0) + event.carbsG;
+      }
+      if (typeof event.fatG === 'number') {
+        contribution.fatG = (contribution.fatG ?? 0) + event.fatG;
+      }
+      if (typeof event.calories === 'number') {
+        contribution.calories = (contribution.calories ?? 0) + event.calories;
+      }
       break;
     case 'pushups':
       contribution.pushups = (contribution.pushups ?? 0) + event.count;

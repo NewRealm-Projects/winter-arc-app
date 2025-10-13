@@ -136,7 +136,9 @@ function EventBadges({ events }: { events: Event[] }) {
               <span key={event.id} className={baseClass}>
                 🍽️ {event.label}
                 {typeof event.calories === 'number' ? <span className="ml-1">· {event.calories} kcal</span> : null}
-                {typeof event.proteinG === 'number' ? <span className="ml-1">· {event.proteinG} g Protein</span> : null}
+                {typeof event.proteinG === 'number' ? <span className="ml-1">· {event.proteinG}g P</span> : null}
+                {typeof event.carbsG === 'number' ? <span className="ml-1">· {event.carbsG}g C</span> : null}
+                {typeof event.fatG === 'number' ? <span className="ml-1">· {event.fatG}g F</span> : null}
                 {confidenceLow && <span className="ml-2 text-xs">⚠︎ prüfen</span>}
               </span>
             );

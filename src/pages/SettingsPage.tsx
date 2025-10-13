@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useStore } from '../store/useStore';
-import { Language, Activity } from '../types';
+import { Language, Activity, ActivityLevel } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { glassCardClasses, glassCardHoverClasses, designTokens } from '../theme/tokens';
@@ -32,6 +32,7 @@ function SettingsPage() {
   const [editHeight, setEditHeight] = useState('');
   const [editWeight, setEditWeight] = useState('');
   const [editBodyFat, setEditBodyFat] = useState('');
+  const [editActivityLevel, setEditActivityLevel] = useState<ActivityLevel>('moderate');
   const [editMaxPushups, setEditMaxPushups] = useState('');
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
@@ -89,6 +90,7 @@ function SettingsPage() {
     setEditHeight(user.height.toString());
     setEditWeight(user.weight.toString());
     setEditBodyFat(user.bodyFat?.toString() || '');
+    setEditActivityLevel(user.activityLevel || 'moderate');
     setEditMaxPushups(user.maxPushups.toString());
     setIsEditingProfile(true);
   };
@@ -105,6 +107,7 @@ function SettingsPage() {
         height: parseInt(editHeight),
         weight: parseInt(editWeight),
         bodyFat: editBodyFat ? parseFloat(editBodyFat) : undefined,
+        activityLevel: editActivityLevel,
         maxPushups: parseInt(editMaxPushups),
       };
 
@@ -459,6 +462,17 @@ function SettingsPage() {
     profileSummaryItems.splice(5, 0, { label: t('settings.bodyFat'), value: `${user.bodyFat}%` });
   }
 
+  if (user?.activityLevel) {
+    const activityLevelLabels: Record<ActivityLevel, string> = {
+      sedentary: t('onboarding.activityLevelSedentary'),
+      light: t('onboarding.activityLevelLight'),
+      moderate: t('onboarding.activityLevelModerate'),
+      active: t('onboarding.activityLevelActive'),
+      very_active: t('onboarding.activityLevelVeryActive'),
+    };
+    profileSummaryItems.push({ label: t('settings.activityLevel'), value: activityLevelLabels[user.activityLevel] });
+  }
+
   return (
     <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe">
       <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0">
@@ -762,6 +776,51 @@ function SettingsPage() {
                           onChange: (value: string) => { setEditMaxPushups(value); },
                           type: 'number',
                         }].map((field) => (
+                          <label key={field.key} className="flex flex-col gap-2 text-sm font-medium">
+                            <span className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">{field.label}</span>
+                            <input
+                              type={field.type}
+                              value={field.value}
+                              step={field.step}
+                              onChange={(event) => { field.onChange(event.target.value); }}
+                              className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white outline-none transition focus:border-white/40 focus:ring-2 focus:ring-white/30"
+                            />
+                          </label>
+                        ))}
+
+                        <div className="flex flex-col gap-2">
+                          <span className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">
+                            {t('settings.activityLevel')}
+                          </span>
+                          <p className="text-xs text-white/60 -mt-1 mb-1">{t('settings.activityLevelDescription')}</p>
+                          <div className="grid grid-cols-1 gap-2">
+                            {[
+                              { value: 'sedentary' as ActivityLevel, label: t('onboarding.activityLevelSedentary'), icon: '🪑' },
+                              { value: 'light' as ActivityLevel, label: t('onboarding.activityLevelLight'), icon: '🚶' },
+                              { value: 'moderate' as ActivityLevel, label: t('onboarding.activityLevelModerate'), icon: '🏃' },
+                              { value: 'active' as ActivityLevel, label: t('onboarding.activityLevelActive'), icon: '🏋️' },
+                              { value: 'very_active' as ActivityLevel, label: t('onboarding.activityLevelVeryActive'), icon: '💪' },
+                            ].map((option) => (
+                              <button
+                                key={option.value}
+                                type="button"
+                                onClick={() => { setEditActivityLevel(option.value); }}
+                                className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-semibold transition ${
+                                  editActivityLevel === option.value
+                                    ? 'border-transparent bg-white text-winter-900 shadow-[0_14px_40px_rgba(15,23,42,0.35)]'
+                                    : 'border-white/20 bg-white/10 text-white/80 hover:border-white/30 hover:bg-white/15'
+                                }`}
+                              >
+                                <span className="text-xl">{option.icon}</span>
+                                <span className="flex-1 text-left">{option.label}</span>
+                                {editActivityLevel === option.value && <span className="text-lg">✓</span>}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Remove the duplicate field.map rendering below since we already rendered fields above */}
+                        {[].map((field) => (
                           <label key={field.key} className="flex flex-col gap-2 text-sm font-medium">
                             <span className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">{field.label}</span>
                             <input

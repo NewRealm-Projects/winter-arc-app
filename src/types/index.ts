@@ -4,6 +4,8 @@ export type Language = 'de' | 'en';
 
 export type Activity = 'pushups' | 'sports' | 'water' | 'protein' | 'weight';
 
+export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+
 export type WorkoutStatus = 'pass' | 'hold' | 'fail';
 
 export type SportKey = 'hiit' | 'cardio' | 'gym' | 'schwimmen' | 'soccer' | 'rest';
@@ -31,6 +33,7 @@ export interface User {
   hydrationGoalLiters?: number;
   proteinGoalGrams?: number;
   bodyFat?: number; // %
+  activityLevel?: ActivityLevel; // User's activity level for TDEE calculation (default: 'moderate')
   maxPushups: number;
   groupCode: string;
   birthday?: string; // YYYY-MM-DD
@@ -62,6 +65,9 @@ export interface DailyTracking {
   sports: SportTracking;
   water: number; // ml
   protein: number; // g
+  calories?: number; // kcal
+  carbsG?: number; // g
+  fatG?: number; // g
   recovery?: {
     sleepQuality?: number;
     recovery?: number;
@@ -84,6 +90,9 @@ export interface SmartTrackingContribution {
     value?: number;
     bodyFat?: number;
   };
+  calories?: number;
+  carbsG?: number;
+  fatG?: number;
 }
 
 export interface Group {

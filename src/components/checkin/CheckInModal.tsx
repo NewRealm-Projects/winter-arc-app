@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
-import { Timestamp } from 'firebase/firestore';
 import { saveDailyCheckInAndRecalc } from '../../services/checkin';
 import {
   buildWorkoutEntriesFromTracking,
@@ -10,7 +9,7 @@ import { useCombinedDailyTracking } from '../../hooks/useCombinedTracking';
 import { useToast } from '../../hooks/useToast';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useStore } from '../../store/useStore';
-import type { DailyCheckIn, DailyTrainingLoad } from '../../types';
+import { retryWithBackoff } from '../../utils/retry';
 import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from '../ui/AppModal';
 
 interface CheckInModalProps {
@@ -37,9 +36,6 @@ export default function CheckInModal({
   const { showToast } = useToast();
 
   const checkIn = useStore((state) => state.checkIns[dateKey]);
-  const existingTrainingLoad = useStore((state) => state.trainingLoad[dateKey]);
-  const setCheckInForDate = useStore((state) => state.setCheckInForDate);
-  const setTrainingLoadForDate = useStore((state) => state.setTrainingLoadForDate);
   const trackingRecord = useStore((state) => state.tracking);
 
   const combinedDaily = useCombinedDailyTracking(dateKey);
@@ -94,95 +90,36 @@ export default function CheckInModal({
 
     setIsSaving(true);
 
-    const previousCheckIn = checkIn ? { ...checkIn } : null;
-    const previousTrainingLoad = existingTrainingLoad ? { ...existingTrainingLoad } : null;
-
-    // Use the live computation which includes manual activities
-    const computation = liveComputation;
-
-    const optimisticTimestamp = Timestamp.now();
-
-    const optimisticCheckIn: DailyCheckIn = previousCheckIn
-      ? {
-          ...previousCheckIn,
-          sleepScore: normalizedSleep,
-          recoveryScore: normalizedRecovery,
-          sick: isSick,
-          updatedAt: optimisticTimestamp,
-        }
-      : {
-          date: dateKey,
-          sleepScore: normalizedSleep,
-          recoveryScore: normalizedRecovery,
-          sick: isSick,
-          createdAt: optimisticTimestamp,
-          updatedAt: optimisticTimestamp,
-          source: 'manual',
-        };
-
-    const optimisticTrainingLoad: DailyTrainingLoad = previousTrainingLoad
-      ? {
-          ...previousTrainingLoad,
-          load: computation.load,
-          components: computation.components,
-          inputs: computation.inputs,
-          updatedAt: optimisticTimestamp,
-        }
-      : {
-          date: dateKey,
-          load: computation.load,
-          components: computation.components,
-          inputs: computation.inputs,
-          createdAt: optimisticTimestamp,
-          updatedAt: optimisticTimestamp,
-          calcVersion: 'v1',
-        };
-
-    setCheckInForDate(dateKey, optimisticCheckIn);
-    setTrainingLoadForDate(dateKey, optimisticTrainingLoad);
-
     try {
-      await saveDailyCheckInAndRecalc(dateKey, {
-        sleepScore: normalizedSleep,
-        recoveryScore: normalizedRecovery,
-        sick: isSick,
-      });
+      // Save with retry logic (3 attempts with exponential backoff)
+      await retryWithBackoff(
+        () =>
+          saveDailyCheckInAndRecalc(dateKey, {
+            sleepScore: normalizedSleep,
+            recoveryScore: normalizedRecovery,
+            sick: isSick,
+          }),
+        {
+          maxRetries: 3,
+          baseDelay: 1000,
+        }
+      );
+
+      // UI updates automatically via Firestore subscription
       showToast({ message: t('checkIn.toastSuccess'), type: 'success' });
       onSuccess?.();
       onClose();
-    } catch {
-      if (previousCheckIn) {
-        setCheckInForDate(dateKey, previousCheckIn);
-      } else {
-        setCheckInForDate(dateKey, null);
-      }
-
-      if (previousTrainingLoad) {
-        setTrainingLoadForDate(dateKey, previousTrainingLoad);
-      } else {
-        setTrainingLoadForDate(dateKey, null);
-      }
-
-      showToast({ message: t('checkIn.toastError'), type: 'error' });
+    } catch (error) {
+      // All retry attempts failed
+      showToast({
+        message: t('checkIn.toastError'),
+        type: 'error',
+      });
+      console.error('[CheckInModal] Save failed after retries:', error);
     } finally {
       setIsSaving(false);
     }
-  }, [
-    checkIn,
-    dateKey,
-    existingTrainingLoad,
-    isSick,
-    isSaving,
-    liveComputation,
-    recoveryScore,
-    setCheckInForDate,
-    setTrainingLoadForDate,
-    showToast,
-    sleepScore,
-    t,
-    onClose,
-    onSuccess,
-  ]);
+  }, [dateKey, isSick, isSaving, recoveryScore, showToast, sleepScore, t, onClose, onSuccess]);
 
   return (
     <AppModal

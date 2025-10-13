@@ -61,6 +61,8 @@ export interface FoodEvent extends BaseEvent {
   label: string;
   calories?: number;
   proteinG?: number;
+  carbsG?: number;
+  fatG?: number;
 }
 
 export type Event =

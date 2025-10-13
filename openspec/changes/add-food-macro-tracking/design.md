@@ -160,17 +160,34 @@ case 'food':
 └─────────────────────────────────────┘
 ```
 
-**Calorie Goal Calculation (Smart Defaults):**
+**Calorie Goal Calculation (Smart Defaults with Activity Level):**
 ```typescript
 // src/utils/nutrition.ts
-function calculateTDEE(weight: number, bodyFat?: number, gender: Gender): number {
+export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+
+const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
+  sedentary: 30,    // Wenig Bewegung, Bürojob
+  light: 35,        // 1-2x Sport/Woche
+  moderate: 40,     // 3-4x Sport/Woche (Default)
+  active: 45,       // 5-6x Sport/Woche
+  very_active: 50,  // Täglich Sport, körperlich anstrengender Job
+};
+
+function calculateTDEE(
+  weight: number,
+  activityLevel: ActivityLevel = 'moderate',
+  bodyFat?: number
+): number {
+  const multiplier = ACTIVITY_MULTIPLIERS[activityLevel];
+
   if (bodyFat) {
     // Use Lean Body Mass (LBM) for more accurate TDEE
     const leanMass = weight * (1 - bodyFat / 100);
-    return Math.round(leanMass * 40); // 40 kcal per kg LBM (active lifestyle)
+    return Math.round(leanMass * multiplier);
   }
-  // Fallback: 32 kcal per kg bodyweight (moderate activity)
-  return Math.round(weight * 32);
+  // Fallback: Use adjusted bodyweight multiplier
+  const fallbackMultiplier = multiplier * 0.8; // 80% of LBM multiplier
+  return Math.round(weight * fallbackMultiplier);
 }
 
 function calculateProteinGoal(weight: number): number {
@@ -185,6 +202,15 @@ function calculateFatGoal(tdee: number): number {
   return Math.round((tdee * 0.30) / 9); // 30% of calories from fat (9 kcal/g)
 }
 ```
+
+**Activity Level Examples:**
+| Level | Multiplier (LBM) | Beschreibung | Beispiel 80kg, 15% KFA |
+|-------|------------------|--------------|------------------------|
+| Sedentary | 30 kcal/kg | Bürojob, wenig Bewegung | 2040 kcal |
+| Light | 35 kcal/kg | 1-2x Sport/Woche | 2380 kcal |
+| **Moderate** | **40 kcal/kg** | **3-4x Sport/Woche (Default)** | **2720 kcal** |
+| Active | 45 kcal/kg | 5-6x Sport/Woche | 3060 kcal |
+| Very Active | 50 kcal/kg | Täglich Sport, körperlicher Job | 3400 kcal |
 
 **Quick-Add Modal:**
 - Tab 1: Kalorien (+100, +200, +300 kcal)

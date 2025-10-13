@@ -49,6 +49,9 @@ export function combineTrackingWithSmart(
 
     const water = (manual?.water ?? 0) + (smart?.water ?? 0);
     const protein = (manual?.protein ?? 0) + (smart?.protein ?? 0);
+    const calories = (manual?.calories ?? 0) + (smart?.calories ?? 0);
+    const carbsG = (manual?.carbsG ?? 0) + (smart?.carbsG ?? 0);
+    const fatG = (manual?.fatG ?? 0) + (smart?.fatG ?? 0);
     const pushupsTotal = (manual.pushups?.total ?? 0) + (smart.pushups ?? 0);
 
     const pushups = (() => {
@@ -84,6 +87,9 @@ export function combineTrackingWithSmart(
       sports,
       water,
       protein,
+      calories: calories > 0 ? calories : undefined,
+      carbsG: carbsG > 0 ? carbsG : undefined,
+      fatG: fatG > 0 ? fatG : undefined,
       pushups,
       weight,
       completed: manual?.completed ?? false,

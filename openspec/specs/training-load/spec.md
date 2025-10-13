@@ -1,7 +1,8 @@
-# Training Load & Recovery System
+# training-load Specification
 
-## ADDED Requirements
-
+## Purpose
+TBD - created by archiving change document-training-load. Update Purpose after archive.
+## Requirements
 ### Requirement: Daily Check-In
 The system SHALL allow users to track daily recovery metrics (sleep quality, recovery score, illness status) for training load calculation.
 
@@ -53,14 +54,18 @@ The system SHALL compute daily training load based on workouts, pushups, sleep q
 - **AND** system SHALL apply sick modifier (load reduced by 50% if sick)
 - **AND** system SHALL store result as DailyTrainingLoad
 
-#### Scenario: Training load formula
+#### Scenario: Training load formula (v1 algorithm)
 - **WHEN** computing training load
-- **THEN** system SHALL use formula: `load = baseFromWorkouts + modifierSleep + modifierRecovery + modifierSick`
-- **AND** system SHALL calculate baseFromWorkouts as sum of (workout.duration × workout.intensity × 10)
-- **AND** system SHALL include pushups as workout (1 pushup ≈ 0.5 load units)
-- **AND** modifierSleep SHALL be `(sleepScore - 5) × 20` (neutral at 5)
-- **AND** modifierRecovery SHALL be `(recoveryScore - 5) × 20` (neutral at 5)
-- **AND** modifierSick SHALL be `-load × 0.5` if sick (halves total load)
+- **THEN** system SHALL calculate session load from workouts (duration × intensity multiplier)
+- **AND** system SHALL resolve intensity multiplier as:
+  - If numeric intensity (1-10): `0.6 + 0.1 × intensity`
+  - If category: easy=0.8, mod=1.0, hard=1.3, race=1.6
+  - Default: 1.0 (moderate)
+- **AND** system SHALL calculate pushup adjustment: `min(pushupsReps/100 × sessionLoad, 0.2 × sessionLoad)`
+- **AND** system SHALL calculate wellness modifier: `0.6 + 0.04 × recoveryScore + 0.02 × sleepScore - (sick ? 0.3 : 0)`
+- **AND** wellness modifier SHALL be clamped to range [0.4, 1.4]
+- **AND** system SHALL calculate final load: `(sessionLoad + pushupAdj) × wellnessMod`
+- **AND** final load SHALL be clamped to range [0, 1000]
 
 #### Scenario: Store training load
 - **WHEN** training load is calculated
@@ -77,7 +82,7 @@ The system SHALL aggregate training load data for the current week (Mon-Sun) and
 - **THEN** system SHALL use useTrainingLoadWeek hook
 - **AND** system SHALL aggregate 7 days starting Monday
 - **AND** system SHALL calculate average load (sum / 7)
-- **AND** system SHALL calculate streak days (days with load ≥ 100%)
+- **AND** system SHALL calculate streak days (days with load ≥ 100% of max)
 - **AND** system SHALL calculate average completion percent
 
 #### Scenario: Determine badge level
@@ -87,9 +92,9 @@ The system SHALL aggregate training load data for the current week (Mon-Sun) and
   - **Optimal**: average load 200-599
   - **High**: average load ≥ 600
 - **AND** system SHALL display badge with color:
-  - Low: Blue (`bg-blue-500/20 text-blue-300`)
-  - Optimal: Green (`bg-green-500/20 text-green-300`)
-  - High: Red (`bg-red-500/20 text-red-300`)
+  - Low: Blue (`bg-blue-500/20 text-blue-300 border-blue-500/40`)
+  - Optimal: Green (`bg-green-500/20 text-green-300 border-green-500/40`)
+  - High: Red (`bg-red-500/20 text-red-300 border-red-500/40`)
 
 #### Scenario: Display weekly summary
 - **WHEN** viewing UnifiedTrainingCard
@@ -193,68 +198,3 @@ The system SHALL persist check-in and training load data in Firestore.
   - `createdAt` (Timestamp)
   - `updatedAt` (Timestamp)
 
-## Technical Notes
-
-### Implementation Files
-- `src/components/UnifiedTrainingCard.tsx` - Main training card UI
-- `src/components/checkin/CheckInModal.tsx` - Check-in modal form
-- `src/components/TrainingLoadGraph.tsx` - 7-day area chart
-- `src/hooks/useTrainingLoadWeek.ts` - Weekly statistics aggregation
-- `src/services/trainingLoad.ts` - Load calculation logic
-- `src/services/checkin.ts` - Save check-in + recalc load
-- `src/store/useStore.ts` - Zustand state (checkIns, trainingLoad)
-
-### Data Flow
-```
-User Check-In (CheckInModal)
-  ↓
-saveDailyCheckInAndRecalc()
-  ↓
-DailyCheckIn saved to Firestore
-  ↓
-computeDailyTrainingLoadV1()
-  ↓
-DailyTrainingLoad saved to Firestore
-  ↓
-Zustand store updated (checkIns, trainingLoad)
-  ↓
-UnifiedTrainingCard re-renders
-  ↓
-TrainingLoadGraph updates with new data
-```
-
-### Dependencies
-- Zustand (state management)
-- Firestore (checkIns, trainingLoad collections)
-- date-fns (week calculations)
-- recharts (TrainingLoadGraph)
-- useCombinedDailyTracking (merge manual + smart tracking)
-
-### Training Load Formula
-```typescript
-// v1 Algorithm
-const baseFromWorkouts = workouts.reduce((sum, w) => {
-  return sum + (w.durationMinutes * (w.intensity ?? 5) * 10);
-}, 0);
-const pushupsLoad = pushupsReps * 0.5;
-const baseLoad = baseFromWorkouts + pushupsLoad;
-
-const modifierSleep = (sleepScore - 5) * 20;
-const modifierRecovery = (recoveryScore - 5) * 20;
-const modifierSick = sick ? -(baseLoad * 0.5) : 0;
-
-const load = Math.max(0, baseLoad + modifierSleep + modifierRecovery + modifierSick);
-```
-
-### Badge Level Thresholds
-| Badge | Average Load | Color | Use Case |
-|-------|--------------|-------|----------|
-| Low | < 200 | Blue | Minimal training, recovery week |
-| Optimal | 200-599 | Green | Balanced training |
-| High | ≥ 600 | Red | Intense training, risk of overtraining |
-
-### Integration Notes
-- Training load calculation is **already implemented** in `src/services/trainingLoad.ts`
-- Check-in flow is **already implemented** in `src/components/checkin/CheckInModal.tsx`
-- UnifiedTrainingCard is **already implemented** and replaces deprecated TrainingLoadTile
-- This spec documents the existing system for OpenSpec compliance

@@ -51,16 +51,19 @@ Currently, the Notes system supports basic food tracking with `calories` and `pr
 
 ### Affected Specs
 - **notes** (NEW capability) - Currently undocumented, needs spec creation
-- **dashboard** - Add Calories Tile, document protein integration from notes
-- **training-load** (NEW capability) - Document Training Load system with Check-In flow
+- **dashboard** - Add NutritionTile with activity level support, document protein integration from notes
+- **user-auth** (MODIFIED) - Add Activity Level onboarding step
+- **settings** (MODIFIED) - Add Activity Level setting
 
 ### Affected Code
 - `src/types/events.ts` - Extend `FoodEvent` interface (carbsG, fatG)
-- `src/types/index.ts` - Extend `SmartTrackingContribution` (calories, carbsG, fatG)
+- `src/types/index.ts` - Extend `SmartTrackingContribution` (calories, carbsG, fatG) + Add `ActivityLevel` type + Extend `User` interface (activityLevel field)
 - `src/features/notes/trackingSync.ts` - Add carbs/fat/calories to contributions
 - `src/pages/NotesPage.tsx` - Update EventBadges to show all macros
 - `src/components/ProteinTile.tsx` - **REPLACE** with `NutritionTile.tsx`
-- `src/utils/nutrition.ts` - **NEW**: Calorie calculation (TDEE based on weight + BF%)
+- `src/utils/nutrition.ts` - **NEW**: Calorie calculation (TDEE based on weight + BF% + activity level)
+- `src/pages/OnboardingPage.tsx` - Add Activity Level selection step (after Body Fat %)
+- `src/pages/SettingsPage.tsx` - Add Activity Level setting
 - **No changes needed** to protein sync logic (already working)
 
 ### Breaking Changes

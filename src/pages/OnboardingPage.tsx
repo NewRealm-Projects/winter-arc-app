@@ -1,5 +1,5 @@
 import { useEffect, useState, ChangeEvent, useRef } from 'react';
-import { Gender, Language, Activity } from '../types';
+import { Gender, Language, Activity, ActivityLevel } from '../types';
 import { useStore } from '../store/useStore';
 import { initPushupPlan } from '../utils/pushupAlgorithm';
 import { useTranslation } from '../hooks/useTranslation';
@@ -25,11 +25,12 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   const [gender, setGender] = useState<Gender>('male');
   const [height, setHeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
+  const [activityLevel, setActivityLevel] = useState<ActivityLevel>('moderate');
   const [maxPushups, setMaxPushups] = useState('');
   const [enabledActivities, setEnabledActivities] = useState<Activity[]>(['pushups', 'sports', 'water', 'protein']);
   const [birthday, setBirthday] = useState('');
 
-  const totalSteps = birthdayOnly ? 1 : 9;
+  const totalSteps = birthdayOnly ? 1 : 10;
 
   const handleProfilePictureChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -114,6 +115,7 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
         height: parseInt(height),
         weight: 0, // Weight will be set in tracking page
         bodyFat: bodyFat ? parseFloat(bodyFat) : undefined,
+        activityLevel,
         maxPushups: parseInt(maxPushups),
         birthday: birthday || undefined,
         groupCode: '',
@@ -159,10 +161,12 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
       case 6:
         return true; // bodyFat is optional
       case 7:
-        return maxPushups && parseInt(maxPushups) > 0;
+        return activityLevel !== undefined;
       case 8:
-        return enabledActivities.length > 0; // at least one activity required
+        return maxPushups && parseInt(maxPushups) > 0;
       case 9:
+        return enabledActivities.length > 0; // at least one activity required
+      case 10:
         return true; // birthday is optional
       default:
         return false;
@@ -420,6 +424,40 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
   
             {!birthdayOnly && step === 7 && (
               <div className="space-y-4">
+                <h2 className="text-fluid-h2 font-semibold text-white">{t('onboarding.activityLevelTitle')}</h2>
+                <p className="text-sm text-white/70">{t('onboarding.activityLevelDescription')}</p>
+                <div className="space-y-3">
+                  {[
+                    { value: 'sedentary' as ActivityLevel, label: t('onboarding.activityLevelSedentary'), icon: '🪑' },
+                    { value: 'light' as ActivityLevel, label: t('onboarding.activityLevelLight'), icon: '🚶' },
+                    { value: 'moderate' as ActivityLevel, label: t('onboarding.activityLevelModerate'), icon: '🏃' },
+                    { value: 'active' as ActivityLevel, label: t('onboarding.activityLevelActive'), icon: '🏋️' },
+                    { value: 'very_active' as ActivityLevel, label: t('onboarding.activityLevelVeryActive'), icon: '💪' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setActivityLevel(option.value);
+                      }}
+                      className={`flex w-full items-center gap-3 rounded-2xl border px-5 py-3.5 transition-all ${
+                        activityLevel === option.value
+                          ? 'border-transparent bg-gradient-to-r from-winter-500/90 via-sky-500/90 to-winter-400/90 text-white shadow-[0_12px_40px_rgba(56,189,248,0.35)]'
+                          : 'border-white/10 bg-white/10 text-white/80 hover:border-white/20 hover:bg-white/10'
+                      }`}
+                    >
+                      <span className="text-2xl">{option.icon}</span>
+                      <span className="flex-1 text-left text-base font-semibold">{option.label}</span>
+                      {activityLevel === option.value && (
+                        <span className="text-xl text-sky-200">✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!birthdayOnly && step === 8 && (
+              <div className="space-y-4">
                 <h2 className="text-fluid-h2 font-semibold text-white">Maximale Liegestütze</h2>
                 <p className="text-sm text-white/70">Wie viele Liegestütze schaffst du maximal am Stück?</p>
                 <div className="relative">
@@ -451,8 +489,8 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                 )}
               </div>
             )}
-  
-            {!birthdayOnly && step === 8 && (
+
+            {!birthdayOnly && step === 9 && (
               <div className="space-y-4">
                 <h2 className="text-fluid-h2 font-semibold text-white">✅ {t('onboarding.selectActivities')}</h2>
                 <p className="text-sm text-white/70">{t('onboarding.activitiesHelp')}</p>
@@ -495,8 +533,8 @@ function OnboardingPage({ birthdayOnly = false }: OnboardingPageProps) {
                 )}
               </div>
             )}
-  
-            {!birthdayOnly && step === 9 && (
+
+            {!birthdayOnly && step === 10 && (
               <div className="space-y-4">
                 <h2 className="text-fluid-h2 font-semibold text-white">🎂 {t('onboarding.birthdayOptional')}</h2>
                 <p className="text-sm text-white/70">{t('onboarding.birthdayHelp')}</p>
