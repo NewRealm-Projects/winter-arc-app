@@ -313,14 +313,14 @@ function WeightTile() {
           </>
         }
       >
-        <div className="space-y-3">
+        <div className="flex gap-2">
           <input
             type="number"
             step="0.1"
             value={weight}
             onChange={(e) => { setWeight(e.target.value); }}
             placeholder="Gewicht (kg)"
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+            className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
             autoFocus
           />
           <input
@@ -329,7 +329,7 @@ function WeightTile() {
             value={bodyFat}
             onChange={(e) => { setBodyFat(e.target.value); }}
             placeholder="KFA (%)"
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+            className="w-24 px-2 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
           />
         </div>
       </AppModal>

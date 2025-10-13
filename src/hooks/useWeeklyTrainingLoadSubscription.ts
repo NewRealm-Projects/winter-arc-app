@@ -42,10 +42,6 @@ export function useWeeklyTrainingLoadSubscription(selectedDate?: Date): void {
       const ref = doc(db, 'users', userId, 'trainingLoad', dateKey);
       const pathString = `users/${userId}/trainingLoad/${dateKey}`;
 
-      if (import.meta.env.DEV) {
-        console.warn('[WeeklySubscribe]', pathString);
-      }
-
       const unsubscribe = onSnapshot(
         ref,
         (snapshot) => {

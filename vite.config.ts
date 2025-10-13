@@ -176,33 +176,6 @@ const plugins: PluginOption[] = [
   }) as unknown as PluginOption,
 ];
 
-// Sentry source map upload (optional)
-// To enable: npm install @sentry/vite-plugin --save-dev
-// Then uncomment the code below
-/*
-if (shouldUploadSourcemaps) {
-  const { sentryVitePlugin } = await import('@sentry/vite-plugin');
-  const releaseName =
-    process.env.SENTRY_RELEASE ??
-    process.env.VERCEL_GIT_COMMIT_SHA ??
-    process.env.GITHUB_SHA;
-
-  plugins.push(
-    sentryVitePlugin({
-      org: process.env.SENTRY_ORG ?? 'newrealm',
-      project: process.env.SENTRY_PROJECT ?? 'javascript-react',
-      authToken: process.env.SENTRY_AUTH_TOKEN,
-      telemetry: false,
-      sourcemaps: {
-        assets: './dist/assets/**',
-        filesToDeleteAfterUpload: ['./dist/assets/**/*.map', './dist/**/*.js.map'],
-      },
-      release: releaseName ? { name: releaseName } : undefined,
-    })
-  );
-}
-*/
-
 export default defineConfig({
   // Support dynamic base path for PR previews (e.g., /pr-123/)
   base: process.env.VITE_BASE_PATH || '/',
