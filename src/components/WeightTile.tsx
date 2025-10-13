@@ -6,6 +6,7 @@ import { calculateBMI } from '../utils/calculations';
 import { useTranslation } from '../hooks/useTranslation';
 import { getTileClasses, designTokens } from '../theme/tokens';
 import { useCombinedTracking, useCombinedDailyTracking } from '../hooks/useCombinedTracking';
+import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from './ui/AppModal';
 
 function WeightTile() {
   const { t } = useTranslation();
@@ -284,56 +285,54 @@ function WeightTile() {
       </div>
 
       {/* Weight Modal */}
-      {showInput && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              ⚖️ {t('tracking.weight')}
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {t('tracking.setExactAmount')}
-            </p>
-            <div className="space-y-3 mb-4">
-              <input
-                type="number"
-                step="0.1"
-                value={weight}
-                onChange={(e) => { setWeight(e.target.value); }}
-                placeholder="Gewicht (kg)"
-                className="flex-1 px-2 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
-                autoFocus
-              />
-              <input
-                type="number"
-                step="0.1"
-                value={bodyFat}
-                onChange={(e) => { setBodyFat(e.target.value); }}
-                placeholder="KFA (%)"
-                className="w-20 px-2 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
-              />
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={saveWeight}
-                disabled={!weight || parseFloat(weight) <= 0}
-                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {t('tracking.save')}
-              </button>
-              <button
-                onClick={() => {
-                  setShowInput(false);
-                  setWeight('');
-                  setBodyFat('');
-                }}
-                className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-              >
-                {t('tracking.cancel')}
-              </button>
-            </div>
-          </div>
+      <AppModal
+        open={showInput}
+        onClose={() => {
+          setShowInput(false);
+          setWeight('');
+          setBodyFat('');
+        }}
+        title={t('tracking.weight')}
+        subtitle={t('tracking.setExactAmount')}
+        icon={<span className="text-2xl">⚖️</span>}
+        size="sm"
+        footer={
+          <>
+            <ModalSecondaryButton
+              onClick={() => {
+                setShowInput(false);
+                setWeight('');
+                setBodyFat('');
+              }}
+            >
+              {t('tracking.cancel')}
+            </ModalSecondaryButton>
+            <ModalPrimaryButton onClick={saveWeight} disabled={!weight || parseFloat(weight) <= 0}>
+              {t('tracking.save')}
+            </ModalPrimaryButton>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <input
+            type="number"
+            step="0.1"
+            value={weight}
+            onChange={(e) => { setWeight(e.target.value); }}
+            placeholder="Gewicht (kg)"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+            autoFocus
+          />
+          <input
+            type="number"
+            step="0.1"
+            value={bodyFat}
+            onChange={(e) => { setBodyFat(e.target.value); }}
+            placeholder="KFA (%)"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+          />
         </div>
-      )}
+      </AppModal>
     </div>
   );
 }

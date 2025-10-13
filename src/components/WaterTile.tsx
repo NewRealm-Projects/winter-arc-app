@@ -5,6 +5,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { getTileClasses, designTokens } from '../theme/tokens';
 import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 import { formatMl, getPercent, resolveWaterGoal } from '../utils/progress';
+import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from './ui/AppModal';
 
 const WATER_DEBOUNCE_MS = 180;
 
@@ -183,47 +184,44 @@ function WaterTile() {
       </div>
 
       {/* Edit Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              💧 {t('tracking.water')}
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {t('tracking.setExactAmount')}
-            </p>
-            <input
-              type="number"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={exactValue}
-              onChange={(e) => { setExactValue(e.target.value); }}
-              onKeyDown={(e) => e.key === 'Enter' && setExactWater()}
-              placeholder="ml / L"
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none mb-4"
-              autoFocus
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={setExactWater}
-                disabled={!exactValue}
-                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {t('tracking.save')}
-              </button>
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setExactValue('');
-                }}
-                className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-              >
-                {t('tracking.cancel')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AppModal
+        open={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setExactValue('');
+        }}
+        title={t('tracking.water')}
+        subtitle={t('tracking.setExactAmount')}
+        icon={<span className="text-2xl">💧</span>}
+        size="sm"
+        footer={
+          <>
+            <ModalSecondaryButton
+              onClick={() => {
+                setShowModal(false);
+                setExactValue('');
+              }}
+            >
+              {t('tracking.cancel')}
+            </ModalSecondaryButton>
+            <ModalPrimaryButton onClick={setExactWater} disabled={!exactValue}>
+              {t('tracking.save')}
+            </ModalPrimaryButton>
+          </>
+        }
+      >
+        <input
+          type="number"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          value={exactValue}
+          onChange={(e) => { setExactValue(e.target.value); }}
+          onKeyDown={(e) => e.key === 'Enter' && setExactWater()}
+          placeholder="ml / L"
+          className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+          autoFocus
+        />
+      </AppModal>
     </>
   );
 }

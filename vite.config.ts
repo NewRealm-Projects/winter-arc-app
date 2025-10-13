@@ -4,7 +4,6 @@ import { defineConfig, type PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { sentryVitePlugin } from '@sentry/vite-plugin';
 
 const shouldUploadSourcemaps = Boolean(process.env.SENTRY_AUTH_TOKEN);
 
@@ -177,7 +176,12 @@ const plugins: PluginOption[] = [
   }) as unknown as PluginOption,
 ];
 
+// Sentry source map upload (optional)
+// To enable: npm install @sentry/vite-plugin --save-dev
+// Then uncomment the code below
+/*
 if (shouldUploadSourcemaps) {
+  const { sentryVitePlugin } = await import('@sentry/vite-plugin');
   const releaseName =
     process.env.SENTRY_RELEASE ??
     process.env.VERCEL_GIT_COMMIT_SHA ??
@@ -197,6 +201,7 @@ if (shouldUploadSourcemaps) {
     })
   );
 }
+*/
 
 export default defineConfig({
   // Support dynamic base path for PR previews (e.g., /pr-123/)

@@ -126,8 +126,9 @@ function SettingsPage() {
     }
   };
 
-  // REMOVED: Profile picture upload functionality
-  // Users now see their initials in a colored avatar instead
+  // REMOVED: Manual profile picture upload functionality (UI removed)
+  // Profile pictures are automatically synced from Google OAuth (handled by useAuth.ts)
+  // Users see initials in colored avatar if no Google picture is available
 
   const handleJoinGroup = async () => {
     if (!user) return;
