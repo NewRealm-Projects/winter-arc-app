@@ -1,38 +1,31 @@
 #
-# Staging Deployment
+# Staging Deployment (1Password Version)
 #
 # Trigger: Push to develop branch + CI success
 # Target: winter-arc-app-staging repository
 # Domain: staging.winterarc.newrealm.de
 #
-# This workflow deploys to staging ONLY after CI passes successfully.
-# Staging is used for testing before production releases.
+# This workflow uses 1Password for secrets management
+# Rename to deploy-staging.yml to activate
 #
 
-name: Deploy Staging
+name: Deploy Staging (1Password)
 
 on:
-  # Trigger after CI workflow completes successfully on develop branch
   workflow_run:
     workflows: ['CI']
     types: [completed]
     branches: [develop]
-
-  # Allow manual deployment
   workflow_dispatch:
 
-# Only one staging deployment at a time
 concurrency:
   group: deploy-staging
-  cancel-in-progress: false  # Don't cancel staging deployments
+  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
-  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # DEPLOY TO STAGING
-  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   deploy:
     name: Deploy to Staging
     runs-on: ubuntu-latest
@@ -41,7 +34,6 @@ jobs:
       name: staging
       url: https://staging.winterarc.newrealm.de
 
-    # Only deploy if CI succeeded (or manual dispatch)
     if: |
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
@@ -50,25 +42,59 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: develop  # Explicitly checkout develop branch for staging
+          ref: develop
+
+      - name: Load secrets from 1Password
+        uses: 1password/load-secrets-action@v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          # Firebase Staging
+          VITE_FIREBASE_API_KEY: op://winter-arc-app/Firebase Staging/api_key
+          VITE_FIREBASE_AUTH_DOMAIN: op://winter-arc-app/Firebase Staging/auth_domain
+          VITE_FIREBASE_PROJECT_ID: op://winter-arc-app/Firebase Staging/project_id
+          VITE_FIREBASE_STORAGE_BUCKET: op://winter-arc-app/Firebase Staging/storage_bucket
+          VITE_FIREBASE_MESSAGING_SENDER_ID: op://winter-arc-app/Firebase Staging/messaging_sender_id
+          VITE_FIREBASE_APP_ID: op://winter-arc-app/Firebase Staging/app_id
+          # Optional Services
+          VITE_GEMINI_API_KEY: op://winter-arc-app/Google Services/gemini_api_key
+          VITE_RECAPTCHA_SITE_KEY: op://winter-arc-app/Google Services/recaptcha_site_key
+          VITE_SENTRY_DSN: op://winter-arc-app/Sentry/dsn
+          # Sentry Build
+          SENTRY_AUTH_TOKEN: op://winter-arc-app/Sentry/auth_token
+          SENTRY_ORG: op://winter-arc-app/Sentry/organization
+          SENTRY_PROJECT: op://winter-arc-app/Sentry/project
+          # GitHub Deployment
+          PAGES_DEPLOY_TOKEN: op://winter-arc-app/GitHub Deployment/pages_deploy_token
 
       - name: Setup dependencies
         uses: ./.github/actions/setup-deps
 
+      - name: Get app version
+        id: get-version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Building version: $VERSION"
+
       - name: Build for staging
-        uses: ./.github/actions/build-app
-        with:
-          firebase-api-key: ${{ secrets.VITE_FIREBASE_API_KEY }}
-          firebase-auth-domain: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
-          firebase-project-id: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
-          firebase-storage-bucket: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
-          firebase-messaging-sender-id: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
-          firebase-app-id: ${{ secrets.VITE_FIREBASE_APP_ID }}
-          recaptcha-site-key: ${{ secrets.VITE_RECAPTCHA_SITE_KEY }}
-          gemini-api-key: ${{ secrets.VITE_GEMINI_API_KEY }}
-          sentry-auth-token: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          app-env: 'staging'
-          base-path: '/'
+        run: npm run build
+        env:
+          VITE_APP_ENV: 'staging'
+          VITE_BASE_PATH: '/'
+          SENTRY_RELEASE: ${{ github.sha }}
+
+      - name: Verify build output
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "❌ Build failed: dist directory not found"
+            exit 1
+          fi
+
+          echo "✅ Build successful"
+          echo "📊 Build size:"
+          du -sh dist
 
       - name: Copy CNAME for staging
         run: |
@@ -80,32 +106,22 @@ jobs:
             echo "⚠️ No CNAME.staging file found"
           fi
 
-      - name: Verify dist folder exists
-        run: |
-          echo "📂 Checking dist folder..."
-          ls -lah dist/ || echo "⚠️ dist folder not found!"
-          echo ""
-          echo "📊 Dist folder size:"
-          du -sh dist/
-          echo ""
-          echo "📄 Files in dist:"
-          find dist/ -type f | head -20
-
       - name: Deploy to staging pages repository
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           repository-name: NewRealm-Projects/winter-arc-app-staging
           branch: gh-pages
           folder: dist
-          token: ${{ secrets.PAGES_DEPLOY_TOKEN }}
-          clean: true
+          token: ${{ env.PAGES_DEPLOY_TOKEN }}
+          clean: false
+          clean-exclude: 'pr-*'
           single-commit: false
           git-config-name: github-actions[bot]
           git-config-email: github-actions[bot]@users.noreply.github.com
           commit-message: |
             🧪 Deploy staging build from ${{ github.sha }}
 
-            Version: ${{ steps.build.outputs.version }}
+            Version: ${{ steps.get-version.outputs.version }}
             Commit: ${{ github.event.head_commit.message }}
             Author: ${{ github.event.head_commit.author.name }}
 

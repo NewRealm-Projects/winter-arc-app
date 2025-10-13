@@ -7,7 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
+---
+
+## [0.1.2] - 2025-10-10
+
+### 🔥 Critical Fixes
+- **CI/CD Deployment Triggers**: Fixed staging and production deployment workflows to trigger correctly on branch pushes
+  - Updated `deploy-staging.yml` to explicitly checkout `develop` branch
+  - Updated `deploy-production.yml` to explicitly checkout `main` branch
+  - Fixed `workflow_run` trigger dependency to use workflow files from default branch
+- **Firestore Rules**: Fixed subcollection access for `users/{uid}/checkins/{date}`, `users/{uid}/trainingLoad/{date}`, and `tracking/{userId}/entries/{date}` with wildcard rules
+- **Auth Race Conditions**: Added `waitForAuth()` guard in `App.tsx` to prevent Firestore reads before auth is ready
+
+### ✨ Added
 - **Branch Naming Convention Enforcement**: Automated validation system for consistent branch naming
   - **Pattern**: `<username>/<type>-<description>` (e.g., `lars/feature-dashboard`, `niklas/fix-login-bug`)
   - **Valid types**: `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `style`
@@ -31,13 +43,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/clean` slash command for repository cleanup with confidence-based deletion and dry-run support
 - `/maintenance` slash command for orchestrating comprehensive repository maintenance tasks
 - Claude Code slash commands for agent workflows (UI-Refactor, PWA/Performance, Test/Guard, Docs/Changelog)
-- Training load revamp with activity tracking, check-in presets, and live preview
-- Git-Flow enforcement workflow for branch protection
-- **Auth-Flow improvements**: New `src/firebase/auth.ts` with automatic popup (dev) / redirect (prod) selection to avoid COOP window.close() errors
+- **Training Load Revamp**: Activity tracking with check-in presets and live preview
+- **Git-Flow Enforcement**: GitHub Actions workflow for branch protection
+- **Auth-Flow Improvements**: New `src/firebase/auth.ts` with automatic popup (dev) / redirect (prod) selection to avoid COOP window.close() errors
 - **E2E Tests**: Comprehensive check-in flow tests (`tests/e2e/checkin.spec.ts`)
 - **Unified Modal System**: New `AppModal` component (`src/components/ui/AppModal.tsx`) with consistent design, accessibility (A11y), and theme support
 
-### Changed
+### 🎨 Changed
 - **UI/UX Modernization (2025-10-10)**:
   - Removed all glassmorphism effects (backdrop-blur) from components - replaced with solid opaque backgrounds
   - Updated BottomNav (Layout.tsx) to use solid `bg-white dark:bg-gray-900` backgrounds
@@ -56,15 +68,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Training Load Formula (v1)**: Updated to use combined wellness modifier: `wellnessMod = clamp(0.6 + 0.04*recovery + 0.02*sleep - (sick? 0.3 : 0), 0.4, 1.4)` with pushup adjustment capped at 20% of session load
 - **Sentry Telemetry**: Added breadcrumbs for auth events, check-in saves, and training load calculations; increased `tracesSampleRate` to 0.2; added `allowUrls` filtering; improved 403 error handling
 
-### Fixed
-- WeeklyTile accessibility test by waiting for day data to load
-- WeeklyTile layout issues on mobile devices
-- Staging deployment with verification and git config
-- Security improvements and Husky hook enhancements
-- **Firestore Rules**: Fixed subcollection access for `users/{uid}/checkins/{date}`, `users/{uid}/trainingLoad/{date}`, and `tracking/{userId}/entries/{date}` with wildcard rules
-- **Auth Race Conditions**: Added `waitForAuth()` guard in `App.tsx` to prevent Firestore reads before auth is ready
+### 🐛 Fixed
+- **WeeklyTile Accessibility**: Fixed test by waiting for day data to load
+- **WeeklyTile Layout**: Fixed layout issues on mobile devices
+- **Husky Hooks**: Security improvements and enhanced hook logic
 
-### Maintenance
+### 🧹 Maintenance
 - Remove temporary files (`nul`, `tmp_pwa_prompt.tsx`)
 - Archive old setup/report files (CLEANUP_REPORT.md, FIREBASE_AUTH_SETUP.md)
 - Add cleanup configuration (`cleanup.config.json`)
@@ -379,6 +388,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance budgets monitoring
 - Bundle size analysis with rollup-plugin-visualizer
 
-[unreleased]: https://github.com/WildDragonKing/winter-arc-app/compare/v0.0.2...HEAD
-[0.0.2]: https://github.com/WildDragonKing/winter-arc-app/compare/v0.0.1...v0.0.2
-[0.0.1]: https://github.com/WildDragonKing/winter-arc-app/releases/tag/v0.0.1
+[unreleased]: https://github.com/NewRealm-Projects/winter-arc-app/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/NewRealm-Projects/winter-arc-app/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/NewRealm-Projects/winter-arc-app/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/NewRealm-Projects/winter-arc-app/compare/v0.0.5...v0.1.0
+[0.0.5]: https://github.com/NewRealm-Projects/winter-arc-app/compare/v0.0.4...v0.0.5
+[0.0.4]: https://github.com/NewRealm-Projects/winter-arc-app/compare/v0.0.3...v0.0.4
+[0.0.3]: https://github.com/NewRealm-Projects/winter-arc-app/compare/v0.0.2...v0.0.3
+[0.0.2]: https://github.com/NewRealm-Projects/winter-arc-app/compare/v0.0.1...v0.0.2
+[0.0.1]: https://github.com/NewRealm-Projects/winter-arc-app/releases/tag/v0.0.1

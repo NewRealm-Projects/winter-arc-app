@@ -62,3 +62,5 @@ stats.html
 
 # Agent artifacts (generated reports, screenshots, etc.)
 artifacts/
+.env.backup
+.env.local.backup
