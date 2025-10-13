@@ -248,19 +248,19 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Core React framework
+          // Core React framework + Recharts (must load together)
+          // FIX: Recharts needs React, so bundle together to prevent
+          // "Cannot read properties of undefined (reading 'forwardRef')" error
           if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
             return 'vendor';
+          }
+          if (id.includes('recharts') || id.includes('d3')) {
+            return 'vendor';  // Bundle with React to ensure correct load order
           }
 
           // Firebase SDK (large, but often used)
           if (id.includes('firebase')) {
             return 'firebase';
-          }
-
-          // Charts library (heavy, lazy-loaded)
-          if (id.includes('recharts') || id.includes('d3')) {
-            return 'charts';
           }
 
           // AI library (very heavy, lazy-loaded)

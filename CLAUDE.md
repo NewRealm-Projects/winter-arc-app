@@ -61,31 +61,93 @@ npm run lint && npm run format:check && npm run typecheck && npm test -- --cover
 
 ## Branching & Workflow
 
-- `main` - Production (protected)
-- `develop` - Staging
-- `feat/<topic>` - Feature branches
-- `fix/<topic>` - Bug fixes
+**MANDATORY**: The `main` branch is PROTECTED and requires Pull Requests.
 
-**PR Checklist:**
+### Branch Naming Convention
+
+**Format**: `<username>/<type>-<description>`
+
+**Valid Types**: `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `style`
+
+**Examples:**
+```bash
+# ✅ CORRECT
+lbuettge/feature-dashboard
+niklas/chore-cleanup
+daniel/fix-login-bug
+lars/refactor-api-client
+
+# ❌ WRONG
+feat/dashboard           # Missing username
+lbuettge-feature         # Wrong separator
+feature-dashboard        # Missing username
+```
+
+### Workflow
+
+1. **Create Feature Branch** (MANDATORY):
+   ```bash
+   git checkout -b <username>/<type>-<description>
+   ```
+
+2. **Work on Changes**:
+   ```bash
+   git add .
+   git commit -m "type: description"
+   ```
+
+3. **Push to Remote**:
+   ```bash
+   git push -u origin <username>/<type>-<description>
+   ```
+
+4. **Create Pull Request**:
+   ```bash
+   gh pr create --title "type: description" --body "..." --base main
+   ```
+
+5. **Wait for CI & Review**:
+   - CI must pass (TypeScript, ESLint, Tests, Build)
+   - Codacy checks must pass
+   - At least 1 approval required
+
+6. **Merge**:
+   - Squash and merge (preferred)
+   - Delete branch after merge
+
+### Protected Branches
+
+- **`main`**: Production (requires PR + CI + approval)
+- **`develop`**: Staging (requires PR + CI)
+
+**NEVER** push directly to `main` or `develop`!
+
+### PR Checklist
+
+- [ ] Branch name follows convention (`<username>/<type>-<description>`)
 - [ ] Codacy Passed
 - [ ] All tests pass (`npm run test:all`)
 - [ ] CHANGELOG.md updated
 - [ ] package.json version bumped (SemVer)
 - [ ] Git hooks passed
 - [ ] Screenshots for UI changes
+- [ ] PR description includes summary and test plan
 
-**Commit format:**
+### Commit Format
+
 ```
 type(scope): subject
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 Co-Authored-By: Claude <noreply@anthropic.com>
 ```
-Types: `feat`, `fix`, `refactor`, `chore`, `test`, `docs`, `style`, `perf`
 
-**Husky Hooks:**
-- Pre-commit: TypeScript + ESLint
-- Pre-push: TypeScript + ESLint + Tests + Build
+**Types**: `feat`, `fix`, `refactor`, `chore`, `test`, `docs`, `style`, `perf`
+
+### Git Hooks
+
+- **Pre-commit**: TypeScript + ESLint + Secret Scanning
+- **Pre-push**: TypeScript + ESLint + Tests + Build + Branch Name Validation
 
 ---
 

@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:1p-prod": "op run --env-file=.env.1password.production -- npm run dev",
+    "dev:1p-staging": "op run --env-file=.env.1password.staging -- npm run dev",
     "build": "tsc -b && vite build",
+    "build:1p-prod": "op run --env-file=.env.1password.production -- npm run build",
+    "build:1p-staging": "op run --env-file=.env.1password.staging -- npm run build",
     "preview": "vite preview",
     "lint": "npm run lint:code && npm run lint:secrets",
     "lint:code": "eslint .",
