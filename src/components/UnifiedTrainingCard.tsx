@@ -5,6 +5,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 import { useTrainingLoadWeek } from '../hooks/useTrainingLoadWeek';
 import { useWeeklyTrainingLoadSubscription } from '../hooks/useWeeklyTrainingLoadSubscription';
+import { useCheckInSubscription } from '../hooks/useCheckInSubscription';
 import { getTileClasses, designTokens } from '../theme/tokens';
 import { normalizeSports, countActiveSports } from '../utils/sports';
 import type { SportKey, SportEntry } from '../types';
@@ -52,6 +53,9 @@ function UnifiedTrainingCard() {
 
   // Subscribe to training load for all 7 days of current week
   useWeeklyTrainingLoadSubscription(selectedDate ? new Date(selectedDate) : new Date());
+
+  // Subscribe to check-in data for the active date
+  useCheckInSubscription(activeDate);
 
   // Weekly statistics
   const weekStats = useTrainingLoadWeek();

@@ -25,12 +25,6 @@ export function useCheckInSubscription(dateKey?: string): void {
     const ref = doc(db, 'users', userId, 'checkins', dateKey);
     const pathString = `users/${userId}/checkins/${dateKey}`;
 
-    if (import.meta.env.DEV) {
-      console.warn('[Auth]', auth.currentUser?.uid ?? null);
-      console.warn('[Subscribe]', pathString);
-      console.warn('[FS]', { userId, path: pathString });
-    }
-
     const unsubscribe = onSnapshot(
       ref,
       (snapshot) => {

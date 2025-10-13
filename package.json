@@ -96,5 +96,8 @@
     "vitest-axe": "^0.1.0",
     "wait-on": "^9.0.1",
     "workbox-window": "^7.3.0"
+  },
+  "overrides": {
+    "tmp": "^0.2.5"
   }
 }

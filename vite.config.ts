@@ -196,11 +196,11 @@ export default defineConfig({
       // CSP for development (more permissive for HMR)
       'Content-Security-Policy': [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com",
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data: https: blob:",
         "font-src 'self' data:",
-        "connect-src 'self' ws: wss: http://localhost:* https://*.firebaseio.com https://firestore.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://firebaseinstallations.googleapis.com https://api.openweathermap.org https://api.open-meteo.com https://generativelanguage.googleapis.com https://*.sentry.io",
+        "connect-src 'self' ws: wss: http://localhost:* https://*.firebaseio.com https://firestore.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://firebaseinstallations.googleapis.com https://content-firebaseappcheck.googleapis.com https://api.openweathermap.org https://api.open-meteo.com https://generativelanguage.googleapis.com https://*.sentry.io",
         "frame-src https://*.firebaseapp.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",

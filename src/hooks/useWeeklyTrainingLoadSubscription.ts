@@ -1,5 +1,5 @@
 import { doc, onSnapshot, type FirestoreError } from 'firebase/firestore';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { startOfWeek, addDays, format } from 'date-fns';
 import { auth, db } from '../firebase';
 import { useStore } from '../store/useStore';
@@ -18,6 +18,12 @@ export function useWeeklyTrainingLoadSubscription(selectedDate?: Date): void {
   const setTrainingLoadForDate = useStore((state) => state.setTrainingLoadForDate);
   const isDemoMode = isDemoModeActive();
 
+  // Calculate stable week key to prevent re-subscribes when only the day changes
+  const weekKey = useMemo(() => {
+    const weekStart = startOfWeek(selectedDate || new Date(), { weekStartsOn: 1 });
+    return format(weekStart, 'yyyy-MM-dd');
+  }, [selectedDate]);
+
   useEffect(() => {
     if (isTestEnv || isDemoMode || !userId) {
       return undefined;
@@ -30,7 +36,7 @@ export function useWeeklyTrainingLoadSubscription(selectedDate?: Date): void {
     }
 
     // Calculate Monday of the week (week starts on Monday)
-    const weekStart = startOfWeek(selectedDate || new Date(), { weekStartsOn: 1 });
+    const weekStart = startOfWeek(new Date(weekKey), { weekStartsOn: 1 });
 
     // Array to store all unsubscribe functions
     const unsubscribes: (() => void)[] = [];
@@ -70,5 +76,5 @@ export function useWeeklyTrainingLoadSubscription(selectedDate?: Date): void {
     return () => {
       unsubscribes.forEach((unsub) => unsub());
     };
-  }, [isTestEnv, isDemoMode, userId, selectedDate, setTrainingLoadForDate]);
+  }, [isTestEnv, isDemoMode, userId, weekKey, setTrainingLoadForDate]);
 }
