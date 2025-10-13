@@ -744,44 +744,44 @@ function SettingsPage() {
                           </div>
                         </div>
 
-                        {[{
+                        {([{
                           key: 'nickname',
                           label: t('settings.nickname'),
                           value: editNickname,
                           onChange: (value: string) => { setEditNickname(value); },
-                          type: 'text',
+                          type: 'text' as const,
                         }, {
                           key: 'height',
                           label: t('settings.height'),
                           value: editHeight,
                           onChange: (value: string) => { setEditHeight(value); },
-                          type: 'number',
+                          type: 'number' as const,
                         }, {
                           key: 'weight',
                           label: t('settings.weight'),
                           value: editWeight,
                           onChange: (value: string) => { setEditWeight(value); },
-                          type: 'number',
+                          type: 'number' as const,
                         }, {
                           key: 'bodyFat',
                           label: t('settings.bodyFat'),
                           value: editBodyFat,
                           onChange: (value: string) => { setEditBodyFat(value); },
-                          type: 'number',
+                          type: 'number' as const,
                           step: '0.1',
                         }, {
                           key: 'maxPushups',
                           label: t('settings.maxPushups'),
                           value: editMaxPushups,
                           onChange: (value: string) => { setEditMaxPushups(value); },
-                          type: 'number',
-                        }].map((field) => (
+                          type: 'number' as const,
+                        }] as const).map((field) => (
                           <label key={field.key} className="flex flex-col gap-2 text-sm font-medium">
                             <span className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">{field.label}</span>
                             <input
                               type={field.type}
                               value={field.value}
-                              step={field.step}
+                              step={'step' in field ? field.step : undefined}
                               onChange={(event) => { field.onChange(event.target.value); }}
                               className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white outline-none transition focus:border-white/40 focus:ring-2 focus:ring-white/30"
                             />
@@ -818,20 +818,6 @@ function SettingsPage() {
                             ))}
                           </div>
                         </div>
-
-                        {/* Remove the duplicate field.map rendering below since we already rendered fields above */}
-                        {[].map((field) => (
-                          <label key={field.key} className="flex flex-col gap-2 text-sm font-medium">
-                            <span className="text-xs font-semibold uppercase tracking-[0.28em] text-white/50">{field.label}</span>
-                            <input
-                              type={field.type}
-                              value={field.value}
-                              step={field.step}
-                              onChange={(event) => { field.onChange(event.target.value); }}
-                              className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-white outline-none transition focus:border-white/40 focus:ring-2 focus:ring-white/30"
-                            />
-                          </label>
-                        ))}
 
                         <div className="flex flex-col gap-2 md:flex-row">
                           <button

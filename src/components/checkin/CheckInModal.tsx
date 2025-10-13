@@ -1,11 +1,5 @@
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useState, type ChangeEvent } from 'react';
 import { saveDailyCheckInAndRecalc } from '../../services/checkin';
-import {
-  buildWorkoutEntriesFromTracking,
-  computeDailyTrainingLoadV1,
-  resolvePushupsFromTracking,
-} from '../../services/trainingLoad';
-import { useCombinedDailyTracking } from '../../hooks/useCombinedTracking';
 import { useToast } from '../../hooks/useToast';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useStore } from '../../store/useStore';
@@ -36,10 +30,6 @@ export default function CheckInModal({
   const { showToast } = useToast();
 
   const checkIn = useStore((state) => state.checkIns[dateKey]);
-  const trackingRecord = useStore((state) => state.tracking);
-
-  const combinedDaily = useCombinedDailyTracking(dateKey);
-  const manualDaily = trackingRecord[dateKey];
 
   const [sleepScore, setSleepScore] = useState<number>(checkIn?.sleepScore ?? 5);
   const [recoveryScore, setRecoveryScore] = useState<number>(checkIn?.recoveryScore ?? 5);
@@ -54,31 +44,6 @@ export default function CheckInModal({
     setRecoveryScore(checkIn?.recoveryScore ?? 5);
     setIsSick(checkIn?.sick ?? false);
   }, [isOpen, checkIn?.sleepScore, checkIn?.recoveryScore, checkIn?.sick]);
-
-  const aggregatedTracking = useMemo(() => {
-    return combinedDaily ?? manualDaily;
-  }, [combinedDaily, manualDaily]);
-
-  // Use existing workouts from tracking
-  const allWorkouts = useMemo(() => {
-    return buildWorkoutEntriesFromTracking(aggregatedTracking);
-  }, [aggregatedTracking]);
-
-  const pushupsReps = useMemo(
-    () => resolvePushupsFromTracking(aggregatedTracking),
-    [aggregatedTracking]
-  );
-
-  // Live computation for preview
-  const liveComputation = useMemo(() => {
-    return computeDailyTrainingLoadV1({
-      workouts: allWorkouts,
-      pushupsReps,
-      sleepScore,
-      recoveryScore,
-      sick: isSick,
-    });
-  }, [allWorkouts, pushupsReps, sleepScore, recoveryScore, isSick]);
 
   const handleSave = useCallback(async () => {
     if (isSaving) {
