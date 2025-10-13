@@ -293,7 +293,7 @@ function WeightTile() {
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               {t('tracking.setExactAmount')}
             </p>
-            <div className="space-y-3 mb-4">
+            <div className="flex gap-2 mb-4">
               <input
                 type="number"
                 step="0.1"
@@ -309,7 +309,7 @@ function WeightTile() {
                 value={bodyFat}
                 onChange={(e) => { setBodyFat(e.target.value); }}
                 placeholder="KFA (%)"
-                className="w-20 px-2 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+                className="w-24 px-2 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
               />
             </div>
             <div className="flex gap-2">
