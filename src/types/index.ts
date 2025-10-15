@@ -23,6 +23,14 @@ export interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+export interface DrinkPreset {
+  id: string; // UUID
+  name: string; // Max 30 chars
+  amountMl: number; // 50-5000ml
+  emoji?: string; // Optional single emoji, default: 💧
+  order: number; // Display order (0-4)
+}
+
 export interface User {
   id: string;
   language: Language;
@@ -31,6 +39,7 @@ export interface User {
   height: number; // cm
   weight: number; // kg
   hydrationGoalLiters?: number;
+  hydrationPresets?: DrinkPreset[]; // Max 5 custom drink presets
   proteinGoalGrams?: number;
   bodyFat?: number; // %
   activityLevel?: ActivityLevel; // User's activity level for TDEE calculation (default: 'moderate')

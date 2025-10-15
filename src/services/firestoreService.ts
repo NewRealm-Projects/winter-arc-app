@@ -1,6 +1,6 @@
 import { doc, setDoc, getDoc, collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase';
-import type { User, DailyTracking, GroupMember, TrackingRecord } from '../types';
+import type { User, DailyTracking, GroupMember, TrackingRecord, DrinkPreset } from '../types';
 import { countActiveSports } from '../utils/sports';
 
 type AnyRecord = Record<string, unknown>;
@@ -72,6 +72,15 @@ export async function updateUser(userId: string, updates: Partial<Omit<User, 'id
     return { success: true };
   } catch (error) {
     console.error('Error updating user:', error);
+    return { success: false, error };
+  }
+}
+
+export async function updateHydrationPresets(userId: string, presets: DrinkPreset[]) {
+  try {
+    return await updateUser(userId, { hydrationPresets: presets });
+  } catch (error) {
+    console.error('Error updating hydration presets:', error);
     return { success: false, error };
   }
 }

@@ -45,8 +45,8 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@sentry/react": "10.18.0",
+    "@types/uuid": "^10.0.0",
     "date-fns": "^4.1.0",
     "dexie": "^4.2.1",
     "firebase": "^12.3.0",
@@ -56,6 +56,7 @@
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.4",
     "recharts": "^3.2.1",
+    "uuid": "^13.0.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

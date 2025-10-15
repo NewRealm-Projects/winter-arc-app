@@ -171,11 +171,11 @@ function NutritionTile() {
           <div className="flex items-center gap-2">
             <div className="text-xl">🍽️</div>
             <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400">
-              {t('dashboard.nutrition.title')}
+              {t('nutrition.title')}
             </h3>
           </div>
           <div className="text-sm font-bold text-orange-600 dark:text-orange-400">
-            {formatNumber(totalCalories)} {t('dashboard.nutrition.kcal')}
+            {formatNumber(totalCalories)} {t('nutrition.kcal')}
           </div>
         </div>
 
@@ -190,12 +190,12 @@ function NutritionTile() {
                 />
               </div>
               <div className="mt-1.5 text-xs text-gray-500 dark:text-gray-400 text-center">
-                {caloriesPercent}% / {formatNumber(goals.calories)} {t('dashboard.nutrition.kcal')}
+                {caloriesPercent}% / {formatNumber(goals.calories)} {t('nutrition.kcal')}
               </div>
             </>
           ) : (
             <div className="mt-2 text-xs text-orange-200 bg-orange-500/10 rounded-lg px-3 py-2 text-center">
-              {hasWeight ? t('tracking.setGoal') : t('dashboard.nutrition.hintSetWeight')}
+              {hasWeight ? t('tracking.setGoal') : t('nutrition.hintSetWeight')}
             </div>
           )}
         </div>
@@ -206,30 +206,30 @@ function NutritionTile() {
             {/* Protein */}
             <div className="flex items-center justify-between">
               <span className="text-gray-600 dark:text-gray-400">
-                {t('dashboard.nutrition.protein')}:
+                {t('nutrition.protein')}:
               </span>
               <span className="font-medium text-gray-900 dark:text-white">
-                {formatNumber(totalProtein)} / {formatNumber(goals.protein)} {t('dashboard.nutrition.grams')} ({proteinPercent}%)
+                {formatNumber(totalProtein)} / {formatNumber(goals.protein)} {t('nutrition.grams')} ({proteinPercent}%)
               </span>
             </div>
 
             {/* Carbs */}
             <div className="flex items-center justify-between">
               <span className="text-gray-600 dark:text-gray-400">
-                {t('dashboard.nutrition.carbs')}:
+                {t('nutrition.carbs')}:
               </span>
               <span className="font-medium text-gray-900 dark:text-white">
-                {formatNumber(totalCarbs)} / {formatNumber(goals.carbs)} {t('dashboard.nutrition.grams')} ({carbsPercent}%)
+                {formatNumber(totalCarbs)} / {formatNumber(goals.carbs)} {t('nutrition.grams')} ({carbsPercent}%)
               </span>
             </div>
 
             {/* Fat */}
             <div className="flex items-center justify-between">
               <span className="text-gray-600 dark:text-gray-400">
-                {t('dashboard.nutrition.fat')}:
+                {t('nutrition.fat')}:
               </span>
               <span className="font-medium text-gray-900 dark:text-white">
-                {formatNumber(totalFat)} / {formatNumber(goals.fat)} {t('dashboard.nutrition.grams')} ({fatPercent}%)
+                {formatNumber(totalFat)} / {formatNumber(goals.fat)} {t('nutrition.grams')} ({fatPercent}%)
               </span>
             </div>
           </div>
@@ -241,13 +241,13 @@ function NutritionTile() {
             <div className="flex items-center gap-1">
               <span>💡</span>
               <span>
-                {user?.bodyFat ? t('dashboard.nutrition.hintGoal') : t('dashboard.nutrition.hintGoalNoBodyFat')}
+                {user?.bodyFat ? t('nutrition.hintGoal') : t('nutrition.hintGoalNoBodyFat')}
               </span>
             </div>
             {hasSmartContributions && (
               <div className="flex items-center gap-1">
                 <span>🔗</span>
-                <span>{t('dashboard.nutrition.hintSmartContributions')}</span>
+                <span>{t('nutrition.hintSmartContributions')}</span>
               </div>
             )}
           </div>
@@ -265,7 +265,7 @@ function NutritionTile() {
                 }}
                 className="px-2 py-1.5 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 text-orange-600 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors font-medium text-xs"
               >
-                +{amount} {t('dashboard.nutrition.kcal')}
+                +{amount} {t('nutrition.kcal')}
               </button>
             ))}
           </div>
@@ -274,7 +274,7 @@ function NutritionTile() {
             onClick={openModal}
             className="w-full py-1 text-xs text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
           >
-            ✏️ {t('dashboard.nutrition.edit')}
+            ✏️ {t('nutrition.edit')}
           </button>
         </div>
       </div>
@@ -286,7 +286,7 @@ function NutritionTile() {
           setShowModal(false);
           setInputValues({ calories: '', protein: '', carbs: '', fat: '' });
         }}
-        title={t('dashboard.nutrition.title')}
+        title={t('nutrition.title')}
         subtitle={t('tracking.setExactAmount')}
         icon={<span className="text-2xl">🍽️</span>}
         size="md"
@@ -321,7 +321,7 @@ function NutritionTile() {
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              {t(`dashboard.nutrition.${tab}`)}
+              {t(`nutrition.${tab}`)}
             </button>
           ))}
         </div>
@@ -340,7 +340,7 @@ function NutritionTile() {
                 className="px-4 py-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 text-orange-600 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors font-medium text-sm"
               >
                 +{amount}
-                {activeTab === 'calories' ? ` ${t('dashboard.nutrition.kcal')}` : ` ${t('dashboard.nutrition.grams')}`}
+                {activeTab === 'calories' ? ` ${t('nutrition.kcal')}` : ` ${t('nutrition.grams')}`}
               </button>
             ))}
           </div>
@@ -350,7 +350,7 @@ function NutritionTile() {
         <div className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('dashboard.nutrition.calories')} ({t('dashboard.nutrition.kcal')})
+              {t('nutrition.calories')} ({t('nutrition.kcal')})
             </label>
             <input
               type="number"
@@ -367,7 +367,7 @@ function NutritionTile() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('dashboard.nutrition.protein')} ({t('dashboard.nutrition.grams')})
+              {t('nutrition.protein')} ({t('nutrition.grams')})
             </label>
             <input
               type="number"
@@ -384,7 +384,7 @@ function NutritionTile() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('dashboard.nutrition.carbs')} ({t('dashboard.nutrition.grams')})
+              {t('nutrition.carbs')} ({t('nutrition.grams')})
             </label>
             <input
               type="number"
@@ -401,7 +401,7 @@ function NutritionTile() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {t('dashboard.nutrition.fat')} ({t('dashboard.nutrition.grams')})
+              {t('nutrition.fat')} ({t('nutrition.grams')})
             </label>
             <input
               type="number"

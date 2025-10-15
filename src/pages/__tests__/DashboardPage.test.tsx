@@ -29,7 +29,7 @@ vi.mock('../../components/PushupTile', () => ({
   default: () => <div data-testid="pushup-tile" />,
 }));
 
-vi.mock('../../components/WaterTile', () => ({
+vi.mock('../../components/HydrationTile', () => ({
   default: () => <div data-testid="water-tile" />,
 }));
 
