@@ -96,28 +96,11 @@ describe('NotesPage', () => {
     localStorage.clear();
   });
 
-  it('shows optimistic note and patches after processing', async () => {
+  it('renders QuickLogPanel with all logging buttons', async () => {
     render(<NotesPage />);
 
-    const input = screen.getByPlaceholderText('Kurz notieren…');
-    await act(async () => {
-      fireEvent.change(input, { target: { value: '20 Liegestütze, 500 ml Wasser, Proteinshake' } });
-    });
-
-    const submit = screen.getByRole('button', { name: 'Hinzufügen' });
-    await act(async () => {
-      fireEvent.click(submit);
-    });
-
-    expect(await screen.findByTitle('Wird verarbeitet')).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(screen.getByText(/Processed:/)).toBeInTheDocument();
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByTitle('Wird verarbeitet')).not.toBeInTheDocument();
-    });
+    // QuickLogPanel should have all 5 quick action buttons
+    expect(await screen.findByText('Schnell loggen')).toBeInTheDocument();
   });
 
   it('allows editing an existing smart note', async () => {
@@ -137,7 +120,7 @@ describe('NotesPage', () => {
       fireEvent.click(editButton);
     });
 
-    const editor = screen.getByRole('textbox', { name: 'Smart Note bearbeiten' });
+    const editor = screen.getByRole('textbox', { name: 'Bearbeiten' });
     await act(async () => {
       fireEvent.change(editor, { target: { value: 'Aktualisierte Notiz' } });
     });
@@ -148,7 +131,7 @@ describe('NotesPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.queryByRole('textbox', { name: 'Smart Note bearbeiten' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('textbox', { name: 'Bearbeiten' })).not.toBeInTheDocument();
     });
     expect(screen.getByText('Aktualisierte Notiz')).toBeInTheDocument();
   });

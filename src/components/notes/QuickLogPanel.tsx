@@ -9,6 +9,7 @@ import WeightLogModal, { type WeightLogData } from './WeightLogModal';
 import PushupLogModal, { type PushupLogData } from './PushupLogModal';
 import { saveDailyTracking, getDailyTracking } from '../../services/firestoreService';
 import { auth } from '../../firebase';
+import type { SportTracking } from '../../types';
 
 type ModalType = 'drink' | 'food' | 'pushup' | 'workout' | 'weight' | null;
 
@@ -59,9 +60,6 @@ function QuickLogPanel() {
 
     // Sync to Firebase
     await saveDailyTracking(userId, dateKey, updatedTracking);
-
-    // TODO: Create DrinkEvent for history (future implementation)
-    console.log('Drink logged:', data);
   };
 
   const handleFoodSave = async (data: FoodLogData) => {
@@ -87,9 +85,6 @@ function QuickLogPanel() {
 
     // Sync to Firebase
     await saveDailyTracking(userId, dateKey, updatedTracking);
-
-    // TODO: Create FoodEvent for history (future implementation)
-    console.log('Food logged:', data);
   };
 
   const handlePushupSave = async (data: PushupLogData) => {
@@ -115,9 +110,6 @@ function QuickLogPanel() {
 
     // Sync to Firebase
     await saveDailyTracking(userId, dateKey, updatedTracking);
-
-    // TODO: Create PushupEvent for history (future implementation)
-    console.log('Pushups logged:', data);
   };
 
   const handleWorkoutSave = async (data: WorkoutLogData) => {
@@ -130,7 +122,7 @@ function QuickLogPanel() {
     const result = await getDailyTracking(userId, dateKey);
     const currentTracking = result.success && result.data
       ? result.data
-      : { date: dateKey, water: 0, protein: 0, sports: {}, completed: false };
+      : { date: dateKey, water: 0, protein: 0, sports: {} as SportTracking, completed: false };
 
     // Update sports tracking
     const sportEntry = data.sport === 'rest'
@@ -141,22 +133,19 @@ function QuickLogPanel() {
           intensity: data.intensity === 'easy' ? 3 : data.intensity === 'moderate' ? 6 : 9,
         };
 
-    const updatedTracking: typeof currentTracking = {
+    const updatedTracking = {
       ...currentTracking,
       sports: {
         ...currentTracking.sports,
         [data.sport]: sportEntry,
-      },
+      } as typeof currentTracking.sports,
     };
 
     // Update local state (optimistic)
-    updateDayTracking(dateKey, updatedTracking as any);
+    updateDayTracking(dateKey, updatedTracking);
 
     // Sync to Firebase
-    await saveDailyTracking(userId, dateKey, updatedTracking as any);
-
-    // TODO: Create WorkoutEvent for history (future implementation)
-    console.log('Workout logged:', data);
+    await saveDailyTracking(userId, dateKey, updatedTracking);
   };
 
   const handleWeightSave = async (data: WeightLogData) => {
@@ -189,9 +178,6 @@ function QuickLogPanel() {
       const { updateUser } = await import('../../services/firestoreService');
       await updateUser(userId, { weight: data.weight, bodyFat: data.bodyFat });
     }
-
-    // TODO: Create WeightEvent for history (future implementation)
-    console.log('Weight logged:', data);
   };
 
   return (
