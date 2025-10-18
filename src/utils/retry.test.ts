@@ -56,6 +56,8 @@ describe('retryWithBackoff', () => {
     const mockFn = vi.fn().mockRejectedValue(error);
 
     const promise = retryWithBackoff(mockFn, { maxRetries: 3 });
+    // Prevent unhandled rejection warning
+    promise.catch(() => {});
 
     // Fast-forward through delays: 1s, 2s
     await vi.advanceTimersByTimeAsync(1000); // First retry
@@ -79,6 +81,8 @@ describe('retryWithBackoff', () => {
       maxRetries: 3,
       baseDelay: 1000,
     });
+    // Prevent unhandled rejection warning
+    promise.catch(() => {});
 
     // First attempt: immediate
     expect(mockFn).toHaveBeenCalledTimes(1);
@@ -162,6 +166,8 @@ describe('retryWithBackoff', () => {
     const mockFn = vi.fn().mockRejectedValue(new Error('Fail'));
 
     const promise = retryWithBackoff(mockFn, { maxRetries: 2 });
+    // Prevent unhandled rejection warning
+    promise.catch(() => {});
 
     // Fast-forward through delays
     await vi.advanceTimersByTimeAsync(1000); // First retry

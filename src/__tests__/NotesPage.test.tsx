@@ -1,4 +1,5 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { renderWithProviders } from 'test/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import NotesPage from '../pages/NotesPage';
 import { SmartNote } from '../types/events';
@@ -97,7 +98,7 @@ describe('NotesPage', () => {
   });
 
   it('renders QuickLogPanel with all logging buttons', async () => {
-    render(<NotesPage />);
+    renderWithProviders(<NotesPage />);
 
     // QuickLogPanel should have all 5 quick action buttons
     expect(await screen.findByText('Schnell loggen')).toBeInTheDocument();
@@ -113,7 +114,7 @@ describe('NotesPage', () => {
     };
     await noteStoreMock.add(existing);
 
-    render(<NotesPage />);
+    renderWithProviders(<NotesPage />);
 
     const editButton = await screen.findByRole('button', { name: 'Bearbeiten' });
     await act(async () => {
@@ -148,7 +149,7 @@ describe('NotesPage', () => {
 
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
 
-    render(<NotesPage />);
+    renderWithProviders(<NotesPage />);
 
     const deleteButton = await screen.findByRole('button', { name: 'Löschen' });
     await act(async () => {
