@@ -53,6 +53,7 @@ function HydrationTile() {
   const [exactValue, setExactValue] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingAmountRef = useRef(0);
+  const manualInputRef = useRef<HTMLInputElement>(null);
 
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
@@ -307,6 +308,7 @@ function HydrationTile() {
         subtitle={t('tracking.setExactAmount')}
         icon={<span className="text-2xl">💧</span>}
         size="sm"
+        initialFocusRef={manualInputRef}
         footer={
           <>
             <ModalSecondaryButton
@@ -324,6 +326,7 @@ function HydrationTile() {
         }
       >
         <input
+          ref={manualInputRef}
           type="number"
           inputMode="numeric"
           pattern="[0-9]*"
@@ -334,7 +337,6 @@ function HydrationTile() {
           onKeyDown={(e) => e.key === 'Enter' && setExactWater()}
           placeholder="ml / L"
           className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-          autoFocus
         />
       </AppModal>
 

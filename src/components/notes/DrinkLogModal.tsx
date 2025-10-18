@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
 import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from '../ui/AppModal';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
+import { updateHydrationPresets } from '../../services/firestoreService';
+import { validatePreset, sanitizePreset, PRESET_CONSTRAINTS } from '../../utils/presetValidation';
 import PresetButton from '../hydration/PresetButton';
 import type { DrinkPreset } from '../../types';
 
@@ -30,15 +33,23 @@ const BEVERAGE_OPTIONS: Array<{ type: BeverageType; icon: string; labelKey: stri
   { type: 'other', icon: '🧃', labelKey: 'quickLog.drinkModal.beverageOther' },
 ];
 
+const EMOJI_SUGGESTIONS = ['💧', '🥤', '☕', '🍵', '🥛', '🧃', '🍷', '🍺'];
+
 function DrinkLogModal({ open, onClose, onSave, currentDate }: DrinkLogModalProps) {
   const { t } = useTranslation();
   const user = useStore((state) => state.user);
+  const updateUserPresets = useStore((state) => state.updateUserPresets);
 
   const [beverage, setBeverage] = useState<BeverageType>('water');
   const [amountMl, setAmountMl] = useState<number>(250);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [note, setNote] = useState<string>('');
   const [saving, setSaving] = useState(false);
+
+  // Preset saving state
+  const [saveAsPreset, setSaveAsPreset] = useState(false);
+  const [presetName, setPresetName] = useState<string>('');
+  const [presetEmoji, setPresetEmoji] = useState<string>('');
 
   const presets = user?.hydrationPresets || [];
   const sortedPresets = [...presets].sort((a, b) => a.order - b.order);
@@ -53,6 +64,7 @@ function DrinkLogModal({ open, onClose, onSave, currentDate }: DrinkLogModalProp
 
     setSaving(true);
     try {
+      // Save drink log
       await onSave({
         beverage,
         amountMl,
@@ -60,11 +72,46 @@ function DrinkLogModal({ open, onClose, onSave, currentDate }: DrinkLogModalProp
         date: activeDate,
       });
 
+      // Save as preset if requested
+      if (saveAsPreset && presetName.trim() && user) {
+        const newPreset: Omit<DrinkPreset, 'id' | 'order'> = {
+          name: presetName.trim(),
+          amountMl,
+          emoji: presetEmoji.trim() || undefined,
+        };
+
+        // Validate preset
+        const validationError = validatePreset(newPreset);
+        if (validationError) {
+          alert(`Preset error: ${validationError.message}`);
+          setSaving(false);
+          return;
+        }
+
+        const sanitized = sanitizePreset(newPreset);
+        const fullPreset: DrinkPreset = {
+          ...sanitized,
+          id: uuidv4(),
+          order: presets.length,
+        };
+
+        const updatedPresets = [...presets, fullPreset];
+
+        // Update local state (optimistic)
+        updateUserPresets(updatedPresets);
+
+        // Sync to Firebase
+        await updateHydrationPresets(user.id, updatedPresets);
+      }
+
       // Reset form
       setBeverage('water');
       setAmountMl(250);
       setCustomAmount('');
       setNote('');
+      setSaveAsPreset(false);
+      setPresetName('');
+      setPresetEmoji('');
       onClose();
     } catch (error) {
       console.error('Error saving drink log:', error);
@@ -93,6 +140,9 @@ function DrinkLogModal({ open, onClose, onSave, currentDate }: DrinkLogModalProp
       setAmountMl(250);
       setCustomAmount('');
       setNote('');
+      setSaveAsPreset(false);
+      setPresetName('');
+      setPresetEmoji('');
       onClose();
     }
   };
@@ -185,6 +235,81 @@ function DrinkLogModal({ open, onClose, onSave, currentDate }: DrinkLogModalProp
           <div className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             {t('quickLog.drinkModal.selected')}: <strong>{amountMl} ml</strong> ({(amountMl / 1000).toFixed(2)}L)
           </div>
+        </div>
+
+        {/* Save as Preset */}
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={saveAsPreset}
+              onChange={(e) => setSaveAsPreset(e.target.checked)}
+              className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              💾 Save this drink as preset
+            </span>
+          </label>
+
+          {saveAsPreset && (
+            <div className="mt-3 space-y-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
+              {/* Preset Name */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Preset Name
+                </label>
+                <input
+                  type="text"
+                  value={presetName}
+                  onChange={(e) => setPresetName(e.target.value)}
+                  placeholder="e.g., Morning Water"
+                  maxLength={PRESET_CONSTRAINTS.MAX_NAME_LENGTH}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                />
+                <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  {presetName.length}/{PRESET_CONSTRAINTS.MAX_NAME_LENGTH}
+                </div>
+              </div>
+
+              {/* Preset Emoji (Optional) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Emoji (optional)
+                </label>
+                <input
+                  type="text"
+                  value={presetEmoji}
+                  onChange={(e) => setPresetEmoji(e.target.value)}
+                  placeholder={PRESET_CONSTRAINTS.DEFAULT_EMOJI}
+                  maxLength={2}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none text-center text-xl"
+                />
+
+                {/* Emoji Suggestions */}
+                <div className="mt-2">
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                    {t('hydration.emojiSuggestions')}:
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {EMOJI_SUGGESTIONS.map((suggestedEmoji) => (
+                      <button
+                        key={suggestedEmoji}
+                        type="button"
+                        onClick={() => setPresetEmoji(suggestedEmoji)}
+                        className="w-10 h-10 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg text-xl transition-colors"
+                      >
+                        {suggestedEmoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                ℹ️ This preset will be available in both Dashboard and Notes Page
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Optional Note */}

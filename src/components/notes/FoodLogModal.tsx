@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { format } from 'date-fns';
 import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from '../ui/AppModal';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -14,6 +14,14 @@ export interface FoodLogData {
   nutrition: NutritionResult;
   note?: string;
   date: string;
+}
+
+interface CartItem {
+  id: string;
+  source: 'database' | 'manual';
+  foodName: string;
+  portionGrams?: number;
+  nutrition: NutritionResult;
 }
 
 interface FoodLogModalProps {
@@ -47,6 +55,13 @@ function FoodLogModal({ open, onClose, onSave, currentDate }: FoodLogModalProps)
 
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Shopping cart state
+  const [cart, setCart] = useState<CartItem[]>([]);
+
+  // Focus management refs
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const manualInputRef = useRef<HTMLInputElement>(null);
 
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const activeDate = currentDate || todayKey;
@@ -101,52 +116,48 @@ function FoodLogModal({ open, onClose, onSave, currentDate }: FoodLogModalProps)
     }
   }, [useManualMacros, manualProtein, manualCarbs, manualFat, manualCalories]);
 
-  const canSave = useMemo(() => {
+  // Calculate cart totals
+  const cartTotals = useMemo(() => {
+    return cart.reduce(
+      (acc, item) => ({
+        calories: acc.calories + item.nutrition.calories,
+        proteinG: acc.proteinG + item.nutrition.proteinG,
+        carbsG: acc.carbsG + item.nutrition.carbsG,
+        fatG: acc.fatG + item.nutrition.fatG,
+      }),
+      { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 }
+    );
+  }, [cart]);
+
+  const canAddToCart = useMemo(() => {
     if (activeTab === 'database') {
-      return selectedFood !== null && portionGrams > 0;
+      return selectedFood !== null && portionGrams > 0 && databaseNutrition !== null;
     } else {
       return manualFoodName.trim().length > 0 && manualNutrition !== null;
     }
-  }, [activeTab, selectedFood, portionGrams, manualFoodName, manualNutrition]);
+  }, [activeTab, selectedFood, portionGrams, databaseNutrition, manualFoodName, manualNutrition]);
+
+  const canSave = useMemo(() => {
+    return cart.length > 0;
+  }, [cart]);
 
   const handleSave = async () => {
     if (!canSave) return;
 
     setSaving(true);
     try {
-      let data: FoodLogData;
-
-      if (activeTab === 'database' && selectedFood && databaseNutrition) {
-        data = {
-          source: 'database',
-          foodName: selectedFood.name[language],
-          portionGrams,
-          nutrition: databaseNutrition,
+      // Save all items in cart
+      for (const item of cart) {
+        const data: FoodLogData = {
+          source: item.source,
+          foodName: item.foodName,
+          portionGrams: item.portionGrams,
+          nutrition: item.nutrition,
           note: note.trim() || undefined,
           date: activeDate,
         };
-      } else if (activeTab === 'manual' && manualNutrition) {
-        // Validate manual nutrition
-        const validationError = validateNutrition(manualNutrition);
-        if (validationError) {
-          alert(`${t('quickLog.foodModal.validationError')}: ${validationError.message}`);
-          setSaving(false);
-          return;
-        }
-
-        data = {
-          source: 'manual',
-          foodName: manualFoodName.trim(),
-          nutrition: manualNutrition,
-          note: note.trim() || undefined,
-          date: activeDate,
-        };
-      } else {
-        setSaving(false);
-        return;
+        await onSave(data);
       }
-
-      await onSave(data);
       handleClose();
     } catch (error) {
       console.error('Error saving food log:', error);
@@ -171,8 +182,51 @@ function FoodLogModal({ open, onClose, onSave, currentDate }: FoodLogModalProps)
       setManualFat('');
       setUseManualMacros(true);
       setNote('');
+      setCart([]);
       onClose();
     }
+  };
+
+  const handleAddToCart = () => {
+    if (activeTab === 'database' && selectedFood && databaseNutrition) {
+      const newItem: CartItem = {
+        id: `${Date.now()}-${Math.random()}`,
+        source: 'database',
+        foodName: selectedFood.name[language],
+        portionGrams,
+        nutrition: databaseNutrition,
+      };
+      setCart([...cart, newItem]);
+      // Reset selection
+      setSelectedFood(null);
+      setPortionGrams(100);
+      setCustomPortionInput('100');
+    } else if (activeTab === 'manual' && manualNutrition) {
+      // Validate manual nutrition
+      const validationError = validateNutrition(manualNutrition);
+      if (validationError) {
+        alert(`${t('quickLog.foodModal.validationError')}: ${validationError.message}`);
+        return;
+      }
+
+      const newItem: CartItem = {
+        id: `${Date.now()}-${Math.random()}`,
+        source: 'manual',
+        foodName: manualFoodName.trim(),
+        nutrition: manualNutrition,
+      };
+      setCart([...cart, newItem]);
+      // Reset manual form
+      setManualFoodName('');
+      setManualCalories('');
+      setManualProtein('');
+      setManualCarbs('');
+      setManualFat('');
+    }
+  };
+
+  const handleRemoveFromCart = (itemId: string) => {
+    setCart(cart.filter(item => item.id !== itemId));
   };
 
   const handleSelectFood = (food: FoodItem) => {
@@ -208,6 +262,7 @@ function FoodLogModal({ open, onClose, onSave, currentDate }: FoodLogModalProps)
       icon={<span className="text-2xl">🍎</span>}
       size="lg"
       preventCloseOnBackdrop={saving}
+      initialFocusRef={activeTab === 'database' ? searchInputRef : manualInputRef}
       footer={
         <>
           <ModalSecondaryButton onClick={handleClose} disabled={saving}>
@@ -252,12 +307,12 @@ function FoodLogModal({ open, onClose, onSave, currentDate }: FoodLogModalProps)
             {/* Search Input */}
             <div>
               <input
+                ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('quickLog.foodModal.searchPlaceholder')}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                autoFocus
               />
             </div>
 
@@ -424,12 +479,12 @@ function FoodLogModal({ open, onClose, onSave, currentDate }: FoodLogModalProps)
                 {t('quickLog.foodModal.manualFoodName')}
               </label>
               <input
+                ref={manualInputRef}
                 type="text"
                 value={manualFoodName}
                 onChange={(e) => setManualFoodName(e.target.value)}
                 placeholder={t('quickLog.foodModal.foodNamePlaceholder')}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-                autoFocus
                 maxLength={100}
               />
             </div>
@@ -550,6 +605,96 @@ function FoodLogModal({ open, onClose, onSave, currentDate }: FoodLogModalProps)
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Add to Cart Button */}
+        <div>
+          <button
+            type="button"
+            onClick={handleAddToCart}
+            disabled={!canAddToCart}
+            className="w-full py-3 px-4 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            🛒 Add to Cart
+          </button>
+        </div>
+
+        {/* Shopping Cart Section */}
+        {cart.length > 0 && (
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
+              🛒 Cart ({cart.length} {cart.length === 1 ? 'item' : 'items'})
+            </h3>
+
+            {/* Cart Items */}
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {cart.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="font-medium text-gray-900 dark:text-white text-sm">
+                        {item.foodName}
+                      </div>
+                      {item.portionGrams && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {item.portionGrams}g
+                        </div>
+                      )}
+                      <div className="flex gap-3 mt-2 text-xs text-gray-600 dark:text-gray-400">
+                        <span>{item.nutrition.calories} kcal</span>
+                        <span>{item.nutrition.proteinG}g P</span>
+                        <span>{item.nutrition.carbsG}g C</span>
+                        <span>{item.nutrition.fatG}g F</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFromCart(item.id)}
+                      className="ml-3 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
+                      aria-label="Remove from cart"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Cart Totals */}
+            <div className="mt-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
+              <div className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Total Nutrition
+              </div>
+              <div className="grid grid-cols-4 gap-2 text-center">
+                <div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">{cartTotals.calories}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">kcal</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">{cartTotals.proteinG}g</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{language === 'de' ? 'E' : 'P'}</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">{cartTotals.carbsG}g</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">{language === 'de' ? 'K' : 'C'}</div>
+                </div>
+                <div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">{cartTotals.fatG}g</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">F</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Empty Cart Message */}
+        {cart.length === 0 && (
+          <div className="text-center py-4 text-sm text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+            🛒 Cart is empty. Add items to save them together.
           </div>
         )}
 

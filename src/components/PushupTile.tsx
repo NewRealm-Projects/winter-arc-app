@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -19,6 +19,8 @@ function PushupTile() {
   const [showModal, setShowModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isSetMode, setIsSetMode] = useState(false); // false = add, true = set exact
+
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
@@ -118,6 +120,7 @@ function PushupTile() {
         subtitle={`${t('tracking.howMany')} (${displayDayLabel})`}
         icon={<span className="text-2xl">💪</span>}
         size="sm"
+        initialFocusRef={inputRef}
         footer={
           <>
             <ModalSecondaryButton
@@ -167,13 +170,13 @@ function PushupTile() {
           )}
 
           <input
+            ref={inputRef}
             type="number"
             value={inputValue}
             onChange={(e) => { setInputValue(e.target.value); }}
             onKeyDown={(e) => e.key === 'Enter' && handleSave()}
             placeholder={isSetMode ? t('tracking.totalAmount') : t('tracking.enterAmount')}
             className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-winter-500 outline-none"
-            autoFocus
           />
         </div>
       </AppModal>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { format } from 'date-fns';
 import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from '../ui/AppModal';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -27,6 +27,8 @@ function WeightLogModal({ open, onClose, onSave, currentDate }: WeightLogModalPr
   const [bodyFat, setBodyFat] = useState<string>('');
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const weightInputRef = useRef<HTMLInputElement>(null);
 
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const activeDate = currentDate || todayKey;
@@ -100,6 +102,7 @@ function WeightLogModal({ open, onClose, onSave, currentDate }: WeightLogModalPr
       icon={<span className="text-2xl">⚖️</span>}
       size="sm"
       preventCloseOnBackdrop={saving}
+      initialFocusRef={weightInputRef}
       footer={
         <>
           <ModalSecondaryButton onClick={handleClose} disabled={saving}>
@@ -118,6 +121,7 @@ function WeightLogModal({ open, onClose, onSave, currentDate }: WeightLogModalPr
             {t('quickLog.weightModal.weight')} (kg)
           </label>
           <input
+            ref={weightInputRef}
             type="number"
             inputMode="decimal"
             step="0.1"
@@ -125,7 +129,6 @@ function WeightLogModal({ open, onClose, onSave, currentDate }: WeightLogModalPr
             onChange={(e) => setWeight(e.target.value)}
             placeholder="75.0"
             className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-            autoFocus
           />
         </div>
 

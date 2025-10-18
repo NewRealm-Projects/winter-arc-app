@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from '../ui/AppModal';
 import { useTranslation } from '../../hooks/useTranslation';
 import type { DrinkPreset } from '../../types';
@@ -33,6 +33,8 @@ function PresetManagementModal({
   const [emoji, setEmoji] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const nameInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize form with existing preset data
   useEffect(() => {
@@ -100,6 +102,7 @@ function PresetManagementModal({
       title={mode === 'add' ? t('hydration.addPreset') : t('hydration.editPreset')}
       icon={<span className="text-2xl">💧</span>}
       size="md"
+      initialFocusRef={nameInputRef}
       footer={
         <>
           {mode === 'edit' && onDelete && (
@@ -133,6 +136,7 @@ function PresetManagementModal({
             {t('hydration.presetName')}
           </label>
           <input
+            ref={nameInputRef}
             type="text"
             value={name}
             onChange={(e) => {
@@ -142,7 +146,6 @@ function PresetManagementModal({
             placeholder={t('hydration.presetNamePlaceholder')}
             maxLength={PRESET_CONSTRAINTS.MAX_NAME_LENGTH}
             className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
-            autoFocus
           />
           <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
             {name.length}/{PRESET_CONSTRAINTS.MAX_NAME_LENGTH} characters

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useStore } from '../../store/useStore';
@@ -6,15 +7,14 @@ import DrinkLogModal, { type DrinkLogData } from './DrinkLogModal';
 import FoodLogModal, { type FoodLogData } from './FoodLogModal';
 import WorkoutLogModal, { type WorkoutLogData } from './WorkoutLogModal';
 import WeightLogModal, { type WeightLogData } from './WeightLogModal';
-import PushupLogModal, { type PushupLogData } from './PushupLogModal';
 import { saveDailyTracking, getDailyTracking } from '../../services/firestoreService';
 import { auth } from '../../firebase';
 import type { SportTracking } from '../../types';
 
-type ModalType = 'drink' | 'food' | 'pushup' | 'workout' | 'weight' | null;
+type ModalType = 'drink' | 'food' | 'workout' | 'weight' | null;
 
 interface QuickAction {
-  type: Exclude<ModalType, null>;
+  type: 'drink' | 'food' | 'pushup' | 'workout' | 'weight';
   icon: string;
   label: string;
   color: string;
@@ -22,6 +22,7 @@ interface QuickAction {
 
 function QuickLogPanel() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
@@ -87,29 +88,14 @@ function QuickLogPanel() {
     await saveDailyTracking(userId, dateKey, updatedTracking);
   };
 
-  const handlePushupSave = async (data: PushupLogData) => {
-    if (!auth.currentUser) return;
-
-    const userId = auth.currentUser.uid;
-    const dateKey = data.date;
-
-    // Get current tracking data
-    const currentTracking = tracking[dateKey] || { date: dateKey, water: 0, protein: 0, sports: {}, completed: false };
-
-    // Update pushup count
-    const updatedTracking = {
-      ...currentTracking,
-      pushups: {
-        ...currentTracking.pushups,
-        total: (currentTracking.pushups?.total || 0) + data.count,
-      },
-    };
-
-    // Update local state (optimistic)
-    updateDayTracking(dateKey, updatedTracking);
-
-    // Sync to Firebase
-    await saveDailyTracking(userId, dateKey, updatedTracking);
+  const handleActionClick = (actionType: QuickAction['type']) => {
+    if (actionType === 'pushup') {
+      // Navigate to pushup training page
+      navigate('/tracking/pushup-training');
+    } else {
+      // Open modal for other actions
+      setActiveModal(actionType);
+    }
   };
 
   const handleWorkoutSave = async (data: WorkoutLogData) => {
@@ -191,7 +177,7 @@ function QuickLogPanel() {
             <button
               key={action.type}
               type="button"
-              onClick={() => setActiveModal(action.type)}
+              onClick={() => handleActionClick(action.type)}
               className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all hover:scale-105 ${action.color}`}
             >
               <span className="text-3xl mb-2">{action.icon}</span>
@@ -213,13 +199,6 @@ function QuickLogPanel() {
         open={activeModal === 'food'}
         onClose={() => setActiveModal(null)}
         onSave={handleFoodSave}
-        currentDate={activeDate}
-      />
-
-      <PushupLogModal
-        open={activeModal === 'pushup'}
-        onClose={() => setActiveModal(null)}
-        onSave={handlePushupSave}
         currentDate={activeDate}
       />
 
