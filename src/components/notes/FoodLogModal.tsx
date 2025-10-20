@@ -274,7 +274,7 @@ function FoodLogModal({ open, onClose, onSave, currentDate }: FoodLogModalProps)
         </>
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-4 p-1">
         {/* Tab Selector */}
         <div className="flex border-b border-gray-200 dark:border-gray-700">
           <button

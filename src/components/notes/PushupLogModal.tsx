@@ -101,7 +101,7 @@ function PushupLogModal({ open, onClose, onSave, currentDate }: PushupLogModalPr
         </>
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-4 p-1">
         {/* Current Count Display */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-6 text-center">
           <div className="text-5xl font-bold text-blue-600 dark:text-blue-400">

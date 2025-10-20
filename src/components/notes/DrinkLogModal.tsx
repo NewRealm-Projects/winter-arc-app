@@ -166,7 +166,7 @@ function DrinkLogModal({ open, onClose, onSave, currentDate }: DrinkLogModalProp
         </>
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-4 p-1">
         {/* Beverage Type Selector */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

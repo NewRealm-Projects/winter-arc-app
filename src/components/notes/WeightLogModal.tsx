@@ -114,7 +114,7 @@ function WeightLogModal({ open, onClose, onSave, currentDate }: WeightLogModalPr
         </>
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-4 p-1">
         {/* Weight Input */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

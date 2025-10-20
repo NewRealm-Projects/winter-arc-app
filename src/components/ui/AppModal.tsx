@@ -1,6 +1,30 @@
 import { useCallback, useEffect, useRef, type ReactNode, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 
+/**
+ * AppModal - Unified modal component with accessibility features
+ *
+ * @remarks
+ * This modal component provides:
+ * - Focus trap and keyboard navigation (Tab, Shift+Tab, Escape)
+ * - Return focus to trigger element on close
+ * - Body scroll lock when open
+ * - WCAG 2.1 Level AA compliance
+ *
+ * **Focus Outline Visibility:**
+ * Content wrappers should include `p-1` class (4px padding in all directions) to prevent
+ * focus outline clipping at modal edges. This ensures focus rings (ring-2) with
+ * shadow offsets are fully visible for keyboard navigation in all directions (top, right, bottom, left).
+ *
+ * @example
+ * ```tsx
+ * <AppModal open={isOpen} onClose={handleClose} title="My Modal" size="md">
+ *   <div className="space-y-4 p-1">
+ *     <input className="focus:ring-2 focus:ring-blue-500" />
+ *   </div>
+ * </AppModal>
+ * ```
+ */
 export interface AppModalProps {
   open: boolean;
   onClose: () => void;
