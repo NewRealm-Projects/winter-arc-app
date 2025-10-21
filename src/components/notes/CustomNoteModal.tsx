@@ -76,7 +76,7 @@ function CustomNoteModal({ open, onClose, onSave }: CustomNoteModalProps) {
         </>
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-4 p-1">
         {/* Title (Optional) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -87,7 +87,7 @@ function CustomNoteModal({ open, onClose, onSave }: CustomNoteModalProps) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={t('quickLog.noteTitlePlaceholder')}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-none -mx-1"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-none"
             disabled={saving}
           />
         </div>
@@ -102,7 +102,7 @@ function CustomNoteModal({ open, onClose, onSave }: CustomNoteModalProps) {
             onChange={(e) => setContent(e.target.value)}
             placeholder={t('notes.placeholder')}
             rows={6}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-none resize-none -mx-1"
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-inset focus:ring-blue-500 outline-none resize-none"
             disabled={saving}
           />
         </div>
