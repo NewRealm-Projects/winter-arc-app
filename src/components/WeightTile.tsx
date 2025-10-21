@@ -7,6 +7,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { getTileClasses, designTokens } from '../theme/tokens';
 import { useCombinedTracking, useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from './ui/AppModal';
+import EditIcon from './ui/EditIcon';
 
 function WeightTile() {
   const { t } = useTranslation();
@@ -131,8 +132,20 @@ function WeightTile() {
   const isTracked = Boolean(combinedDaily?.weight?.value ?? activeTracking?.weight?.value);
 
   return (
-    <div className={`${getTileClasses(isTracked)} ${designTokens.padding.compact} text-white`}>
-      <div className="flex items-center gap-2 mb-2">
+    <div className={`relative ${getTileClasses(isTracked)} ${designTokens.padding.compact} text-white`}>
+      {/* Edit Icon */}
+      <EditIcon
+        onClick={() => {
+          if (activeTracking?.weight) {
+            setWeight(activeTracking.weight.value.toString());
+            setBodyFat(activeTracking.weight.bodyFat?.toString() || '');
+          }
+          setShowInput(true);
+        }}
+        ariaLabel={t('tracking.edit')}
+      />
+
+      <div className="flex items-center gap-2 mb-2 pr-12">
         <div className="text-xl">⚖️</div>
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -247,41 +260,14 @@ function WeightTile() {
         <div className="text-[11px] font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
           {t('tracking.weight')}
         </div>
-        <div className="flex items-center justify-center gap-2">
-          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-            {latestWeight}kg
-          </div>
-          {activeTracking?.weight?.value && (
-            <button
-              onClick={() => {
-                if (activeTracking?.weight) {
-                  setWeight(activeTracking.weight.value.toString());
-                  setBodyFat(activeTracking.weight.bodyFat?.toString() || '');
-                  setShowInput(true);
-                }
-              }}
-              className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
-              title={t('tracking.edit')}
-            >
-              ✏️
-            </button>
-          )}
+        <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+          {latestWeight}kg
         </div>
         {latestBMI && (
           <div className="text-[11px] text-gray-600 dark:text-gray-400">
             {t('tracking.bmi')}: {latestBMI}
           </div>
         )}
-      </div>
-
-      {/* Input */}
-      <div className="text-center">
-        <button
-          onClick={() => { setShowInput(true); }}
-          className="w-full px-3 py-2 text-sm bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium"
-        >
-          {t('tracking.addWeight')}
-        </button>
       </div>
 
       {/* Weight Modal */}

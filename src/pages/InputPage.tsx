@@ -1,15 +1,37 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
+import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '../hooks/useTranslation';
-import { SmartNote, Event } from '../types/events';
+import { SmartNote, Event, ActivityType } from '../types/events';
 import { noteStore } from '../store/noteStore';
 import { useStore } from '../store/useStore';
 import { retrySmartNote, updateSmartNote } from '../features/notes/pipeline';
 import { glassCardClasses, glassCardHoverClasses, designTokens } from '../theme/tokens';
 import QuickLogPanel from '../components/notes/QuickLogPanel';
+import CustomNoteModal, { type CustomNoteData } from '../components/notes/CustomNoteModal';
+import TruncatedSummary from '../components/ui/TruncatedSummary';
+import { generateCustomNoteSummary } from '../utils/activitySummary';
 
 const PAGE_SIZE = 20;
 
+function getActivityBadge(activityType?: ActivityType) {
+  switch (activityType) {
+    case 'drink':
+      return { emoji: '🥤', label: 'Drink' };
+    case 'food':
+      return { emoji: '🍎', label: 'Food' };
+    case 'workout':
+      return { emoji: '🏋️', label: 'Workout' };
+    case 'weight':
+      return { emoji: '⚖️', label: 'Weight' };
+    case 'pushup':
+      return { emoji: '💪', label: 'Pushups' };
+    case 'custom':
+      return { emoji: '📝', label: 'Note' };
+    default:
+      return { emoji: '📝', label: 'Note' };
+  }
+}
 
 function EventBadges({ events, t }: { events: Event[]; t: ReturnType<typeof useTranslation>['t'] }) {
   if (!events.length) return null;
@@ -177,12 +199,20 @@ function NoteCard({ note, t }: { note: SmartNote; t: ReturnType<typeof useTransl
     }
   }, [note.id, t]);
 
+  const badge = getActivityBadge(note.activityType);
+
   return (
     <div className={`${glassCardHoverClasses} ${designTokens.padding.compact} text-white space-y-3 w-full`}>
       <div className="flex flex-col gap-3">
+        {/* Activity Badge + Timestamp */}
+        <div className="flex items-center gap-2">
+          <span className="text-lg">{badge.emoji}</span>
+          <span className="text-xs font-medium text-white/70 px-2 py-1 bg-white/10 rounded-full">{badge.label}</span>
+          <span className="text-[10px] uppercase tracking-[0.35em] text-white/50 ml-auto">{createdAgo}</span>
+        </div>
+
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div className="flex-1">
-            <div className="text-[10px] uppercase tracking-[0.35em] text-white/50">{createdAgo}</div>
             {isEditing ? (
               <>
                 <textarea
@@ -196,10 +226,22 @@ function NoteCard({ note, t }: { note: SmartNote; t: ReturnType<typeof useTransl
                 <p className="mt-1 text-xs text-white/60">{t('notes.editHint')}</p>
               </>
             ) : (
-              <p className="mt-2 text-sm md:text-base text-white/90 leading-relaxed">
-                {note.summary}
-                {note.pending && <span className="ml-2" title={t('notes.processing')}>⏳</span>}
-              </p>
+              <div className="space-y-2">
+                <p className="text-sm md:text-base text-white/90 leading-relaxed">
+                  {note.summary}
+                  {note.pending && <span className="ml-2" title={t('notes.processing')}>⏳</span>}
+                </p>
+                {/* Activity Summary with Truncation */}
+                {note.activitySummary && (
+                  <div className="text-xs text-white/70 italic">
+                    <TruncatedSummary
+                      summary={note.activitySummary}
+                      details={note.activityDetails}
+                      className="text-white/70"
+                    />
+                  </div>
+                )}
+              </div>
             )}
           </div>
           <div className="flex flex-wrap justify-end gap-2">
@@ -274,11 +316,12 @@ function NoteCard({ note, t }: { note: SmartNote; t: ReturnType<typeof useTransl
   );
 }
 
-function NotesPage() {
+function InputPage() {
   const { t } = useTranslation();
   const [notes, setNotes] = useState<SmartNote[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [showCustomNoteModal, setShowCustomNoteModal] = useState(false);
   const limitRef = useRef(PAGE_SIZE);
 
   const loadNotes = useCallback(async (limit = limitRef.current) => {
@@ -311,19 +354,46 @@ function NotesPage() {
     setLoadingMore(false);
   }, [hasMore, loadingMore, loadNotes]);
 
+  const handleSaveCustomNote = useCallback(async (data: CustomNoteData) => {
+    const { summary } = generateCustomNoteSummary(data.title, data.content);
+
+    const customNote: SmartNote = {
+      id: uuidv4(),
+      ts: Date.now(),
+      raw: data.content,
+      summary: data.content,
+      events: [],
+      activityType: 'custom',
+      activitySummary: summary,
+      content: data.content,
+    };
+
+    await noteStore.add(customNote);
+    void loadNotes();
+  }, [loadNotes]);
+
   return (
-    <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe" data-testid="notes-page">
+    <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe" data-testid="input-page">
       <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0">
         <div className="flex flex-col gap-3 md:gap-4">
           {/* Quick Log Panel */}
           <QuickLogPanel />
 
-          {/* Legacy Notes Section */}
+          {/* Notes Section */}
           {notes.length > 0 && (
             <>
               <section className={`${glassCardClasses} ${designTokens.padding.compact} text-white animate-fade-in-up delay-200`}>
-                <h2 className="text-lg font-semibold text-white">{t('notes.title')}</h2>
-                <p className="text-xs text-white/60 mt-1">{t('notes.subtitle')}</p>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-white">{t('notes.title')}</h2>
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomNoteModal(true)}
+                    className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-1"
+                  >
+                    <span>+</span>
+                    <span>{t('quickLog.newNote')}</span>
+                  </button>
+                </div>
               </section>
 
               <div data-testid="smart-note-list" className="flex flex-col gap-3">
@@ -350,9 +420,16 @@ function NotesPage() {
           )}
         </div>
       </div>
+
+      {/* Custom Note Modal */}
+      <CustomNoteModal
+        open={showCustomNoteModal}
+        onClose={() => setShowCustomNoteModal(false)}
+        onSave={handleSaveCustomNote}
+      />
     </div>
   );
 }
 
-export default NotesPage;
+export default InputPage;
 

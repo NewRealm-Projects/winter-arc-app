@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import { renderWithProviders } from 'test/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import NotesPage from '../pages/NotesPage';
+import InputPage from '../pages/InputPage';
 import { SmartNote } from '../types/events';
 
 const storeState = vi.hoisted(() => ({
@@ -90,7 +90,7 @@ vi.mock('../features/notes/pipeline', () => {
   };
 });
 
-describe('NotesPage', () => {
+describe('InputPage', () => {
   beforeEach(() => {
     storeState.notes = [];
     storeState.listeners.clear();
@@ -98,7 +98,7 @@ describe('NotesPage', () => {
   });
 
   it('renders QuickLogPanel with all logging buttons', async () => {
-    renderWithProviders(<NotesPage />);
+    renderWithProviders(<InputPage />);
 
     // QuickLogPanel should have all 5 quick action buttons
     expect(await screen.findByText('Schnell loggen')).toBeInTheDocument();
@@ -114,7 +114,7 @@ describe('NotesPage', () => {
     };
     await noteStoreMock.add(existing);
 
-    renderWithProviders(<NotesPage />);
+    renderWithProviders(<InputPage />);
 
     const editButton = await screen.findByRole('button', { name: 'Bearbeiten' });
     await act(async () => {
@@ -149,7 +149,7 @@ describe('NotesPage', () => {
 
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
 
-    renderWithProviders(<NotesPage />);
+    renderWithProviders(<InputPage />);
 
     const deleteButton = await screen.findByRole('button', { name: 'Löschen' });
     await act(async () => {

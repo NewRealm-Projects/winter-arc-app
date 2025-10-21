@@ -7,6 +7,7 @@ export const translations = {
       history: 'Historie',
       group: 'Gruppe',
       notes: 'Notizen',
+      input: 'Input',
       settings: 'Einstellungen',
     },
     // Dashboard
@@ -410,8 +411,14 @@ export const translations = {
       pushups: 'Liegestütze',
       workout: 'Training',
       weight: 'Gewicht',
-      optionalNote: 'Optionale Notiz',
+      optionalNote: 'Notiz',
       notePlaceholder: 'Notiz hinzufügen...',
+      newNote: 'Neue Notiz',
+      newNoteSubtitle: 'Erstelle eine freie Notiz',
+      noteTitle: 'Titel',
+      noteTitlePlaceholder: 'z.B. Trainingsziele',
+      optional: 'Optional',
+      noteContent: 'Inhalt',
       // Drink Modal
       drinkModal: {
         title: 'Getränk loggen',
@@ -554,6 +561,7 @@ export const translations = {
       history: 'History',
       group: 'Group',
       notes: 'Notes',
+      input: 'Input',
       settings: 'Settings',
     },
     // Dashboard
@@ -957,8 +965,14 @@ export const translations = {
       pushups: 'Pushups',
       workout: 'Workout',
       weight: 'Weight',
-      optionalNote: 'Optional Note',
+      optionalNote: 'Note',
       notePlaceholder: 'Add a note...',
+      newNote: 'New Note',
+      newNoteSubtitle: 'Create a custom note',
+      noteTitle: 'Title',
+      noteTitlePlaceholder: 'e.g. Training goals',
+      optional: 'Optional',
+      noteContent: 'Content',
       // Drink Modal
       drinkModal: {
         title: 'Log Drink',

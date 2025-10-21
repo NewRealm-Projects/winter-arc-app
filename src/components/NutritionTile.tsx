@@ -7,6 +7,7 @@ import { useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 import { getPercent } from '../utils/progress';
 import { calculateNutritionGoals } from '../utils/nutrition';
 import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from './ui/AppModal';
+import EditIcon from './ui/EditIcon';
 
 const sanitizeValue = (value: unknown): number => {
   const numeric = Number(value);
@@ -23,12 +24,9 @@ interface MacroInputs {
   fat: string;
 }
 
-type QuickAddTab = 'calories' | 'protein' | 'carbs' | 'fat';
-
 function NutritionTile() {
   const { t, language } = useTranslation();
   const [showModal, setShowModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<QuickAddTab>('calories');
   const [inputValues, setInputValues] = useState<MacroInputs>({
     calories: '',
     protein: '',
@@ -100,37 +98,6 @@ function NutritionTile() {
     return value.toLocaleString(localeCode);
   };
 
-  const quickAddAmounts: Record<QuickAddTab, number[]> = {
-    calories: [100, 200, 300],
-    protein: [10, 20, 30],
-    carbs: [25, 50, 100],
-    fat: [10, 20, 30],
-  };
-
-  const addMacro = (type: QuickAddTab, amount: number) => {
-    if (!Number.isFinite(amount) || amount <= 0) {
-      return;
-    }
-
-    const updates: Record<string, number> = {};
-    switch (type) {
-      case 'calories':
-        updates.calories = sanitizeValue(manualCalories + amount);
-        break;
-      case 'protein':
-        updates.protein = sanitizeValue(manualProtein + amount);
-        break;
-      case 'carbs':
-        updates.carbsG = sanitizeValue(manualCarbs + amount);
-        break;
-      case 'fat':
-        updates.fatG = sanitizeValue(manualFat + amount);
-        break;
-    }
-
-    updateDayTracking(activeDate, updates);
-  };
-
   const saveExact = () => {
     const parsedValues = {
       calories: Number.parseInt(inputValues.calories, 10) || 0,
@@ -165,9 +132,15 @@ function NutritionTile() {
 
   return (
     <>
-      <div className={`${getTileClasses(isTracked)} ${designTokens.padding.compact} text-white`}>
+      <div className={`relative ${getTileClasses(isTracked)} ${designTokens.padding.compact} text-white`}>
+        {/* Edit Icon */}
+        <EditIcon
+          onClick={openModal}
+          ariaLabel={t('nutrition.edit')}
+        />
+
         {/* Header */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-2 pr-12">
           <div className="flex items-center gap-2">
             <div className="text-xl">🍽️</div>
             <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400">
@@ -237,7 +210,7 @@ function NutritionTile() {
 
         {/* Hints */}
         {hasGoals && (
-          <div className="space-y-1 mb-3 text-[10px] text-gray-500 dark:text-gray-400">
+          <div className="space-y-1 text-[10px] text-gray-500 dark:text-gray-400">
             <div className="flex items-center gap-1">
               <span>💡</span>
               <span>
@@ -252,31 +225,6 @@ function NutritionTile() {
             )}
           </div>
         )}
-
-        {/* Action Buttons */}
-        <div className="space-y-1.5">
-          <div className="grid grid-cols-3 gap-1.5 text-center">
-            {quickAddAmounts.calories.map((amount) => (
-              <button
-                key={amount}
-                type="button"
-                onClick={() => {
-                  addMacro('calories', amount);
-                }}
-                className="px-2 py-1.5 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 text-orange-600 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors font-medium text-xs"
-              >
-                +{amount} {t('nutrition.kcal')}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            onClick={openModal}
-            className="w-full py-1 text-xs text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
-          >
-            ✏️ {t('nutrition.edit')}
-          </button>
-        </div>
       </div>
 
       {/* Nutrition Modal */}
@@ -306,47 +254,7 @@ function NutritionTile() {
           </>
         }
       >
-        {/* Tabs */}
-        <div className="flex gap-2 mb-4 border-b border-gray-200 dark:border-gray-700">
-          {(['calories', 'protein', 'carbs', 'fat'] as QuickAddTab[]).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => {
-                setActiveTab(tab);
-              }}
-              className={`px-3 py-2 text-sm font-medium transition-colors ${
-                activeTab === tab
-                  ? 'text-orange-600 dark:text-orange-400 border-b-2 border-orange-600 dark:border-orange-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              {t(`nutrition.${tab}`)}
-            </button>
-          ))}
-        </div>
-
-        {/* Quick Add Buttons for Active Tab */}
-        <div className="mb-4">
-          <div className="grid grid-cols-3 gap-2">
-            {quickAddAmounts[activeTab].map((amount) => (
-              <button
-                key={amount}
-                type="button"
-                onClick={() => {
-                  addMacro(activeTab, amount);
-                  setShowModal(false);
-                }}
-                className="px-4 py-2 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 text-orange-600 dark:text-orange-400 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/30 transition-colors font-medium text-sm"
-              >
-                +{amount}
-                {activeTab === 'calories' ? ` ${t('nutrition.kcal')}` : ` ${t('nutrition.grams')}`}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Exact Input Fields */}
+        {/* Input Fields */}
         <div className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">

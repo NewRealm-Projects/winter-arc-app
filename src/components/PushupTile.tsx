@@ -12,6 +12,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { getTileClasses, designTokens } from '../theme/tokens';
 import { useCombinedTracking, useCombinedDailyTracking } from '../hooks/useCombinedTracking';
 import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from './ui/AppModal';
+import EditIcon from './ui/EditIcon';
 
 function PushupTile() {
   const { t } = useTranslation();
@@ -70,13 +71,15 @@ function PushupTile() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => { setShowModal(true); }}
-        className={`w-full ${getTileClasses(isTracked)} ${designTokens.padding.compact} text-left text-white hover:bg-white/8`}
-      >
+      <div className={`relative w-full ${getTileClasses(isTracked)} ${designTokens.padding.compact} text-white`}>
+        {/* Edit Icon */}
+        <EditIcon
+          onClick={() => { setShowModal(true); }}
+          ariaLabel={t('tracking.edit')}
+        />
+
         {/* Header with Icon and Count */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-2 pr-12">
           <div className="flex items-center gap-2">
             <div className="text-xl">💪</div>
             <h3 className="text-xs font-medium text-gray-600 dark:text-gray-400">
@@ -106,7 +109,7 @@ function PushupTile() {
             ⏱️ {t('tracking.rest')}: 60s • 💡 {t('tracking.startWorkout')}
           </div>
         </div>
-      </button>
+      </div>
 
       {/* Modal - Quick Input */}
       <AppModal

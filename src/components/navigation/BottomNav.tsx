@@ -12,7 +12,7 @@ interface NavItem {
 /**
  * Bottom Navigation Component
  *
- * Mobile-first navigation with 4 main items (Dashboard, Group, Notes, Settings)
+ * Mobile-first navigation with 4 main items (Dashboard, Group, Input, Settings)
  * Fixed to bottom with safe-area padding
  * Glass effect with backdrop blur
  */
@@ -34,10 +34,10 @@ export function BottomNav() {
       ariaLabel: 'Leaderboard'
     },
     {
-      path: '/notes',
-      labelKey: 'nav.notes',
+      path: '/input',
+      labelKey: 'nav.input',
       icon: '📝',
-      ariaLabel: 'Notes'
+      ariaLabel: 'Input'
     },
     {
       path: '/settings',

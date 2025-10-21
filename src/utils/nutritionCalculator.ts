@@ -194,6 +194,37 @@ export function formatNutrition(nutrition: NutritionResult, language: 'de' | 'en
 }
 
 /**
+ * Format a single nutrition value for display with proper rounding
+ * Handles JavaScript floating-point precision issues
+ * @param value - Raw nutritional value
+ * @param decimals - Decimal places to show (default: 1)
+ * @returns Formatted string suitable for display
+ */
+export const formatNutritionValue = (
+  value: number,
+  decimals: number = 1
+): string => {
+  if (!Number.isFinite(value)) {
+    return '0';
+  }
+  return Number(value.toFixed(decimals)).toString();
+};
+
+/**
+ * Format complete nutrition result for display with proper rounding
+ * @param result - NutritionResult object
+ * @returns Object with formatted string values
+ */
+export const formatNutritionForDisplay = (result: NutritionResult) => {
+  return {
+    calories: formatNutritionValue(result.calories, 0),
+    protein: formatNutritionValue(result.proteinG, 1),
+    carbs: formatNutritionValue(result.carbsG, 1),
+    fat: formatNutritionValue(result.fatG, 1),
+  };
+};
+
+/**
  * Check if nutrition values are reasonable based on macros
  * Warns if calories don't match macros (4-4-9 rule)
  */

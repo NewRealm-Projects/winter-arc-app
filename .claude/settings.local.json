@@ -20,7 +20,17 @@
       "Bash(dir:*)",
       "Bash(openspec list:*)",
       "Bash(npx openspec:*)",
-      "Bash(where openspec:*)"
+      "Bash(where openspec:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run format:check:*)",
+      "Bash(npm run test:unit:*)",
+      "Read(//c/Users/miket/Pictures/**)",
+      "Read(//c/**)",
+      "Bash(cd:*)",
+      "Bash(git -C \"C:\\Users\\miket\\winter-arc-app\" status)",
+      "Bash(git -C \"C:\\Users\\miket\\winter-arc-app\" log --oneline -5)",
+      "Bash(git -C \"C:\\Users\\miket\\winter-arc-app\" add:*)"
     ],
     "deny": [],
     "ask": []

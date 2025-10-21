@@ -3,25 +3,22 @@ import { format } from 'date-fns';
 import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from '../ui/AppModal';
 import { useTranslation } from '../../hooks/useTranslation';
 import { searchFoods } from '../../utils/foodSearch';
-import { calculateNutrition, validateNutrition, calculateCaloriesFromMacros } from '../../utils/nutritionCalculator';
+import { calculateNutrition, validateNutrition, calculateCaloriesFromMacros, formatNutritionForDisplay } from '../../utils/nutritionCalculator';
 import type { FoodItem, FoodCategory } from '../../data/foodDatabase';
 import type { NutritionResult } from '../../utils/nutritionCalculator';
 
-export interface FoodLogData {
-  source: 'database' | 'manual';
-  foodName: string;
-  portionGrams?: number;
-  nutrition: NutritionResult;
-  note?: string;
-  date: string;
-}
-
-interface CartItem {
+export interface CartItem {
   id: string;
   source: 'database' | 'manual';
   foodName: string;
   portionGrams?: number;
   nutrition: NutritionResult;
+}
+
+export interface FoodLogData {
+  cart: CartItem[];
+  note?: string;
+  date: string;
 }
 
 interface FoodLogModalProps {
@@ -129,6 +126,11 @@ function FoodLogModal({ open, onClose, onSave, currentDate }: FoodLogModalProps)
     );
   }, [cart]);
 
+  // Format cart totals for display (with rounding)
+  const displayedCartTotals = useMemo(() => {
+    return formatNutritionForDisplay(cartTotals);
+  }, [cartTotals]);
+
   const canAddToCart = useMemo(() => {
     if (activeTab === 'database') {
       return selectedFood !== null && portionGrams > 0 && databaseNutrition !== null;
@@ -146,18 +148,13 @@ function FoodLogModal({ open, onClose, onSave, currentDate }: FoodLogModalProps)
 
     setSaving(true);
     try {
-      // Save all items in cart
-      for (const item of cart) {
-        const data: FoodLogData = {
-          source: item.source,
-          foodName: item.foodName,
-          portionGrams: item.portionGrams,
-          nutrition: item.nutrition,
-          note: note.trim() || undefined,
-          date: activeDate,
-        };
-        await onSave(data);
-      }
+      // Save entire cart as consolidated data (not individual items)
+      const data: FoodLogData = {
+        cart,
+        note: note.trim() || undefined,
+        date: activeDate,
+      };
+      await onSave(data);
       handleClose();
     } catch (error) {
       console.error('Error saving food log:', error);
@@ -671,19 +668,19 @@ function FoodLogModal({ open, onClose, onSave, currentDate }: FoodLogModalProps)
               </div>
               <div className="grid grid-cols-4 gap-2 text-center">
                 <div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-white">{cartTotals.calories}</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">{displayedCartTotals.calories}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">kcal</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-white">{cartTotals.proteinG}g</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">{displayedCartTotals.protein}g</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">{language === 'de' ? 'E' : 'P'}</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-white">{cartTotals.carbsG}g</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">{displayedCartTotals.carbs}g</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">{language === 'de' ? 'K' : 'C'}</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-white">{cartTotals.fatG}g</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-white">{displayedCartTotals.fat}g</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">F</div>
                 </div>
               </div>
