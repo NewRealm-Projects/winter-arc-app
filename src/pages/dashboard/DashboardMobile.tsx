@@ -4,12 +4,15 @@ import StatCarouselWithProgressCircle from '../../components/dashboard/StatCarou
 import CompressedWeekCard from '../../components/dashboard/CompressedWeekCard';
 import WeightChartCompact from '../../components/dashboard/WeightChartCompact';
 import ArcMenu from '../../components/dashboard/ArcMenu';
-import StatDetailsModal from '../../components/dashboard/StatDetailsModal';
 import WeeklyTile from '../../components/dashboard/WeeklyTile';
+import WorkoutLogModal from '../../components/notes/WorkoutLogModal';
+import PushupLogModal from '../../components/notes/PushupLogModal';
+import DrinkLogModal from '../../components/notes/DrinkLogModal';
+import FoodLogModal from '../../components/notes/FoodLogModal';
+import WeightLogModal from '../../components/notes/WeightLogModal';
 import { AppModal } from '../../components/ui/AppModal';
 import { WeekProvider } from '../../contexts/WeekContext';
 import { useWeekContext } from '../../contexts/WeekContext';
-import { useCarouselStats } from '../../hooks/useCarouselStats';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useTrackingEntries } from '../../hooks/useTrackingEntries';
 import { useTracking } from '../../hooks/useTracking';
@@ -17,18 +20,11 @@ import { useWeeklyTop3 } from '../../hooks/useWeeklyTop3';
 
 /**
  * Mobile Dashboard Layout - Single screen, no vertical scrolling
- * Components:
- * - DashboardHeader: Week info + Settings
- * - StatCarouselWithProgressCircle: Main carousel with 5 stats
- * - CompressedWeekCard: Week navigation (in modal)
- * - WeightChartCompact: Weight tracking (below carousel)
- * - ArcMenu: Quick-add menu (floating button)
- * - StatDetailsModal: Stat details gateway
+ * Reuses all input modals from Input page directly
  */
 function DashboardMobileContent() {
   const { t } = useTranslation();
   const { selectedDate } = useWeekContext();
-  const stats = useCarouselStats();
   const { error: trackingError, retry: retryTracking } = useTrackingEntries();
 
   // Auto-save tracking data to Firebase
@@ -36,13 +32,12 @@ function DashboardMobileContent() {
   // Check and save weekly Top 3 snapshots
   useWeeklyTop3();
 
-  // State for modals
-  const [selectedStat, setSelectedStat] = useState(stats[0] || null);
-  const [showStatDetails, setShowStatDetails] = useState(false);
+  // State for modals - track which input modal is open
+  const [openModal, setOpenModal] = useState<'sports' | 'pushup' | 'hydration' | 'nutrition' | 'weight' | null>(null);
   const [showWeekModal, setShowWeekModal] = useState(false);
 
   const handleCarouselClick = () => {
-    setShowStatDetails(true);
+    setOpenModal('sports');
   };
 
   const handleWeekCardClick = () => {
@@ -50,12 +45,16 @@ function DashboardMobileContent() {
   };
 
   const handleArcMenuSelect = (stat: 'sports' | 'pushup' | 'hydration' | 'nutrition' | 'weight') => {
-    // Find the stat object from carousel stats
-    const statObj = stats.find((s) => s.id === stat);
-    if (statObj) {
-      setSelectedStat(statObj);
-      setShowStatDetails(true);
-    }
+    setOpenModal(stat);
+  };
+
+  const handleModalClose = () => {
+    setOpenModal(null);
+  };
+
+  const handleDummySave = async () => {
+    // Modals handle their own data saving
+    handleModalClose();
   };
 
   return (
@@ -95,7 +94,7 @@ function DashboardMobileContent() {
           <CompressedWeekCard />
         </div>
 
-        {/* Main Carousel - Tap to see details - Takes remaining space */}
+        {/* Main Carousel - Tap to open sports modal - Takes remaining space */}
         <div onClick={handleCarouselClick} className="flex-1 flex items-center justify-center min-h-0">
           <div className="w-full max-w-xs">
             <StatCarouselWithProgressCircle />
@@ -108,18 +107,44 @@ function DashboardMobileContent() {
         </div>
       </div>
 
-      {/* Arc Menu (Floating) */}
+      {/* Arc Menu (Floating) - Opens specific stat modals */}
       <ArcMenu onStatSelect={handleArcMenuSelect} />
 
-      {/* Stat Details Modal (Gateway to input modals) */}
-      {selectedStat && (
-        <StatDetailsModal
-          open={showStatDetails}
-          onClose={() => setShowStatDetails(false)}
-          stat={selectedStat}
-          currentDate={selectedDate}
-        />
-      )}
+      {/* Input Modals - Directly reuse from Input page */}
+      <WorkoutLogModal
+        open={openModal === 'sports'}
+        onClose={handleModalClose}
+        onSave={handleDummySave}
+        currentDate={selectedDate}
+      />
+
+      <PushupLogModal
+        open={openModal === 'pushup'}
+        onClose={handleModalClose}
+        onSave={handleDummySave}
+        currentDate={selectedDate}
+      />
+
+      <DrinkLogModal
+        open={openModal === 'hydration'}
+        onClose={handleModalClose}
+        onSave={handleDummySave}
+        currentDate={selectedDate}
+      />
+
+      <FoodLogModal
+        open={openModal === 'nutrition'}
+        onClose={handleModalClose}
+        onSave={handleDummySave}
+        currentDate={selectedDate}
+      />
+
+      <WeightLogModal
+        open={openModal === 'weight'}
+        onClose={handleModalClose}
+        onSave={handleDummySave}
+        currentDate={selectedDate}
+      />
 
       {/* Week Details Modal */}
       <AppModal

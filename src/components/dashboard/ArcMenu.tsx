@@ -55,11 +55,11 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  // SVG configuration
+  // SVG configuration - Top-opened half circle
   const SVG_WIDTH = 200;
-  const SVG_HEIGHT = 100;
+  const SVG_HEIGHT = 120;
   const CENTER_X = SVG_WIDTH / 2;
-  const CENTER_Y = SVG_HEIGHT;
+  const CENTER_Y = 0; // Top of SVG for downward-opening arc
   const RADIUS = 90;
   const ICON_RADIUS = 60;
 
@@ -92,10 +92,10 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
         />
       )}
 
-      {/* Plus Button Container */}
+      {/* Plus Button Container - Centered at bottom */}
       <div
         ref={menuRef}
-        className="fixed bottom-6 right-6 z-40 flex flex-col items-center"
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center"
       >
         {/* Menu SVG (hidden when closed, slides up when open) */}
         <div
@@ -106,8 +106,8 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
         >
           <svg
             viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
-            width="200"
-            height="100"
+            width={SVG_WIDTH}
+            height={SVG_HEIGHT}
             className="drop-shadow-lg"
             role="menu"
             aria-label={t('common.quickAdd') || 'Quick add menu'}
