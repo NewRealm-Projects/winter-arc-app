@@ -22,18 +22,6 @@ vi.mock('../../hooks/useTranslation', () => ({
   }),
 }));
 
-// Mock progressCalculation utilities
-vi.mock('../../utils/progressCalculation', () => ({
-  polarToCartesian: (angle: number, distance: number) => {
-    // Simplified mock that returns reasonable x, y for angle and distance
-    const radians = ((angle - 90) * Math.PI) / 180;
-    return {
-      x: distance * Math.cos(radians),
-      y: distance * Math.sin(radians),
-    };
-  },
-}));
-
 describe('ArcMenu', () => {
   const mockOnStatSelect = vi.fn();
 
@@ -57,7 +45,7 @@ describe('ArcMenu', () => {
   it('should not display arc menu initially', () => {
     const { container } = render(<ArcMenu onStatSelect={mockOnStatSelect} />);
     const menuSvg = container.querySelector('svg[role="menu"]');
-    expect(menuSvg?.parentElement).toHaveClass('opacity-0');
+    expect(menuSvg).toHaveClass('opacity-0');
   });
 
   it('should have proper button size and styling', () => {
@@ -76,7 +64,7 @@ describe('ArcMenu', () => {
 
     const menuSvg = container.querySelector('svg[role="menu"]');
     await waitFor(() => {
-      expect(menuSvg?.parentElement).toHaveClass('opacity-100');
+      expect(menuSvg).toHaveClass('opacity-100');
     });
   });
 
@@ -90,13 +78,13 @@ describe('ArcMenu', () => {
     await user.click(button);
     const menuSvg = container.querySelector('svg[role="menu"]');
     await waitFor(() => {
-      expect(menuSvg?.parentElement).toHaveClass('opacity-100');
+      expect(menuSvg).toHaveClass('opacity-100');
     });
 
     // Close menu
     await user.click(button);
     await waitFor(() => {
-      expect(menuSvg?.parentElement).toHaveClass('opacity-0');
+      expect(menuSvg).toHaveClass('opacity-0');
     });
   });
 
@@ -163,7 +151,8 @@ describe('ArcMenu', () => {
     fireEvent.click(button);
 
     const icons = container.querySelectorAll('svg[role="menu"] g[role="img"] text');
-    const expectedEmojis = ['🏃', '💪', '💧', '🥩', '⚖️'];
+    // New order: nutrition (🥩), hydration (💧), weight (⚖️), pushup (💪), sports (🏃)
+    const expectedEmojis = ['🥩', '💧', '⚖️', '💪', '🏃'];
 
     Array.from(icons).forEach((icon, index) => {
       expect(icon.textContent).toBe(expectedEmojis[index]);
@@ -171,7 +160,7 @@ describe('ArcMenu', () => {
   });
 
   // Interaction Tests
-  it('should call onStatSelect when sports slice is clicked', async () => {
+  it('should call onStatSelect when nutrition slice is clicked', async () => {
     const user = userEvent.setup();
     const { container } = render(<ArcMenu onStatSelect={mockOnStatSelect} />);
 
@@ -179,18 +168,18 @@ describe('ArcMenu', () => {
     const button = screen.getByRole('button', { name: /quick add/i });
     await user.click(button);
 
-    // Find and click sports slice (first slice)
+    // Find and click nutrition slice (first slice)
     const slices = container.querySelectorAll('svg[role="menu"] path[fill*="#"]');
     await user.click(slices[0]);
 
-    expect(mockOnStatSelect).toHaveBeenCalledWith('sports');
+    expect(mockOnStatSelect).toHaveBeenCalledWith('nutrition');
   });
 
   it('should call onStatSelect for all 5 stat types', async () => {
     const user = userEvent.setup();
     const { container } = render(<ArcMenu onStatSelect={mockOnStatSelect} />);
 
-    const statIds = ['sports', 'pushup', 'hydration', 'nutrition', 'weight'] as const;
+    const statIds = ['nutrition', 'hydration', 'weight', 'pushup', 'sports'] as const;
 
     for (const statId of statIds) {
       mockOnStatSelect.mockClear();
@@ -201,7 +190,7 @@ describe('ArcMenu', () => {
 
       // Click corresponding slice
       const slices = container.querySelectorAll('svg[role="menu"] path[fill*="#"]');
-      const indexMap = { sports: 0, pushup: 1, hydration: 2, nutrition: 3, weight: 4 };
+      const indexMap = { nutrition: 0, hydration: 1, weight: 2, pushup: 3, sports: 4 };
       const index = indexMap[statId];
 
       await user.click(slices[index]);
@@ -220,7 +209,7 @@ describe('ArcMenu', () => {
 
     const menuSvg = container.querySelector('svg[role="menu"]');
     await waitFor(() => {
-      expect(menuSvg?.parentElement).toHaveClass('opacity-100');
+      expect(menuSvg).toHaveClass('opacity-100');
     });
 
     // Click a slice
@@ -229,7 +218,7 @@ describe('ArcMenu', () => {
 
     // Menu should close
     await waitFor(() => {
-      expect(menuSvg?.parentElement).toHaveClass('opacity-0');
+      expect(menuSvg).toHaveClass('opacity-0');
     });
   });
 
@@ -244,14 +233,14 @@ describe('ArcMenu', () => {
 
     const menuSvg = container.querySelector('svg[role="menu"]');
     await waitFor(() => {
-      expect(menuSvg?.parentElement).toHaveClass('opacity-100');
+      expect(menuSvg).toHaveClass('opacity-100');
     });
 
     // Press Escape
     await user.keyboard('{Escape}');
 
     await waitFor(() => {
-      expect(menuSvg?.parentElement).toHaveClass('opacity-0');
+      expect(menuSvg).toHaveClass('opacity-0');
     });
   });
 
@@ -263,7 +252,7 @@ describe('ArcMenu', () => {
     const button = screen.getByRole('button', { name: /quick add/i });
     await user.click(button);
 
-    // Get first slice
+    // Get first slice (nutrition)
     const slices = container.querySelectorAll('svg[role="menu"] path[fill*="#"]');
     const firstSlice = slices[0] as SVGPathElement;
 
@@ -271,7 +260,7 @@ describe('ArcMenu', () => {
     firstSlice.focus();
     fireEvent.keyDown(firstSlice, { key: 'Enter' });
 
-    expect(mockOnStatSelect).toHaveBeenCalledWith('sports');
+    expect(mockOnStatSelect).toHaveBeenCalledWith('nutrition');
   });
 
   it('should select stat on Space key when slice is focused', async () => {
@@ -282,7 +271,7 @@ describe('ArcMenu', () => {
     const button = screen.getByRole('button', { name: /quick add/i });
     await user.click(button);
 
-    // Get second slice (pushup)
+    // Get second slice (hydration)
     const slices = container.querySelectorAll('svg[role="menu"] path[fill*="#"]');
     const secondSlice = slices[1] as SVGPathElement;
 
@@ -290,7 +279,7 @@ describe('ArcMenu', () => {
     secondSlice.focus();
     fireEvent.keyDown(secondSlice, { key: ' ' });
 
-    expect(mockOnStatSelect).toHaveBeenCalledWith('pushup');
+    expect(mockOnStatSelect).toHaveBeenCalledWith('hydration');
   });
 
   // Backdrop Tests
@@ -330,7 +319,7 @@ describe('ArcMenu', () => {
     // Menu should close
     const menuSvg = container.querySelector('svg[role="menu"]');
     await waitFor(() => {
-      expect(menuSvg?.parentElement).toHaveClass('opacity-0');
+      expect(menuSvg).toHaveClass('opacity-0');
     });
   });
 
@@ -386,16 +375,16 @@ describe('ArcMenu', () => {
     const { container } = render(<ArcMenu onStatSelect={mockOnStatSelect} />);
 
     const button = screen.getByRole('button', { name: /quick add/i });
-    const menuWrapper = container.querySelector('[class*="duration-300"]');
+    const menuSvg = container.querySelector('svg[role="menu"]');
 
-    expect(menuWrapper).toHaveClass('duration-300', 'ease-out');
+    expect(menuSvg).toHaveClass('duration-300', 'transition-opacity');
 
     await user.click(button);
-    expect(menuWrapper).toHaveClass('opacity-100', 'translate-y-0');
+    expect(menuSvg).toHaveClass('opacity-100');
 
     await user.click(button);
     await waitFor(() => {
-      expect(menuWrapper).toHaveClass('opacity-0', 'translate-y-20');
+      expect(menuSvg).toHaveClass('opacity-0');
     });
   });
 
