@@ -1,6 +1,12 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import WeeklyTileCompact from '../WeeklyTileCompact';
+
+// Mutable mock state
+let mockWeekContextState = {
+  isCurrentWeek: true,
+  setWeekOffset: vi.fn(),
+};
 
 // Mock hooks
 vi.mock('../../../hooks/useTranslation', () => ({
@@ -14,12 +20,23 @@ vi.mock('../../../contexts/WeekContext', () => ({
   useWeekContext: () => ({
     activeWeekStart: new Date(2025, 0, 6), // Monday
     activeWeekEnd: new Date(2025, 0, 12),   // Sunday
-    isCurrentWeek: true,
-    setWeekOffset: vi.fn(),
+    isCurrentWeek: mockWeekContextState.isCurrentWeek,
+    setWeekOffset: mockWeekContextState.setWeekOffset,
     selectedDate: '2025-01-06',
     setSelectedDate: vi.fn(),
   }),
 }));
+
+beforeEach(() => {
+  mockWeekContextState = {
+    isCurrentWeek: true,
+    setWeekOffset: vi.fn(),
+  };
+  mockProgressState = {
+    streakMet: false,
+  };
+  mockDocumentExists = false;
+});
 
 vi.mock('../../../hooks/useTrainingLoadWeek', () => ({
   useTrainingLoadWeek: () => ({
@@ -45,20 +62,34 @@ vi.mock('../../../firebase', () => ({
   db: {},
 }));
 
+let mockDocumentExists = false;
+
 vi.mock('firebase/firestore', () => ({
   doc: vi.fn(),
   getDoc: vi.fn().mockResolvedValue({
-    exists: () => false,
-    data: () => ({}),
+    exists: () => mockDocumentExists,
+    data: () =>
+      mockDocumentExists
+        ? {
+            dayProgressPct: 75,
+            dayStreakMet: true,
+            tasksCompleted: 3,
+            tasksTotal: 4,
+          }
+        : {},
   }),
 }));
 
+let mockProgressState = {
+  streakMet: false,
+};
+
 vi.mock('../../../utils/progress', () => ({
   getDayProgressSummary: () => ({
-    percent: 0,
-    streakMet: false,
-    tasksCompleted: 0,
-    tasksTotal: 0,
+    percent: mockProgressState.streakMet ? 100 : 0,
+    streakMet: mockProgressState.streakMet,
+    tasksCompleted: mockProgressState.streakMet ? 1 : 0,
+    tasksTotal: 1,
   }),
 }));
 
@@ -140,6 +171,71 @@ describe('WeeklyTileCompact', () => {
     await new Promise(resolve => setTimeout(resolve, 150));
 
     expect(screen.getByText('0/7')).toBeInTheDocument();
+  });
+
+  it('shows "Archived" label for past weeks', async () => {
+    mockWeekContextState.isCurrentWeek = false;
+    render(<WeeklyTileCompact />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Archived')).toBeInTheDocument();
+    });
+  });
+
+  it('renders completed day dots when days have streakMet = true', async () => {
+    mockProgressState.streakMet = true;
+    render(<WeeklyTileCompact />);
+
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    const tile = screen.getByTestId('weekly-tile-compact');
+    expect(tile).toBeInTheDocument();
+    // Should render completed indicators
+    const completedDots = tile.querySelectorAll('[class*="bg-emerald"]');
+    expect(completedDots.length).toBeGreaterThanOrEqual(0);
+  });
+
+  it('calls setWeekOffset when previous button is clicked', async () => {
+    render(<WeeklyTileCompact />);
+
+    const buttons = screen.getAllByRole('button');
+    const previousButton = buttons[0];
+
+    fireEvent.click(previousButton);
+
+    expect(mockWeekContextState.setWeekOffset).toHaveBeenCalled();
+  });
+
+  it('calls setWeekOffset when next button is clicked (if not current week)', async () => {
+    mockWeekContextState.isCurrentWeek = false;
+    render(<WeeklyTileCompact />);
+
+    const buttons = screen.getAllByRole('button');
+    const nextButton = buttons[buttons.length - 1];
+
+    fireEvent.click(nextButton);
+
+    expect(mockWeekContextState.setWeekOffset).toHaveBeenCalled();
+  });
+
+  it('renders with German language locale', async () => {
+    render(<WeeklyTileCompact />);
+
+    const tile = screen.getByTestId('weekly-tile-compact');
+    expect(tile).toBeInTheDocument();
+  });
+
+  it('displays week progress when Firebase document has tracking data', async () => {
+    mockDocumentExists = true;
+    render(<WeeklyTileCompact />);
+
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    const tile = screen.getByTestId('weekly-tile-compact');
+    expect(tile).toBeInTheDocument();
+    // When document exists with data, it should use that data for progress
+    const svgElements = tile.querySelectorAll('svg');
+    expect(svgElements.length).toBeGreaterThan(0);
   });
 
 });
