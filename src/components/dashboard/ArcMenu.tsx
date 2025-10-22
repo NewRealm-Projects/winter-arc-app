@@ -55,11 +55,11 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  // SVG configuration - Top-opened half circle
+  // SVG configuration - Upward-opening half circle (opens upward from bottom)
   const SVG_WIDTH = 200;
   const SVG_HEIGHT = 120;
   const CENTER_X = SVG_WIDTH / 2;
-  const CENTER_Y = 0; // Top of SVG for downward-opening arc
+  const CENTER_Y = SVG_HEIGHT; // Bottom of SVG for upward-opening arc
   const RADIUS = 90;
   const ICON_RADIUS = 60;
 
