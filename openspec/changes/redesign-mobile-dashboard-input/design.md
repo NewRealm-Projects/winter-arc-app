@@ -336,33 +336,37 @@ const handlers = useSwipeable({
 });
 ```
 
-**SVG Structure** (Progress Circle):
+**SVG Structure** (Progress Circle - Top Half with Dynamic Continuous Fill):
+
+CRITICAL CLARIFICATIONS (2025-10-22):
+- **Orientation**: Circle is TOP HALF only (180° arc from 180° to 360°), centered horizontally
+- **Progress Fill**: CONTINUOUS dynamic fill, NOT divided sections
+  - Example: If Sports=50%, Pushup=0%, Hydration=50%, Nutrition=0%, Weight=0%,
+    then the arc shows 100% filled: 50% in Green (Sports) + 50% in Cyan (Hydration)
+  - Progress wraps around in order: Sports → Pushup → Hydration → Nutrition → Weight
+  - Each stat can contribute 0-20% to the 180° arc (360° / 5 stats ÷ 2 for half circle)
+- **Positioning**: Circle sits CENTERED above the plus button (plus button is at bottom center, 56px)
+- **Carousel**: StatCarousel component is INSIDE the circle, displaying current stat details
+- **Clickability**: Arc sections are interactive - clicking on a section triggers onStatSelect(stat)
+
 ```svg
-<svg viewBox="0 0 240 240" width={size} height={size}>
-  {/* Background circle (light gray) */}
-  <circle cx="120" cy="120" r="100" fill="none" stroke="#e5e7eb" strokeWidth="12" />
+<svg viewBox="0 0 240 120" width="240px" height="120px">
+  {/* Background half-circle (light gray) */}
+  <path d="M 20 120 A 100 100 0 0 1 220 120" fill="none" stroke="#e5e7eb" strokeWidth="12" />
 
-  {/* Progress arcs (colored bands for each stat) */}
-  {stats.map((stat, index) => {
-    const startAngle = (index * 72) - 90; // 72° per stat (360° / 5)
-    const endAngle = startAngle + (stat.progress * 0.72); // Max 72° per stat
-    return (
-      <path
-        key={stat.id}
-        d={arcPath(startAngle, endAngle)}
-        stroke={stat.color}
-        strokeWidth="12"
-        fill="none"
-        strokeLinecap="round"
-      />
-    );
-  })}
+  {/* Dynamic progress fill (continuous, wrapping based on total progress) */}
+  {/* Calculates total progress and wraps around arc in stat order */}
+  {/* Example SVG output for 50% sports + 50% hydration:
+      <path d="M 20 120 A 100 100 0 0 1 120 30" fill="none" stroke="#10B981" strokeWidth="12" /> (50% sports)
+      <path d="M 120 30 A 100 100 0 0 1 220 120" fill="none" stroke="#06B6D4" strokeWidth="12" /> (50% hydration)
+  */}
 
-  {/* Inner circle background (for carousel content) */}
-  <circle cx="120" cy="120" r="75" fill="var(--card-bg)" />
+  {/* Inner circle background (for carousel content overlay) */}
+  <circle cx="120" cy="120" r="70" fill="var(--card-bg)" />
 
-  {/* Carousel content (rendered in React, overlaid on SVG) */}
-  {/* Stat icon, label, value displayed here */}
+  {/* Carousel content rendered as React component overlaid on SVG */}
+  {/* Positioned at cx="120" cy="75" (center of circle) */}
+  {/* Displays: stat icon (48px), label, value, completion indicator */}
 </svg>
 ```
 
@@ -492,6 +496,11 @@ function Dashboard() {
 function DashboardMobile() {
   return (
     <div className="min-h-screen-mobile safe-pt pb-32">
+      {/* CRITICAL: Bottom Navigation Bar is HIDDEN on mobile dashboard */}
+      {/* Layout.tsx BottomNav should be conditionally hidden: */}
+      {/* if (location.pathname === '/dashboard' && isMobile) { return null; } */}
+      {/* This prevents navigation bar from overlaying arc menu and carousel */}
+
       <CompressedWeekCard />
       <StatCarousel stats={carouselStats} />
       <DynamicProgressCircle stats={progressStats} />
