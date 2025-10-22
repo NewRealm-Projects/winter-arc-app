@@ -11,7 +11,7 @@ vi.mock('../../hooks/useTranslation', () => ({
         'tracking.sports': 'Sports',
         'tracking.pushups': 'Pushups',
         'tracking.water': 'Water',
-        'tracking.nutrition': 'Nutrition',
+        'tracking.protein': 'Protein',
         'tracking.weight': 'Weight',
         'common.quickAdd': 'Quick add',
         'common.close': 'Close',

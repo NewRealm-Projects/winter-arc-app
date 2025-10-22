@@ -20,8 +20,9 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Define the 5 menu slices (ordered left to right across top)
+  // Note: IDs match DashboardMobile modal names; labels use tracking translation keys
   const SLICES = [
-    { id: 'nutrition' as const, label: t('tracking.nutrition'), icon: '🥩', color: '#F59E0B' },
+    { id: 'nutrition' as const, label: t('tracking.protein'), icon: '🥩', color: '#F59E0B' },
     { id: 'hydration' as const, label: t('tracking.water'), icon: '💧', color: '#06B6D4' },
     { id: 'weight' as const, label: t('tracking.weight'), icon: '⚖️', color: '#8B5CF6' },
     { id: 'pushup' as const, label: t('tracking.pushups'), icon: '💪', color: '#3B82F6' },
