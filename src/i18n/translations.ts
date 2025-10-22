@@ -87,6 +87,7 @@ export const translations = {
     tracking: {
       title: 'Heute tracken ✍️',
       subtitle: 'Trage deine heutigen Fortschritte ein',
+      statistics: 'Statistiken',
       history: 'Historie',
       historyTitle: 'Historie',
       historySubtitle: 'Alle deine Tracking-Einträge',
@@ -527,6 +528,10 @@ export const translations = {
       minutes: 'Minuten',
       completed: 'Abgeschlossen',
       notCompleted: 'Nicht abgeschlossen',
+      complete: 'vollständig',
+      goto: 'Gehe zu',
+      swipeOrArrows: 'Wische oder verwende Pfeiltasten',
+      useArrowKeys: 'Verwende Pfeiltasten zum Navigieren',
       // Actions
       actions: {
         save: 'Speichern',
@@ -646,6 +651,7 @@ export const translations = {
     tracking: {
       title: 'Track Today ✍️',
       subtitle: 'Enter your progress for today',
+      statistics: 'Statistics',
       history: 'History',
       historyTitle: 'History',
       historySubtitle: 'All your tracking entries',
@@ -1086,6 +1092,10 @@ export const translations = {
       minutes: 'Minutes',
       completed: 'Completed',
       notCompleted: 'Not completed',
+      complete: 'complete',
+      goto: 'Go to',
+      swipeOrArrows: 'Swipe or use arrow keys',
+      useArrowKeys: 'Use arrow keys to navigate',
       // Actions
       actions: {
         save: 'Save',
