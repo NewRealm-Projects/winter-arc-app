@@ -60,20 +60,18 @@ function DashboardMobileContent() {
 
   return (
     <>
-      {/* Error Banner */}
+      {/* Error Banner - Compact for mobile */}
       {trackingError && (
-        <div className="px-3 pt-2 pb-0">
-          <div className="rounded-lg border border-amber-300/30 bg-amber-500/10 p-3 text-amber-100">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs font-medium">
-                {trackingError === 'no-permission'
-                  ? t('tracking.permissionDeniedMessage')
-                  : t('tracking.unavailableMessage')}
+        <div className="fixed top-0 inset-x-0 z-[999] px-2 pt-1">
+          <div className="rounded border border-amber-300/30 bg-amber-500/10 p-1.5 text-amber-100">
+            <div className="flex items-center justify-between gap-1">
+              <p className="text-xs font-medium flex-1 line-clamp-1">
+                {trackingError === 'no-permission' ? 'Permission denied' : 'Service unavailable'}
               </p>
               <button
                 type="button"
                 onClick={retryTracking}
-                className="self-start rounded-full border border-white/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-colors hover:border-white/40 hover:bg-white/10"
+                className="flex-shrink-0 rounded px-2 py-0.5 text-xs font-semibold uppercase transition-colors hover:bg-white/10"
               >
                 {t('common.retry')}
               </button>
@@ -82,28 +80,30 @@ function DashboardMobileContent() {
         </div>
       )}
 
-      {/* Main Mobile Dashboard Container */}
+      {/* Main Mobile Dashboard Container - Single screen, no scrolling */}
       <div
-        className="h-screen flex flex-col gap-2 px-3 pt-2 pb-24 overflow-y-auto safe-pb safe-pt"
+        className="h-screen flex flex-col gap-1 px-3 py-1 overflow-hidden safe-pb safe-pt"
         data-testid="dashboard-mobile"
       >
         {/* Header */}
-        <DashboardHeader onSettingsClick={() => {}} />
+        <div className="flex-shrink-0">
+          <DashboardHeader onSettingsClick={() => {}} />
+        </div>
 
         {/* Week Card (Compact) - Tap to expand */}
-        <div onClick={handleWeekCardClick} className="cursor-pointer">
+        <div onClick={handleWeekCardClick} className="cursor-pointer flex-shrink-0">
           <CompressedWeekCard />
         </div>
 
-        {/* Main Carousel - Tap to see details */}
-        <div onClick={handleCarouselClick} className="flex-1 flex items-center justify-center">
+        {/* Main Carousel - Tap to see details - Takes remaining space */}
+        <div onClick={handleCarouselClick} className="flex-1 flex items-center justify-center min-h-0">
           <div className="w-full max-w-xs">
             <StatCarouselWithProgressCircle />
           </div>
         </div>
 
         {/* Weight Chart */}
-        <div>
+        <div className="flex-shrink-0">
           <WeightChartCompact />
         </div>
       </div>
