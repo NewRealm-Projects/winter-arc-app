@@ -211,26 +211,37 @@ Users on mobile devices (iPhone SE, Pixel 3, Galaxy S10e) must scroll to view al
 
 ```
 Dashboard (Mobile)
+├── DashboardHeader (NEW - includes Settings icon button)
 ├── CompressedWeekCard
-│   └── WeekDetailsModal (AppModal)
-├── StatCarousel
-│   ├── CarouselItem (Sports)
-│   ├── CarouselItem (Pushup)
-│   ├── CarouselItem (Hydration)
-│   ├── CarouselItem (Nutrition)
-│   ├── CarouselItem (Weight)
-│   └── PaginationDots
-├── DynamicProgressCircle
+│   └── WeekDetailsModal (AppModal, size="lg")
+├── StatCarouselWithProgressCircle (UNIFIED - carousel inside circle)
+│   ├── DynamicProgressCircle (SVG wrapper)
+│   │   └── StatCarousel (carousel content inside)
+│   │       ├── CarouselItem (Sports)
+│   │       ├── CarouselItem (Pushup)
+│   │       ├── CarouselItem (Hydration)
+│   │       ├── CarouselItem (Nutrition)
+│   │       ├── CarouselItem (Weight)
+│   │       └── PaginationDots (inside circle)
+│   └── StatDetailsModal (on carousel tap, size="md")
 ├── WeightChartCompact
-│   └── WeightChartModal (AppModal)
+│   └── WeightChartModal (AppModal, size="lg")
 └── ArcMenu
-    ├── PlusButton
-    ├── ArcSlice (Sports) → SportModal
-    ├── ArcSlice (Pushup) → PushupModal
-    ├── ArcSlice (Water) → WaterModal
-    ├── ArcSlice (Food) → FoodModal
-    └── ArcSlice (Weight) → WeightModal
+    ├── PlusButton (always visible, 56-60px)
+    ├── ArcSlices (hidden until tap, then slide up)
+    │   ├── ArcSlice (Sports) → WorkoutLogModal (from notes/)
+    │   ├── ArcSlice (Pushup) → PushupLogModal (from notes/)
+    │   ├── ArcSlice (Water) → DrinkLogModal (from notes/)
+    │   ├── ArcSlice (Food) → FoodLogModal (from notes/)
+    │   └── ArcSlice (Weight) → WeightLogModal (from notes/)
+    └── Backdrop (on click/escape, close menu)
 ```
+
+**Architectural Decision: Unified Component**
+- `StatCarouselWithProgressCircle` is a single, unified component
+- Manages carousel + circle state together (cleaner than separate)
+- Circle is SVG wrapper, carousel rendered inside via positioning
+- Pagination dots inside circle (minimized, see Q11)
 
 ### New Components
 
@@ -280,7 +291,7 @@ interface CompressedWeekCardProps {
 interface DynamicProgressCircleProps {
   stats: {
     id: 'sports' | 'pushup' | 'hydration' | 'nutrition' | 'weight';
-    icon: ReactNode; // Emoji or SVG icon
+    icon: ReactNode; // Emoji or SVG icon (see Icon Sources below)
     label: string;
     value: string | number; // e.g., "12/14 hrs", "2/3L", "1500/2000 kcal"
     progress: number; // 0-100 (maps to 0-20% of circle)
@@ -290,6 +301,17 @@ interface DynamicProgressCircleProps {
   autoRotateInterval?: number; // Default: 4000ms
   onStatTap?: (stat: typeof stats[0]) => void;
 }
+```
+
+**Icon Sources** (from OnboardingPage.tsx, uses emoji strings):
+```typescript
+const STAT_ICONS = {
+  sports: '🏃',      // Running (OnboardingPage step 9: activitySports)
+  pushup: '💪',      // Flexed biceps (OnboardingPage step 9: activityPushups)
+  hydration: '💧',   // Water droplet (OnboardingPage step 9: activityWater)
+  nutrition: '🥩',   // Meat/protein (OnboardingPage step 9: activityProtein)
+  weight: '⚖️',      // Scale (for weight tracking)
+};
 ```
 
 **Layout** (270px × 270px circle):
@@ -336,36 +358,36 @@ const handlers = useSwipeable({
 });
 ```
 
-**SVG Structure** (Progress Circle - Top Half with Dynamic Continuous Fill):
+**SVG Structure** (Progress Circle - Full Circle with Dynamic Continuous Fill):
 
 CRITICAL CLARIFICATIONS (2025-10-22):
-- **Orientation**: Circle is TOP HALF only (180° arc from 180° to 360°), centered horizontally
+- **Orientation**: Full circle (360° / 5 stats = 72° per stat)
 - **Progress Fill**: CONTINUOUS dynamic fill, NOT divided sections
   - Example: If Sports=50%, Pushup=0%, Hydration=50%, Nutrition=0%, Weight=0%,
     then the arc shows 100% filled: 50% in Green (Sports) + 50% in Cyan (Hydration)
   - Progress wraps around in order: Sports → Pushup → Hydration → Nutrition → Weight
-  - Each stat can contribute 0-20% to the 180° arc (360° / 5 stats ÷ 2 for half circle)
-- **Positioning**: Circle sits CENTERED above the plus button (plus button is at bottom center, 56px)
+  - Each stat can contribute 0-20% to the full circle (360° / 5 stats)
+- **Positioning**: Full circle centered in middle of mobile screen (above the Arc Menu)
 - **Carousel**: StatCarousel component is INSIDE the circle, displaying current stat details
-- **Clickability**: Arc sections are interactive - clicking on a section triggers onStatSelect(stat)
+- **Clickability**: Circle sections are interactive - clicking on a section triggers onStatSelect(stat)
 
 ```svg
-<svg viewBox="0 0 240 120" width="240px" height="120px">
-  {/* Background half-circle (light gray) */}
-  <path d="M 20 120 A 100 100 0 0 1 220 120" fill="none" stroke="#e5e7eb" strokeWidth="12" />
+<svg viewBox="0 0 240 240" width="240px" height="240px">
+  {/* Background circle (light gray) */}
+  <circle cx="120" cy="120" r="100" fill="none" stroke="#e5e7eb" strokeWidth="12" />
 
   {/* Dynamic progress fill (continuous, wrapping based on total progress) */}
-  {/* Calculates total progress and wraps around arc in stat order */}
+  {/* Calculates total progress and wraps around full circle in stat order */}
   {/* Example SVG output for 50% sports + 50% hydration:
-      <path d="M 20 120 A 100 100 0 0 1 120 30" fill="none" stroke="#10B981" strokeWidth="12" /> (50% sports)
-      <path d="M 120 30 A 100 100 0 0 1 220 120" fill="none" stroke="#06B6D4" strokeWidth="12" /> (50% hydration)
+      <path d="M 120 20 A 100 100 0 0 1 170.7 29.3" fill="none" stroke="#10B981" strokeWidth="12" /> (50% sports = 36°)
+      <path d="M 170.7 29.3 A 100 100 0 0 1 100 220" fill="none" stroke="#06B6D4" strokeWidth="12" /> (50% hydration = 36°)
   */}
 
   {/* Inner circle background (for carousel content overlay) */}
   <circle cx="120" cy="120" r="70" fill="var(--card-bg)" />
 
   {/* Carousel content rendered as React component overlaid on SVG */}
-  {/* Positioned at cx="120" cy="75" (center of circle) */}
+  {/* Positioned at cx="120" cy="120" (center of circle) */}
   {/* Displays: stat icon (48px), label, value, completion indicator */}
 </svg>
 ```
@@ -474,56 +496,146 @@ interface ArcMenuProps {
 
 ---
 
+### Modal Reuse Patterns
+
+The proposal integrates with existing modals from the Input page and dashboard pages. Here's how modal reuse works:
+
+#### **1. Arc Menu → Stat Input Modals**
+When user taps an Arc Menu slice (Sports, Pushup, Water, Food, Weight), one of these modals opens:
+- **SportModal**: Reuses `WorkoutLogModal` from `src/components/notes/WorkoutLogModal.tsx`
+- **PushupModal**: Reuses `PushupLogModal` from `src/components/notes/PushupLogModal.tsx`
+- **WaterModal**: Reuses `DrinkLogModal` from `src/components/notes/DrinkLogModal.tsx`
+- **FoodModal**: Reuses `FoodLogModal` from `src/components/notes/FoodLogModal.tsx`
+- **WeightModal**: Reuses `WeightLogModal` from `src/components/notes/WeightLogModal.tsx`
+
+These modals are already AppModal wrappers, just launched from a different UI entry point (ArcMenu vs Input page).
+
+#### **2. Carousel Tap → Stat Details Modal**
+When user taps the carousel to view full stat details:
+- Opens a compact modal showing the detailed stat view (similar to existing tiles)
+- Can use existing tile components wrapped in AppModal for reuse
+- Example: `SportsModal` → Shows stat details + option to quick-add
+
+#### **3. Week/Weight Expansion → Modals**
+- **WeekDetailsModal**: Wraps `WeeklyTile` content in AppModal (size="lg")
+- **WeightChartModal**: Wraps `WeightTile` content in AppModal (size="lg")
+
+**Key Insight**: All modals use the unified `AppModal` component (which already exists), so no new modal components need to be created. We just wrap existing content or launch existing modals from new entry points.
+
+---
+
 ### Modified Components
 
-#### Dashboard.tsx
+#### 1. DashboardPage.tsx
 
 **Changes**:
 ```typescript
 import { useIsMobile } from '@/hooks/useIsMobile';
+import DashboardMobile from './dashboard/DashboardMobile';
 
-function Dashboard() {
+function DashboardPage() {
   const isMobile = useIsMobile(); // < 481px
 
   if (isMobile) {
     return <DashboardMobile />;
   }
 
-  // Desktop layout (unchanged)
+  // Desktop layout (completely unchanged from current DashboardPage)
   return <DashboardDesktop />;
 }
 
-function DashboardMobile() {
+function DashboardDesktop() {
+  // Return existing DashboardPage content (unchanged)
   return (
-    <div className="min-h-screen-mobile safe-pt pb-32">
-      {/* CRITICAL: Bottom Navigation Bar is HIDDEN on mobile dashboard */}
-      {/* Layout.tsx BottomNav should be conditionally hidden: */}
-      {/* if (location.pathname === '/dashboard' && isMobile) { return null; } */}
-      {/* This prevents navigation bar from overlaying arc menu and carousel */}
-
-      <CompressedWeekCard />
-      <StatCarousel stats={carouselStats} />
-      <DynamicProgressCircle stats={progressStats} />
-      <WeightChartCompact data={weightData} />
-      <ArcMenu onStatSelect={handleStatSelect} />
+    <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe">
+      <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 viewport-safe">
+        <div className="mx-auto max-w-[700px]">
+          {/* All existing components unchanged */}
+          <WeeklyTile />
+          <UnifiedTrainingCard />
+          {/* ... rest of existing desktop layout */}
+        </div>
+      </div>
     </div>
   );
 }
 
-function DashboardDesktop() {
-  // Existing layout (completely unchanged)
+export default DashboardPage;
+```
+
+#### 2. DashboardMobile.tsx (NEW)
+
+**File**: `src/pages/dashboard/DashboardMobile.tsx`
+
+```typescript
+import { useTranslation } from '@/hooks/useTranslation';
+import { useNavigate } from 'react-router-dom';
+import DashboardHeader from '@/components/dashboard/DashboardHeader';
+import CompressedWeekCard from '@/components/dashboard/CompressedWeekCard';
+import StatCarouselWithProgressCircle from '@/components/dashboard/StatCarouselWithProgressCircle';
+import WeightChartCompact from '@/components/dashboard/WeightChartCompact';
+import ArcMenu from '@/components/dashboard/ArcMenu';
+
+function DashboardMobile() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const handleSettingsClick = () => {
+    navigate('/settings');
+  };
+
   return (
-    <>
-      <WeeklyTile />
-      <UnifiedTrainingCard />
-      <TileGrid columns={2}>
-        <PushupTile />
-        <WaterTile />
-        <NutritionTile />
-        <WeightTile />
-      </TileGrid>
-    </>
+    <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe">
+      {/* CRITICAL: Bottom Navigation Bar is HIDDEN on mobile dashboard */}
+      {/* Layout.tsx conditionally hides BottomNav: */}
+      {/* if (location.pathname === '/dashboard' && isMobile) { return null; } */}
+
+      <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 viewport-safe">
+        <div className="mx-auto max-w-[700px] space-y-4">
+          {/* Header with week dates + settings button (right side) */}
+          <DashboardHeader onSettingsClick={handleSettingsClick} />
+
+          {/* Week card with dates */}
+          <div className="animate-fade-in-up">
+            <CompressedWeekCard />
+          </div>
+
+          {/* Unified carousel + progress circle component */}
+          <div className="animate-fade-in-up delay-100">
+            <StatCarouselWithProgressCircle />
+          </div>
+
+          {/* Weight chart with swipeable date range */}
+          <div className="animate-fade-in-up delay-200">
+            <WeightChartCompact />
+          </div>
+        </div>
+      </div>
+
+      {/* Arc Menu with Plus button (always visible, slides up on tap) */}
+      <ArcMenu />
+    </div>
   );
+}
+
+export default DashboardMobile;
+```
+
+#### 3. DashboardHeader.tsx (NEW)
+
+**File**: `src/components/dashboard/DashboardHeader.tsx`
+
+Purpose: Displays week information + Settings icon button (replaces bottom nav access on mobile)
+
+```typescript
+interface DashboardHeaderProps {
+  onSettingsClick: () => void;
+}
+
+function DashboardHeader({ onSettingsClick }: DashboardHeaderProps) {
+  // Render week dates + settings button (right side)
+  // Settings button: Circular icon button, 48px, positioned top-right
+  // Spacing: Ensure it doesn't overlap with WeekContext component
 }
 ```
 
@@ -542,36 +654,117 @@ All state management unchanged. Components read from existing stores:
 
 ```typescript
 // src/hooks/useCarouselStats.ts
+import { useWeekContext } from '../contexts/WeekContext';
+import { format } from 'date-fns';
+
 export function useCarouselStats(): CarouselStat[] {
   const tracking = useStore((state) => state.tracking);
   const user = useStore((state) => state.user);
+  const { selectedDate } = useWeekContext(); // Use selected date, not hardcoded today
+
+  const activeDate = format(parseISO(selectedDate), 'yyyy-MM-dd');
+  const dayTracking = tracking[activeDate] ?? {};
 
   return [
     {
       id: 'sports',
-      icon: <DumbbellIcon />,
+      icon: '🏃',
       label: 'Sports',
-      value: `${tracking.sports?.duration || 0} hrs`,
-      progress: calculateSportsProgress(tracking.sports, user.sportsGoal),
+      value: dayTracking.sports && countActiveSports(dayTracking.sports) > 0
+        ? 'Completed'
+        : 'Not Completed',
+      // Sports progress: Binary (done if any sport logged)
+      progress: countActiveSports(dayTracking.sports) > 0 ? 100 : 0,
       color: STAT_COLORS.sports,
     },
     {
       id: 'pushup',
-      icon: <PushupIcon />,
+      icon: '💪',
       label: 'Pushups',
-      value: `${tracking.pushups || 0} / ${user.maxPushups}`,
-      progress: calculatePushupProgress(tracking.pushups, user.maxPushups),
+      value: `${dayTracking.pushups?.total ?? 0} total`,
+      // Pushup progress: Binary (done if any pushups logged)
+      progress: (dayTracking.pushups?.total ?? 0) > 0 ? 100 : 0,
       color: STAT_COLORS.pushup,
     },
-    // ... hydration, nutrition, weight
+    {
+      id: 'hydration',
+      icon: '💧',
+      label: 'Water',
+      // Formatted display (e.g., "2.5L / 3L")
+      value: `${formatMl(dayTracking.water ?? 0)} / ${formatMl(resolveWaterGoal(user))}`,
+      // Hydration progress: Proportional to goal
+      progress: getPercent(dayTracking.water ?? 0, resolveWaterGoal(user)),
+      color: STAT_COLORS.hydration,
+    },
+    {
+      id: 'nutrition',
+      icon: '🥩',
+      label: 'Calories',
+      // Calories as primary metric (not protein)
+      value: `${dayTracking.calories ?? 0} kcal`,
+      // Nutrition progress: Proportional to TDEE goal
+      progress: user?.weight && user?.activityLevel
+        ? getPercent(dayTracking.calories ?? 0, calculateTDEE(user.weight, user.activityLevel, user.bodyFat))
+        : 0,
+      color: STAT_COLORS.nutrition,
+    },
+    {
+      id: 'weight',
+      icon: '⚖️',
+      label: 'Weight',
+      // Show all of above: current, goal, BMI, trend
+      value: `${dayTracking.weight?.value ?? '—'} kg`,
+      // Weight progress: Binary (logged if value exists)
+      progress: (dayTracking.weight?.value ?? 0) > 0 ? 100 : 0,
+      color: STAT_COLORS.weight,
+    },
   ];
 }
 ```
 
-### Progress Calculation
+**Key Implementation Notes**:
+- Carousel respects `WeekContext.selectedDate` (changes when user taps different date in CompressedWeekCard)
+- Sports: "Completed" / "Not Completed" status (future: adjustable hours/goal)
+- Pushups: Binary "x total" (future: adjustable goals)
+- Hydration: Formatted display (e.g., "2.5L / 3L")
+- Nutrition: Calories primary metric (for caloric tracking)
+- Weight: All info displayed, with goal comparison and BMI
+- Progress circle updates automatically when carousel advances
+- Pagination dots update to show current stat position
 
+### Progress Calculation (from existing codebase)
+
+The proposal reuses calculations already defined in `src/utils/progress.ts` and `src/utils/calculations.ts`:
+
+**Water Goal** (from `progress.ts:224-236`):
 ```typescript
-// src/utils/progressCalculation.ts
+// Resolves to either:
+// 1. user.hydrationGoalLiters (custom) → convert to ml
+// 2. OR calculateWaterGoal(user.weight) → 35ml per kg
+// 3. DEFAULT: 3000ml (3L)
+export function resolveWaterGoal(user?: Partial<Pick<User, 'weight' | 'hydrationGoalLiters'>> | null): number {
+  // Returns ml (e.g., 3000 for 3L user)
+}
+```
+
+**Protein Goal** (from `progress.ts:238-250`, confirmed in `calculations.ts:22-27`):
+```typescript
+// Resolves to either:
+// 1. user.proteinGoalGrams (custom)
+// 2. OR calculateProteinGoal(user.weight) → 2g per kg
+// 3. DEFAULT: 0 if no weight
+export function resolveProteinGoal(user?: Partial<Pick<User, 'weight' | 'proteinGoalGrams'>> | null): number {
+  // Returns grams (e.g., 160g for 80kg user)
+}
+```
+
+**Sport Progress**: Binary (done if `sportsCount > 0`), from `progress.ts:75`
+
+**Pushup Progress**: Binary (done if `pushups.total > 0`), from `progress.ts:74`
+
+**Progress Circle Calculation**:
+```typescript
+// src/utils/progressCalculation.ts (NEW - to be created)
 export function calculateStatProgress(stat: CarouselStat): number {
   // Each stat contributes 0-20% to total (5 stats total = 100%)
   const maxContribution = 20;
@@ -883,6 +1076,189 @@ export function calculateTotalProgress(stats: CarouselStat[]): number {
 
 ---
 
+## Implementation Decisions & Technical Notes
+
+### Architectural Decisions Made
+
+#### **1. Unified Component: StatCarouselWithProgressCircle**
+- **Decision**: Single unified component (not separate Carousel + Circle)
+- **Rationale**: Cleaner state management, carousel is visually inside circle
+- **Structure**:
+  - SVG circle as wrapper (progress bands + styling)
+  - Carousel content rendered inside via CSS positioning
+  - Pagination dots inside circle (minimized to ~6px each)
+- **Benefits**: Shared state updates when carousel changes, simpler prop drilling
+
+---
+
+#### **2. Arc Menu - Visibility & Interaction**
+- **Initial State**: Plus button visible (56-60px), arc slices **hidden** (not visible below)
+- **On Tap**: Arc slices slide up from bottom with animation
+- **On Escape/Backdrop Click**: Arc slides down and hides
+- **Touch Target**: Plus button 56px (AAA compliance)
+- **Animation**: 300ms ease-out slide-up, 200ms ease-in slide-down
+- **Backdrop**: Semi-transparent overlay behind arc (prevents interaction with dashboard)
+
+---
+
+#### **3. Chart Library: Recharts**
+- **Decision**: Use `recharts` (already in dependencies, ^3.2.1)
+- **Rationale**:
+  - Already used elsewhere in project (likely)
+  - Mature, well-tested, React-native support
+  - Consistent with existing codebase
+- **WeightChartCompact**: Line chart with simplified axes (no animation overhead)
+
+---
+
+#### **4. Keyboard Navigation (Secondary Priority)**
+- **Arrow Keys**:
+  - ← / → navigate between carousel stats
+  - Wraps around (next after weight → sports)
+- **Enter / Space**: Tap current stat (open details modal)
+- **Escape**: Close arc menu (if open)
+- **Tab**: Focus pagination dots (optional, nice-to-have)
+- **Implementation**: Attach handlers at component level, prevent default scroll
+
+---
+
+#### **5. prefers-reduced-motion Support**
+- **Behavior**:
+  - Disable auto-rotation (user must manually navigate)
+  - All animations converted to instant transitions
+  - Pagination dots clickable directly
+- **Implementation**: Check `window.matchMedia('(prefers-reduced-motion: reduce)').matches`
+
+---
+
+#### **6. Code-Splitting Strategy**
+- **Decision**: **Bundle together** (not code-split)
+- **Rationale**:
+  - Mobile components only used on mobile (<481px)
+  - Bundle size increase <50KB (within budget)
+  - Single import cleaner than lazy loading
+- **Monitoring**: Use `npm run analyze` to verify bundle impact
+
+---
+
+#### **7. Feature Flag: MOBILE_CAROUSEL_DASHBOARD_ENABLED**
+- **Location**: `src/lib/flags.ts` (check if this exists)
+- **Purpose**: Toggle mobile carousel dashboard on/off
+- **Fallback**: If flag false, render old desktop layout (temporary)
+- **Rollout**: Initially true for all users, use for gradual rollout if needed
+
+```typescript
+// src/lib/flags.ts or config/features.ts
+export const MOBILE_CAROUSEL_DASHBOARD_ENABLED =
+  import.meta.env.VITE_MOBILE_CAROUSEL === 'true';
+```
+
+---
+
+#### **8. Onboarding Modification: Weight Goal**
+- **New Step**: Add weight goal question to onboarding flow
+- **When Asked**: After current weight (consecutive step)
+- **Default for Existing Users**: BMI 22 calculation
+  - Formula: `weight / (1 - (1 - (weight / (height² / 703))))`
+  - Simplified: Calculate LBM assuming ~15% body fat, target BMI 22
+  - Example: 80kg user, 180cm tall → target ~71kg (BMI 22)
+- **User Object Addition**: Add `goalWeight: number` field
+- **Impact on Weight Carousel Stat**:
+  - Show: "Current: 80kg | Goal: 71kg | BMI: 24.7"
+  - Progress: Percentage towards goal weight
+
+---
+
+#### **9. Modal Size Recommendations**
+
+| Modal | Size | Context |
+|---|---|---|
+| **WeekDetailsModal** | `lg` (672px) | Full week view with streaks |
+| **WeightChartModal** | `lg` (672px) | Full weight chart + BMI |
+| **StatDetailsModal** | `md` (512px) | Compact stat details (carousel tap) |
+| **Input Modals** | Current | WorkoutLogModal, DrinkLogModal, etc. (existing) |
+
+---
+
+### Layout & Spacing Recommendations
+
+#### **Mobile Dashboard Spacing** (based on "One Screen Rule")
+
+```
+Viewport: 375px width × 667px height
+Usable: ~603px (after safe areas + bottom padding)
+
+Layout structure:
+┌─────────────────────────────┐
+│ DashboardHeader (48px)       │ ← Settings button top-right
+├─────────────────────────────┤
+│ CompressedWeekCard (88px)    │ ← gap-4 = 16px
+├─────────────────────────────┤
+│ StatCarousel + Circle (260px)│ ← gap-4 = 16px
+├─────────────────────────────┤
+│ WeightChartCompact (120px)   │ ← gap-4 = 16px
+└─────────────────────────────┘
+Safe bottom padding: 32px (pb-32)
+Total: ~32px + 88px + 16px + 260px + 16px + 120px + 16px + 32px = ~580px ✅
+
+Recommended spacing:
+- Between sections: gap-4 (16px)
+- Section padding: px-3 (12px) mobile, px-6 (24px) desktop
+- Internal card padding: p-4 (16px) - matches existing tiles
+- Vertical spacing in cards: space-y-3 (12px) between elements
+```
+
+---
+
+#### **DashboardHeader Settings Button Positioning**
+- **Location**: Top right, inside header
+- **Size**: 48px (standard touch target)
+- **Icon**: Gear/settings icon (use lucide-react)
+- **Spacing**:
+  - Right margin: mr-3 (12px from edge)
+  - Top margin: relative positioning within header
+  - Ensure no overlap with week dates on left
+- **Z-Index**: `z-10` (above carousel, below modals)
+
+---
+
+#### **Arc Menu Bottom Positioning**
+- **Fixed**: `fixed bottom-[safe-area-bottom] left-1/2 -translate-x-1/2`
+- **Z-Index**: `z-40` (above carousel but below modals)
+- **Width**: Full width minus padding (px-3 on both sides)
+- **Plus button**: Centered, 56px
+
+---
+
+### Future Improvements (Document for Later Implementation)
+
+1. **Adjustable Sports Goals**
+   - Currently: Binary "completed" (any activity = done)
+   - Future: Allow users to set hour targets (e.g., "5 hours/week")
+   - Storage: `user.sportsGoalHours` field
+
+2. **Adjustable Activity Goals**
+   - Currently: Hardcoded per-activity goals
+   - Future: User-configurable in Settings
+   - Examples: Pushup reps, hydration ml, protein grams
+
+3. **Weight Goal Modification**
+   - Currently: Set during onboarding only
+   - Future: Editable in Settings page
+   - Allow multiple goal types (BMI range, absolute weight, etc.)
+
+4. **Training Load Integration**
+   - Currently: Arc menu → Input modals
+   - Future: Direct integration with training load calculation
+   - Show training load progress in carousel
+
+5. **Animations Performance**
+   - Monitor on low-end devices (iPhone 6, Pixel 3)
+   - May need to disable carousel auto-rotation on older devices
+   - Implement device capability detection if needed
+
+---
+
 ## Appendix
 
 ### A. Color Palette (WCAG AA Compliant)
@@ -956,6 +1332,209 @@ const TOUCH_TARGETS = {
 
 ---
 
-**Version**: 1.0
+---
+
+## Implementation Checklist & Phases
+
+### Phase 1: Core Components (Days 1-4)
+
+#### Day 1: Setup & Utilities
+- [ ] Create `src/hooks/useIsMobile.ts` (matchMedia-based viewport detection)
+- [ ] Create `src/hooks/useCarouselStats.ts` (data transformation from tracking store)
+- [ ] Create `src/utils/progressCalculation.ts` (stat progress calculations)
+- [ ] Add `react-swipeable` to dependencies (`npm install react-swipeable`)
+- [ ] Create feature flag in `src/lib/flags.ts` → `MOBILE_CAROUSEL_DASHBOARD_ENABLED`
+
+#### Day 2: Carousel & Progress Circle
+- [ ] Create `src/components/dashboard/StatCarouselWithProgressCircle.tsx` (UNIFIED)
+  - SVG circle with dynamic progress bands
+  - Carousel inside circle
+  - Auto-rotation + swipe handling
+  - Pagination dots (inside circle, minimized)
+  - Keyboard navigation (arrow keys, Enter, Escape)
+  - prefers-reduced-motion support
+- [ ] Test with mock data
+- [ ] Verify Lighthouse score remains ≥90
+
+#### Day 3: Week Card & Header
+- [ ] Create `src/components/dashboard/CompressedWeekCard.tsx`
+  - Week dates display
+  - Tap to open WeekDetailsModal (AppModal size="lg")
+  - Integration with WeekContext
+- [ ] Create `src/components/dashboard/DashboardHeader.tsx`
+  - Settings icon button (top-right, 48px)
+  - Proper spacing with CompressedWeekCard
+  - Navigation to /settings
+
+#### Day 4: Weight Chart
+- [ ] Create `src/components/dashboard/WeightChartCompact.tsx`
+  - Recharts line chart (simplified)
+  - 7-day default view
+  - Swipe to toggle 30-day view
+  - Tap to open WeightChartModal (AppModal size="lg")
+
+### Phase 2: Arc Menu & Integration (Days 5-7)
+
+#### Day 5: Arc Menu Component
+- [ ] Create `src/components/dashboard/ArcMenu.tsx`
+  - Plus button (56px, always visible)
+  - Half-circle SVG with 5 slices (hidden initially)
+  - Slide-up animation on tap
+  - Backdrop click/Escape to close
+  - Touch targets 56px+ for each slice
+- [ ] Test arc geometry and positioning
+- [ ] Verify plus button + arc menu fit in viewport
+
+#### Day 6: Modal Integration
+- [ ] Verify existing input modals work in mobile view:
+  - [ ] WorkoutLogModal (Sports slice)
+  - [ ] PushupLogModal (Pushup slice)
+  - [ ] DrinkLogModal (Water slice)
+  - [ ] FoodLogModal (Food slice)
+  - [ ] WeightLogModal (Weight slice)
+- [ ] Test modals from arc menu (not Input page)
+- [ ] Suggest modifications if any don't fit mobile viewport
+- [ ] Create `src/components/dashboard/StatDetailsModal.tsx` (carousel tap modal)
+
+#### Day 7: Dashboard Integration
+- [ ] Create `src/pages/dashboard/DashboardMobile.tsx`
+- [ ] Modify `src/pages/DashboardPage.tsx` to use isMobile conditional
+- [ ] Modify `src/components/Layout.tsx` to conditionally hide BottomNav on mobile dashboard
+- [ ] Integrate all components in DashboardMobile
+- [ ] Verify "One Screen Rule" (no scrolling, ~580px total height)
+
+### Phase 3: Onboarding & Testing (Days 8-9)
+
+#### Day 8: Onboarding Modifications
+- [ ] Add weight goal question to OnboardingPage
+  - Step 5.5 or 6 (after current weight)
+  - Input field for target weight
+  - Show BMI preview
+- [ ] Calculate default weight goal for existing users (BMI 22)
+  - Add migration script if needed
+- [ ] Add `goalWeight: number` field to User type
+- [ ] Update Firestore schema
+
+#### Day 9: Testing & Polish
+- [ ] Unit tests for useCarouselStats, useIsMobile, progress calculations
+- [ ] E2E tests for carousel navigation (swipe, keyboard, auto-rotation)
+- [ ] E2E tests for arc menu (tap, close, modal launch)
+- [ ] Visual regression tests (Playwright) for all stat variations
+- [ ] Mobile device testing (iPhone SE, Pixel 3, Galaxy S10e)
+- [ ] Lighthouse CI validation (score ≥90)
+- [ ] Bundle size check (`npm run analyze`) - should be <650KB total
+
+### Phase 4: Documentation & Rollout (Days 10+)
+
+#### Before Rollout
+- [ ] Update CHANGELOG.md
+- [ ] Bump version (SemVer)
+- [ ] Review all accessibility (WCAG AA)
+- [ ] Document future improvements in README
+- [ ] Create user-facing changelog entry
+
+#### Rollout Strategy
+- [ ] Day 1: 10% of mobile users (feature flag)
+- [ ] Day 3: 25% of mobile users
+- [ ] Day 5: 50% of mobile users
+- [ ] Day 7: 100% of mobile users
+- [ ] Monitor Sentry for errors
+- [ ] Monitor analytics for carousel engagement
+
+---
+
+## Files to Create/Modify
+
+### New Files
+
+```
+src/
+├── hooks/
+│   ├── useIsMobile.ts (NEW)
+│   └── useCarouselStats.ts (NEW)
+├── utils/
+│   └── progressCalculation.ts (NEW)
+├── components/dashboard/
+│   ├── DashboardHeader.tsx (NEW)
+│   ├── CompressedWeekCard.tsx (NEW)
+│   ├── StatCarouselWithProgressCircle.tsx (NEW - UNIFIED)
+│   ├── WeightChartCompact.tsx (NEW)
+│   ├── ArcMenu.tsx (NEW)
+│   └── StatDetailsModal.tsx (NEW)
+├── pages/dashboard/
+│   └── DashboardMobile.tsx (NEW)
+└── lib/
+    └── flags.ts (MODIFY or CREATE)
+
+tests/
+├── unit/
+│   ├── hooks/useIsMobile.test.ts (NEW)
+│   └── hooks/useCarouselStats.test.ts (NEW)
+└── e2e/
+    └── mobile-dashboard.spec.ts (NEW)
+```
+
+### Modified Files
+
+```
+src/
+├── pages/DashboardPage.tsx (MODIFY - add isMobile conditional)
+├── pages/OnboardingPage.tsx (MODIFY - add weight goal step)
+├── components/Layout.tsx (MODIFY - hide BottomNav on mobile dashboard)
+├── types/index.ts (MODIFY - add goalWeight to User)
+└── i18n/translations.ts (MODIFY - add weight goal labels)
+
+tests/
+└── e2e/mobile-devices.spec.ts (UPDATE - add carousel tests)
+```
+
+---
+
+## Success Criteria
+
+✅ **Functional**
+- [ ] Carousel auto-rotates every 4 seconds
+- [ ] Swipe left/right advances carousel (threshold 125px)
+- [ ] Arc menu opens on plus button tap, closes on escape/backdrop
+- [ ] Each arc slice launches correct modal
+- [ ] All modals work correctly from both Input page and Arc menu
+- [ ] WeekContext.selectedDate changes update carousel stats
+- [ ] Keyboard navigation works (arrows, Enter, Escape)
+- [ ] prefers-reduced-motion disables auto-rotation
+
+✅ **Visual**
+- [ ] One-screen rule maintained (~580px total, no scrolling)
+- [ ] Progress circle renders without clipping
+- [ ] Pagination dots visible inside circle
+- [ ] Arc menu slides up smoothly, doesn't overlap carousel
+- [ ] Settings button positioned top-right without overlap
+- [ ] Dark mode looks correct
+- [ ] All animations smooth (60fps on iPhone 8+)
+
+✅ **Accessibility**
+- [ ] Keyboard navigation complete (arrows, Enter, Escape)
+- [ ] Touch targets 56px+ (AAA compliance)
+- [ ] ARIA labels on all interactive elements
+- [ ] Focus visible on all components
+- [ ] prefers-reduced-motion respected
+- [ ] Color contrast WCAG AA compliant
+
+✅ **Performance**
+- [ ] Lighthouse mobile score ≥90
+- [ ] Bundle size <650KB (increase <50KB)
+- [ ] No performance regression vs desktop
+- [ ] Smooth swipe animations (no jank)
+- [ ] Modals open/close quickly (<300ms)
+
+✅ **Testing**
+- [ ] Unit test coverage ≥70% for new utilities
+- [ ] E2E tests for all user interactions
+- [ ] Visual regression tests for stat variations
+- [ ] Mobile device testing (3+ real devices)
+- [ ] All existing tests still pass
+
+---
+
+**Version**: 2.0 (Fully Clarified Implementation)
 **Last Updated**: 2025-10-22
-**Status**: READY FOR REVIEW
+**Status**: READY FOR IMPLEMENTATION

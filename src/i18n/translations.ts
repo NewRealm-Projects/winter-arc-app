@@ -100,9 +100,12 @@ export const translations = {
       confirmDelete: 'Ja, löschen',
       pushups: 'Liegestütze',
       sport: 'Sport',
+      sports: 'Sport',
       water: 'Wasser',
       hydration: 'Hydration',
       protein: 'Protein',
+      calories: 'Kalorien',
+      kcal: 'kcal',
       weight: 'Gewicht',
       sportSessions: 'Sport Sessions',
       today: 'heute',
@@ -522,6 +525,8 @@ export const translations = {
       retry: 'Erneut versuchen',
       optional: 'optional',
       minutes: 'Minuten',
+      completed: 'Abgeschlossen',
+      notCompleted: 'Nicht abgeschlossen',
       // Actions
       actions: {
         save: 'Speichern',
@@ -654,9 +659,12 @@ export const translations = {
       confirmDelete: 'Yes, delete',
       pushups: 'Pushups',
       sport: 'Sport',
+      sports: 'Sports',
       water: 'Water',
       hydration: 'Hydration',
       protein: 'Protein',
+      calories: 'Calories',
+      kcal: 'kcal',
       weight: 'Weight',
       sportSessions: 'Sport Sessions',
       today: 'today',
@@ -1076,6 +1084,8 @@ export const translations = {
       retry: 'Retry',
       optional: 'optional',
       minutes: 'Minutes',
+      completed: 'Completed',
+      notCompleted: 'Not completed',
       // Actions
       actions: {
         save: 'Save',
