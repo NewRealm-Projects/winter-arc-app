@@ -5,7 +5,7 @@ import { polarToCartesian } from '../../utils/progressCalculation';
 
 export interface ArcMenuProps {
   onStatSelect: (
-    stat: 'sports' | 'pushup' | 'water' | 'food' | 'weight'
+    stat: 'sports' | 'pushup' | 'hydration' | 'nutrition' | 'weight'
   ) => void;
 }
 
@@ -23,8 +23,8 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
   const SLICES = [
     { id: 'sports' as const, label: t('tracking.sports'), icon: '🏃', color: '#10B981' },
     { id: 'pushup' as const, label: t('tracking.pushups'), icon: '💪', color: '#3B82F6' },
-    { id: 'water' as const, label: t('tracking.water'), icon: '💧', color: '#06B6D4' },
-    { id: 'food' as const, label: t('tracking.nutrition'), icon: '🥩', color: '#F59E0B' },
+    { id: 'hydration' as const, label: t('tracking.water'), icon: '💧', color: '#06B6D4' },
+    { id: 'nutrition' as const, label: t('tracking.nutrition'), icon: '🥩', color: '#F59E0B' },
     { id: 'weight' as const, label: t('tracking.weight'), icon: '⚖️', color: '#8B5CF6' },
   ];
 

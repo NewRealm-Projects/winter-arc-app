@@ -190,7 +190,7 @@ describe('ArcMenu', () => {
     const user = userEvent.setup();
     const { container } = render(<ArcMenu onStatSelect={mockOnStatSelect} />);
 
-    const statIds = ['sports', 'pushup', 'water', 'food', 'weight'] as const;
+    const statIds = ['sports', 'pushup', 'hydration', 'nutrition', 'weight'] as const;
 
     for (const statId of statIds) {
       mockOnStatSelect.mockClear();
@@ -201,7 +201,7 @@ describe('ArcMenu', () => {
 
       // Click corresponding slice
       const slices = container.querySelectorAll('svg[role="menu"] path[fill*="#"]');
-      const indexMap = { sports: 0, pushup: 1, water: 2, food: 3, weight: 4 };
+      const indexMap = { sports: 0, pushup: 1, hydration: 2, nutrition: 3, weight: 4 };
       const index = indexMap[statId];
 
       await user.click(slices[index]);

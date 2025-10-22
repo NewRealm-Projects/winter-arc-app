@@ -6,13 +6,15 @@ import WeightTile from '../components/WeightTile';
 import UnifiedTrainingCard from '../components/UnifiedTrainingCard';
 import WeeklyTile from '../components/dashboard/WeeklyTile';
 import { WeekProvider } from '../contexts/WeekContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { useTrackingEntries } from '../hooks/useTrackingEntries';
 import { useTranslation } from '../hooks/useTranslation';
 import { useTracking } from '../hooks/useTracking';
 import { useWeeklyTop3 } from '../hooks/useWeeklyTop3';
 import { useStore } from '../store/useStore';
+import DashboardMobile from './dashboard/DashboardMobile';
 
-function DashboardPage() {
+function DashboardPageContent() {
   const { t } = useTranslation();
   const user = useStore((state) => state.user);
   const { error: trackingError, retry: retryTracking } = useTrackingEntries();
@@ -96,6 +98,23 @@ function DashboardPage() {
           </div>
         </div>
       </div>
+    </WeekProvider>
+  );
+}
+
+/**
+ * Main Dashboard Page with mobile/desktop branching
+ */
+function DashboardPage() {
+  const isMobile = useIsMobile(); // < 481px breakpoint
+
+  if (isMobile) {
+    return <DashboardMobile />;
+  }
+
+  return (
+    <WeekProvider>
+      <DashboardPageContent />
     </WeekProvider>
   );
 }
