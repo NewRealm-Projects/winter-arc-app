@@ -1,4 +1,4 @@
-import { auth, db } from '@/firebase';
+import { db } from '@/firebase';
 import {
   collection,
   doc,
@@ -19,14 +19,9 @@ function assertUserId(userId: string | null | undefined): asserts userId is stri
   }
 }
 
-function logSubscription(path: string, userId?: string): void {
-  if (import.meta.env.DEV) {
-    console.warn('[Auth]', auth.currentUser?.uid ?? null);
-    console.warn('[Subscribe]', path);
-    if (userId) {
-      console.warn('[FS]', { userId, path });
-    }
-  }
+function logSubscription(_path: string, _userId?: string): void {
+  // Debug logs removed to reduce console noise
+  // Only error logs remain (see handleSnapshotError)
 }
 
 function handleSnapshotError(path: string, error: FirestoreError, onError?: SnapshotErrorHandler): void {

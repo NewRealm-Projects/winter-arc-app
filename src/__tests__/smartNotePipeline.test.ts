@@ -67,7 +67,7 @@ describe('updateSmartNote', () => {
     expect(mocks.summarizeAndValidate).not.toHaveBeenCalled();
   });
 
-  it('reprocesses smart notes with heuristic and llm events', async () => {
+  it('reprocesses smart notes with heuristic events only', async () => {
     const smart: SmartNote = {
       id: 'smart',
       ts: Date.now() - 5000,
@@ -97,34 +97,20 @@ describe('updateSmartNote', () => {
     };
 
     mocks.get.mockResolvedValue(smart);
-    mocks.getRecent.mockResolvedValue([]);
     mocks.parseHeuristic.mockReturnValue({ candidates: [heuristicEvent] });
-    mocks.summarizeAndValidate.mockResolvedValue({
-      summary: 'Neue Zusammenfassung',
-      events: [
-        {
-          id: 'llm-1',
-          ts: smart.ts,
-          kind: 'drink',
-          volumeMl: 300,
-          beverage: 'water',
-          confidence: 0.9,
-        },
-      ],
-    });
 
     await updateSmartNote(smart.id, 'Aktueller Rohtext');
 
-    expect(mocks.update).toHaveBeenCalledTimes(2);
+    expect(mocks.update).toHaveBeenCalledTimes(1);
 
-    const firstPatch = mocks.update.mock.calls[0][1];
-    expect(firstPatch).toMatchObject({
+    const patch = mocks.update.mock.calls[0][1];
+    expect(patch).toMatchObject({
       raw: 'Aktueller Rohtext',
       summary: 'Aktueller Rohtext',
-      pending: true,
+      pending: false,
     });
-    expect(firstPatch.events).toHaveLength(1);
-    expect(firstPatch.events?.[0]).toMatchObject({
+    expect(patch.events).toHaveLength(1);
+    expect(patch.events?.[0]).toMatchObject({
       kind: 'drink',
       beverage: 'water',
       volumeMl: 250,
@@ -132,18 +118,6 @@ describe('updateSmartNote', () => {
       ts: smart.ts,
     });
 
-    const finalPatch = mocks.update.mock.calls[1][1];
-    expect(finalPatch).toMatchObject({
-      summary: 'Neue Zusammenfassung',
-      pending: false,
-    });
-    expect(finalPatch.events).toHaveLength(1);
-    expect(finalPatch.events?.[0]).toMatchObject({
-      kind: 'drink',
-      beverage: 'water',
-      volumeMl: 300,
-      source: 'llm',
-      ts: smart.ts,
-    });
+    expect(mocks.summarizeAndValidate).not.toHaveBeenCalled();
   });
 });

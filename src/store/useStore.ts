@@ -7,12 +7,14 @@ import {
   SmartTrackingContribution,
   DailyCheckIn,
   DailyTrainingLoad,
+  DrinkPreset,
 } from '../types';
 import { logger } from '../utils/logger';
 
 interface AppState {
   user: User | null;
   setUser: (user: User | null) => void;
+  updateUserPresets: (presets: DrinkPreset[]) => void;
 
   authLoading: boolean;
   setAuthLoading: (loading: boolean) => void;
@@ -81,6 +83,19 @@ const getInitialLeaderboardFilter = (): 'week' | 'month' | 'all' => {
 export const useStore = create<AppState>((set) => ({
   user: null,
   setUser: (user) => set({ user }),
+  updateUserPresets: (presets) =>
+    set((state) => {
+      if (!state.user) {
+        logger.warn('Cannot update presets: No user logged in');
+        return state;
+      }
+      return {
+        user: {
+          ...state.user,
+          hydrationPresets: presets,
+        },
+      };
+    }),
 
   authLoading: true,
   setAuthLoading: (loading) => set({ authLoading: loading }),

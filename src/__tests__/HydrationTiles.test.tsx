@@ -1,6 +1,6 @@
 import { act, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import WaterTile from '../components/WaterTile';
+import HydrationTile from '../components/HydrationTile';
 import ProteinTile from '../components/ProteinTile';
 import { useStore } from '../store/useStore';
 import type { SportTracking } from '../types';
@@ -53,7 +53,7 @@ describe('Hydration and Protein tiles', () => {
     let protein: ReturnType<typeof render> | undefined;
 
     await act(async () => {
-      water = render(<WaterTile />);
+      water = render(<HydrationTile />);
       protein = render(<ProteinTile />);
     });
 

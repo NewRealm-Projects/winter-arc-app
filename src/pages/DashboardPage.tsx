@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 import PushupTile from '../components/PushupTile';
-import WaterTile from '../components/WaterTile';
-import ProteinTile from '../components/ProteinTile';
+import HydrationTile from '../components/HydrationTile';
+import NutritionTile from '../components/NutritionTile';
 import WeightTile from '../components/WeightTile';
 import UnifiedTrainingCard from '../components/UnifiedTrainingCard';
 import WeeklyTile from '../components/dashboard/WeeklyTile';
@@ -71,8 +71,8 @@ function DashboardPage() {
               {(() => {
                 const tiles: ReactElement[] = [];
                 if (enabledActivities.includes('pushups')) tiles.push(<PushupTile key="pushups" />);
-                if (enabledActivities.includes('water')) tiles.push(<WaterTile key="water" />);
-                if (enabledActivities.includes('protein')) tiles.push(<ProteinTile key="protein" />);
+                if (enabledActivities.includes('water')) tiles.push(<HydrationTile key="water" />);
+                if (enabledActivities.includes('protein')) tiles.push(<NutritionTile key="nutrition" />);
 
                 // Group tiles into pairs for tile-grid-2 layout
                 const tileGroups: ReactElement[] = [];

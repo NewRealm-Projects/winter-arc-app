@@ -61,7 +61,8 @@ const computeBaseFromWorkouts = (workouts: WorkoutEntry[], pushupsReps: number):
 export function computeDailyTrainingLoadV1(
   params: TrainingLoadComputationInput
 ): TrainingLoadComputationResult {
-  const sessionLoad = computeBaseFromWorkouts(params.workouts, 0); // Base workouts without pushups
+  // Include pushups in base load calculation (not as adjustment)
+  const baseLoad = computeBaseFromWorkouts(params.workouts, params.pushupsReps);
 
   const sleepScore = clamp(Math.round(params.sleepScore), 1, 10);
   const recoveryScore = clamp(Math.round(params.recoveryScore), 1, 10);
@@ -73,18 +74,14 @@ export function computeDailyTrainingLoadV1(
   const wellnessModRaw = 0.6 + 0.04 * recoveryScore + 0.02 * sleepScore - (sick ? 0.3 : 0);
   const wellnessMod = clamp(wellnessModRaw, 0.4, 1.4);
 
-  // Pushup adjustment: Add pushups as a bonus (capped at 20% of session load)
-  const pushupAdjRaw = (params.pushupsReps / 100) * sessionLoad;
-  const pushupAdj = Math.min(pushupAdjRaw, 0.2 * sessionLoad);
-
-  // Final training load
-  const loadRaw = (sessionLoad + pushupAdj) * wellnessMod;
+  // Final training load (pushups already included in baseLoad)
+  const loadRaw = baseLoad * wellnessMod;
   const load = Math.round(clamp(loadRaw, 0, TRAINING_LOAD_CAP));
 
   return {
     load,
     components: {
-      baseFromWorkouts: sessionLoad,
+      baseFromWorkouts: baseLoad,
       modifierSleep: wellnessMod, // Store combined wellness mod for backwards compatibility
       modifierRecovery: wellnessMod,
       modifierSick: wellnessMod,

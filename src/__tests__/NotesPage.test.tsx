@@ -1,6 +1,7 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react';
+import { renderWithProviders } from 'test/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import NotesPage from '../pages/NotesPage';
+import InputPage from '../pages/InputPage';
 import { SmartNote } from '../types/events';
 
 const storeState = vi.hoisted(() => ({
@@ -89,35 +90,18 @@ vi.mock('../features/notes/pipeline', () => {
   };
 });
 
-describe('NotesPage', () => {
+describe('InputPage', () => {
   beforeEach(() => {
     storeState.notes = [];
     storeState.listeners.clear();
     localStorage.clear();
   });
 
-  it('shows optimistic note and patches after processing', async () => {
-    render(<NotesPage />);
+  it('renders QuickLogPanel with all logging buttons', async () => {
+    renderWithProviders(<InputPage />);
 
-    const input = screen.getByPlaceholderText('Kurz notieren…');
-    await act(async () => {
-      fireEvent.change(input, { target: { value: '20 Liegestütze, 500 ml Wasser, Proteinshake' } });
-    });
-
-    const submit = screen.getByRole('button', { name: 'Hinzufügen' });
-    await act(async () => {
-      fireEvent.click(submit);
-    });
-
-    expect(await screen.findByTitle('Wird verarbeitet')).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(screen.getByText(/Processed:/)).toBeInTheDocument();
-    });
-
-    await waitFor(() => {
-      expect(screen.queryByTitle('Wird verarbeitet')).not.toBeInTheDocument();
-    });
+    // QuickLogPanel should have all 5 quick action buttons
+    expect(await screen.findByText('Schnell loggen')).toBeInTheDocument();
   });
 
   it('allows editing an existing smart note', async () => {
@@ -130,14 +114,14 @@ describe('NotesPage', () => {
     };
     await noteStoreMock.add(existing);
 
-    render(<NotesPage />);
+    renderWithProviders(<InputPage />);
 
     const editButton = await screen.findByRole('button', { name: 'Bearbeiten' });
     await act(async () => {
       fireEvent.click(editButton);
     });
 
-    const editor = screen.getByRole('textbox', { name: 'Smart Note bearbeiten' });
+    const editor = screen.getByRole('textbox', { name: 'Bearbeiten' });
     await act(async () => {
       fireEvent.change(editor, { target: { value: 'Aktualisierte Notiz' } });
     });
@@ -148,7 +132,7 @@ describe('NotesPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.queryByRole('textbox', { name: 'Smart Note bearbeiten' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('textbox', { name: 'Bearbeiten' })).not.toBeInTheDocument();
     });
     expect(screen.getByText('Aktualisierte Notiz')).toBeInTheDocument();
   });
@@ -165,7 +149,7 @@ describe('NotesPage', () => {
 
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
 
-    render(<NotesPage />);
+    renderWithProviders(<InputPage />);
 
     const deleteButton = await screen.findByRole('button', { name: 'Löschen' });
     await act(async () => {

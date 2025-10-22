@@ -1,14 +1,27 @@
+<!-- OPENSPEC:START -->
+# OpenSpec Instructions
+
+These instructions are for AI assistants working in this project.
+
+Always open `@/openspec/AGENTS.md` when the request:
+- Mentions planning or proposals (words like proposal, spec, change, plan)
+- Introduces new capabilities, breaking changes, architecture shifts, or big performance/security work
+- Sounds ambiguous and you need the authoritative spec before coding
+
+Use `@/openspec/AGENTS.md` to learn:
+- How to create and apply change proposals
+- Spec format and conventions
+- Project structure and guidelines
+
+Keep this managed block so 'openspec update' can refresh the instructions.
+
+<!-- OPENSPEC:END -->
+
 # CLAUDE.md
 
 Guidance for Claude Code when working with this repository.
 
----
-
-# Winter Arc Fitness Tracking PWA
-
-**Project**: Progressive Web App für iOS/Android - Fitness-Tracking mit Fokus auf Liegestütze, Sport, Ernährung, Gewicht.
-
-**Tech Stack**: React + TypeScript + Vite + Tailwind + Firebase + Zustand + Vitest + Playwright
+**Note**: For project architecture, tech stack, and testing conventions, see `openspec/project.md`. This file focuses on UI/UX guidelines and developer workflow.
 
 ---
 
@@ -373,53 +386,6 @@ import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from '@/components
 
 ---
 
-## Architecture
-
-### State Management
-- **Zustand** store: `useStore` (user, tracking, dark mode)
-- Auto-sync to Firebase via hooks
-
-### Firebase
-- **Auth**: `useAuth` hook (Google SSO)
-- **Firestore**: `firestoreService` (CRUD), `useTracking` (auto-save, debounced 1s)
-- **Security**: App Check with reCAPTCHA v3
-
-### Data Model
-```typescript
-users/{userId}: { nickname, gender, height, weight, bodyFat?, maxPushups, groupCode, pushupState }
-tracking/{userId}/days/{date}: { pushups, sports, water, protein, weight?, completed }
-groups/{groupCode}: { name, members[], createdAt }
-```
-
-### Error Tracking & Monitoring
-- **Sentry**: Real-time error tracking and performance monitoring (`src/services/sentryService.ts`)
-- **Integration**: All unhandled errors, promise rejections, and React errors are automatically captured
-- **Privacy**: Sensitive data (tokens, API keys) filtered via `beforeSend` hook
-- **Usage**:
-  ```typescript
-  import { captureException, setUser, addBreadcrumb } from '@/services/sentryService';
-
-  // Manual error capture
-  captureException(new Error('Something went wrong'), { userId: '123' });
-
-  // Set user context
-  setUser({ id: userId, email, nickname });
-
-  // Add debugging breadcrumb
-  addBreadcrumb('User clicked button', { buttonId: 'submit' });
-  ```
-- **Configuration**: Set `VITE_SENTRY_DSN` in `.env` to enable (see `.env.example`)
-- **Environment**:
-  - Dev: All errors logged to console, 100% traces sampled
-  - Production: Errors sent to Sentry, 10% traces sampled, session replay on errors
-- **Global Handlers**: Automatic capture of:
-  - Unhandled window errors
-  - Unhandled promise rejections
-  - React component errors (via ErrorBoundary)
-  - Logger errors in production
-
----
-
 ## App Structure
 
 ### 1. Dashboard (Updated 2025-10-09)
@@ -486,40 +452,6 @@ groups/{groupCode}: { name, members[], createdAt }
 🔵 **Data Export**: CSV/JSON, GDPR compliance
 🔵 **Social Sharing**: Progress cards
 🔵 **Achievements**: Badge system
-
----
-
-## Environment Variables
-
-**Required:**
-```bash
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
-```
-
-**Optional:**
-```bash
-VITE_RECAPTCHA_SITE_KEY=...  # Firebase App Check (production)
-VITE_SENTRY_DSN=...           # Sentry error tracking (recommended)
-VITE_GEMINI_API_KEY=...       # Gemini AI for Smart Notes
-```
-
-**CI/CD Only (GitHub Secrets):**
-```bash
-SENTRY_AUTH_TOKEN=...         # For source map upload
-SENTRY_ORG=...                # Your Sentry organization
-SENTRY_PROJECT=...            # Your Sentry project
-```
-
----
-
-## Onboarding Flow
-
-Google SSO → Language → Nickname → Gender → Height → Weight → Body Fat% (optional) → Max Pushups
 
 ---
 

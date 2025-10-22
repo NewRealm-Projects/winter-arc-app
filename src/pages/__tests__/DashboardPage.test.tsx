@@ -29,12 +29,12 @@ vi.mock('../../components/PushupTile', () => ({
   default: () => <div data-testid="pushup-tile" />,
 }));
 
-vi.mock('../../components/WaterTile', () => ({
+vi.mock('../../components/HydrationTile', () => ({
   default: () => <div data-testid="water-tile" />,
 }));
 
-vi.mock('../../components/ProteinTile', () => ({
-  default: () => <div data-testid="protein-tile" />,
+vi.mock('../../components/NutritionTile', () => ({
+  default: () => <div data-testid="nutrition-tile" />,
 }));
 
 vi.mock('../../components/WeightTile', () => ({
@@ -170,7 +170,7 @@ describe('DashboardPage', () => {
 
     expect(screen.getByTestId('pushup-tile')).toBeInTheDocument();
     expect(screen.getByTestId('water-tile')).toBeInTheDocument();
-    expect(screen.queryByTestId('protein-tile')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('nutrition-tile')).not.toBeInTheDocument();
     // Note: UnifiedTrainingCard is always rendered regardless of enabledActivities
     expect(screen.getByTestId('training-load-tile')).toBeInTheDocument();
   });
@@ -182,7 +182,7 @@ describe('DashboardPage', () => {
 
     expect(screen.getByTestId('pushup-tile')).toBeInTheDocument();
     expect(screen.getByTestId('water-tile')).toBeInTheDocument();
-    expect(screen.getByTestId('protein-tile')).toBeInTheDocument();
+    expect(screen.getByTestId('nutrition-tile')).toBeInTheDocument();
     expect(screen.getByTestId('weight-tile')).toBeInTheDocument();
     // Note: SportTile was merged into UnifiedTrainingCard (training-load-tile)
     expect(screen.getByTestId('training-load-tile')).toBeInTheDocument();

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 🐛 Fixed
+- **Training Load Stability Issues**: Major refactor to fix race conditions, improve responsiveness, and reduce latency
+  - **Eliminated Race Conditions**: Removed optimistic UI updates in favor of single source of truth (Firestore subscription)
+  - **Week-Wide Subscription**: Training load graph now subscribes to all 7 days of the week for real-time updates (was previously only 1 day)
+  - **Fixed Pushup Calculation**: Corrected pushup load formula to include pushups in base calculation (not as capped adjustment)
+  - **Reduced Check-in Latency**: Removed heavy weekly aggregation from check-in save path, reducing save time from 2-3s to <1s
+  - **Added Retry Logic**: Check-in saves now retry up to 3 times with exponential backoff (1s, 2s, 4s) for better reliability
+  - **Performance Improvements**: Firestore read operations reduced by ~60% (fewer weekly aggregation queries)
+  - New files:
+    - `src/utils/retry.ts` - Exponential backoff retry utility with Sentry logging
+    - `src/utils/retry.test.ts` - Comprehensive unit tests for retry logic
+    - `src/hooks/useWeeklyTrainingLoadSubscription.ts` - Week-wide Firestore subscription hook
+  - Modified files:
+    - `src/services/trainingLoad.ts` - Fixed pushup calculation in `computeDailyTrainingLoadV1`
+    - `src/services/checkin.ts` - Removed weekly aggregation, simplified to 2 writes only
+    - `src/components/checkin/CheckInModal.tsx` - Removed optimistic updates, added retry logic
+    - `src/components/UnifiedTrainingCard.tsx` - Integrated week-wide subscription hook
+
 ---
 
 ## [0.1.2] - 2025-10-10

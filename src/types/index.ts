@@ -4,6 +4,8 @@ export type Language = 'de' | 'en';
 
 export type Activity = 'pushups' | 'sports' | 'water' | 'protein' | 'weight';
 
+export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+
 export type WorkoutStatus = 'pass' | 'hold' | 'fail';
 
 export type SportKey = 'hiit' | 'cardio' | 'gym' | 'schwimmen' | 'soccer' | 'rest';
@@ -21,6 +23,14 @@ export interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+export interface DrinkPreset {
+  id: string; // UUID
+  name: string; // Max 30 chars
+  amountMl: number; // 50-5000ml
+  emoji?: string; // Optional single emoji, default: 💧
+  order: number; // Display order (0-4)
+}
+
 export interface User {
   id: string;
   language: Language;
@@ -29,8 +39,10 @@ export interface User {
   height: number; // cm
   weight: number; // kg
   hydrationGoalLiters?: number;
+  hydrationPresets?: DrinkPreset[]; // Max 5 custom drink presets
   proteinGoalGrams?: number;
   bodyFat?: number; // %
+  activityLevel?: ActivityLevel; // User's activity level for TDEE calculation (default: 'moderate')
   maxPushups: number;
   groupCode: string;
   birthday?: string; // YYYY-MM-DD
@@ -62,6 +74,9 @@ export interface DailyTracking {
   sports: SportTracking;
   water: number; // ml
   protein: number; // g
+  calories?: number; // kcal
+  carbsG?: number; // g
+  fatG?: number; // g
   recovery?: {
     sleepQuality?: number;
     recovery?: number;
@@ -84,6 +99,9 @@ export interface SmartTrackingContribution {
     value?: number;
     bodyFat?: number;
   };
+  calories?: number;
+  carbsG?: number;
+  fatG?: number;
 }
 
 export interface Group {

@@ -6,6 +6,8 @@ import { calculateBMI } from '../utils/calculations';
 import { useTranslation } from '../hooks/useTranslation';
 import { getTileClasses, designTokens } from '../theme/tokens';
 import { useCombinedTracking, useCombinedDailyTracking } from '../hooks/useCombinedTracking';
+import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from './ui/AppModal';
+import EditIcon from './ui/EditIcon';
 
 function WeightTile() {
   const { t } = useTranslation();
@@ -130,8 +132,20 @@ function WeightTile() {
   const isTracked = Boolean(combinedDaily?.weight?.value ?? activeTracking?.weight?.value);
 
   return (
-    <div className={`${getTileClasses(isTracked)} ${designTokens.padding.compact} text-white`}>
-      <div className="flex items-center gap-2 mb-2">
+    <div className={`relative ${getTileClasses(isTracked)} ${designTokens.padding.compact} text-white`}>
+      {/* Edit Icon */}
+      <EditIcon
+        onClick={() => {
+          if (activeTracking?.weight) {
+            setWeight(activeTracking.weight.value.toString());
+            setBodyFat(activeTracking.weight.bodyFat?.toString() || '');
+          }
+          setShowInput(true);
+        }}
+        ariaLabel={t('tracking.edit')}
+      />
+
+      <div className="flex items-center gap-2 mb-2 pr-12">
         <div className="text-xl">⚖️</div>
         <div>
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -246,25 +260,8 @@ function WeightTile() {
         <div className="text-[11px] font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide">
           {t('tracking.weight')}
         </div>
-        <div className="flex items-center justify-center gap-2">
-          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-            {latestWeight}kg
-          </div>
-          {activeTracking?.weight?.value && (
-            <button
-              onClick={() => {
-                if (activeTracking?.weight) {
-                  setWeight(activeTracking.weight.value.toString());
-                  setBodyFat(activeTracking.weight.bodyFat?.toString() || '');
-                  setShowInput(true);
-                }
-              }}
-              className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
-              title={t('tracking.edit')}
-            >
-              ✏️
-            </button>
-          )}
+        <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+          {latestWeight}kg
         </div>
         {latestBMI && (
           <div className="text-[11px] text-gray-600 dark:text-gray-400">
@@ -273,67 +270,55 @@ function WeightTile() {
         )}
       </div>
 
-      {/* Input */}
-      <div className="text-center">
-        <button
-          onClick={() => { setShowInput(true); }}
-          className="w-full px-3 py-2 text-sm bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors font-medium"
-        >
-          {t('tracking.addWeight')}
-        </button>
-      </div>
-
       {/* Weight Modal */}
-      {showInput && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              ⚖️ {t('tracking.weight')}
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              {t('tracking.setExactAmount')}
-            </p>
-            <div className="space-y-3 mb-4">
-              <input
-                type="number"
-                step="0.1"
-                value={weight}
-                onChange={(e) => { setWeight(e.target.value); }}
-                placeholder="Gewicht (kg)"
-                className="flex-1 px-2 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
-                autoFocus
-              />
-              <input
-                type="number"
-                step="0.1"
-                value={bodyFat}
-                onChange={(e) => { setBodyFat(e.target.value); }}
-                placeholder="KFA (%)"
-                className="w-20 px-2 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
-              />
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={saveWeight}
-                disabled={!weight || parseFloat(weight) <= 0}
-                className="flex-1 px-4 py-3 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {t('tracking.save')}
-              </button>
-              <button
-                onClick={() => {
-                  setShowInput(false);
-                  setWeight('');
-                  setBodyFat('');
-                }}
-                className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-              >
-                {t('tracking.cancel')}
-              </button>
-            </div>
-          </div>
+      <AppModal
+        open={showInput}
+        onClose={() => {
+          setShowInput(false);
+          setWeight('');
+          setBodyFat('');
+        }}
+        title={t('tracking.weight')}
+        subtitle={t('tracking.setExactAmount')}
+        icon={<span className="text-2xl">⚖️</span>}
+        size="sm"
+        footer={
+          <>
+            <ModalSecondaryButton
+              onClick={() => {
+                setShowInput(false);
+                setWeight('');
+                setBodyFat('');
+              }}
+            >
+              {t('tracking.cancel')}
+            </ModalSecondaryButton>
+            <ModalPrimaryButton onClick={saveWeight} disabled={!weight || parseFloat(weight) <= 0}>
+              {t('tracking.save')}
+            </ModalPrimaryButton>
+          </>
+        }
+      >
+        <div className="flex gap-2">
+          <input
+            type="number"
+            step="0.1"
+            value={weight}
+            onChange={(e) => { setWeight(e.target.value); }}
+            placeholder="Gewicht (kg)"
+            className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+            autoFocus
+          />
+          <input
+            type="number"
+            step="0.1"
+            value={bodyFat}
+            onChange={(e) => { setBodyFat(e.target.value); }}
+            placeholder="KFA (%)"
+            className="w-24 px-2 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 outline-none"
+          />
         </div>
-      )}
+      </AppModal>
     </div>
   );
 }

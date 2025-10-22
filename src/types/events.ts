@@ -61,6 +61,8 @@ export interface FoodEvent extends BaseEvent {
   label: string;
   calories?: number;
   proteinG?: number;
+  carbsG?: number;
+  fatG?: number;
 }
 
 export type Event =
@@ -80,6 +82,8 @@ export type SmartNoteAttachment = {
   storagePath?: string;
 };
 
+export type ActivityType = 'drink' | 'food' | 'workout' | 'weight' | 'pushup' | 'custom';
+
 export interface SmartNote {
   id: string;
   ts: number;
@@ -88,6 +92,11 @@ export interface SmartNote {
   events: Event[];
   pending?: boolean;
   attachments?: SmartNoteAttachment[];
+  // New fields for manual activity context
+  activityType?: ActivityType;
+  activitySummary?: string; // Truncated summary for display (max 2 items)
+  activityDetails?: string[]; // Full list for tooltip (if truncated)
+  content?: string; // User's note text (for manual notes)
 }
 
 export type SmartNoteInput = {

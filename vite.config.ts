@@ -4,7 +4,6 @@ import { defineConfig, type PluginOption } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
-import { sentryVitePlugin } from '@sentry/vite-plugin';
 
 const shouldUploadSourcemaps = Boolean(process.env.SENTRY_AUTH_TOKEN);
 
@@ -177,27 +176,6 @@ const plugins: PluginOption[] = [
   }) as unknown as PluginOption,
 ];
 
-if (shouldUploadSourcemaps) {
-  const releaseName =
-    process.env.SENTRY_RELEASE ??
-    process.env.VERCEL_GIT_COMMIT_SHA ??
-    process.env.GITHUB_SHA;
-
-  plugins.push(
-    sentryVitePlugin({
-      org: process.env.SENTRY_ORG ?? 'newrealm',
-      project: process.env.SENTRY_PROJECT ?? 'javascript-react',
-      authToken: process.env.SENTRY_AUTH_TOKEN,
-      telemetry: false,
-      sourcemaps: {
-        assets: './dist/assets/**',
-        filesToDeleteAfterUpload: ['./dist/assets/**/*.map', './dist/**/*.js.map'],
-      },
-      release: releaseName ? { name: releaseName } : undefined,
-    })
-  );
-}
-
 export default defineConfig({
   // Support dynamic base path for PR previews (e.g., /pr-123/)
   base: process.env.VITE_BASE_PATH || '/',
@@ -218,11 +196,11 @@ export default defineConfig({
       // CSP for development (more permissive for HMR)
       'Content-Security-Policy': [
         "default-src 'self'",
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com",
         "style-src 'self' 'unsafe-inline'",
         "img-src 'self' data: https: blob:",
         "font-src 'self' data:",
-        "connect-src 'self' ws: wss: http://localhost:* https://*.firebaseio.com https://firestore.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://firebaseinstallations.googleapis.com https://api.openweathermap.org https://api.open-meteo.com https://generativelanguage.googleapis.com https://*.sentry.io",
+        "connect-src 'self' ws: wss: http://localhost:* https://*.firebaseio.com https://firestore.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://firebaseinstallations.googleapis.com https://content-firebaseappcheck.googleapis.com https://api.openweathermap.org https://api.open-meteo.com https://generativelanguage.googleapis.com https://*.sentry.io",
         "frame-src https://*.firebaseapp.com",
         "frame-ancestors 'none'",
         "base-uri 'self'",

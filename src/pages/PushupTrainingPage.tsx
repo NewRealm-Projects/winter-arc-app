@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { generateDailyMotivation } from '../services/aiService';
 import { saveDailyTracking } from '../services/firestoreService';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -12,7 +11,6 @@ import {
   evaluateWorkout,
 } from '../utils/pushupAlgorithm';
 import { useCombinedTracking } from '../hooks/useCombinedTracking';
-import { combineTrackingWithSmart } from '../utils/tracking';
 import { glassCardClasses, designTokens } from '../theme/tokens';
 import { useTrackingEntries } from '../hooks/useTrackingEntries';
 import { useTranslation } from '../hooks/useTranslation';
@@ -25,7 +23,6 @@ function PushupTrainingPage() {
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
   const selectedDate = useStore((state) => state.selectedDate);
-  const smartContributions = useStore((state) => state.smartContributions);
   const combinedTracking = useCombinedTracking();
 
   const [currentSet, setCurrentSet] = useState(0);
@@ -130,24 +127,8 @@ function PushupTrainingPage() {
       if (user?.id) {
         void saveDailyTracking(user.id, activeDate, newTracking);
       }
-      // AI Prompt Log für Training
-      if (user) {
-        const nickname = user.nickname;
-        const birthday = user.birthday;
-        // Tracking für den aktuellen User (kann auch alle Tage enthalten)
-        try {
-          const updatedManual = {
-            ...tracking,
-            [activeDate]: newTracking,
-          };
-          const trackingForAi = combineTrackingWithSmart(updatedManual, smartContributions);
-          await generateDailyMotivation(trackingForAi, nickname, birthday);
-        } catch (e) {
-          console.warn('AI Prompt Log (PushupTraining) Fehler:', e);
-        }
-      }
     }
-  }, [activeDate, currentReps, currentSet, reps, restTime, smartContributions, tracking, updateDayTracking, user]);
+  }, [activeDate, currentReps, currentSet, reps, restTime, tracking, updateDayTracking, user]);
 
   // Automatischer Satzabschluss, wenn Ziel erreicht
   useEffect(() => {

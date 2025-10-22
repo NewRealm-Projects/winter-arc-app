@@ -1,6 +1,30 @@
 import { useCallback, useEffect, useRef, type ReactNode, type MouseEvent } from 'react';
 import { createPortal } from 'react-dom';
 
+/**
+ * AppModal - Unified modal component with accessibility features
+ *
+ * @remarks
+ * This modal component provides:
+ * - Focus trap and keyboard navigation (Tab, Shift+Tab, Escape)
+ * - Return focus to trigger element on close
+ * - Body scroll lock when open
+ * - WCAG 2.1 Level AA compliance
+ *
+ * **Focus Outline Visibility:**
+ * Content wrappers should include `p-1` class (4px padding in all directions) to prevent
+ * focus outline clipping at modal edges. This ensures focus rings (ring-2) with
+ * shadow offsets are fully visible for keyboard navigation in all directions (top, right, bottom, left).
+ *
+ * @example
+ * ```tsx
+ * <AppModal open={isOpen} onClose={handleClose} title="My Modal" size="md">
+ *   <div className="space-y-4 p-1">
+ *     <input className="focus:ring-2 focus:ring-blue-500" />
+ *   </div>
+ * </AppModal>
+ * ```
+ */
 export interface AppModalProps {
   open: boolean;
   onClose: () => void;
@@ -11,7 +35,7 @@ export interface AppModalProps {
   children: ReactNode;
   footer?: ReactNode;
   preventCloseOnBackdrop?: boolean;
-  initialFocusRef?: React.RefObject<HTMLElement>;
+  initialFocusRef?: React.RefObject<HTMLElement | null>;
 }
 
 const SIZE_CLASSES = {
@@ -47,6 +71,7 @@ export function AppModal({
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
   const titleId = useRef(`modal-title-${Math.random().toString(36).slice(2, 9)}`);
+  const hasInitiallyFocused = useRef(false);
 
   // Body scroll lock
   useEffect(() => {
@@ -69,19 +94,30 @@ export function AppModal({
   // Focus trap and keyboard handling
   useEffect(() => {
     if (!open) {
+      hasInitiallyFocused.current = false;
       return;
     }
 
-    const focusFirstElement = () => {
-      if (initialFocusRef?.current) {
-        initialFocusRef.current.focus();
-        return;
-      }
+    // Focus management - only run once on modal open, not on re-renders
+    if (!hasInitiallyFocused.current) {
+      const focusFirstElement = () => {
+        if (initialFocusRef?.current) {
+          initialFocusRef.current.focus();
+          return;
+        }
 
-      const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(getFocusableSelectors());
-      focusable?.[0]?.focus();
-    };
+        const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(getFocusableSelectors());
+        focusable?.[0]?.focus();
+      };
 
+      // Small delay to ensure DOM is ready
+      const timeoutId = setTimeout(focusFirstElement, 50);
+      hasInitiallyFocused.current = true;
+
+      return () => clearTimeout(timeoutId);
+    }
+
+    // Keyboard handler - runs on every effect to stay updated with onClose
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
@@ -111,17 +147,21 @@ export function AppModal({
       }
     };
 
-    // Small delay to ensure DOM is ready
-    const timeoutId = setTimeout(focusFirstElement, 50);
-
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      clearTimeout(timeoutId);
       document.removeEventListener('keydown', handleKeyDown);
-      previousActiveElement.current?.focus();
     };
-  }, [open, onClose, initialFocusRef]);
+  }, [open, onClose]);
+
+  // Separate effect for focus restoration on close
+  useEffect(() => {
+    return () => {
+      if (!open && previousActiveElement.current) {
+        previousActiveElement.current.focus();
+      }
+    };
+  }, [open]);
 
   const handleOverlayClick = useCallback(
     (event: MouseEvent<HTMLDivElement>) => {
@@ -214,8 +254,8 @@ export function AppModal({
           </div>
         )}
 
-        {/* Content */}
-        <div className="overflow-y-auto max-h-[calc(90vh-12rem)]">{children}</div>
+        {/* Content - overflow-x-visible allows focus rings to extend beyond scroll container */}
+        <div className="overflow-y-auto overflow-x-visible max-h-[calc(90vh-12rem)]">{children}</div>
 
         {/* Footer */}
         {footer && (

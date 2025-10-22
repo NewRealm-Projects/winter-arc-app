@@ -14,7 +14,7 @@ const LeaderboardPage = lazy(() => import('../pages/LeaderboardPage'));
 const SettingsPage = lazy(() => import('../pages/SettingsPage'));
 // const HistoryPage = lazy(() => import('../pages/HistoryPage')); // ARCHIVED 2025-10-04
 const PushupTrainingPage = lazy(() => import('../pages/PushupTrainingPage'));
-const NotesPage = lazy(() => import('../pages/NotesPage'));
+const InputPage = lazy(() => import('../pages/InputPage'));
 
 function AppRoutes() {
   const user = useStore((state) => state.user);
@@ -60,7 +60,7 @@ function AppRoutes() {
           {/* <Route path="/tracking/history" element={<HistoryPage />} /> ARCHIVED 2025-10-04 */}
           <Route path="/tracking/pushup-training" element={<PushupTrainingPage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
-          <Route path="/notes" element={<NotesPage />} />
+          <Route path="/input" element={<InputPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

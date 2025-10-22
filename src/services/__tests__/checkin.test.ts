@@ -101,7 +101,6 @@ describe('saveDailyCheckInAndRecalc', () => {
     expect(doc).toHaveBeenCalledWith({}, 'users', 'user-1', 'checkins', '2024-01-05');
     expect(doc).toHaveBeenCalledWith({}, 'users', 'user-1', 'trainingLoad', '2024-01-05');
     expect(doc).toHaveBeenCalledWith({}, 'tracking', 'user-1', 'entries', '2024-01-05');
-    expect(doc).toHaveBeenCalledWith({}, 'tracking', 'user-1', 'weeks', '2024-W01');
 
     expect(setDoc).toHaveBeenNthCalledWith(
       1,
@@ -131,30 +130,7 @@ describe('saveDailyCheckInAndRecalc', () => {
     expect(secondCallPayload.components?.modifierSick).toBeCloseTo(1.0, 2);
     expect(secondCallPayload.inputs).toEqual({ sleepScore: 6, recoveryScore: 7, sick: false });
 
-    expect(setDoc).toHaveBeenNthCalledWith(
-      3,
-      'tracking/user-1/entries/2024-01-05',
-      expect.objectContaining({
-        date: '2024-01-05',
-        tasksCompleted: expect.any(Number),
-        tasksTotal: expect.any(Number),
-        dayProgressPct: expect.any(Number),
-        dayStreakMet: expect.any(Boolean),
-      }),
-      { merge: true }
-    );
-
-    expect(setDoc).toHaveBeenNthCalledWith(
-      4,
-      'tracking/user-1/weeks/2024-W01',
-      expect.objectContaining({
-        streakDays: expect.any(Number),
-        totalPctAvg: expect.any(Number),
-      }),
-      { merge: true }
-    );
-
-    // getDocs called twice: once for week tracking data, once for week check-in data
-    expect(getDocs).toHaveBeenCalledTimes(2);
+    // Note: Weekly aggregation writes removed for performance
+    // Weekly stats are now calculated client-side by useTrainingLoadWeek hook
   });
 });

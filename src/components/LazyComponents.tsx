@@ -25,9 +25,11 @@ export const LazyLeaderboardPage = withLazyLoad(
   () => import('../pages/LeaderboardPage')
 );
 
-export const LazyNotesPage = withLazyLoad(
-  () => import('../pages/NotesPage')
+export const LazyInputPage = withLazyLoad(
+  () => import('../pages/InputPage')
 );
+
+export const LazyNotesPage = LazyInputPage; // Backward compatibility
 
 export const LazyHistoryPage = withLazyLoad(
   () => import('../pages/HistoryPage')
