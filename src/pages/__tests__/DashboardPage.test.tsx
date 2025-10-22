@@ -45,8 +45,33 @@ vi.mock('../../components/dashboard/WeeklyTile', () => ({
   default: () => <div data-testid="weekly-tile" />,
 }));
 
+vi.mock('../../components/dashboard/WeeklyTileCompact', () => ({
+  default: () => <div data-testid="weekly-tile-compact" />,
+}));
+
 vi.mock('../../components/UnifiedTrainingCard', () => ({
   default: () => <div data-testid="training-load-tile" />,
+}));
+
+vi.mock('../../components/dashboard/TrainingCardCompact', () => ({
+  default: ({ onClick }: { onClick: () => void }) => (
+    <button data-testid="training-card-compact" onClick={onClick}>
+      Training Compact
+    </button>
+  ),
+}));
+
+vi.mock('../../components/dashboard/TrainingCardModal', () => ({
+  default: ({ open, onClose }: { open: boolean; onClose: () => void }) =>
+    open ? (
+      <div data-testid="training-card-modal" onClick={onClose}>
+        Training Modal
+      </div>
+    ) : null,
+}));
+
+vi.mock('../../hooks/useIsMobile', () => ({
+  useIsMobile: () => false, // Default to desktop layout for this test
 }));
 
 
@@ -121,8 +146,8 @@ describe('DashboardPage', () => {
     const layout = await screen.findByTestId('dashboard-content-sections');
     expect(layout).toHaveClass('flex');
     expect(layout).toHaveClass('flex-col');
-    expect(layout.className).toContain('gap-3');
-    expect(layout.className).toContain('md:gap-4');
+    // Desktop layout uses gap-4
+    expect(layout.className).toContain('gap-4');
 
     expect(screen.getByTestId('dashboard-page')).toBeInTheDocument();
     expect(screen.getByTestId('weekly-tile')).toBeInTheDocument();

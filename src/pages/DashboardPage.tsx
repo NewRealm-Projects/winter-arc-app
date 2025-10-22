@@ -1,21 +1,28 @@
 import type { ReactElement } from 'react';
+import { useState } from 'react';
 import PushupTile from '../components/PushupTile';
 import HydrationTile from '../components/HydrationTile';
 import NutritionTile from '../components/NutritionTile';
 import WeightTile from '../components/WeightTile';
 import UnifiedTrainingCard from '../components/UnifiedTrainingCard';
 import WeeklyTile from '../components/dashboard/WeeklyTile';
+import WeeklyTileCompact from '../components/dashboard/WeeklyTileCompact';
+import TrainingCardCompact from '../components/dashboard/TrainingCardCompact';
+import TrainingCardModal from '../components/dashboard/TrainingCardModal';
 import { WeekProvider } from '../contexts/WeekContext';
 import { useTrackingEntries } from '../hooks/useTrackingEntries';
 import { useTranslation } from '../hooks/useTranslation';
 import { useTracking } from '../hooks/useTracking';
 import { useWeeklyTop3 } from '../hooks/useWeeklyTop3';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { useStore } from '../store/useStore';
 
 function DashboardPage() {
   const { t } = useTranslation();
   const user = useStore((state) => state.user);
   const { error: trackingError, retry: retryTracking } = useTrackingEntries();
+  const isMobile = useIsMobile();
+  const [showTrainingModal, setShowTrainingModal] = useState(false);
 
   // Auto-save tracking data to Firebase
   useTracking();
@@ -25,15 +32,79 @@ function DashboardPage() {
   // Get enabled activities (default: all activities)
   const enabledActivities = user?.enabledActivities || ['pushups', 'sports', 'water', 'protein'];
 
+  // Mobile layout: Compact components, single-column
+  if (isMobile) {
+    return (
+      <WeekProvider>
+        <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe" data-testid="dashboard-page">
+          <div className="mobile-container dashboard-container safe-pb px-3 pt-4 viewport-safe">
+            <div
+              className="flex flex-col gap-3"
+              data-testid="dashboard-content-sections"
+            >
+              {trackingError && (
+                <div className="rounded-3xl border border-amber-300/30 bg-amber-500/10 p-4 text-amber-100 shadow-[0_8px_20px_rgba(245,158,11,0.2)]">
+                  <div className="flex flex-col gap-3">
+                    <p className="text-sm font-medium">
+                      {trackingError === 'no-permission'
+                        ? t('tracking.permissionDeniedMessage')
+                        : t('tracking.unavailableMessage')}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={retryTracking}
+                      className="self-start rounded-full border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors hover:border-white/40 hover:bg-white/10"
+                    >
+                      {t('common.retry')}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Week Overview - Compact */}
+              <div className="animate-fade-in-up">
+                <WeeklyTileCompact />
+              </div>
+
+              {/* Training Card - Compact Button */}
+              <div className="animate-fade-in-up delay-100">
+                <TrainingCardCompact onClick={() => setShowTrainingModal(true)} />
+              </div>
+
+              {/* Tracking Tiles - Single Column */}
+              <div className="flex flex-col gap-3 animate-fade-in-up delay-200">
+                {enabledActivities.includes('pushups') && <PushupTile />}
+                {enabledActivities.includes('water') && <HydrationTile />}
+                {enabledActivities.includes('protein') && <NutritionTile />}
+              </div>
+
+              {/* Weight Tile */}
+              <div className="animate-fade-in-up delay-300">
+                <WeightTile />
+              </div>
+            </div>
+          </div>
+
+          {/* Training Modal */}
+          <TrainingCardModal
+            open={showTrainingModal}
+            onClose={() => setShowTrainingModal(false)}
+          />
+        </div>
+      </WeekProvider>
+    );
+  }
+
+  // Desktop layout: Keep current layout unchanged
   return (
     <WeekProvider>
       <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe" data-testid="dashboard-page">
         {/* Content */}
-        <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 viewport-safe">
+        <div className="mobile-container dashboard-container safe-pb px-6 pt-8 viewport-safe">
           {/* Max-width container for desktop content alignment */}
           <div className="mx-auto max-w-[700px]">
             <div
-              className="flex flex-col gap-3 md:gap-4"
+              className="flex flex-col gap-4"
               data-testid="dashboard-content-sections"
             >
             {trackingError && (

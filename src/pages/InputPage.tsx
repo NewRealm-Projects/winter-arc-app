@@ -5,11 +5,14 @@ import { useTranslation } from '../hooks/useTranslation';
 import { SmartNote, Event, ActivityType } from '../types/events';
 import { noteStore } from '../store/noteStore';
 import { useStore } from '../store/useStore';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { retrySmartNote, updateSmartNote } from '../features/notes/pipeline';
 import { glassCardClasses, glassCardHoverClasses, designTokens } from '../theme/tokens';
 import QuickLogPanel from '../components/notes/QuickLogPanel';
 import CustomNoteModal, { type CustomNoteData } from '../components/notes/CustomNoteModal';
 import TruncatedSummary from '../components/ui/TruncatedSummary';
+import QuickActionButtons from '../components/input/QuickActionButtons';
+import ActivityFeed from '../components/input/ActivityFeed';
 import { generateCustomNoteSummary } from '../utils/activitySummary';
 
 const PAGE_SIZE = 20;
@@ -318,6 +321,7 @@ function NoteCard({ note, t }: { note: SmartNote; t: ReturnType<typeof useTransl
 
 function InputPage() {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [notes, setNotes] = useState<SmartNote[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -372,10 +376,72 @@ function InputPage() {
     void loadNotes();
   }, [loadNotes]);
 
+  // Mobile layout: Quick buttons + activity feed
+  if (isMobile) {
+    return (
+      <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe" data-testid="input-page">
+        <div className="mobile-container safe-pb px-3 pt-4 viewport-safe">
+          <div className="flex flex-col gap-3">
+            {/* Header */}
+            <div className="flex flex-col gap-1 mb-2">
+              <h1 className="text-lg font-semibold text-white">{t('notes.logActivity')}</h1>
+              <p className="text-xs text-white/60">{t('notes.trackDailyHabits')}</p>
+            </div>
+
+            {/* Quick Action Buttons */}
+            <div className="animate-fade-in-up">
+              <QuickActionButtons
+                onFoodClick={() => setShowCustomNoteModal(true)}
+                onWaterClick={() => setShowCustomNoteModal(true)}
+                onNotesClick={() => setShowCustomNoteModal(true)}
+                onTrainingClick={() => setShowCustomNoteModal(true)}
+              />
+            </div>
+
+            {/* Activity Feed */}
+            <div className="animate-fade-in-up delay-100">
+              <ActivityFeed
+                notes={notes}
+                isLoading={notes.length === 0 && !hasMore}
+                onEditClick={(_note) => {
+                  // Handle edit - can be extended later
+                }}
+              />
+            </div>
+
+            {/* Load More Button */}
+            {hasMore && (
+              <button
+                type="button"
+                onClick={handleLoadMore}
+                className={[
+                  'inline-flex w-full items-center justify-center rounded-xl border border-white/15 px-4 py-3',
+                  'text-sm font-semibold text-white/80 transition-colors',
+                  'hover:bg-white/10',
+                ].join(' ')}
+                disabled={loadingMore}
+              >
+                {loadingMore ? t('notes.loading') : t('notes.loadMore')}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Custom Note Modal */}
+        <CustomNoteModal
+          open={showCustomNoteModal}
+          onClose={() => setShowCustomNoteModal(false)}
+          onSave={handleSaveCustomNote}
+        />
+      </div>
+    );
+  }
+
+  // Desktop layout: Keep current layout unchanged
   return (
     <div className="min-h-screen-mobile safe-pt pb-32 overflow-y-auto viewport-safe" data-testid="input-page">
-      <div className="mobile-container dashboard-container safe-pb px-3 pt-4 md:px-6 md:pt-8 lg:px-0">
-        <div className="flex flex-col gap-3 md:gap-4">
+      <div className="mobile-container dashboard-container safe-pb px-6 pt-8 lg:px-0">
+        <div className="flex flex-col gap-4">
           {/* Quick Log Panel */}
           <QuickLogPanel />
 

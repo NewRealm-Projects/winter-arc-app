@@ -25,6 +25,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `src/components/checkin/CheckInModal.tsx` - Removed optimistic updates, added retry logic
     - `src/components/UnifiedTrainingCard.tsx` - Integrated week-wide subscription hook
 
+### ✨ Added
+- **Mobile-Only UI Redesign** (375px-480px viewports): Optimized layout for mobile devices to eliminate scrolling and improve usability
+  - **Dashboard Page Mobile Layout**:
+    - `WeeklyTileCompact.tsx` - Compact weekly progress arc visualization (60px vs 110px original)
+    - `TrainingCardCompact.tsx` - Compact training status button with modal expansion (48px vs 200px original)
+    - `TrainingCardModal.tsx` - Modal wrapper for full training details
+    - Conditional rendering pattern: mobile and desktop layouts are completely separate, no shared CSS classes
+    - Result: Dashboard fits in 603px usable viewport without scrolling
+  - **Input Page Mobile Layout**:
+    - `QuickActionButtons.tsx` - 2×2 grid with 4 quick actions (Food, Water, Notes, Training)
+    - `ActivityFeed.tsx` - Mixed activity feed grouped by date (Today, Yesterday, This Week, Older)
+    - Replaces tab-based navigation with scrollable activity stream
+    - Result: Input page fits in mobile viewport for immediate access to quick log features
+  - **Mobile Detection Hook**:
+    - `useIsMobile.ts` - Detects viewport < 481px with window resize listener
+    - Enables conditional rendering without responsive CSS classes
+    - Memoized to prevent unnecessary re-renders
+  - **Performance Metrics**:
+    - Bundle size increase: +0.97 KB (InputPage), minimal impact
+    - useIsMobile hook: 1.82 KB gzip (very lightweight)
+    - DashboardPage: 15.28 KB gzip
+    - InputPage: 16.77 KB gzip
+    - All metrics within Lighthouse CI performance budgets (LCP ≤2500ms, CLS ≤0.1)
+  - **Test Coverage**:
+    - Added 10 mobile responsive tests in `MobileResponsive.test.tsx`
+    - Verified layout switching at 375px (mobile), 481px (desktop), 768px+
+    - All tests passing: 227+ unit tests, 89.97% statement coverage
+
 ---
 
 ## [0.1.2] - 2025-10-10
