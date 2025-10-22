@@ -28,13 +28,20 @@
 - [ ] 1.2.6 Add dark mode support
 - [ ] 1.2.7 Write unit tests for individual stat rendering
 
-### 1.3 Carousel Integration
-- [ ] 1.3.1 Create carousel data model (5 stats: Sports, Pushup, Hydration, Nutrition, Weight)
-- [ ] 1.3.2 Connect to Zustand store for real-time data
-- [ ] 1.3.3 Add loading skeleton for carousel items
-- [ ] 1.3.4 Handle empty/missing data gracefully
-- [ ] 1.3.5 Test carousel with mock data
-- [ ] 1.3.6 Test carousel with real Firebase data
+### 1.3 Carousel Gestures & Threshold
+- [ ] 1.3.1 Configure swipe threshold: 125px (1/3 of 375px width)
+- [ ] 1.3.2 Set velocity threshold: 0.3 (standard swipe detection)
+- [ ] 1.3.3 Test swipe on various touch devices
+- [ ] 1.3.4 Implement trackMouse: true for desktop testing
+- [ ] 1.3.5 Ensure `preventScrollOnSwipe` option enabled
+
+### 1.4 Carousel Integration
+- [ ] 1.4.1 Create carousel data model (5 stats: Sports, Pushup, Hydration, Nutrition, Weight)
+- [ ] 1.4.2 Connect to Zustand store for real-time data
+- [ ] 1.4.3 Add loading skeleton for carousel items
+- [ ] 1.4.4 Handle empty/missing data gracefully
+- [ ] 1.4.5 Test carousel with mock data
+- [ ] 1.4.6 Test carousel with real Firebase data
 
 ---
 
@@ -58,11 +65,20 @@
 - [ ] 2.2.5 Write unit tests for progress calculations
 - [ ] 2.2.6 Write unit tests for color band rendering
 
-### 2.3 Color Band Configuration
-- [ ] 2.3.1 Define color palette for 5 stats
-- [ ] 2.3.2 Ensure WCAG AA contrast compliance
-- [ ] 2.3.3 Add dark mode color variants
-- [ ] 2.3.4 Test color visibility on different devices
+### 2.3 Progress Circle Tap Behavior
+- [ ] 2.3.1 Implement `onStatTap` callback in DynamicProgressCircle
+- [ ] 2.3.2 Create compact stat tile modal (reuses desktop tile component)
+- [ ] 2.3.3 Create modal for each stat (Sports, Pushup, Hydration, Nutrition, Weight)
+- [ ] 2.3.4 Add mini progress bar and recent data to modal
+- [ ] 2.3.5 Use AppModal component with size="md" (512px)
+- [ ] 2.3.6 Test modal opens/closes correctly
+- [ ] 2.3.7 Write unit tests for tap behavior
+
+### 2.4 Color Band Configuration
+- [ ] 2.4.1 Define color palette for 5 stats
+- [ ] 2.4.2 Ensure WCAG AA contrast compliance
+- [ ] 2.4.3 Add dark mode color variants
+- [ ] 2.4.4 Test color visibility on different devices
 
 ---
 
@@ -81,11 +97,16 @@
 ### 3.2 Weight Chart Compact
 - [ ] 3.2.1 Create `src/components/dashboard/WeightChartCompact.tsx`
 - [ ] 3.2.2 Minimize existing WeightTile chart to 120px height
-- [ ] 3.2.3 Show last 7 days of weight data
-- [ ] 3.2.4 Add tap-to-expand functionality
-- [ ] 3.2.5 Create full chart modal (reuse existing WeightTile content)
-- [ ] 3.2.6 Ensure responsive scaling
-- [ ] 3.2.7 Write unit tests for compact chart
+- [ ] 3.2.3 Show last 7 days of weight data (default view)
+- [ ] 3.2.4 Add swipe gesture support (left = 30-day, right = 7-day)
+- [ ] 3.2.5 Implement swipe threshold: 125px (1/3 screen width)
+- [ ] 3.2.6 Create both 7-day and 30-day compact data sets
+- [ ] 3.2.7 Smooth transition animation between date ranges (200ms)
+- [ ] 3.2.8 Add tap-to-expand functionality (opens full modal)
+- [ ] 3.2.9 Create full chart modal (reuse existing WeightTile content)
+- [ ] 3.2.10 Ensure responsive scaling for both date ranges
+- [ ] 3.2.11 Write unit tests for compact chart with swipe behavior
+- [ ] 3.2.12 Write E2E tests for swipe date range toggle
 
 ### 3.3 Modal Implementations
 - [ ] 3.3.1 Create `src/components/dashboard/WeekDetailsModal.tsx`
@@ -109,13 +130,14 @@
 - [ ] 4.1.8 Add close on Escape key
 
 ### 4.2 Arc Menu Interaction
-- [ ] 4.2.1 Create plus button (barely visible initially)
-- [ ] 4.2.2 Add tooltip/hint for first-time users
-- [ ] 4.2.3 Implement hover/tap state for plus button
-- [ ] 4.2.4 Ensure 56px touch targets for arc slices
-- [ ] 4.2.5 Add keyboard navigation (Tab + Enter)
-- [ ] 4.2.6 Test on touch devices
-- [ ] 4.2.7 Write unit tests for arc menu logic
+- [ ] 4.2.1 Create prominent plus button (48px-56px, AAA touch target)
+- [ ] 4.2.2 Add clear "+" icon with "Add Stats" label below
+- [ ] 4.2.3 Add optional tooltip/hint for first-time users
+- [ ] 4.2.4 Implement hover/tap state for plus button
+- [ ] 4.2.5 Ensure 56px+ touch targets for arc slices
+- [ ] 4.2.6 Add keyboard navigation (Tab + Enter)
+- [ ] 4.2.7 Test on touch devices (iPhone SE, Pixel 3)
+- [ ] 4.2.8 Write unit tests for arc menu logic
 
 ### 4.3 Modal Connections
 - [ ] 4.3.1 Connect arc menu to existing Input page modals

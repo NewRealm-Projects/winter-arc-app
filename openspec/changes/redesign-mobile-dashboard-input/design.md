@@ -389,12 +389,13 @@ const STAT_COLORS = {
 
 **File**: `src/components/dashboard/WeightChartCompact.tsx`
 
-**Purpose**: Minimized weight chart showing last 7 days, max 120px height.
+**Purpose**: Minimized weight chart with swipe-able date range (7 days default, 30 days on swipe), max 120px height.
 
 **Props**:
 ```typescript
 interface WeightChartCompactProps {
-  data: { date: Date; weight: number }[];
+  data7Days: { date: Date; weight: number }[];
+  data30Days: { date: Date; weight: number }[];
   onTapExpand: () => void;
 }
 ```
@@ -406,6 +407,13 @@ interface WeightChartCompactProps {
 - Y-axis: 2 gridlines (min/max)
 - Data points: Small circles (4px radius)
 - Line: 2px stroke
+
+**Swipe Gestures**:
+- Swipe left: Switch to 30-day view
+- Swipe right: Switch to 7-day view
+- Swipe threshold: 125px (1/3 screen width)
+- Both views maintain 120px max height
+- Smooth transition animation (200ms)
 
 ---
 
@@ -621,7 +629,7 @@ export function calculateTotalProgress(stats: CarouselStat[]): number {
 ### 3. Arc Menu Flow
 
 **Open**:
-1. User sees barely-visible plus button at bottom
+1. User sees prominent plus button at bottom (48px-56px size, AAA touch target)
 2. User taps plus button
 3. Arc menu slides up from bottom (300ms animation)
 4. 5 slices appear with icons (Sports, Pushup, Water, Food, Weight)
@@ -652,11 +660,15 @@ export function calculateTotalProgress(stats: CarouselStat[]): number {
 5. Returns to dashboard
 
 **Weight Chart**:
-1. User taps WeightChartCompact
-2. WeightChartModal opens (AppModal size="lg")
-3. Shows full WeightTile chart (30-day view, BMI, add weight)
-4. User views/adds data, closes modal
-5. Returns to dashboard
+1. User taps WeightChartCompact (shows last 7 days, compact view)
+2. Chart displays with swipe capability:
+   - Swipe left → 30-day view (compact)
+   - Swipe right → Back to 7-day view
+3. Both views maintain max 120px height
+4. Detailed modal still available by tapping (AppModal size="lg")
+   - Shows full WeightTile chart, BMI, add weight
+5. User views/adds data, closes modal
+6. Returns to dashboard
 
 ---
 
@@ -680,17 +692,17 @@ export function calculateTotalProgress(stats: CarouselStat[]): number {
 
 ### Risk 2: Arc Menu Discoverability
 
-**Risk**: Users may not notice barely-visible plus button, missing quick input feature.
+**Risk**: Users may not understand the plus button's function without hint text.
 
-**Severity**: Medium
+**Severity**: Low
 
 **Mitigation**:
-- Show tooltip on first visit ("Tap + for quick logging")
-- Make plus button slightly more visible (30% opacity vs 10%)
-- Add subtle pulse animation on first load
-- Document in onboarding
+- Plus button is prominent (48px-56px, AAA touch target)
+- Clear "+" icon with "Add Stats" label below
+- Show tooltip on first visit for first-time users
+- Brief onboarding animation showing arc menu slide-up
 
-**Acceptance**: Analytics will track arc menu usage. If <30% of users discover it in first week, increase visibility.
+**Acceptance**: Analytics will track arc menu usage. Target: >50% of users discover in first week.
 
 ---
 
@@ -797,55 +809,68 @@ export function calculateTotalProgress(stats: CarouselStat[]): number {
 
 ---
 
-## Open Questions
+## Open Questions - Answered
 
-### 1. Carousel Auto-Rotation Speed
+### 1. Carousel Auto-Rotation Speed ✅
 
 **Question**: Is 4 seconds per stat optimal, or should it be faster/slower?
 
-**Impact**: UX engagement, user preference
-
-**Resolution**: A/B test with 3s, 4s, 5s intervals during beta testing.
+**Decision**: **4 seconds per stat** - Confirmed as optimal initial value
+- Auto-rotation pauses on user interaction (swipe, tap)
+- Resumes after 10 seconds of inactivity
+- Allows users to read stat details comfortably without rushing
 
 ---
 
-### 2. Arc Menu Initial Visibility
+### 2. Arc Menu Initial Visibility ✅
 
 **Question**: Should plus button be more prominent (50% opacity) or stay subtle (30%)?
 
-**Impact**: Discoverability vs visual clutter
-
-**Resolution**: User testing with 2 variants (prominent vs subtle). Analytics will track usage.
+**Decision**: **Plus button can be more prominent (48px-56px AAA touch target)**
+- Increase size for better touch comfort (56px-64px if layout allows)
+- Must maintain constraint: ~8% of screen height minimum
+- Clear "+" icon with "Add Stats" label below
+- More discoverable than barely-visible button in reference image
 
 ---
 
-### 3. Progress Circle Tap Behavior
+### 3. Progress Circle Tap Behavior ✅
 
 **Question**: Should tapping progress circle open a modal with stat breakdown, or no action?
 
-**Impact**: UX depth, additional modal complexity
-
-**Resolution**: Implement tap-to-expand in Phase 2 (after beta feedback).
+**Decision**: **Show compact tracking tile modal**
+- Tapping progress circle opens modal with compact version of desktop stat tile
+- Displays corresponding stat (Sports, Pushup, Hydration, Nutrition, Weight)
+- Reuses existing tile component in modal format
+- Includes mini progress bar and recent data
+- Provides deeper stat insights without leaving dashboard context
 
 ---
 
-### 4. Weight Chart Data Range
+### 4. Weight Chart Data Range ✅
 
 **Question**: Should compact chart show last 7 days or last 30 days?
 
-**Impact**: Chart readability, data density
-
-**Resolution**: Default to 7 days (cleaner on 120px height). Full 30-day view in modal.
+**Decision**: **7 days default + swipe for 30 days (both compact)**
+- Default view: Last 7 days of weight data (compact, ~120px)
+- Swipe left → 30 days view (compact, same height)
+- Swipe right → Back to 7 days
+- Both maintain max 20% screen height (~120px)
+- Use same compact styling and axis labels
+- Detailed modal (AppModal size="lg") still available for full chart view
 
 ---
 
-### 5. Swipe Sensitivity Threshold
+### 5. Swipe Sensitivity Threshold ✅
 
 **Question**: How many pixels should trigger swipe (50px, 75px, 100px)?
 
-**Impact**: Swipe accuracy, false positives
-
-**Resolution**: `react-swipeable` default (50px). Adjust if user testing reveals issues.
+**Decision**: **1/3 screen width ≈ 125 pixels**
+- Mobile viewport: 375px width
+- Swipe threshold: 375px / 3 ≈ 125 pixels horizontal movement
+- Velocity threshold: 0.3 (standard swipe)
+- Applies to: Carousel navigation (left/right between stats), weight chart view toggle (7-day ↔ 30-day)
+- Provides natural, comfortable swipe detection on mobile
 
 ---
 

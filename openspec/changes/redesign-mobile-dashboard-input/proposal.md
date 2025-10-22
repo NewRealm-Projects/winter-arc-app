@@ -455,18 +455,40 @@ If major issues arise:
 
 ---
 
-## Open Questions
+## Open Questions - Answered
 
-1. **Carousel auto-rotation speed**: 4 seconds per stat optimal? (User testing needed)
-2. **Arc menu visibility**: Should plus button be more prominent initially?
-3. **Progress circle tap behavior**: Tap to see breakdown modal or no action?
-4. **Weight chart data**: Show last 7 days or last 30 days in compact mode?
-5. **Swipe sensitivity**: How many pixels to trigger swipe navigation?
+1. **Carousel auto-rotation speed**: ✅ **4 seconds per stat** - Confirmed as optimal initial value
+   - Auto-rotation pauses on user interaction (swipe, tap)
+   - Resumes after 10 seconds of inactivity
+
+2. **Arc menu visibility**: ✅ **Plus button can be more prominent**
+   - Increase size to 56px+ if needed for touch comfort
+   - Must maintain constraint: ~8% of screen height (~48px minimum on 603px viewport)
+   - Can extend to 56-64px if layout allows
+
+3. **Progress circle tap behavior**: ✅ **Show compact tracking tile**
+   - Tapping progress circle shows modal with compact version of desktop stat tile
+   - Displays corresponding stat (Sports, Pushup, Hydration, Nutrition, Weight)
+   - Reuses existing tile component in modal format
+   - Includes mini progress bar and recent data
+
+4. **Weight chart data**: ✅ **7 days default + swipe for 30 days**
+   - Default view: Last 7 days of weight data (compact)
+   - Swipe left → 30 days view (compact)
+   - Swipe right → Back to 7 days
+   - Both maintain max 20% screen height (~120px)
+   - Use same compact styling as 7-day view
+
+5. **Swipe sensitivity**: ✅ **1/3 screen width = ~125 pixels**
+   - Mobile viewport: 375px width
+   - Swipe threshold: 375px / 3 ≈ 125px horizontal movement
+   - Velocity threshold: 0.3 (standard swipe)
+   - Applies to: Carousel navigation, weight chart view toggle
 
 ---
 
 **Author**: Claude Code
-**Branch**: `wilddragonking/chore-openspec-integration`
+**Branch**: `miket/feature-redesign-mobile-dashboard-input`
 **Scope**: Mobile Only (375px-480px)
 **Desktop**: No Changes
-**Status**: READY FOR REVIEW
+**Status**: READY FOR IMPLEMENTATION
