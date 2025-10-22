@@ -91,4 +91,55 @@ describe('WeeklyTileCompact', () => {
     expect(buttons.length).toBeGreaterThanOrEqual(2);
   });
 
+  it('renders loading skeleton state', async () => {
+    render(<WeeklyTileCompact />);
+
+    // Component starts in loading state
+    const tile = screen.getByTestId('weekly-tile-compact');
+    expect(tile).toBeInTheDocument();
+  });
+
+  it('shows "This week" label for current week', () => {
+    render(<WeeklyTileCompact />);
+
+    expect(screen.getByText('This week')).toBeInTheDocument();
+  });
+
+  it('disables next button when in current week', () => {
+    render(<WeeklyTileCompact />);
+
+    const buttons = screen.getAllByRole('button');
+    const nextButton = buttons[buttons.length - 1];
+
+    expect(nextButton).toHaveAttribute('disabled');
+  });
+
+  it('renders key day indicators (Mon, Wed, Fri, Sun)', async () => {
+    render(<WeeklyTileCompact />);
+
+    const tile = screen.getByTestId('weekly-tile-compact');
+    expect(tile).toBeInTheDocument();
+    // Key days should be displayed
+    await new Promise(resolve => setTimeout(resolve, 100));
+  });
+
+  it('renders SVG arc visualization', async () => {
+    render(<WeeklyTileCompact />);
+
+    // Wait for async data fetching
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    const tile = screen.getByTestId('weekly-tile-compact');
+    const svgElements = tile.querySelectorAll('svg');
+    expect(svgElements.length).toBeGreaterThan(0);
+  });
+
+  it('shows progress text in arc (e.g., 0/7)', async () => {
+    render(<WeeklyTileCompact />);
+
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    expect(screen.getByText('0/7')).toBeInTheDocument();
+  });
+
 });

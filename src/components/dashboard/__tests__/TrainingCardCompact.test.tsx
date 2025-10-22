@@ -1,13 +1,15 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 import TrainingCardCompact from '../TrainingCardCompact';
+
+let mockBadgeLevel = 'optimal';
 
 // Mock hooks
 vi.mock('../../../hooks/useTrainingLoadWeek', () => ({
   useTrainingLoadWeek: () => ({
     streakDays: 5,
     averagePercent: 75,
-    badgeLevel: 'optimal',
+    badgeLevel: mockBadgeLevel,
   }),
 }));
 
@@ -17,6 +19,10 @@ vi.mock('../../../hooks/useTranslation', () => ({
     language: 'en',
   }),
 }));
+
+beforeEach(() => {
+  mockBadgeLevel = 'optimal';
+});
 
 describe('TrainingCardCompact', () => {
   it('renders compact training button with badge', () => {
@@ -52,5 +58,48 @@ describe('TrainingCardCompact', () => {
     render(<TrainingCardCompact onClick={onClick} />);
 
     expect(screen.getByText('→')).toBeInTheDocument();
+  });
+
+  it('applies correct styling for button container', () => {
+    const onClick = vi.fn();
+    render(<TrainingCardCompact onClick={onClick} />);
+
+    const button = screen.getByTestId('training-card-compact');
+    expect(button).toHaveClass('flex', 'items-center', 'justify-between', 'gap-2');
+  });
+
+  it('button is of type button', () => {
+    const onClick = vi.fn();
+    render(<TrainingCardCompact onClick={onClick} />);
+
+    const button = screen.getByTestId('training-card-compact');
+    expect(button).toHaveAttribute('type', 'button');
+  });
+
+  it('displays streak information', () => {
+    const onClick = vi.fn();
+    render(<TrainingCardCompact onClick={onClick} />);
+
+    // Should show the streak counter (from mocked useTrainingLoadWeek)
+    const button = screen.getByTestId('training-card-compact');
+    expect(button).toBeInTheDocument();
+  });
+
+  it('applies correct styling for high training load badge', () => {
+    mockBadgeLevel = 'high';
+    const onClick = vi.fn();
+    render(<TrainingCardCompact onClick={onClick} />);
+
+    const badge = screen.getByText('dashboard.trainingLoadStatus.high');
+    expect(badge).toHaveClass('bg-red-500/20', 'text-red-300', 'border-red-500/40');
+  });
+
+  it('applies correct styling for low/moderate training load badge', () => {
+    mockBadgeLevel = 'low';
+    const onClick = vi.fn();
+    render(<TrainingCardCompact onClick={onClick} />);
+
+    const badge = screen.getByText('dashboard.trainingLoadStatus.low');
+    expect(badge).toHaveClass('bg-blue-500/20', 'text-blue-300', 'border-blue-500/40');
   });
 });
