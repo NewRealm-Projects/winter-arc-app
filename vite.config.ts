@@ -186,6 +186,18 @@ export default defineConfig({
     },
   },
   server: {
+    watch: {
+      // Exclude directories that trigger infinite reload loops
+      ignored: [
+        '**/node_modules/**',
+        '**/coverage/**',
+        '**/dist/**',
+        '**/.git/**',
+        '**/.vscode/**',
+        '**/.idea/**',
+        '**/openspec/changes/**', // OpenSpec proposal changes don't need HMR
+      ],
+    },
     headers: {
       // Security headers for development
       'X-Frame-Options': 'DENY',
