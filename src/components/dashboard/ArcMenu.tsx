@@ -120,9 +120,9 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
             className="dark:fill-gray-900 dark:stroke-white/10"
           />
 
-          {/* 5 slices (36° each, spanning 180° from 0° to 180° for bottom half) */}
+          {/* 5 slices (36° each, spanning 180° from 180° to 360°/0° for bottom half) */}
           {SLICES.map((slice, index) => {
-            const startAngle = index * 36;
+            const startAngle = 180 + index * 36;
             const endAngle = startAngle + 36;
             const slicePath = createSlicePath(startAngle, endAngle);
             const iconAngle = (startAngle + endAngle) / 2;
