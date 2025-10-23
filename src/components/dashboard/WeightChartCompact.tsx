@@ -111,7 +111,7 @@ export function WeightChartCompact() {
       <div
         {...handlers}
         onClick={() => setShowModal(true)}
-        className="p-4 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all cursor-pointer"
+        className="p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all cursor-pointer"
         role="button"
         tabIndex={0}
         aria-label={t('tracking.weight')}
@@ -122,7 +122,7 @@ export function WeightChartCompact() {
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
             {t('tracking.weight')}
           </h3>
@@ -132,7 +132,7 @@ export function WeightChartCompact() {
         </div>
 
         {/* Chart */}
-        <div style={{ height: '120px' }} className="w-full -mx-4 px-4">
+        <div style={{ height: '80px' }} className="w-full -mx-3 px-3">
           {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
@@ -195,7 +195,7 @@ export function WeightChartCompact() {
         </div>
 
         {/* Footer hint */}
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
           {range === 'week'
             ? 'Swipe for monthly view'
             : 'Swipe for weekly view'}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DashboardHeader from '../../components/dashboard/DashboardHeader';
 import StatCarouselWithProgressCircle from '../../components/dashboard/StatCarouselWithProgressCircle';
 import CompressedWeekCard from '../../components/dashboard/CompressedWeekCard';
@@ -23,6 +24,7 @@ import { useWeeklyTop3 } from '../../hooks/useWeeklyTop3';
  * Reuses all input modals from Input page directly
  */
 function DashboardMobileContent() {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { selectedDate } = useWeekContext();
   const { error: trackingError, retry: retryTracking } = useTrackingEntries();
@@ -36,16 +38,20 @@ function DashboardMobileContent() {
   const [openModal, setOpenModal] = useState<'sports' | 'pushup' | 'hydration' | 'nutrition' | 'weight' | null>(null);
   const [showWeekModal, setShowWeekModal] = useState(false);
 
-  const handleCarouselClick = () => {
-    setOpenModal('sports');
-  };
-
   const handleWeekCardClick = () => {
     setShowWeekModal(true);
   };
 
+  const handleSegmentClick = (stat: 'sports' | 'pushup' | 'hydration' | 'nutrition' | 'weight') => {
+    setOpenModal(stat);
+  };
+
   const handleArcMenuSelect = (stat: 'sports' | 'pushup' | 'hydration' | 'nutrition' | 'weight') => {
     setOpenModal(stat);
+  };
+
+  const handleSettingsClick = () => {
+    navigate('/settings');
   };
 
   const handleModalClose = () => {
@@ -81,12 +87,12 @@ function DashboardMobileContent() {
 
       {/* Main Mobile Dashboard Container - Single screen, no scrolling */}
       <div
-        className="h-screen flex flex-col gap-1 px-3 py-1 overflow-hidden safe-pb safe-pt"
+        className="h-screen flex flex-col gap-0.5 px-3 py-1 overflow-hidden safe-pb safe-pt"
         data-testid="dashboard-mobile"
       >
         {/* Header */}
         <div className="flex-shrink-0">
-          <DashboardHeader onSettingsClick={() => {}} />
+          <DashboardHeader onSettingsClick={handleSettingsClick} />
         </div>
 
         {/* Week Card (Compact) - Tap to expand */}
@@ -94,10 +100,10 @@ function DashboardMobileContent() {
           <CompressedWeekCard />
         </div>
 
-        {/* Main Carousel - Tap to open sports modal - Takes remaining space */}
-        <div onClick={handleCarouselClick} className="flex-1 flex items-center justify-center min-h-0">
+        {/* Main Carousel - Segment click detection handled in component */}
+        <div className="flex-1 flex items-center justify-center min-h-0 max-h-xs">
           <div className="w-full max-w-xs">
-            <StatCarouselWithProgressCircle />
+            <StatCarouselWithProgressCircle onSegmentClick={handleSegmentClick} />
           </div>
         </div>
 

@@ -25,9 +25,9 @@ export function DashboardHeader({ onSettingsClick }: DashboardHeaderProps) {
   const weekNum = format(selectedDate, 'w', { locale });
 
   return (
-    <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-white/10">
+    <div className="flex items-center justify-between py-1 px-0 border-b border-gray-200 dark:border-white/10">
       {/* Left: Week info */}
-      <div className="flex flex-col gap-0.5">
+      <div className="flex flex-col gap-0">
         <h1 className="text-sm font-bold text-gray-900 dark:text-white">
           {t('dashboard.weekNumberTitle', { week: weekNum })}
         </h1>

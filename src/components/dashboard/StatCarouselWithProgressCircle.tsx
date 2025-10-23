@@ -1,23 +1,27 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSwipeable } from 'react-swipeable';
 import { useCarouselStats } from '../../hooks/useCarouselStats';
-import { calculateBandAngles, createArcPath, getStatBandCenter, polarToCartesian } from '../../utils/progressCalculation';
+import { calculateBandAngles, createArcPath } from '../../utils/progressCalculation';
 import { useTranslation } from '../../hooks/useTranslation';
 
 const CIRCLE_SIZE = 240; // SVG viewBox size
 const CENTER = CIRCLE_SIZE / 2; // Center of circle
 const RADIUS = 90; // Outer radius for bands
-const ICON_RADIUS = 95; // Distance from center for icons
 const AUTO_ROTATE_INTERVAL = 4000; // ms
 const PAUSE_AFTER_INTERACTION = 10000; // ms
 const SWIPE_THRESHOLD = 125; // px (1/3 of viewport width ~375px)
+
+export interface StatCarouselWithProgressCircleProps {
+  onSegmentClick?: (stat: 'sports' | 'pushup' | 'hydration' | 'nutrition' | 'weight') => void;
+}
 
 /**
  * Unified carousel + progress circle component
  * Displays 5 stats in a circular carousel with dynamic progress bands
  * SVG circle as wrapper, carousel content inside
+ * Progress bands are clickable and active segment is highlighted
  */
-export function StatCarouselWithProgressCircle() {
+export function StatCarouselWithProgressCircle({ onSegmentClick }: StatCarouselWithProgressCircleProps) {
   const { t } = useTranslation();
   const stats = useCarouselStats();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -126,30 +130,12 @@ export function StatCarouselWithProgressCircle() {
     };
   });
 
-  // Icon positions on circle
-  const iconPositions = stats.map((stat, index) => {
-    const { x, y, angle } = getStatBandCenter(index, ICON_RADIUS);
-    return {
-      x: CENTER + x,
-      y: CENTER + y,
-      angle,
-      stat,
-    };
-  });
-
-  // Pagination dot positions (inside circle, bottom area)
-  const pageDotRadius = 65; // Distance from center
-  const pageDotPositions = stats.map((_stat, index) => {
-    const anglePerDot = 360 / stats.length;
-    const angle = (index * anglePerDot) - 45; // Start from bottom-right
-    const { x, y } = polarToCartesian(angle, pageDotRadius);
-    return {
-      x: CENTER + x,
-      y: CENTER + y,
-      index,
-      isActive: index === currentIndex,
-    };
-  });
+  // Handle segment click - open modal for clicked stat
+  const handleSegmentClick = (index: number) => {
+    if (onSegmentClick) {
+      onSegmentClick(stats[index].id as 'sports' | 'pushup' | 'hydration' | 'nutrition' | 'weight');
+    }
+  };
 
   return (
     <div
@@ -177,62 +163,37 @@ export function StatCarouselWithProgressCircle() {
             opacity="0.1"
           />
 
-          {/* Progress bands (5 colored arcs) */}
-          {progressBands.map((band, idx) => (
-            <path
-              key={`band-${idx}`}
-              d={band.path}
-              stroke={band.stat.color}
-              strokeWidth="12"
-              fill="none"
-              strokeLinecap="round"
-              opacity="0.85"
-            />
-          ))}
+          {/* Progress bands (5 colored arcs) - Clickable and highlighted when active */}
+          {progressBands.map((band, idx) => {
+            const isActive = idx === currentIndex;
+            return (
+              <path
+                key={`band-${idx}`}
+                d={band.path}
+                stroke={band.stat.color}
+                strokeWidth="12"
+                fill="none"
+                strokeLinecap="round"
+                opacity={isActive ? 1 : 0.8}
+                style={{
+                  transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                  transformOrigin: `${CENTER}px ${CENTER}px`,
+                  transition: 'all 200ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+                  cursor: 'pointer',
+                }}
+                onClick={() => handleSegmentClick(idx)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    handleSegmentClick(idx);
+                  }
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`View ${band.stat.label} details`}
+              />
+            );
+          })}
 
-          {/* Stat icons on circle perimeter */}
-          {iconPositions.map((pos, idx) => (
-            <text
-              key={`icon-${idx}`}
-              x={pos.x}
-              y={pos.y}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize="28"
-              opacity={idx === currentIndex ? 1 : 0.5}
-              className="transition-opacity duration-300"
-              role="img"
-              aria-label={stats[idx].label}
-            >
-              {stats[idx].icon}
-            </text>
-          ))}
-
-          {/* Pagination dots inside circle */}
-          {pageDotPositions.map((dot) => (
-            <circle
-              key={`dot-${dot.index}`}
-              cx={dot.x}
-              cy={dot.y}
-              r={dot.isActive ? 3.5 : 2}
-              fill={dot.isActive ? 'currentColor' : 'currentColor'}
-              opacity={dot.isActive ? 0.8 : 0.3}
-              className="transition-all duration-300 cursor-pointer hover:opacity-60"
-              onClick={() => {
-                setCurrentIndex(dot.index);
-                pauseAutoRotate();
-              }}
-              role="button"
-              aria-label={`${t('common.goto')} ${stats[dot.index].label}`}
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  setCurrentIndex(dot.index);
-                  pauseAutoRotate();
-                }
-              }}
-            />
-          ))}
         </svg>
 
         {/* Carousel Content (centered inside circle) */}

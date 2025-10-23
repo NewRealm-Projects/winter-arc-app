@@ -106,21 +106,34 @@ describe('StatCarouselWithProgressCircle', () => {
     expect(paths.length).toBeGreaterThanOrEqual(5);
   });
 
-  it('should have 5 pagination dots', () => {
-    const { container } = render(<StatCarouselWithProgressCircle />);
-    const dots = container.querySelectorAll('svg circle[role="button"]');
-    expect(dots.length).toBe(5);
+  it('should call onSegmentClick when a segment is clicked', async () => {
+    vi.useRealTimers(); // userEvent needs real timers
+    const user = userEvent.setup({ delay: null });
+    const mockOnSegmentClick = vi.fn();
+    const { container } = render(
+      <StatCarouselWithProgressCircle onSegmentClick={mockOnSegmentClick} />
+    );
+
+    // Get progress band paths (they have role="button" and are clickable)
+    const segments = container.querySelectorAll('svg path[role="button"]');
+    expect(segments.length).toBe(5);
+
+    // Click the first segment (Sports)
+    await user.click(segments[0]);
+
+    expect(mockOnSegmentClick).toHaveBeenCalledWith('sports');
   });
 
-  it('should display all 5 stat icons on circle perimeter', () => {
+  it('should highlight active segment with scale and opacity', () => {
     const { container } = render(<StatCarouselWithProgressCircle />);
-    const icons = container.querySelectorAll('svg text[role="img"]');
-    expect(icons.length).toBe(5);
-    expect(icons[0]).toHaveTextContent('🏃'); // Sports
-    expect(icons[1]).toHaveTextContent('💪'); // Pushup
-    expect(icons[2]).toHaveTextContent('💧'); // Hydration
-    expect(icons[3]).toHaveTextContent('🥩'); // Nutrition
-    expect(icons[4]).toHaveTextContent('⚖️'); // Weight
+    const segments = container.querySelectorAll('svg path[role="button"]');
+
+    // First segment should be active (currentIndex = 0)
+    const activeSegment = segments[0] as SVGPathElement;
+    const inactiveSegment = segments[1] as SVGPathElement;
+
+    expect(activeSegment).toHaveAttribute('opacity', '1');
+    expect(inactiveSegment).toHaveAttribute('opacity', '0.8');
   });
 
   it('should show hint text', () => {
@@ -176,27 +189,6 @@ describe('StatCarouselWithProgressCircle', () => {
   it('should pause auto-rotation after keyboard interaction', async () => {
     // This test skipped because it requires complex timer/keyboard coordination
     // The component correctly handles pause after interaction (tested separately)
-  });
-
-  it('should click pagination dots to jump to stat', async () => {
-    vi.useRealTimers(); // userEvent needs real timers
-    const user = userEvent.setup({ delay: null });
-    const { container } = render(<StatCarouselWithProgressCircle />);
-
-    // Initially showing Sports
-    const initialLabels = screen.getAllByText('Sports');
-    expect(initialLabels.length).toBeGreaterThan(0);
-
-    // Get all pagination dots
-    const dots = container.querySelectorAll('svg circle[role="button"]');
-
-    // Click third dot (Hydration)
-    await user.click(dots[2]);
-
-    await waitFor(() => {
-      const waterLabels = screen.getAllByText('Water');
-      expect(waterLabels.length).toBeGreaterThan(0);
-    });
   });
 
   it('should display correct label below circle', () => {

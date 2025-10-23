@@ -36,7 +36,7 @@ export function CompressedWeekCard() {
     <>
       {/* Week Card */}
       <div
-        className="p-4 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+        className="p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
         onClick={() => setShowModal(true)}
         role="button"
         tabIndex={0}
@@ -47,7 +47,7 @@ export function CompressedWeekCard() {
         }}
       >
         {/* Header: Week range + year */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
             {t('dashboard.weekOverview')}
           </h3>
@@ -57,7 +57,7 @@ export function CompressedWeekCard() {
         </div>
 
         {/* Day circles (7 columns) */}
-        <div className="grid grid-cols-7 gap-1.5">
+        <div className="grid grid-cols-7 gap-1">
           {daysInWeek.map((day) => {
             const isSelected = format(day, 'yyyy-MM-dd') === selectedDate;
             const dayLabel = format(day, 'EEE', { locale }).slice(0, 1).toUpperCase(); // M, T, W, T, F, S, S
@@ -71,7 +71,7 @@ export function CompressedWeekCard() {
                   handleDayClick(day);
                 }}
                 className={`
-                  flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-lg
+                  flex flex-col items-center justify-center gap-0 py-1.5 px-1 rounded-lg
                   transition-all duration-200 text-xs font-medium
                   ${
                     isSelected
@@ -90,7 +90,7 @@ export function CompressedWeekCard() {
         </div>
 
         {/* Hint text */}
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 text-center">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
           {t('dashboard.tapToEdit')}
         </p>
       </div>

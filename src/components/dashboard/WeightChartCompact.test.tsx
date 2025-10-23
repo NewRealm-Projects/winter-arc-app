@@ -159,7 +159,7 @@ describe('WeightChartCompact', () => {
     const { container } = render(<WeightChartCompact />);
     // Chart should be in a div with style attribute containing height
     const mainCard = container.firstChild as HTMLElement;
-    expect(mainCard).toHaveClass('p-4');
+    expect(mainCard).toHaveClass('p-3');
     expect(mainCard).toHaveClass('rounded-xl');
   });
 

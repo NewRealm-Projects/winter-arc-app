@@ -77,7 +77,7 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
     const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
 
     // Create filled slice path (radial lines from center to arc)
-    return `M ${CENTER_X} ${CENTER_Y} L ${x1} ${y1} A ${RADIUS} ${RADIUS} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+    return `M ${CENTER_X} ${CENTER_Y} L ${x1} ${y1} A ${RADIUS} ${RADIUS} 0 ${largeArcFlag} 0 ${x2} ${y2} Z`;
   };
 
   return (
