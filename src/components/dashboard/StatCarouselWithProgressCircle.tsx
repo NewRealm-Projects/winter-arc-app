@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSwipeable } from 'react-swipeable';
 import { useCarouselStats } from '../../hooks/useCarouselStats';
-import { calculateBandAngles, createArcPath } from '../../utils/progressCalculation';
+import { createArcPath } from '../../utils/progressCalculation';
 import { useTranslation } from '../../hooks/useTranslation';
+import { useStore } from '../../store/useStore';
+import { useWeekContext } from '../../contexts/WeekContext';
 
 const CIRCLE_SIZE = 240; // SVG viewBox size
 const CENTER = CIRCLE_SIZE / 2; // Center of circle
@@ -24,6 +26,8 @@ export interface StatCarouselWithProgressCircleProps {
 export function StatCarouselWithProgressCircle({ onSegmentClick }: StatCarouselWithProgressCircleProps) {
   const { t } = useTranslation();
   const stats = useCarouselStats();
+  const { selectedDate } = useWeekContext();
+  const tracking = useStore((state) => state.tracking[selectedDate]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [autoRotateEnabled, setAutoRotateEnabled] = useState(true);
   const autoRotateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -118,17 +122,94 @@ export function StatCarouselWithProgressCircle({ onSegmentClick }: StatCarouselW
 
   const currentStat = stats[currentIndex];
 
-  // SVG paths for progress bands
-  const progressBands = stats.map((stat, index) => {
-    const { startAngle, endAngle } = calculateBandAngles(index, stat.progress);
-    const path = createArcPath(CENTER, CENTER, RADIUS, startAngle, endAngle);
-
-    return {
-      stat,
-      path,
-      index,
+  // Calculate continuous progress from all stats (real tracking data)
+  const progressSegments = useMemo(() => {
+    const statGoals = {
+      sports: 5000, // min
+      pushup: 50,   // reps
+      hydration: 3000, // ml
+      nutrition: 180,  // g
+      weight: 80,   // kg (for comparison, using as-is)
     };
-  });
+
+    return [
+      {
+        id: 'sports' as const,
+        label: 'Sports',
+        value: (tracking?.sports && typeof tracking.sports === 'object' && 'cardio' in tracking.sports)
+          ? (tracking.sports.cardio && typeof tracking.sports.cardio === 'object' && 'duration' in tracking.sports.cardio)
+            ? (tracking.sports.cardio as unknown as Record<string, number | boolean>).duration || 0
+            : 0
+          : 0,
+        goal: statGoals.sports,
+        color: '#10B981',
+      },
+      {
+        id: 'pushup' as const,
+        label: 'Pushup',
+        value: tracking?.pushups?.total || 0,
+        goal: statGoals.pushup,
+        color: '#3B82F6',
+      },
+      {
+        id: 'nutrition' as const,
+        label: 'Nutrition',
+        value: tracking?.protein || 0,
+        goal: statGoals.nutrition,
+        color: '#F59E0B',
+      },
+      {
+        id: 'hydration' as const,
+        label: 'Hydration',
+        value: tracking?.water || 0,
+        goal: statGoals.hydration,
+        color: '#06B6D4',
+      },
+      {
+        id: 'weight' as const,
+        label: 'Weight',
+        value: tracking?.weight?.value || 0,
+        goal: statGoals.weight,
+        color: '#8B5CF6',
+      },
+    ].map((segment) => {
+      const numValue = typeof segment.value === 'number' ? segment.value : 0;
+      const progress = Math.min(numValue / segment.goal, 1) * 100;
+      const degrees = (progress / 100) * 72; // Allocate portion of 72° based on progress
+      return { ...segment, progress, degrees };
+    });
+  }, [tracking]);
+
+  // Calculate total progress degrees (sum of all stat degrees)
+  const totalProgressDegrees = useMemo(() => {
+    return progressSegments.reduce((sum, seg) => sum + seg.degrees, 0);
+  }, [progressSegments]);
+
+  // Create continuous arc path from 90° (top) clockwise through totalProgressDegrees
+  const continuousArcPath = useMemo(() => {
+    const startAngle = 90;
+    const endAngle = (90 + totalProgressDegrees) % 360;
+    if (totalProgressDegrees === 0) {
+      return ''; // No progress yet
+    }
+    return createArcPath(CENTER, CENTER, RADIUS, startAngle, endAngle);
+  }, [totalProgressDegrees]);
+
+  // Create SVG gradient with colors for each segment
+  const createGradientStops = useMemo(() => {
+    let currentDegree = 0;
+    const stops = progressSegments.map((segment) => {
+      const startPercent = (currentDegree / totalProgressDegrees) * 100;
+      const endPercent = ((currentDegree + segment.degrees) / totalProgressDegrees) * 100;
+      currentDegree += segment.degrees;
+      return {
+        segment,
+        startPercent: Math.max(0, startPercent),
+        endPercent: Math.min(100, endPercent),
+      };
+    });
+    return stops;
+  }, [progressSegments, totalProgressDegrees]);
 
   // Handle segment click - open modal for clicked stat
   const handleSegmentClick = (index: number) => {
@@ -152,35 +233,69 @@ export function StatCarouselWithProgressCircle({ onSegmentClick }: StatCarouselW
           className="w-full h-full drop-shadow-lg"
           aria-hidden="true"
         >
-          {/* Background circle */}
+          <defs>
+            {/* SVG Gradient with colors for each stat segment */}
+            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              {createGradientStops.map((stop, idx) => (
+                <stop
+                  key={`stop-${idx}`}
+                  offset={`${stop.startPercent}%`}
+                  stopColor={stop.segment.color}
+                  stopOpacity="1"
+                />
+              ))}
+              {createGradientStops.length > 0 && (
+                <stop
+                  offset="100%"
+                  stopColor={createGradientStops[createGradientStops.length - 1].segment.color}
+                  stopOpacity="1"
+                />
+              )}
+            </linearGradient>
+          </defs>
+
+          {/* Background circle (remaining progress shown as faded) */}
           <circle
             cx={CENTER}
             cy={CENTER}
             r={RADIUS}
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="12"
             opacity="0.1"
           />
 
-          {/* Progress bands (5 colored arcs) - Clickable and highlighted when active */}
-          {progressBands.map((band, idx) => {
-            const isActive = idx === currentIndex;
+          {/* Continuous progress arc with multi-color gradient */}
+          {continuousArcPath && (
+            <path
+              d={continuousArcPath}
+              stroke="url(#progressGradient)"
+              strokeWidth="12"
+              fill="none"
+              strokeLinecap="round"
+              style={{
+                transition: 'all 300ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+              }}
+              aria-label={`Overall progress: ${Math.round((totalProgressDegrees / 360) * 100)}%`}
+            />
+          )}
+
+          {/* Stat segment markers and interactive regions */}
+          {progressSegments.map((segment, idx) => {
+            // Calculate the start and end angles for this stat's allocation (72° each)
+            const segmentStartAngle = 90 + (idx * 72);
+            const segmentEndAngle = segmentStartAngle + 72;
+            const segmentPath = createArcPath(CENTER, CENTER, RADIUS + 15, segmentStartAngle, segmentEndAngle);
+            const isCurrentStat = idx === currentIndex;
+
             return (
               <path
-                key={`band-${idx}`}
-                d={band.path}
-                stroke={band.stat.color}
-                strokeWidth="12"
+                key={`segment-${idx}`}
+                d={segmentPath}
+                stroke="transparent"
+                strokeWidth="24"
                 fill="none"
-                strokeLinecap="round"
-                opacity={isActive ? 1 : 0.8}
-                style={{
-                  transform: isActive ? 'scale(1.1)' : 'scale(1)',
-                  transformOrigin: `${CENTER}px ${CENTER}px`,
-                  transition: 'all 200ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-                  cursor: 'pointer',
-                }}
+                className="cursor-pointer"
                 onClick={() => handleSegmentClick(idx)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -189,11 +304,14 @@ export function StatCarouselWithProgressCircle({ onSegmentClick }: StatCarouselW
                 }}
                 role="button"
                 tabIndex={0}
-                aria-label={`View ${band.stat.label} details`}
+                aria-label={`${segment.label}: ${Math.round(segment.progress)}%`}
+                style={{
+                  opacity: isCurrentStat ? 0.3 : 0.1,
+                  transition: 'opacity 200ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+                }}
               />
             );
           })}
-
         </svg>
 
         {/* Carousel Content (centered inside circle) */}

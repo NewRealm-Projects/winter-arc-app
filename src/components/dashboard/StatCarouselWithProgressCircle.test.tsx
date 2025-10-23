@@ -65,6 +65,37 @@ vi.mock('../../hooks/useTranslation', () => ({
   }),
 }));
 
+vi.mock('../../store/useStore', () => ({
+  useStore: <T,>(selector: (state: Record<string, unknown>) => T): T => {
+    const mockState = {
+      tracking: {
+        '2025-10-23': {
+          sports: {
+            cardio: { duration: 30, intensity: 5 },
+            hiit: false,
+            gym: false,
+            schwimmen: false,
+            soccer: false,
+            rest: false,
+          },
+          pushups: { total: 25 },
+          water: 2500,
+          protein: 140,
+          weight: { value: 80, bodyFat: 20, bmi: 24.7 },
+        },
+      },
+    };
+    return selector(mockState);
+  },
+}));
+
+vi.mock('../../contexts/WeekContext', () => ({
+  useWeekContext: () => ({
+    selectedDate: '2025-10-23',
+    setSelectedDate: vi.fn(),
+  }),
+}));
+
 describe('StatCarouselWithProgressCircle', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -132,8 +163,9 @@ describe('StatCarouselWithProgressCircle', () => {
     const activeSegment = segments[0] as SVGPathElement;
     const inactiveSegment = segments[1] as SVGPathElement;
 
-    expect(activeSegment).toHaveAttribute('opacity', '1');
-    expect(inactiveSegment).toHaveAttribute('opacity', '0.8');
+    // Check inline style opacity (0.3 for active, 0.1 for inactive)
+    expect(activeSegment.style.opacity).toBe('0.3');
+    expect(inactiveSegment.style.opacity).toBe('0.1');
   });
 
   it('should show hint text', () => {

@@ -19,14 +19,15 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Define the 5 menu slices (ordered left to right across top)
+  // Define the 5 menu slices (ordered right to left across bottom)
+  // Bottom-opening half-circle: Sports (right) → Pushup (right-bottom) → Nutrition (bottom) → Hydration (left-bottom) → Weight (left)
   // Note: IDs match DashboardMobile modal names; labels use tracking translation keys
   const SLICES = [
+    { id: 'sports' as const, label: t('tracking.sports'), icon: '🏃', color: '#10B981' },
+    { id: 'pushup' as const, label: t('tracking.pushups'), icon: '💪', color: '#3B82F6' },
     { id: 'nutrition' as const, label: t('tracking.protein'), icon: '🥩', color: '#F59E0B' },
     { id: 'hydration' as const, label: t('tracking.water'), icon: '💧', color: '#06B6D4' },
     { id: 'weight' as const, label: t('tracking.weight'), icon: '⚖️', color: '#8B5CF6' },
-    { id: 'pushup' as const, label: t('tracking.pushups'), icon: '💪', color: '#3B82F6' },
-    { id: 'sports' as const, label: t('tracking.sports'), icon: '🏃', color: '#10B981' },
   ];
 
   // Handle slice click
@@ -63,8 +64,8 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
   const RADIUS = 100;
   const ICON_RADIUS = 75;
 
-  // Generate slice paths for top-opening half-circle (180°)
-  // Angles go from 180° (left) to 0° (right), spanning across the top
+  // Generate slice paths for bottom-opening half-circle (180°)
+  // Angles go from 0° (right) to 180° (left), spanning across the bottom
   const createSlicePath = (startAngle: number, endAngle: number): string => {
     const startRad = (startAngle * Math.PI) / 180;
     const endRad = (endAngle * Math.PI) / 180;
@@ -76,8 +77,8 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
 
     const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
 
-    // Create filled slice path (radial lines from center to arc)
-    return `M ${CENTER_X} ${CENTER_Y} L ${x1} ${y1} A ${RADIUS} ${RADIUS} 0 ${largeArcFlag} 0 ${x2} ${y2} Z`;
+    // Create filled slice path (radial lines from center to arc, clockwise)
+    return `M ${CENTER_X} ${CENTER_Y} L ${x1} ${y1} A ${RADIUS} ${RADIUS} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
   };
 
   return (
@@ -110,19 +111,19 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
           aria-label={t('common.quickAdd') || 'Quick add menu'}
           aria-hidden={!isOpen}
         >
-          {/* Arc background (white/dark semicircle) */}
+          {/* Arc background (white/dark semicircle) - bottom opening */}
           <path
-            d={`M ${CENTER_X - RADIUS} ${CENTER_Y} A ${RADIUS} ${RADIUS} 0 0 0 ${CENTER_X + RADIUS} ${CENTER_Y}`}
+            d={`M ${CENTER_X + RADIUS} ${CENTER_Y} A ${RADIUS} ${RADIUS} 0 0 1 ${CENTER_X - RADIUS} ${CENTER_Y}`}
             fill="white"
             stroke="#e5e7eb"
             strokeWidth="1"
             className="dark:fill-gray-900 dark:stroke-white/10"
           />
 
-          {/* 5 slices (36° each, spanning 180° from 180° to 0° for top half) */}
+          {/* 5 slices (36° each, spanning 180° from 0° to 180° for bottom half) */}
           {SLICES.map((slice, index) => {
-            const startAngle = 180 - index * 36;
-            const endAngle = startAngle - 36;
+            const startAngle = index * 36;
+            const endAngle = startAngle + 36;
             const slicePath = createSlicePath(startAngle, endAngle);
             const iconAngle = (startAngle + endAngle) / 2;
             const iconRad = (iconAngle * Math.PI) / 180;

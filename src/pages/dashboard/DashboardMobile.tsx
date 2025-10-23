@@ -6,11 +6,11 @@ import CompressedWeekCard from '../../components/dashboard/CompressedWeekCard';
 import WeightChartCompact from '../../components/dashboard/WeightChartCompact';
 import ArcMenu from '../../components/dashboard/ArcMenu';
 import WeeklyTile from '../../components/dashboard/WeeklyTile';
-import WorkoutLogModal from '../../components/notes/WorkoutLogModal';
-import PushupLogModal from '../../components/notes/PushupLogModal';
-import DrinkLogModal from '../../components/notes/DrinkLogModal';
-import FoodLogModal from '../../components/notes/FoodLogModal';
-import WeightLogModal from '../../components/notes/WeightLogModal';
+import WorkoutLogModal, { type WorkoutLogData } from '../../components/notes/WorkoutLogModal';
+import PushupLogModal, { type PushupLogData } from '../../components/notes/PushupLogModal';
+import DrinkLogModal, { type DrinkLogData } from '../../components/notes/DrinkLogModal';
+import FoodLogModal, { type FoodLogData } from '../../components/notes/FoodLogModal';
+import WeightLogModal, { type WeightLogData } from '../../components/notes/WeightLogModal';
 import { AppModal } from '../../components/ui/AppModal';
 import { WeekProvider } from '../../contexts/WeekContext';
 import { useWeekContext } from '../../contexts/WeekContext';
@@ -18,6 +18,8 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useTrackingEntries } from '../../hooks/useTrackingEntries';
 import { useTracking } from '../../hooks/useTracking';
 import { useWeeklyTop3 } from '../../hooks/useWeeklyTop3';
+import { useStore } from '../../store/useStore';
+import { logger } from '../../utils/logger';
 
 /**
  * Mobile Dashboard Layout - Single screen, no vertical scrolling
@@ -28,6 +30,7 @@ function DashboardMobileContent() {
   const { t } = useTranslation();
   const { selectedDate } = useWeekContext();
   const { error: trackingError, retry: retryTracking } = useTrackingEntries();
+  const store = useStore();
 
   // Auto-save tracking data to Firebase
   useTracking();
@@ -58,9 +61,119 @@ function DashboardMobileContent() {
     setOpenModal(null);
   };
 
-  const handleDummySave = async () => {
-    // Modals handle their own data saving
-    handleModalClose();
+  /**
+   * Save workout/sports data to tracking store
+   */
+  const handleWorkoutSave = async (data: WorkoutLogData) => {
+    try {
+      const currentSports = store.tracking[data.date]?.sports || {
+        hiit: false,
+        cardio: false,
+        gym: false,
+        schwimmen: false,
+        soccer: false,
+        rest: false,
+      };
+
+      store.updateDayTracking(data.date, {
+        sports: {
+          ...currentSports,
+          [data.sport]: {
+            active: true,
+            duration: data.durationMin,
+            intensity: data.durationMin > 0 ? 5 : 0, // Default intensity to 5/10 (moderate)
+          },
+        },
+      });
+      handleModalClose();
+    } catch (error) {
+      logger.error('Error saving workout:', error);
+      alert(t('common.error') || 'Error saving workout');
+    }
+  };
+
+  /**
+   * Save pushup data to tracking store
+   */
+  const handlePushupSave = async (data: PushupLogData) => {
+    try {
+      store.updateDayTracking(data.date, {
+        pushups: {
+          total: data.count,
+        },
+      });
+      handleModalClose();
+    } catch (error) {
+      logger.error('Error saving pushups:', error);
+      alert(t('common.error') || 'Error saving pushups');
+    }
+  };
+
+  /**
+   * Save hydration/drink data to tracking store
+   */
+  const handleDrinkSave = async (data: DrinkLogData) => {
+    try {
+      store.updateDayTracking(data.date, {
+        water: (store.tracking[data.date]?.water || 0) + data.amountMl,
+      });
+      handleModalClose();
+    } catch (error) {
+      logger.error('Error saving drink:', error);
+      alert(t('common.error') || 'Error saving drink');
+    }
+  };
+
+  /**
+   * Save food/nutrition data to tracking store
+   */
+  const handleFoodSave = async (data: FoodLogData) => {
+    try {
+      // Calculate totals from cart items
+      let totalProtein = 0;
+      let totalCalories = 0;
+      let totalCarbs = 0;
+      let totalFat = 0;
+
+      data.cart.forEach((item) => {
+        totalProtein += item.nutrition.proteinG || 0;
+        totalCalories += item.nutrition.calories || 0;
+        totalCarbs += item.nutrition.carbsG || 0;
+        totalFat += item.nutrition.fatG || 0;
+      });
+
+      const currentTracking = store.tracking[data.date] || {};
+
+      store.updateDayTracking(data.date, {
+        protein: (currentTracking.protein || 0) + totalProtein,
+        calories: (currentTracking.calories || 0) + totalCalories,
+        carbsG: (currentTracking.carbsG || 0) + totalCarbs,
+        fatG: (currentTracking.fatG || 0) + totalFat,
+      });
+      handleModalClose();
+    } catch (error) {
+      logger.error('Error saving food:', error);
+      alert(t('common.error') || 'Error saving food');
+    }
+  };
+
+  /**
+   * Save weight data to tracking store
+   */
+  const handleWeightSave = async (data: WeightLogData) => {
+    try {
+      store.updateDayTracking(data.date, {
+        weight: {
+          value: data.weight,
+          bodyFat: data.bodyFat,
+          bmi: data.bmi,
+        },
+      });
+      handleModalClose();
+    } catch (error) {
+      logger.error('Error saving weight:', error);
+      alert(t('common.error') || 'Error saving weight');
+    }
   };
 
   return (
@@ -120,35 +233,35 @@ function DashboardMobileContent() {
       <WorkoutLogModal
         open={openModal === 'sports'}
         onClose={handleModalClose}
-        onSave={handleDummySave}
+        onSave={handleWorkoutSave}
         currentDate={selectedDate}
       />
 
       <PushupLogModal
         open={openModal === 'pushup'}
         onClose={handleModalClose}
-        onSave={handleDummySave}
+        onSave={handlePushupSave}
         currentDate={selectedDate}
       />
 
       <DrinkLogModal
         open={openModal === 'hydration'}
         onClose={handleModalClose}
-        onSave={handleDummySave}
+        onSave={handleDrinkSave}
         currentDate={selectedDate}
       />
 
       <FoodLogModal
         open={openModal === 'nutrition'}
         onClose={handleModalClose}
-        onSave={handleDummySave}
+        onSave={handleFoodSave}
         currentDate={selectedDate}
       />
 
       <WeightLogModal
         open={openModal === 'weight'}
         onClose={handleModalClose}
-        onSave={handleDummySave}
+        onSave={handleWeightSave}
         currentDate={selectedDate}
       />
 

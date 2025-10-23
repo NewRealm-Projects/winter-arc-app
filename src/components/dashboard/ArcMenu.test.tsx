@@ -152,7 +152,7 @@ describe('ArcMenu', () => {
 
     const icons = container.querySelectorAll('svg[role="menu"] g[role="img"] text');
     // New order: nutrition (🥩), hydration (💧), weight (⚖️), pushup (💪), sports (🏃)
-    const expectedEmojis = ['🥩', '💧', '⚖️', '💪', '🏃'];
+    const expectedEmojis = ['🏃', '💪', '🥩', '💧', '⚖️'];
 
     Array.from(icons).forEach((icon, index) => {
       expect(icon.textContent).toBe(expectedEmojis[index]);
@@ -160,7 +160,7 @@ describe('ArcMenu', () => {
   });
 
   // Interaction Tests
-  it('should call onStatSelect when nutrition slice is clicked', async () => {
+  it('should call onStatSelect when sports slice is clicked', async () => {
     const user = userEvent.setup();
     const { container } = render(<ArcMenu onStatSelect={mockOnStatSelect} />);
 
@@ -168,18 +168,18 @@ describe('ArcMenu', () => {
     const button = screen.getByRole('button', { name: /quick add/i });
     await user.click(button);
 
-    // Find and click nutrition slice (first slice)
+    // Find and click sports slice (first slice)
     const slices = container.querySelectorAll('svg[role="menu"] path[fill*="#"]');
     await user.click(slices[0]);
 
-    expect(mockOnStatSelect).toHaveBeenCalledWith('nutrition');
+    expect(mockOnStatSelect).toHaveBeenCalledWith('sports');
   });
 
   it('should call onStatSelect for all 5 stat types', async () => {
     const user = userEvent.setup();
     const { container } = render(<ArcMenu onStatSelect={mockOnStatSelect} />);
 
-    const statIds = ['nutrition', 'hydration', 'weight', 'pushup', 'sports'] as const;
+    const statIds = ['sports', 'pushup', 'nutrition', 'hydration', 'weight'] as const;
 
     for (const statId of statIds) {
       mockOnStatSelect.mockClear();
@@ -190,7 +190,7 @@ describe('ArcMenu', () => {
 
       // Click corresponding slice
       const slices = container.querySelectorAll('svg[role="menu"] path[fill*="#"]');
-      const indexMap = { nutrition: 0, hydration: 1, weight: 2, pushup: 3, sports: 4 };
+      const indexMap = { sports: 0, pushup: 1, nutrition: 2, hydration: 3, weight: 4 };
       const index = indexMap[statId];
 
       await user.click(slices[index]);
@@ -252,7 +252,7 @@ describe('ArcMenu', () => {
     const button = screen.getByRole('button', { name: /quick add/i });
     await user.click(button);
 
-    // Get first slice (nutrition)
+    // Get first slice (sports)
     const slices = container.querySelectorAll('svg[role="menu"] path[fill*="#"]');
     const firstSlice = slices[0] as SVGPathElement;
 
@@ -260,7 +260,7 @@ describe('ArcMenu', () => {
     firstSlice.focus();
     fireEvent.keyDown(firstSlice, { key: 'Enter' });
 
-    expect(mockOnStatSelect).toHaveBeenCalledWith('nutrition');
+    expect(mockOnStatSelect).toHaveBeenCalledWith('sports');
   });
 
   it('should select stat on Space key when slice is focused', async () => {
@@ -271,7 +271,7 @@ describe('ArcMenu', () => {
     const button = screen.getByRole('button', { name: /quick add/i });
     await user.click(button);
 
-    // Get second slice (hydration)
+    // Get second slice (pushup)
     const slices = container.querySelectorAll('svg[role="menu"] path[fill*="#"]');
     const secondSlice = slices[1] as SVGPathElement;
 
@@ -279,7 +279,7 @@ describe('ArcMenu', () => {
     secondSlice.focus();
     fireEvent.keyDown(secondSlice, { key: ' ' });
 
-    expect(mockOnStatSelect).toHaveBeenCalledWith('hydration');
+    expect(mockOnStatSelect).toHaveBeenCalledWith('pushup');
   });
 
   // Backdrop Tests
