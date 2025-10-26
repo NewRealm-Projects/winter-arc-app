@@ -42,7 +42,8 @@
       "Bash(git stash:*)",
       "Bash(openspec spec list:*)",
       "Bash(cat:*)",
-      "Bash(xargs kill -9)"
+      "Bash(xargs kill -9)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

@@ -12,6 +12,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useTracking } from '../hooks/useTracking';
 import { useWeeklyTop3 } from '../hooks/useWeeklyTop3';
 import { useStore } from '../store/useStore';
+import { useFeatureFlag } from '../lib/flags';
 import DashboardMobile from './dashboard/DashboardMobile';
 
 function DashboardPageContent() {
@@ -107,8 +108,10 @@ function DashboardPageContent() {
  */
 function DashboardPage() {
   const isMobile = useIsMobile(); // < 481px breakpoint
+  const isMobileRedesignEnabled = useFeatureFlag('mobileDashboardCarousel');
 
-  if (isMobile) {
+  // Use new mobile redesign only if flag is enabled AND viewport is mobile
+  if (isMobile && isMobileRedesignEnabled) {
     return <DashboardMobile />;
   }
 
