@@ -8,7 +8,7 @@
  */
 
 // Define all available flags
-export type FeatureFlag = 'quoteV2' | 'leaderboardLite' | 'hydrationNudge';
+export type FeatureFlag = 'quoteV2' | 'leaderboardLite' | 'hydrationNudge' | 'mobileDashboardCarousel';
 
 // Flag configurations with default states
 const FLAG_CONFIG: Record<FeatureFlag, { default: boolean; description: string }> = {
@@ -23,6 +23,10 @@ const FLAG_CONFIG: Record<FeatureFlag, { default: boolean; description: string }
   hydrationNudge: {
     default: false,
     description: 'Water intake reminder notifications',
+  },
+  mobileDashboardCarousel: {
+    default: false,
+    description: 'New mobile dashboard carousel redesign with progress circle and arc menu',
   },
 };
 

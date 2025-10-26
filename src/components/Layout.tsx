@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from '../hooks/useTranslation';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { useStore } from '../store/useStore';
 import { UserAvatar } from './ui/UserAvatar';
 
@@ -11,7 +12,11 @@ interface LayoutProps {
 function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const user = useStore((state) => state.user);
+
+  // Hide BottomNav on mobile dashboard
+  const hiddenNavOnMobileDashboard = isMobile && location.pathname === '/';
 
   const navItems = [
     { path: '/', labelKey: 'nav.dashboard', icon: '🏠' },
@@ -30,11 +35,12 @@ function Layout({ children }: LayoutProps) {
         <div className="animate-fade-in-up">{children}</div>
       </main>
 
-      {/* Floating Bottom Navigation - Solid Modern Style */}
-      <nav
-        className="fixed left-1/2 -translate-x-1/2 bottom-5 z-50 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg px-4 py-2"
-        data-testid="bottom-navigation"
-      >
+      {/* Floating Bottom Navigation - Solid Modern Style - Hidden on mobile dashboard */}
+      {!hiddenNavOnMobileDashboard && (
+        <nav
+          className="fixed left-1/2 -translate-x-1/2 bottom-5 z-50 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg px-4 py-2"
+          data-testid="bottom-navigation"
+        >
         <div className="flex items-center justify-center gap-4 animate-fade-in-up delay-400">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -69,6 +75,7 @@ function Layout({ children }: LayoutProps) {
           })}
         </div>
       </nav>
+      )}
     </div>
   );
 }
