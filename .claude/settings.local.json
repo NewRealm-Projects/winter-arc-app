@@ -38,7 +38,11 @@
       "Bash(git -C \"C:\\Users\\miket\\winter-arc-app\" commit -m \"$(cat <<''EOF''\nfix(ui): resolve CustomNoteModal focus ring clipping at modal edges\n\nFixed focus ring outline clipping by adding p-1 padding to content wrapper,\nfollowing AppModal accessibility best practices. The p-1 (4px) padding prevents\nfocus ring box-shadows from being clipped at modal edges.\n\n- Added p-1 class to CustomNoteModal content wrapper\n- Removed incorrect -mx-2 negative margin classes from inputs\n- Focus ring now renders cleanly within modal boundary\n- Follows AppModal documentation guidelines\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git cherry-pick:*)",
       "Bash(npm run:*)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(git stash:*)",
+      "Bash(openspec spec list:*)",
+      "Bash(cat:*)",
+      "Bash(xargs kill -9)"
     ],
     "deny": [],
     "ask": []

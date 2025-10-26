@@ -198,36 +198,44 @@ function DashboardMobileContent() {
         </div>
       )}
 
-      {/* Main Mobile Dashboard Container - Single screen, no scrolling */}
+      {/* Main Mobile Dashboard Container - Flex layout pushes ArcMenu to bottom */}
       <div
-        className="h-screen flex flex-col gap-0.5 px-3 py-1 overflow-hidden safe-pb safe-pt"
+        className="h-screen flex flex-col justify-end py-1 overflow-hidden safe-pb safe-pt"
         data-testid="dashboard-mobile"
       >
-        {/* Header */}
-        <div className="flex-shrink-0">
-          <DashboardHeader onSettingsClick={handleSettingsClick} />
-        </div>
-
-        {/* Week Card (Compact) - Tap to expand */}
-        <div onClick={handleWeekCardClick} className="cursor-pointer flex-shrink-0">
-          <CompressedWeekCard />
-        </div>
-
-        {/* Main Carousel - Segment click detection handled in component */}
-        <div className="flex-1 flex items-center justify-center min-h-0 max-h-xs">
-          <div className="w-full max-w-xs">
-            <StatCarouselWithProgressCircle onSegmentClick={handleSegmentClick} />
+        {/* Content Container - Scrollable, flex-1 to fill space */}
+        <div className="flex-1 flex flex-col gap-2 px-3 pt-4 overflow-y-auto min-h-0">
+          {/* Header */}
+          <div className="flex-shrink-0">
+            <DashboardHeader onSettingsClick={handleSettingsClick} />
           </div>
+
+          {/* Week Card (Compact) - Tap to expand */}
+          <div onClick={handleWeekCardClick} className="cursor-pointer flex-shrink-0">
+            <CompressedWeekCard />
+          </div>
+
+          {/* Main Carousel - Segment click detection handled in component */}
+          <div className="flex-1 flex items-center justify-center min-h-0">
+            <div className="w-full max-w-xs">
+              <StatCarouselWithProgressCircle onSegmentClick={handleSegmentClick} />
+            </div>
+          </div>
+
+          {/* Weight Chart - Compact version */}
+          <div className="flex-shrink-0">
+            <WeightChartCompact />
+          </div>
+
+          {/* Proportional Clearance - ~4% of viewport height (scales with screen size) */}
+          <div style={{ height: 'calc(100vh * 0.04)' }} className="flex-shrink-0" aria-hidden="true" />
         </div>
 
-        {/* Weight Chart */}
-        <div className="flex-shrink-0">
-          <WeightChartCompact />
+        {/* Arc Menu (Unified) - Naturally pushed to bottom by justify-end */}
+        <div className="flex-shrink-0 px-3 pb-2">
+          <ArcMenu onStatSelect={handleArcMenuSelect} />
         </div>
       </div>
-
-      {/* Arc Menu (Floating) - Opens specific stat modals */}
-      <ArcMenu onStatSelect={handleArcMenuSelect} />
 
       {/* Input Modals - Directly reuse from Input page */}
       <WorkoutLogModal

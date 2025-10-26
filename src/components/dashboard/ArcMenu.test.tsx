@@ -409,6 +409,7 @@ describe('ArcMenu', () => {
     fireEvent.click(button);
 
     const backdropDiv = container.querySelector('[role="button"][aria-hidden="true"]');
+    // menuContainer is the main fixed div with z-40, which is the direct parent of the button
     const menuContainer = button.parentElement;
 
     expect(backdropDiv).toHaveClass('z-30');

@@ -83,7 +83,6 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
 
   return (
     <>
-      {/* Backdrop - visible when menu is open */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-30"
@@ -94,89 +93,94 @@ export function ArcMenu({ onStatSelect }: ArcMenuProps) {
         />
       )}
 
-      {/* Unified Arc Menu + Button - Fixed at bottom center */}
       <div
         ref={menuRef}
-        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center safe-pb pb-2"
+        style={{ width: '100%', maxWidth: '100vw' }}
       >
-        {/* Arc SVG - positioned above the button, centered */}
-        <svg
-          viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
-          width="280px"
-          height="280px"
-          className={`absolute bottom-16 transition-opacity duration-300 ${
-            isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
-          role="menu"
-          aria-label={t('common.quickAdd') || 'Quick add menu'}
-          aria-hidden={!isOpen}
+        <div
+          style={{
+            position: 'relative',
+            width: '280px',
+            height: '280px',
+            marginBottom: '-120px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
-          {/* Arc background (white/dark semicircle) - bottom opening */}
-          <path
-            d={`M ${CENTER_X + RADIUS} ${CENTER_Y} A ${RADIUS} ${RADIUS} 0 0 1 ${CENTER_X - RADIUS} ${CENTER_Y}`}
-            fill="white"
-            stroke="#e5e7eb"
-            strokeWidth="1"
-            className="dark:fill-gray-900 dark:stroke-white/10"
-          />
+          <svg
+            viewBox={`0 0 ${SVG_SIZE} ${SVG_SIZE}`}
+            width="280px"
+            height="280px"
+            className={`transition-opacity duration-300 ${
+              isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+            role="menu"
+            aria-label={t('common.quickAdd') || 'Quick add menu'}
+            aria-hidden={!isOpen}
+          >
+            <path
+              d={`M ${CENTER_X + RADIUS} ${CENTER_Y} A ${RADIUS} ${RADIUS} 0 0 0 ${CENTER_X - RADIUS} ${CENTER_Y}`}
+              fill="white"
+              stroke="#e5e7eb"
+              strokeWidth="1"
+              className="dark:fill-gray-900 dark:stroke-white/10"
+            />
+            {SLICES.map((slice, index) => {
+              const startAngle = 180 + index * 36;
+              const endAngle = startAngle + 36;
+              const slicePath = createSlicePath(startAngle, endAngle);
+              const iconAngle = (startAngle + endAngle) / 2;
+              const iconRad = (iconAngle * Math.PI) / 180;
+              const iconX = CENTER_X + ICON_RADIUS * Math.cos(iconRad);
+              const iconY = CENTER_Y + ICON_RADIUS * Math.sin(iconRad);
 
-          {/* 5 slices (36° each, spanning 180° from 180° to 360°/0° for bottom half) */}
-          {SLICES.map((slice, index) => {
-            const startAngle = 180 + index * 36;
-            const endAngle = startAngle + 36;
-            const slicePath = createSlicePath(startAngle, endAngle);
-            const iconAngle = (startAngle + endAngle) / 2;
-            const iconRad = (iconAngle * Math.PI) / 180;
-            const iconX = CENTER_X + ICON_RADIUS * Math.cos(iconRad);
-            const iconY = CENTER_Y + ICON_RADIUS * Math.sin(iconRad);
-
-            return (
-              <g key={slice.id}>
-                {/* Slice path (clickable) */}
-                <path
-                  d={slicePath}
-                  fill={slice.color}
-                  opacity="0.9"
-                  className="hover:opacity-100 transition-opacity cursor-pointer"
-                  onClick={() => handleSliceClick(slice.id)}
-                  role="menuitem"
-                  tabIndex={0}
-                  aria-label={slice.label}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      handleSliceClick(slice.id);
-                    }
-                  }}
-                />
-
-                {/* Icon on slice */}
-                <g
-                  transform={`translate(${iconX}, ${iconY})`}
-                  role="img"
-                  aria-label={slice.label}
-                  onClick={() => handleSliceClick(slice.id)}
-                  className="cursor-pointer"
-                >
-                  <text
-                    x="0"
-                    y="0"
-                    fontSize="24"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    className="select-none pointer-events-none"
+              return (
+                <g key={slice.id}>
+                  <path
+                    d={slicePath}
+                    fill={slice.color}
+                    opacity="0.9"
+                    className="hover:opacity-100 transition-opacity cursor-pointer"
+                    onClick={() => handleSliceClick(slice.id)}
+                    role="menuitem"
+                    tabIndex={0}
+                    aria-label={slice.label}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        handleSliceClick(slice.id);
+                      }
+                    }}
+                  />
+                  <g
+                    transform={`translate(${iconX}, ${iconY})`}
+                    role="img"
+                    aria-label={slice.label}
+                    onClick={() => handleSliceClick(slice.id)}
+                    className="cursor-pointer"
                   >
-                    {slice.icon}
-                  </text>
+                    <text
+                      x="0"
+                      y="0"
+                      fontSize="24"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="select-none pointer-events-none"
+                    >
+                      {slice.icon}
+                    </text>
+                  </g>
                 </g>
-              </g>
-            );
-          })}
-        </svg>
+              );
+            })}
+          </svg>
+        </div>
 
-        {/* Plus Button - centered at bottom, toggles menu */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 active:from-blue-700 active:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 dark:active:from-blue-800 dark:active:to-blue-900"
+          style={{ position: 'relative', zIndex: 10 }}
           aria-label={isOpen ? t('common.close') || 'Close menu' : t('common.quickAdd') || 'Quick add'}
           aria-expanded={isOpen}
           tabIndex={0}
