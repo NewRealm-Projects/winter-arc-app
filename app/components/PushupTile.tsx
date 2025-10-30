@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useStore } from '../store/useStore';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import {
   generateProgressivePlan,
@@ -18,7 +18,7 @@ import EditIcon from './ui/EditIcon';
 
 function PushupTile() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isSetMode, setIsSetMode] = useState(false); // false = add, true = set exact
@@ -97,7 +97,7 @@ function PushupTile() {
         <div
           onClick={(e) => {
             e.stopPropagation();
-            navigate('/tracking/pushup-training');
+            router.push('/tracking/pushup-training');
           }}
           className="p-2 bg-winter-50 dark:bg-winter-900/30 rounded-lg border border-winter-200 dark:border-winter-700 hover:shadow-md transition-all cursor-pointer text-center"
         >
@@ -149,8 +149,8 @@ function PushupTile() {
             <button
               onClick={() => { setIsSetMode(false); }}
               className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${!isSetMode
-                  ? 'bg-winter-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                ? 'bg-winter-600 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
             >
               ➕ {t('tracking.add')}
@@ -158,8 +158,8 @@ function PushupTile() {
             <button
               onClick={() => { setIsSetMode(true); }}
               className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isSetMode
-                  ? 'bg-winter-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                ? 'bg-winter-600 text-white'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
             >
               ✏️ {t('tracking.setExact')}

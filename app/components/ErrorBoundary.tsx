@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error in development
-    if (import.meta.env.DEV) {
+    if (process.env.NODE_ENV === 'development') {
       console.error('[ErrorBoundary] Caught error:', error, errorInfo);
     }
 
@@ -72,7 +72,7 @@ export class ErrorBoundary extends Component<Props, State> {
               We've encountered an unexpected error. Please try refreshing the page.
             </p>
 
-            {this.state.error && import.meta.env.DEV && (
+            {this.state.error && process.env.NODE_ENV === 'development' && (
               <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg text-left">
                 <p className="text-sm font-mono text-red-600 dark:text-red-400">
                   {this.state.error.message}

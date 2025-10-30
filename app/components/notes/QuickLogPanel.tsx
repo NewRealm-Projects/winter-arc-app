@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -24,9 +24,28 @@ interface QuickAction {
   color: string;
 }
 
+// Helper to create empty tracking data with proper defaults
+const createEmptyTracking = (dateKey: string) => ({
+  date: dateKey,
+  water: 0,
+  protein: 0,
+  calories: 0,
+  carbsG: 0,
+  fatG: 0,
+  sports: {
+    hiit: false,
+    cardio: false,
+    gym: false,
+    schwimmen: false,
+    soccer: false,
+    rest: false,
+  } as SportTracking,
+  completed: false,
+});
+
 function QuickLogPanel() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const router = useRouter();
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
@@ -51,8 +70,8 @@ function QuickLogPanel() {
     const userId = auth.currentUser.uid;
     const dateKey = data.date;
 
-    // Get current tracking data
-    const currentTracking = tracking[dateKey] || { date: dateKey, water: 0, protein: 0, sports: {}, completed: false };
+    // Get current tracking data with proper defaults
+    const currentTracking = tracking[dateKey] || createEmptyTracking(dateKey);
 
     // Update water amount
     const updatedTracking = {
@@ -101,8 +120,8 @@ function QuickLogPanel() {
       { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 }
     );
 
-    // Get current tracking data
-    const currentTracking = tracking[dateKey] || { date: dateKey, water: 0, protein: 0, sports: {}, completed: false };
+    // Get current tracking data with proper defaults
+    const currentTracking = tracking[dateKey] || createEmptyTracking(dateKey);
 
     // Update nutrition amounts with aggregated totals
     const updatedTracking = {
@@ -149,7 +168,7 @@ function QuickLogPanel() {
   const handleActionClick = (actionType: QuickAction['type']) => {
     if (actionType === 'pushup') {
       // Navigate to pushup training page
-      navigate('/tracking/pushup-training');
+      router.push('/tracking/pushup-training');
     } else {
       // Open modal for other actions
       setActiveModal(actionType);
@@ -172,10 +191,10 @@ function QuickLogPanel() {
     const sportEntry = data.sport === 'rest'
       ? true
       : {
-          active: true,
-          duration: data.durationMin,
-          intensity: data.intensity === 'easy' ? 3 : data.intensity === 'moderate' ? 6 : 9,
-        };
+        active: true,
+        duration: data.durationMin,
+        intensity: data.intensity === 'easy' ? 3 : data.intensity === 'moderate' ? 6 : 9,
+      };
 
     const updatedTracking = {
       ...currentTracking,
@@ -215,8 +234,8 @@ function QuickLogPanel() {
     const userId = auth.currentUser.uid;
     const dateKey = data.date;
 
-    // Get current tracking data
-    const currentTracking = tracking[dateKey] || { date: dateKey, water: 0, protein: 0, sports: {}, completed: false };
+    // Get current tracking data with proper defaults
+    const currentTracking = tracking[dateKey] || createEmptyTracking(dateKey);
 
     // Update weight data
     const updatedTracking = {
