@@ -1,0 +1,144 @@
+import { FirebaseError } from 'firebase/app';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { auth, storage } from '../firebase';
+
+type UploadResult = { success: boolean; url?: string; error?: string };
+type DeleteResult = { success: boolean; error?: string };
+
+const firebaseErrorMap: Record<string, string> = {
+  'storage/unauthorized': 'storage_unauthorized',
+  'storage/canceled': 'storage_canceled',
+  'storage/retry-limit-exceeded': 'storage_retry_limit_exceeded',
+  'storage/quota-exceeded': 'storage_quota_exceeded',
+  'storage/object-not-found': 'storage_object_not_found',
+};
+
+function mapUploadError(error: unknown): UploadResult {
+  if (error instanceof FirebaseError) {
+    const mappedError = firebaseErrorMap[error.code] ?? 'storage_error';
+    return { success: false, error: mappedError };
+  }
+
+  if (error instanceof Error) {
+    return { success: false, error: error.message };
+  }
+
+  return { success: false, error: 'unknown_error' };
+}
+
+function validateCurrentUser(userId: string): UploadResult {
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    console.warn('❌ Profile picture upload attempted without authenticated user');
+    return { success: false, error: 'auth_required' };
+  }
+
+  if (currentUser.uid !== userId) {
+    console.warn('❌ Profile picture upload attempted for different user', {
+      requestedUserId: userId,
+      currentUserId: currentUser.uid,
+    });
+    return { success: false, error: 'user_mismatch' };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Downloads an image from a URL and uploads it to Firebase Storage
+ * @param imageUrl - The URL of the image to download (e.g., Google profile picture)
+ * @param userId - The user's ID to create a unique path
+ * @returns The Firebase Storage download URL or null if failed
+ */
+export async function uploadProfilePictureFromUrl(
+  imageUrl: string,
+  userId: string
+): Promise<UploadResult> {
+  try {
+    console.warn('📥 Downloading profile picture from URL...');
+
+    // Fetch the image with no-cors mode as fallback
+    let response;
+    try {
+      response = await fetch(imageUrl);
+    } catch {
+      console.warn('⚠️ CORS fetch failed, trying no-cors mode...');
+      response = await fetch(imageUrl, { mode: 'no-cors' });
+    }
+
+    if (!response.ok && response.type !== 'opaque') {
+      throw new Error('Failed to download image');
+    }
+
+    const blob = await response.blob();
+    console.warn('✅ Image downloaded, size:', (blob.size / 1024).toFixed(2), 'KB');
+
+    // Create a reference to Firebase Storage
+    const storageRef = ref(storage, `profile-pictures/${userId}.jpg`);
+
+    // Upload the image
+    console.warn('📤 Uploading to Firebase Storage...');
+    await uploadBytes(storageRef, blob, {
+      contentType: 'image/jpeg',
+      cacheControl: 'public, max-age=31536000', // Cache for 1 year
+    });
+
+    // Get the download URL
+    const downloadURL = await getDownloadURL(storageRef);
+    console.warn('✅ Profile picture uploaded successfully');
+
+    return { success: true, url: downloadURL };
+  } catch (error) {
+    console.error('❌ Error uploading profile picture:', error);
+    return mapUploadError(error);
+  }
+}
+
+/**
+ * Uploads a user-selected file to Firebase Storage as the profile picture
+ */
+export async function uploadProfilePictureFile(
+  file: File,
+  userId: string
+): Promise<UploadResult> {
+  try {
+    const authCheck = validateCurrentUser(userId);
+    if (!authCheck.success) {
+      return authCheck;
+    }
+
+    const storageRef = ref(storage, `profile-pictures/${userId}.jpg`);
+
+    await uploadBytes(storageRef, file, {
+      contentType: file.type || 'image/jpeg',
+      cacheControl: 'public, max-age=31536000',
+    });
+
+    const downloadURL = await getDownloadURL(storageRef);
+    return { success: true, url: downloadURL };
+  } catch (error) {
+    console.error('❌ Error uploading profile picture file:', error);
+    return mapUploadError(error);
+  }
+}
+
+/**
+ * Deletes a user's profile picture from Firebase Storage
+ * @param userId - The user's ID
+ */
+export async function deleteProfilePicture(
+  userId: string
+): Promise<DeleteResult> {
+  try {
+    const storageRef = ref(storage, `profile-pictures/${userId}.jpg`);
+    await deleteObject(storageRef);
+    console.warn('✅ Profile picture deleted');
+    return { success: true };
+  } catch (error) {
+    console.error('❌ Error deleting profile picture:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+

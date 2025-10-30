@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, real, boolean, json, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, real, boolean, json, uuid, index } from 'drizzle-orm/pg-core';
 
 // Users table - migrated from Firebase users collection
 export const users = pgTable('users', {
@@ -14,7 +14,10 @@ export const users = pgTable('users', {
   pushupState: json('pushup_state'), // For complex state objects
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  emailIdx: index('user_email_idx').on(table.email),
+  firebaseUidIdx: index('user_firebase_uid_idx').on(table.firebaseUid),
+}));
 
 // Groups table - migrated from Firebase groups collection
 export const groups = pgTable('groups', {
@@ -24,7 +27,9 @@ export const groups = pgTable('groups', {
   members: json('members').$type<string[]>(), // Array of user IDs
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  codeIdx: index('group_code_idx').on(table.code),
+}));
 
 // Tracking entries table - migrated from Firebase tracking/{userId}/entries collection
 export const trackingEntries = pgTable('tracking_entries', {
@@ -39,15 +44,9 @@ export const trackingEntries = pgTable('tracking_entries', {
   completed: boolean('completed').default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
-
-// Indexes for better performance
-import { index } from 'drizzle-orm/pg-core';
-
-export const userEmailIdx = index('user_email_idx').on(users.email);
-export const userFirebaseUidIdx = index('user_firebase_uid_idx').on(users.firebaseUid);
-export const groupCodeIdx = index('group_code_idx').on(groups.code);
-export const trackingUserDateIdx = index('tracking_user_date_idx').on(trackingEntries.userId, trackingEntries.date);
+}, (table) => ({
+  userDateIdx: index('tracking_user_date_idx').on(table.userId, table.date),
+}));
 
 // Export types
 export type User = typeof users.$inferSelect;

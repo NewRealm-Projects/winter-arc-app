@@ -46,7 +46,7 @@ export default function DatabasePage() {
 
         <div className="bg-winter-800 rounded-lg p-6 shadow-xl">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold text-white">Vercel Postgres Connection</h2>
+            <h2 className="text-2xl font-semibold text-white">Neon Postgres Connection</h2>
             <button
               onClick={testDatabase}
               disabled={loading}

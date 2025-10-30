@@ -219,7 +219,7 @@ npm run deploy               # Deploy to Vercel
 - [x] Schema Definition
 - [x] Migration Scripts
 - [ ] **Vercel Postgres Setup** (Critical)
-- [ ] **Data Migration** (Critical)  
+- [ ] **Data Migration** (Critical)
 - [ ] **Deploy to Develop Branch** (Deadline)
 
 Das Ziel ist eine funktionsfähige Next.js + Postgres App auf dem `develop` Branch noch heute Abend!

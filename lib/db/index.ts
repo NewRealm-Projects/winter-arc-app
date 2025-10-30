@@ -1,18 +1,24 @@
-import { drizzle } from 'drizzle-orm/vercel-postgres';
-import { sql } from '@vercel/postgres';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { neon, neonConfig } from '@neondatabase/serverless';
 import * as schema from './schema';
 
-// Create the database instance
-export const db = drizzle(sql, { schema });
+// Configure Neon for edge runtime
+neonConfig.fetchConnectionCache = true;
+
+// Create the Neon connection
+const sql = neon(process.env.DATABASE_URL!);
+
+// Create the database instance using the connection string approach
+export const db = drizzle(process.env.DATABASE_URL!, { schema });
 
 // Connection test function
 export async function testConnection() {
   try {
     const result = await sql`SELECT NOW()`;
-    console.log('Database connected successfully:', result.rows[0]);
+    console.log('Neon database connected successfully:', result[0]);
     return true;
   } catch (error) {
-    console.error('Database connection failed:', error);
+    console.error('Neon database connection failed:', error);
     return false;
   }
 }
@@ -71,10 +77,10 @@ export async function runMigrations() {
     await sql`CREATE INDEX IF NOT EXISTS group_code_idx ON groups(code);`;
     await sql`CREATE INDEX IF NOT EXISTS tracking_user_date_idx ON tracking_entries(user_id, date);`;
 
-    console.log('Database migrations completed successfully');
+    console.log('Neon database migrations completed successfully');
     return true;
   } catch (error) {
-    console.error('Migration failed:', error);
+    console.error('Neon migration failed:', error);
     return false;
   }
 }
