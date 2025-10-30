@@ -71,20 +71,7 @@ function QuickLogPanel() {
     const dateKey = data.date;
 
     // Get current tracking data with proper defaults
-    const currentTracking = tracking[dateKey] || {
-      date: dateKey,
-      water: 0,
-      protein: 0,
-      sports: {
-        hiit: false,
-        cardio: false,
-        gym: false,
-        schwimmen: false,
-        soccer: false,
-        rest: false,
-      } as SportTracking,
-      completed: false
-    };
+    const currentTracking = tracking[dateKey] || createEmptyTracking(dateKey);
 
     // Update water amount
     const updatedTracking = {

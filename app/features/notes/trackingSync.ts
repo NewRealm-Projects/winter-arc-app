@@ -9,8 +9,9 @@ const WORKOUT_INTENSITY_MAP: Record<NonNullable<WorkoutEvent['intensity']>, numb
   hard: 8,
 };
 
-function getDateKey(ts: number) {
-  return new Date(ts).toISOString().split('T')[0];
+function getDateKey(ts: number): string {
+  const dateStr = new Date(ts).toISOString().split('T')[0];
+  return dateStr || new Date(ts).toLocaleDateString('en-CA'); // Fallback to YYYY-MM-DD format
 }
 
 function mergeSportEntries(existing: SportEntry | undefined, incoming: SportEntry): SportEntry {
