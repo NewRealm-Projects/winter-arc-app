@@ -44,40 +44,38 @@ function Layout({ children }: LayoutProps) {
           className="fixed left-1/2 -translate-x-1/2 bottom-5 z-50 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg px-4 py-2"
           data-testid="bottom-navigation"
         >
-        <div className="flex items-center justify-center gap-4 animate-fade-in-up delay-400">
-          {navItems.map((item) => {
-            const isActive = pathname === item.path;
-            const slug = item.path.replace(/^\//, '').replace(/\//g, '-') || 'dashboard';
-            return (
-              <Link
-                key={item.path}
-                href={item.path}
-                className={`touchable flex items-center justify-center w-12 h-12 rounded-[18px] transition-all duration-200 ${
-                  isActive
-                    ? 'bg-blue-500 dark:bg-blue-600 text-white shadow-lg'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
-                }`}
-                aria-label={t(item.labelKey)}
-                data-testid={`nav-link-${slug}`}
-              >
-                {item.showAvatar && user ? (
-                  <div className={`transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
-                    <UserAvatar user={user} size="sm" />
-                  </div>
-                ) : (
-                  <span
-                    className={`text-2xl flex items-center justify-center transition-transform duration-200 ${
-                      isActive ? 'scale-110' : ''
+          <div className="flex items-center justify-center gap-4 animate-fade-in-up delay-400">
+            {navItems.map((item) => {
+              const isActive = pathname === item.path;
+              const slug = item.path.replace(/^\//, '').replace(/\//g, '-') || 'dashboard';
+              return (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  className={`touchable flex items-center justify-center w-12 h-12 rounded-[18px] transition-all duration-200 ${isActive
+                      ? 'bg-blue-500 dark:bg-blue-600 text-white shadow-lg'
+                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
-                  >
-                    {item.icon}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
+                  aria-label={t(item.labelKey)}
+                  data-testid={`nav-link-${slug}`}
+                >
+                  {item.showAvatar && user ? (
+                    <div className={`transition-transform duration-200 ${isActive ? 'scale-110' : ''}`}>
+                      <UserAvatar user={user} size="sm" />
+                    </div>
+                  ) : (
+                    <span
+                      className={`text-2xl flex items-center justify-center transition-transform duration-200 ${isActive ? 'scale-110' : ''
+                        }`}
+                    >
+                      {item.icon}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
       )}
     </div>
   );
