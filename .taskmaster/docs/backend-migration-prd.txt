@@ -1,0 +1,269 @@
+# Backend Migration PRD - Winter Arc App
+
+## Overview
+Transformation der Winter Arc PWA von einer reinen Frontend-Anwendung zu einer Full-Stack-Architektur mit separatem Backend. Hauptziele: API-Key-Sicherheit, bessere Kontrolle über Datenfluss, Vorbereitung für Skalierung.
+
+**Problem**: Aktuell liegen alle API-Keys (Firebase, Gemini AI) im Frontend-Code, was Sicherheitsrisiken birgt und keine Möglichkeit für Rate-Limiting oder Nutzerverwaltung bietet.
+
+**Lösung**: Serverless Backend (Vercel Functions) als Proxy zwischen Frontend und externen Services, Environment Variables nur auf Server-Seite.
+
+**Zielgruppe**: Entwickler (lokale Development) + Endnutzer (Production Deployment)
+
+---
+
+## Core Features
+
+### 1. Backend API Layer
+**Was**: Express.js-ähnliche API-Routen als Vercel Serverless Functions
+**Warum**: Schützt API-Keys, ermöglicht Server-seitige Validierung und Rate-Limiting
+**Wie**:
+- `/api/auth/*` - Firebase Admin SDK für sichere Authentication
+- `/api/tracking/*` - Firestore-Operationen (Proxy)
+- `/api/ai/quote` - Gemini AI Integration für Motivations-Quotes
+- `/api/health` - Health-Check Endpoint
+
+### 2. Environment Variables Management
+**Was**: Sichere Verwaltung von Secrets (API-Keys, Firebase Config)
+**Warum**: Keine Secrets im Git-Repository, einfache Rotation
+**Wie**:
+- Lokal: `.env.local` (gitignored)
+- Vercel: Dashboard Environment Variables
+- Zugriff nur über `process.env` im Backend
+
+### 3. Firebase Admin SDK Integration
+**Was**: Server-seitige Firebase-Operationen statt Client SDK
+**Warum**: Unbegrenzte Firestore-Operationen, keine Security Rules Bypass
+**Wie**:
+- Service Account Key als Environment Variable
+- Admin SDK für Firestore CRUD
+- Custom Token Generation für Frontend-Auth
+
+### 4. Development Environment
+**Was**: Lokaler Dev-Server für Frontend + Backend parallel
+**Warum**: Schnelle Iteration, keine Cloud-Abhängigkeit während Development
+**Wie**:
+- `npm run dev:frontend` - Vite Dev Server (Port 5173)
+- `npm run dev:backend` - Vercel Dev (Port 3000)
+- `npm run dev` - Beide parallel mit concurrently
+
+### 5. CI/CD Pipeline
+**Was**: Automatisches Deployment bei GitHub Push
+**Warum**: Zero-Downtime Deployments, Preview für PRs
+**Wie**:
+- Vercel GitHub Integration
+- `main` → Production (`app.winterarc.newrealm.de`)
+- `develop` → Staging (`staging.winterarc.newrealm.de`)
+- PRs → Preview URLs (`pr-123.winterarc.newrealm.de`)
+
+---
+
+## User Experience
+
+### Developer Personas
+**Persona 1**: Hauptentwickler (du)
+- Braucht: Schnelles lokales Setup, klare API-Dokumentation
+- Journey: `git clone` → `npm install` → `.env.local` Setup → `npm run dev`
+
+**Persona 2**: Collaborator (zukünftig)
+- Braucht: Einfaches Onboarding, keine komplexe Infrastruktur
+- Journey: README folgen → Vercel Account verknüpfen → Deploy
+
+### Key User Flows
+1. **Lokale Development**:
+   - Developer startet `npm run dev`
+   - Frontend (http://localhost:5173) kommuniziert mit lokalem Backend (http://localhost:3000/api)
+   - Hot-Reload für beide Seiten
+
+2. **Feature Development**:
+   - Branch erstellen → Code ändern → Lokal testen
+   - Push → Vercel baut Preview → Testen auf echter URL
+   - Merge → Automatisches Staging/Production Deployment
+
+3. **Endnutzer (Production)**:
+   - Öffnet `app.winterarc.newrealm.de`
+   - Frontend lädt von Vercel CDN
+   - API-Calls gehen zu `app.winterarc.newrealm.de/api/*`
+   - Keine exponierte API-Keys im Browser
+
+---
+
+## Technical Architecture
+
+### System Components
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         Vercel Edge Network                  │
+├─────────────────────────────────────────────────────────────┤
+│  Frontend (Static)          │  Backend (Serverless)         │
+│  ├─ Vite Build Output       │  ├─ /api/auth/*              │
+│  ├─ React SPA               │  ├─ /api/tracking/*          │
+│  └─ Service Worker          │  ├─ /api/ai/*                │
+│                              │  └─ /api/health              │
+├─────────────────────────────────────────────────────────────┤
+│                      Environment Variables                   │
+│  FIREBASE_ADMIN_KEY, GEMINI_API_KEY, etc.                   │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+        ┌─────────────────────────────────────┐
+        │  External Services                   │
+        │  ├─ Firebase (Firestore, Auth)      │
+        │  └─ Google Gemini AI                │
+        └─────────────────────────────────────┘
+```
+
+### Data Models
+**Bleiben unverändert**: Firestore Collections (`users`, `tracking`, `groups`)
+
+**Neu**:
+- API Request/Response DTOs (TypeScript Interfaces)
+- Rate Limiting Metadata (optional, später)
+
+### APIs and Integrations
+**Backend → Firebase**:
+- Admin SDK für privilegierte Operationen
+- Service Account Authentication
+
+**Frontend → Backend**:
+- REST API mit JSON
+- Firebase Auth Token in Request Header
+- CORS konfiguriert für `winterarc.newrealm.de`
+
+**Backend → Gemini AI**:
+- API-Key nur im Backend
+- Response caching (optional)
+
+### Infrastructure Requirements
+**Lokal**:
+- Node.js 18+
+- npm/pnpm
+- Vercel CLI (`npm i -g vercel`)
+
+**Production**:
+- Vercel Account (kostenlos)
+- Firebase Project (bereits vorhanden)
+- GitHub Repository (bereits vorhanden)
+
+---
+
+## Development Roadmap
+
+### Phase 1: Backend Foundation (MVP)
+**Ziel**: Minimales Backend lauffähig mit Health-Check
+- Vercel Project Setup (lokale Konfiguration)
+- `api/health.ts` - Einfacher Test-Endpoint
+- Environment Variables Setup (`.env.local`, `vercel.json`)
+- Lokaler Dev-Server mit `vercel dev`
+- **Deliverable**: `curl http://localhost:3000/api/health` → `{"status": "ok"}`
+
+### Phase 2: Firebase Admin Integration
+**Ziel**: Server-seitige Firebase-Operationen
+- Firebase Admin SDK Installation
+- Service Account Key Setup
+- `/api/auth/verify` - Token-Validierung
+- `/api/tracking/get` - Firestore Read (ein Beispiel)
+- **Deliverable**: Backend kann Firestore lesen/schreiben
+
+### Phase 3: Frontend Migration
+**Ziel**: Frontend nutzt Backend-API statt direkter Firebase-Calls
+- API Client Service (`src/services/apiClient.ts`)
+- Refactor: `useAuth` Hook → Backend `/api/auth/*`
+- Refactor: `firestoreService.ts` → Backend `/api/tracking/*`
+- Error Handling & Loading States
+- **Deliverable**: App funktioniert komplett über Backend
+
+### Phase 4: AI Integration
+**Ziel**: Gemini AI Quotes sicher über Backend
+- `/api/ai/quote` Endpoint
+- Gemini API-Key Migration ins Backend
+- Frontend Smart Notes Update
+- **Deliverable**: AI-Features ohne exponierte Keys
+
+### Phase 5: Production Deployment
+**Ziel**: Live auf Vercel
+- GitHub → Vercel Integration
+- Environment Variables in Vercel Dashboard
+- Custom Domain Setup (`app.winterarc.newrealm.de`)
+- SSL/HTTPS automatisch
+- **Deliverable**: App live unter Production-URL
+
+### Phase 6: CI/CD Optimization (Future)
+- Preview Deployments für PRs
+- Staging Environment (`develop` branch)
+- Automated Tests vor Deployment
+- Performance Monitoring (Vercel Analytics)
+
+---
+
+## Logical Dependency Chain
+
+1. **Backend Foundation** (Phase 1)
+   - MUSS ZUERST: Vercel-Setup, damit lokales Testing möglich
+   - Output: Lauffähiges Backend ohne Business-Logik
+
+2. **Firebase Admin** (Phase 2)
+   - ABHÄNGIG VON: Phase 1 (braucht Backend)
+   - Output: Server kann Firebase kontaktieren
+
+3. **Frontend Migration** (Phase 3)
+   - ABHÄNGIG VON: Phase 2 (braucht funktionierende Backend-Endpoints)
+   - KRITISCH: Schrittweise Migration (Feature-by-Feature)
+   - Output: Funktionsfähige App über Backend
+
+4. **AI Integration** (Phase 4)
+   - ABHÄNGIG VON: Phase 3 (Frontend muss Backend-Calls können)
+   - Optional: Kann parallel zu Phase 3 entwickelt werden
+   - Output: Keine API-Keys mehr im Frontend
+
+5. **Production Deployment** (Phase 5)
+   - ABHÄNGIG VON: Phase 3 (App muss funktionieren)
+   - Output: Live-App
+
+**Atomic Features**: Jede Phase ist eigenständig testbar und deploybar.
+
+---
+
+## Risks and Mitigations
+
+### Technical Challenges
+**Risk**: Vercel Serverless Cold Starts (langsame erste Requests)
+- **Mitigation**: Warmup-Requests, Edge Caching, Keep-Alive Pings
+
+**Risk**: Firestore Admin SDK hat andere API als Client SDK
+- **Mitigation**: Wrapper-Functions schreiben, die Client-SDK-Interface nachahmen
+
+**Risk**: CORS-Probleme zwischen Frontend und Backend
+- **Mitigation**: Vercel CORS Headers konfigurieren, lokale Proxy
+
+### MVP-Definition
+**Minimum**: Backend kann Firestore lesen, Frontend kann Backend aufrufen
+**Nicht im MVP**: Rate Limiting, Advanced Caching, Multi-Region
+
+### Resource Constraints
+**Budget**: Vercel kostenlos (Hobby-Plan reicht für Start)
+**Zeit**: Phase 1-3 kritisch, Phase 4-6 optional
+**Know-how**: Vercel Docs sehr gut, Community Support verfügbar
+
+---
+
+## Appendix
+
+### Research Findings
+- **Vercel vs. Railway**: Vercel besser für Vite/React, Railway besser für PostgreSQL
+- **Firebase Admin SDK**: Vollständig TypeScript-kompatibel
+- **Serverless Best Practices**: Keep functions small (<50MB), minimize dependencies
+
+### Technical Specifications
+- **Node.js**: 18.x (Vercel default)
+- **Package Manager**: npm (kompatibel mit bestehender package.json)
+- **API Format**: REST JSON (später optional GraphQL)
+- **Authentication**: Firebase Auth Tokens (bestehend)
+
+### Configuration Files (neu)
+- `vercel.json` - Routing, Environment, Build Config
+- `.env.local` - Lokale Secrets (gitignored)
+- `api/` Verzeichnis - Serverless Functions
+
+### Migration Strategy
+- **Incremental**: Ein Feature nach dem anderen migrieren
+- **Backwards Compatible**: Alte Firebase Client-Calls parallel laufen lassen
+- **Feature Flags**: `useBackendAPI` Flag für schrittweisen Rollout

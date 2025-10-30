@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import AppRoutes from './routes';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import SystemIndicator from './components/SystemIndicator';
@@ -53,6 +54,7 @@ function App() {
         <AppRoutes />
         <PWAInstallPrompt />
         <SystemIndicator />
+        <SpeedInsights />
       </BrowserRouter>
     </ErrorBoundary>
   );
