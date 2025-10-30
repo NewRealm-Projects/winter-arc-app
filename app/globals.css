@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --winter-50: #f8fafc;
+  --winter-100: #f1f5f9;
+  --winter-200: #e2e8f0;
+  --winter-300: #cbd5e1;
+  --winter-400: #94a3b8;
+  --winter-500: #64748b;
+  --winter-600: #475569;
+  --winter-700: #334155;
+  --winter-800: #1e293b;
+  --winter-900: #0f172a;
+}
+
+@layer base {
+  html {
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  body {
+    @apply bg-winter-900 text-white min-h-screen;
+  }
+
+  * {
+    @apply border-winter-700;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-winter-600 hover:bg-winter-500 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-winter-800 hover:bg-winter-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
