@@ -82,8 +82,11 @@ export function useCarouselStats(): CarouselStat[] {
     const weightValue = dayTracking?.weight?.value ?? 0;
     const weightDone = weightValue > 0;
     const weightDisplay = weightDone ? `${weightValue} kg` : '—';
-    const bmiValue = user?.weight && user?.height
-      ? (user.weight / ((user.height / 100) ** 2)).toFixed(1)
+
+    // BMI calculation: prefer tracked weight, fallback to user profile weight
+    const effectiveWeight = (weightValue > 0 ? weightValue : user?.weight) ?? 0;
+    const bmiValue = effectiveWeight > 0 && user?.height && user.height > 0
+      ? (effectiveWeight / ((user.height / 100) ** 2)).toFixed(1)
       : '—';
 
     return [

@@ -10,8 +10,12 @@ const WORKOUT_INTENSITY_MAP: Record<NonNullable<WorkoutEvent['intensity']>, numb
 };
 
 function getDateKey(ts: number): string {
-  const dateStr = new Date(ts).toISOString().split('T')[0];
-  return dateStr || new Date(ts).toLocaleDateString('en-CA'); // Fallback to YYYY-MM-DD format
+  try {
+    const parts = new Date(ts).toISOString().split('T');
+    return parts[0] || new Date(ts).toLocaleDateString('en-CA');
+  } catch {
+    return new Date(ts).toLocaleDateString('en-CA'); // Fallback for invalid timestamps
+  }
 }
 
 function mergeSportEntries(existing: SportEntry | undefined, incoming: SportEntry): SportEntry {
@@ -157,7 +161,7 @@ async function syncSmartTracking() {
     })();
   }
 
-  try { await currentSync; } catch (error) { console.warn('Error during sync:', error); }
+  await currentSync;
 }
 
 void syncSmartTracking();
