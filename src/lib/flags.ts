@@ -25,7 +25,7 @@ const FLAG_CONFIG: Record<FeatureFlag, { default: boolean; description: string }
     description: 'Water intake reminder notifications',
   },
   mobileDashboardCarousel: {
-    default: false,
+    default: true,
     description: 'New mobile dashboard carousel redesign with progress circle and arc menu',
   },
 };
