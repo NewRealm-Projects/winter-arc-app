@@ -64,3 +64,26 @@ stats.html
 artifacts/
 .env.backup
 .env.local.backup
+
+# Reports and maintenance logs (should not be committed)
+reports/
+
+# Deployment artifacts (handled by CI/CD)
+ops/pages/
+
+# Temporary and personal files
+_ul
+*.tsbuildinfo
+.release-notes-*.md
+SETUP_COMPLETE.md
+winter_arc_glass_mockup.png
+
+dev-debug.log
+# Dependency directories
+node_modules/
+.vscode
+# OS specific
+
+# Task files
+# tasks.json
+# tasks/

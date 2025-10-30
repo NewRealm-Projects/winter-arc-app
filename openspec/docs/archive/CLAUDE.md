@@ -476,3 +476,7 @@ import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from '@/components
 - Optimized images (WebP)
 - Semantic versioning (SemVer)
 - CHANGELOG.md for every change
+
+## Task Master AI Instructions
+**Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
+@./.taskmaster/CLAUDE.md

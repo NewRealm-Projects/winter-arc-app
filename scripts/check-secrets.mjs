@@ -106,6 +106,9 @@ const IGNORE_PATTERNS = [
   /package-lock\.json$/,
   /yarn\.lock$/,
   /pnpm-lock\.yaml$/,
+  /\.mcp\.json$/,           // MCP config files contain placeholder API keys
+  /\.cursor\/mcp\.json$/,   // Cursor MCP config
+  /\.vscode\/mcp\.json$/,   // VS Code MCP config
 ];
 
 function shouldIgnoreFile(filePath) {
