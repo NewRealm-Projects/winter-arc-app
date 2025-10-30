@@ -50,6 +50,12 @@ function UnifiedTrainingCard() {
   // Subscribe to check-in data for the active date
   useCheckInSubscription(activeDate);
 
+  // Subscribe to training load for all 7 days of current week
+  useWeeklyTrainingLoadSubscription(selectedDate ? new Date(selectedDate) : new Date());
+
+  // Subscribe to check-in data for the active date
+  useCheckInSubscription(activeDate);
+
   // Weekly statistics
   const weekStats = useTrainingLoadWeek();
 
