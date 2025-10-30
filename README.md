@@ -83,7 +83,7 @@ Möchtest du zur Entwicklung beitragen? Schau dir die [technische Dokumentation]
 **Live-Umgebungen:**
 
 - **Production:** [app.winterarc.newrealm.de](https://app.winterarc.newrealm.de) – Die stabile Version für alle Nutzer
-- **Staging:** [staging.winterarc.newrealm.de](https://staging.winterarc.newrealm.de) – Neue Features zum Testen
+- **Staging:** [staging.winterarc.newrealm.de](https://develop.winterarc.newrealm.de) – Neue Features zum Testen
 
 ---
 

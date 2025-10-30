@@ -135,6 +135,8 @@ export function AppModal({
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
 
+        if (!first || !last) return; // Safety check
+
         if (event.shiftKey) {
           if (document.activeElement === first) {
             event.preventDefault();

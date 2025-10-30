@@ -1,7 +1,8 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useTranslation } from '../hooks/useTranslation';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useStore } from '../store/useStore';
@@ -12,13 +13,13 @@ interface LayoutProps {
 }
 
 function Layout({ children }: LayoutProps) {
-  const location = useLocation();
+  const pathname = usePathname();
   const { t } = useTranslation();
   const isMobile = useIsMobile();
   const user = useStore((state) => state.user);
 
   // Hide BottomNav on mobile dashboard
-  const hiddenNavOnMobileDashboard = isMobile && location.pathname === '/';
+  const hiddenNavOnMobileDashboard = isMobile && pathname === '/';
 
   const navItems = [
     { path: '/', labelKey: 'nav.dashboard', icon: '🏠' },
@@ -31,7 +32,7 @@ function Layout({ children }: LayoutProps) {
     <div className="flex flex-col h-screen" data-testid="app-layout">
       {/* Main Content */}
       <main
-        key={location.pathname}
+        key={pathname}
         className="flex-1 overflow-y-auto transition-opacity duration-200"
       >
         <div className="animate-fade-in-up">{children}</div>
@@ -45,12 +46,12 @@ function Layout({ children }: LayoutProps) {
         >
         <div className="flex items-center justify-center gap-4 animate-fade-in-up delay-400">
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = pathname === item.path;
             const slug = item.path.replace(/^\//, '').replace(/\//g, '-') || 'dashboard';
             return (
               <Link
                 key={item.path}
-                to={item.path}
+                href={item.path}
                 className={`touchable flex items-center justify-center w-12 h-12 rounded-[18px] transition-all duration-200 ${
                   isActive
                     ? 'bg-blue-500 dark:bg-blue-600 text-white shadow-lg'
