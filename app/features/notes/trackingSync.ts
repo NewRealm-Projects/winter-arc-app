@@ -161,7 +161,11 @@ async function syncSmartTracking() {
     })();
   }
 
-  await currentSync;
+  try {
+    await currentSync;
+  } catch (error) {
+    console.warn('Failed to sync smart tracking contributions', error);
+  }
 }
 
 void syncSmartTracking();

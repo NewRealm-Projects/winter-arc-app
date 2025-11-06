@@ -21,7 +21,7 @@ function getDayAbbreviation(date: Date, language: string): string {
   };
   const days = dayMap[language as keyof typeof dayMap] || dayMap.en;
   const day = days[date.getDay()];
-  return day || 'Sun'; // Fallback to 'Sun' if undefined
+  return day ?? '?'; // Fallback to '?' if undefined
 }
 
 /**
@@ -40,8 +40,7 @@ function getMondayOfWeek(date: Date): Date {
  * Format date as YYYY-MM-DD
  */
 function formatDate(date: Date): string {
-  const formatted = date.toISOString().split('T')[0];
-  return formatted || date.toDateString(); // Fallback if split fails
+  return date.toISOString().split('T')[0];
 }
 
 /**

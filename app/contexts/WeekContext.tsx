@@ -57,7 +57,7 @@ function parseWeekParam(value: string | null | undefined): Date | undefined {
     return undefined;
   }
   const match = ISO_WEEK_PATTERN.exec(value.trim());
-  if (!match || !match[1] || !match[2]) {
+  if (!match) {
     return undefined;
   }
   const isoYear = Number.parseInt(match[1], 10);

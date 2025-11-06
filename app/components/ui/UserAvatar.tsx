@@ -34,7 +34,7 @@ function hashStringToColor(str: string): string {
   ];
 
   const index = Math.abs(hash) % colors.length;
-  return colors[index] || '#10B981'; // Fallback to green if undefined
+  return colors[index];
 }
 
 // Extract initials from nickname
@@ -52,9 +52,9 @@ function getInitials(nickname: string): string {
   }
 
   // Multiple words: take first character of first 2 words
-  const first = words[0]?.[0] || '';
-  const second = words[1]?.[0] || '';
-  return (first + second).toUpperCase() || '?';
+  const first = words[0][0];
+  const second = words[1][0];
+  return (first + second).toUpperCase();
 }
 
 const sizeClasses = {
