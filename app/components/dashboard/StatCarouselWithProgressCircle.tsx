@@ -213,7 +213,7 @@ export function StatCarouselWithProgressCircle({ onSegmentClick }: StatCarouselW
 
   // Handle segment click - open modal for clicked stat
   const handleSegmentClick = (index: number) => {
-    if (onSegmentClick) {
+    if (onSegmentClick && stats[index]) {
       onSegmentClick(stats[index].id as 'sports' | 'pushup' | 'hydration' | 'nutrition' | 'weight');
     }
   };

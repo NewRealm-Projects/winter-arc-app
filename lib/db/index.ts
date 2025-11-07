@@ -5,14 +5,21 @@ import * as schema from './schema';
 // Configure Neon for edge runtime
 neonConfig.fetchConnectionCache = true;
 
-// Create the Neon connection
-const sql = neon(process.env.DATABASE_URL!);
+// Use empty string as fallback to prevent build errors
+const databaseUrl = process.env.DATABASE_URL || '';
+
+// Create the Neon connection only if DATABASE_URL is provided
+const sql = databaseUrl ? neon(databaseUrl) : null;
 
 // Create the database instance using the connection string approach
-export const db = drizzle(process.env.DATABASE_URL!, { schema });
+export const db = databaseUrl ? drizzle(databaseUrl, { schema }) : null;
 
 // Connection test function
 export async function testConnection() {
+  if (!sql) {
+    console.warn('No database connection available');
+    return false;
+  }
   try {
     const result = await sql`SELECT NOW()`;
     console.log('Neon database connected successfully:', result[0]);
@@ -25,6 +32,10 @@ export async function testConnection() {
 
 // Migration helper functions
 export async function runMigrations() {
+  if (!sql) {
+    console.warn('No database connection available for migrations');
+    return false;
+  }
   try {
     // Create tables if they don't exist
     await sql`

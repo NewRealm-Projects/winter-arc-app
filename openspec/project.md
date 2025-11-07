@@ -4,17 +4,18 @@
 Winter Arc is a Progressive Web App (PWA) for iOS/Android focused on fitness tracking with emphasis on push-ups, sports, nutrition, and weight management. The app provides a gamified experience with group challenges, leaderboards, and progress visualization.
 
 ## Tech Stack
-- **Frontend**: React 18 + TypeScript + Vite
+- **Framework**: Next.js 15 (App Router) + React 19 + TypeScript
 - **Styling**: Tailwind CSS 3.x (Mobile-first, responsive design)
 - **State Management**: Zustand (lightweight, reactive store)
-- **Backend**: Firebase
-  - Authentication (Google OAuth)
-  - Firestore (real-time database)
-  - Storage (profile pictures, future media)
-  - App Check (reCAPTCHA v3 for security)
+- **Backend**: 
+  - Next.js API Routes (serverless functions)
+  - Firebase (Authentication, Firestore)
+  - PostgreSQL (Vercel Postgres) - migration in progress
+  - Firebase Admin SDK (server-side operations)
 - **Testing**: Vitest (unit), Playwright (e2e), Visual Regression
 - **Monitoring**: Sentry (error tracking, performance monitoring)
-- **PWA**: Workbox (service worker, offline-first)
+- **PWA**: @ducanh2912/next-pwa (service worker, offline-first)
+- **Deployment**: Vercel (production + staging + PR previews)
 - **CI/CD**: GitHub Actions + Codacy
 
 ## Project Conventions
@@ -32,7 +33,7 @@ Winter Arc is a Progressive Web App (PWA) for iOS/Android focused on fitness tra
 - **Comments**: Remove `console.*` in production, use logger or remove entirely
 
 ### Architecture Patterns
-- **State Management**: Zustand store (`src/store/useStore.ts`) for global state
+- **State Management**: Zustand store (`app/store/useStore.ts`) for global state
   - Auto-sync to Firebase via hooks
   - Debounced writes (1s) to reduce Firestore calls
 - **Data Flow**:
@@ -41,13 +42,14 @@ Winter Arc is a Progressive Web App (PWA) for iOS/Android focused on fitness tra
 - **Component Structure**:
   - Tiles: Reusable tracking components (e.g., `PushupTile`, `WaterTile`)
   - Modals: Unified `AppModal` component (MANDATORY for all dialogs)
-  - Pages: Route-level components in `src/pages/`
+  - Pages: Route-level components in `app/` directory (Next.js App Router)
 - **Performance**:
-  - Code splitting & lazy loading (React.lazy)
-  - Optimized images (WebP format)
+  - Automatic code splitting (Next.js)
+  - Lazy loading with React.lazy + dynamic imports
+  - Optimized images (Next.js Image component, WebP/AVIF)
   - Bundle budget: <600KB main chunk
 - **Offline-First**:
-  - Service Worker (Workbox) for caching
+  - Service Worker (@ducanh2912/next-pwa) for caching
   - IndexedDB/localStorage for offline data
   - Sync queue for pending writes
 - **Error Handling**:

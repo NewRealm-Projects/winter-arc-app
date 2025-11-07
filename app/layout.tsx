@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { PWARegister } from './components/PWARegister';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -10,7 +11,6 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Winter Arc - Fitness Tracker',
   description: 'Progressive Web App für Fitness Tracking',
-  manifest: '/manifest.json',
   themeColor: '#0f172a',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
   appleWebApp: {
@@ -38,6 +38,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        <PWARegister />
         <Analytics />
         <SpeedInsights />
       </body>

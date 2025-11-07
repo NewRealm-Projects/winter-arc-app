@@ -1,7 +1,7 @@
 # GitHub Copilot Instructions - Winter Arc App
 
 ## Project Overview
-Winter Arc is a Progressive Web App (PWA) for fitness tracking with push-ups, sports, nutrition, and weight management. Built with React 18 + TypeScript + Vite + Firebase.
+Winter Arc is a Progressive Web App (PWA) for fitness tracking with push-ups, sports, nutrition, and weight management. Built with Next.js 15 + React 19 + TypeScript + Firebase/PostgreSQL.
 
 ## OpenSpec Framework (CRITICAL)
 **Before implementing features, ALWAYS check:**
@@ -25,15 +25,15 @@ Format: `<username>/<type>-<description>` (e.g., `lbuettge/feature-dashboard`)
 ## Architecture Patterns
 
 ### State Management
-- **Global State**: Zustand store (`src/store/useStore.ts`)
+- **Global State**: Zustand store (`app/store/useStore.ts`)
 - **Firebase Sync**: Auto-sync via `useAuth` and `useTracking` hooks with 1s debounce
 - **Data Flow**: UI → Hooks → Zustand → Firebase (real-time listeners update store)
 
 ### Component Structure
 - **Tiles**: Reusable tracking components (`PushupTile`, `WaterTile`, etc.)
-- **Modals**: MANDATORY use `AppModal` component (in `src/components/ui/AppModal.tsx`) for all dialogs
-- **Pages**: Route-level components in `src/pages/`
-- **Lazy Loading**: Use `React.lazy()` for route splitting
+- **Modals**: MANDATORY use `AppModal` component (in `app/components/ui/AppModal.tsx`) for all dialogs
+- **Pages**: Route-level components in `app/` directory (Next.js App Router)
+- **Lazy Loading**: Next.js automatic code splitting + `React.lazy()` for dynamic imports
 
 ### Firebase Integration
 **Collections Structure:**
@@ -44,9 +44,9 @@ groups/{groupCode} → { name, members[], createdAt }
 ```
 
 **Services:**
-- `src/services/firestoreService.ts` - CRUD operations
-- `src/firebase/auth.ts` - Authentication (popup on localhost, redirect in production)
-- `src/services/migration.ts` - Data migrations (old `days/` → new `entries/`)
+- `app/services/firestoreService.ts` - CRUD operations
+- `app/firebase/auth.ts` - Authentication (popup on localhost, redirect in production)
+- `app/services/migration.ts` - Data migrations (old `days/` → new `entries/`)
 
 **Security:**
 - App Check with reCAPTCHA v3 (production only)
@@ -71,7 +71,7 @@ groups/{groupCode} → { name, members[], createdAt }
 
 ```bash
 # Development
-npm run dev                    # Start dev server (localhost:5173)
+npm run dev                    # Start dev server (localhost:3000)
 
 # Quality Checks (run before committing)
 npm run lint                   # ESLint
@@ -87,18 +87,19 @@ openspec validate [id] --strict # Validate change proposal
 
 ## Environment Variables
 **Required:**
-- `VITE_FIREBASE_*` (API key, project ID, auth domain, etc.)
+- `NEXT_PUBLIC_FIREBASE_*` (API key, project ID, auth domain, etc.) - Client-side Firebase config
+- `FIREBASE_*` - Server-side Firebase Admin SDK credentials
 
 **Optional:**
-- `VITE_RECAPTCHA_SITE_KEY` - Firebase App Check (production)
-- `VITE_SENTRY_DSN` - Error tracking
-- `VITE_GEMINI_API_KEY` - AI-powered smart notes
+- `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` - Firebase App Check (production)
+- `NEXT_PUBLIC_SENTRY_DSN` - Error tracking
+- `GEMINI_API_KEY` - AI-powered smart notes (server-side)
 
 **1Password Integration:** Use `op run --env-file=.env.1password.production -- npm run dev` for secrets management.
 
 ## Testing Strategy
 
-**Unit Tests:** Vitest (`src/**/__tests__/`)
+**Unit Tests:** Vitest (`app/**/__tests__/`)
 - Mock Firebase with `vi.mock('firebase/firestore')`
 - Use `src/test/test-utils.tsx` for React component testing
 

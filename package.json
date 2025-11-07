@@ -28,7 +28,7 @@
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
     "e2e:ui": "playwright test --config e2e/playwright.config.ts --ui",
-    "analyze": "vite build && npx rollup-plugin-visualizer stats.html --open",
+    "analyze": "ANALYZE=true npm run build",
     "perf:budget": "node scripts/check-budgets.mjs",
     "db:setup": "node scripts/setup-neon.mjs",
     "db:migrate": "drizzle-kit migrate",
@@ -95,7 +95,6 @@
     "openspec": "^0.0.0",
     "postcss": "^8.4.49",
     "react-swipeable": "^7.0.2",
-    "rollup-plugin-visualizer": "^6.0.4",
     "tailwindcss": "^3.4.17",
     "task-master-ai": "^0.30.2",
     "ts-prune": "^0.10.3",
@@ -103,8 +102,7 @@
     "typescript-eslint": "^8.46.0",
     "vitest": "^3.2.4",
     "vitest-axe": "^0.1.0",
-    "wait-on": "^9.0.1",
-    "workbox-window": "^7.3.0"
+    "wait-on": "^9.0.1"
   },
   "overrides": {
     "tmp": "^0.2.5"
