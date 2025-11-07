@@ -41,6 +41,12 @@ scripts/serviceaccountkey.json
 .env.local
 .env.production
 
+# NPM registry configuration (may contain private registry URLs)
+.npmrc
+
+# Package lock files - let each environment use its own registry configuration
+package-lock.json
+
 # Build sourcemaps that may contain secrets from production builds
 .smap/
 *.smap
