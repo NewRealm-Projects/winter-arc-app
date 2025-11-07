@@ -1,7 +1,7 @@
 # GitHub Copilot Instructions - Winter Arc App
 
 ## Project Overview
-Winter Arc is a Progressive Web App (PWA) for fitness tracking with push-ups, sports, nutrition, and weight management. Built with Next.js 15 + React 19 + TypeScript + Firebase/PostgreSQL.
+Winter Arc is a Progressive Web App (PWA) for fitness tracking with push-ups, sports, nutrition, and weight management. Built with Next.js 15 + React 19 + TypeScript + PostgreSQL (Vercel Postgres/Neon).
 
 ## OpenSpec Framework (CRITICAL)
 **Before implementing features, ALWAYS check:**
@@ -26,8 +26,8 @@ Format: `<username>/<type>-<description>` (e.g., `lbuettge/feature-dashboard`)
 
 ### State Management
 - **Global State**: Zustand store (`app/store/useStore.ts`)
-- **Firebase Sync**: Auto-sync via `useAuth` and `useTracking` hooks with 1s debounce
-- **Data Flow**: UI → Hooks → Zustand → Firebase (real-time listeners update store)
+- **API Sync**: Auto-sync via `useAuth` and `useTracking` hooks with 1s debounce
+- **Data Flow**: UI → Hooks → Zustand → PostgreSQL API (polling updates store every 30s)
 
 ### Component Structure
 - **Tiles**: Reusable tracking components (`PushupTile`, `WaterTile`, etc.)
@@ -35,22 +35,24 @@ Format: `<username>/<type>-<description>` (e.g., `lbuettge/feature-dashboard`)
 - **Pages**: Route-level components in `app/` directory (Next.js App Router)
 - **Lazy Loading**: Next.js automatic code splitting + `React.lazy()` for dynamic imports
 
-### Firebase Integration
-**Collections Structure:**
+### Database Integration
+**PostgreSQL Schema (Drizzle ORM):**
 ```
-users/{userId} → { nickname, gender, height, weight, maxPushups, groupCode, pushupState }
-tracking/{userId}/entries/{date} → { pushups, sports, water, protein, weight, completed }
-groups/{groupCode} → { name, members[], createdAt }
+users → { id, email, nickname, gender, height, weight, maxPushups, groupCode, pushupState }
+tracking_entries → { id, userId, date, pushups, sports, water, protein, weight, completed }
+groups → { id, code, name, members[], createdAt }
 ```
 
-**Services:**
-- `app/services/firestoreService.ts` - CRUD operations
-- `app/firebase/auth.ts` - Authentication (popup on localhost, redirect in production)
-- `app/services/migration.ts` - Data migrations (old `days/` → new `entries/`)
+**API Routes:**
+- `app/api/auth/[...nextauth]/route.ts` - NextAuth authentication handler
+- `app/api/users/[id]/route.ts` - User CRUD operations
+- `app/api/tracking/[date]/route.ts` - Tracking data by date
+- `app/api/groups/[code]/route.ts` - Group management
 
 **Security:**
-- App Check with reCAPTCHA v3 (production only)
-- Firestore rules: users read/write own data only
+- NextAuth with JWT sessions
+- Server-side session validation
+- API routes: users read/write own data only
 
 ## Code Quality (Pre-commit/Push Hooks)
 
@@ -73,6 +75,12 @@ groups/{groupCode} → { name, members[], createdAt }
 # Development
 npm run dev                    # Start dev server (localhost:3000)
 
+# Database
+npm run db:push                # Push schema to database
+npm run db:studio              # Open Drizzle Studio (GUI)
+npm run db:generate            # Generate migrations
+npm run db:migrate             # Run migrations
+
 # Quality Checks (run before committing)
 npm run lint                   # ESLint
 npm run typecheck              # TypeScript strict mode
@@ -87,11 +95,13 @@ openspec validate [id] --strict # Validate change proposal
 
 ## Environment Variables
 **Required:**
-- `NEXT_PUBLIC_FIREBASE_*` (API key, project ID, auth domain, etc.) - Client-side Firebase config
-- `FIREBASE_*` - Server-side Firebase Admin SDK credentials
+- `DATABASE_URL` - PostgreSQL connection string (Vercel Postgres/Neon)
+- `NEXTAUTH_SECRET` - NextAuth session encryption key
+- `NEXTAUTH_URL` - Application URL (http://localhost:3000 for dev)
+- `GOOGLE_CLIENT_ID` - Google OAuth client ID
+- `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
 
 **Optional:**
-- `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` - Firebase App Check (production)
 - `NEXT_PUBLIC_SENTRY_DSN` - Error tracking
 - `GEMINI_API_KEY` - AI-powered smart notes (server-side)
 

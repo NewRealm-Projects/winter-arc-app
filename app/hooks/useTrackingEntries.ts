@@ -1,8 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { FirestoreError } from 'firebase/firestore';
-import { onUserTrackingEntriesSnapshot } from '@/services/firestoreClient';
 import { useStore } from '@/store/useStore';
 import type { DailyTracking } from '@/types';
 
@@ -19,18 +17,6 @@ interface UseTrackingEntriesResult {
   readonly loading: boolean;
   readonly error: TrackingListenerError | null;
   readonly retry: () => void;
-}
-
-function mapErrorCode(error: FirestoreError): TrackingListenerError {
-  if (error.code === 'permission-denied') {
-    return 'no-permission';
-  }
-
-  if (error.code === 'unavailable') {
-    return 'unavailable';
-  }
-
-  return 'unknown';
 }
 
 export function useTrackingEntries(): UseTrackingEntriesResult {
@@ -53,7 +39,7 @@ export function useTrackingEntries(): UseTrackingEntriesResult {
   useEffect(() => {
     if (authLoading) {
       setLoading(true);
-      return () => undefined;
+      return;
     }
 
     if (!userId) {
@@ -61,47 +47,69 @@ export function useTrackingEntries(): UseTrackingEntriesResult {
       setError(null);
       setTracking({});
       lastRemoteTracking = {};
-      return () => undefined;
+      return;
     }
 
     let isActive = true;
     setLoading(true);
     setError(null);
 
-    const unsubscribe = onUserTrackingEntriesSnapshot<DailyTracking>(
-      userId,
-      (entries) => {
-        if (!isActive) {
+    const fetchTrackingData = async () => {
+      try {
+        // Get data for the last 90 days
+        const endDate = new Date().toISOString().split('T')[0];
+        const startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        
+        const response = await fetch(`/api/tracking?startDate=${startDate}&endDate=${endDate}`);
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            setError('no-permission');
+          } else if (response.status === 503) {
+            setError('unavailable');
+          } else {
+            setError('unknown');
+          }
+          setLoading(false);
           return;
         }
-        const next: Record<string, DailyTracking> = entries.reduce<Record<string, DailyTracking>>(
-          (acc, entry) => {
-            const { id, ...rest } = entry;
-            acc[id] = rest as DailyTracking;
-            return acc;
-          },
-          {}
-        );
-        lastRemoteTracking = next;
-        setTracking(next);
+
+        const entries = await response.json();
+        
+        if (!isActive) return;
+
+        const trackingMap: Record<string, DailyTracking> = {};
+        entries.forEach((entry: any) => {
+          trackingMap[entry.date] = {
+            pushups: entry.pushups || 0,
+            sports: entry.sports || 0,
+            water: entry.water || 0,
+            protein: entry.protein || 0,
+            weight: entry.weight || null,
+            completed: entry.completed || false,
+          };
+        });
+
+        lastRemoteTracking = trackingMap;
+        setTracking(trackingMap);
         setLoading(false);
-      },
-      (fsError) => {
-        if (!isActive) {
-          return;
-        }
-        if (fsError.code === 'permission-denied') {
-          setTracking({});
-          lastRemoteTracking = {};
-        }
-        setError(mapErrorCode(fsError));
+        setError(null);
+      } catch (err) {
+        if (!isActive) return;
+        console.error('Error fetching tracking data:', err);
+        setError('unknown');
         setLoading(false);
       }
-    );
+    };
+
+    fetchTrackingData();
+
+    // Poll for updates every 30 seconds
+    const intervalId = setInterval(fetchTrackingData, 30000);
 
     return () => {
       isActive = false;
-      unsubscribe();
+      clearInterval(intervalId);
     };
   }, [authLoading, retryKey, setTracking, userId]);
 

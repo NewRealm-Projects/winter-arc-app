@@ -8,13 +8,11 @@ import {
   type Locale,
 } from 'date-fns';
 import { de, enUS } from 'date-fns/locale';
-import { doc, getDoc } from 'firebase/firestore';
 import DayCircle, { DayCircleSkeleton } from '../ui/DayCircle';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useWeekContext } from '../../contexts/WeekContext';
 import { useStore } from '../../store/useStore';
 import { useTrainingLoadWeek } from '../../hooks/useTrainingLoadWeek';
-import { db } from '../../firebase';
 import type { Activity, DailyTracking } from '../../types';
 import { getDayProgressSummary } from '../../utils/progress';
 import { todayKey } from '../../lib/date';
@@ -46,11 +44,17 @@ async function fetchDayDocument(
   userId: string,
   dateKey: string
 ): Promise<DayDocument | null> {
-  const document = await getDoc(doc(db, 'tracking', userId, 'entries', dateKey));
-  if (!document.exists()) {
+  try {
+    const response = await fetch(`/api/tracking/${dateKey}`);
+    if (!response.ok) {
+      return null;
+    }
+    const data = await response.json();
+    return data as DayDocument;
+  } catch (error) {
+    console.error('Error fetching day document:', error);
     return null;
   }
-  return document.data() as DayDocument;
 }
 
 function buildWeekDays(weekStart: Date): Array<{ date: Date; key: string }> {

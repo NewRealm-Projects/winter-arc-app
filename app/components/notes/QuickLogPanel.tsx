@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -9,8 +10,6 @@ import DrinkLogModal, { type DrinkLogData } from './DrinkLogModal';
 import FoodLogModal, { type FoodLogData } from './FoodLogModal';
 import WorkoutLogModal, { type WorkoutLogData } from './WorkoutLogModal';
 import WeightLogModal, { type WeightLogData } from './WeightLogModal';
-import { saveDailyTracking, getDailyTracking } from '../../services/firestoreService';
-import { auth } from '../../firebase';
 import { generateDrinkSummary, generateFoodSummary, generateWorkoutSummary, generateWeightSummary } from '../../utils/activitySummary';
 import type { SportTracking } from '../../types';
 import type { SmartNote } from '../../types/events';
@@ -46,6 +45,7 @@ const createEmptyTracking = (dateKey: string) => ({
 function QuickLogPanel() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { data: session } = useSession();
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
@@ -65,9 +65,9 @@ function QuickLogPanel() {
   ];
 
   const handleDrinkSave = async (data: DrinkLogData) => {
-    if (!auth.currentUser) return;
+    if (!session?.user?.id) return;
 
-    const userId = auth.currentUser.uid;
+    const userId = session.user.id;
     const dateKey = data.date;
 
     // Get current tracking data with proper defaults
@@ -82,8 +82,12 @@ function QuickLogPanel() {
     // Update local state (optimistic)
     updateDayTracking(dateKey, updatedTracking);
 
-    // Sync to Firebase
-    await saveDailyTracking(userId, dateKey, updatedTracking);
+    // Sync to API
+    await fetch(`/api/tracking/${dateKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedTracking),
+    });
 
     // Save note to Input section if provided
     if (data.note?.trim()) {
@@ -104,9 +108,9 @@ function QuickLogPanel() {
   };
 
   const handleFoodSave = async (data: FoodLogData) => {
-    if (!auth.currentUser) return;
+    if (!session?.user?.id) return;
 
-    const userId = auth.currentUser.uid;
+    const userId = session.user.id;
     const dateKey = data.date;
 
     // Calculate aggregated nutrition from all cart items
@@ -135,8 +139,12 @@ function QuickLogPanel() {
     // Update local state (optimistic)
     updateDayTracking(dateKey, updatedTracking);
 
-    // Sync to Firebase
-    await saveDailyTracking(userId, dateKey, updatedTracking);
+    // Sync to API
+    await fetch(`/api/tracking/${dateKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedTracking),
+    });
 
     // Save ONE consolidated note for entire food session (not per item)
     if (data.note?.trim() || data.cart.length > 0) {
@@ -176,15 +184,15 @@ function QuickLogPanel() {
   };
 
   const handleWorkoutSave = async (data: WorkoutLogData) => {
-    if (!auth.currentUser) return;
+    if (!session?.user?.id) return;
 
-    const userId = auth.currentUser.uid;
+    const userId = session.user.id;
     const dateKey = data.date;
 
     // Get current tracking data
-    const result = await getDailyTracking(userId, dateKey);
-    const currentTracking = result.success && result.data
-      ? result.data
+    const response = await fetch(`/api/tracking/${dateKey}`);
+    const currentTracking = response.ok
+      ? await response.json()
       : { date: dateKey, water: 0, protein: 0, sports: {} as SportTracking, completed: false };
 
     // Update sports tracking
@@ -207,8 +215,12 @@ function QuickLogPanel() {
     // Update local state (optimistic)
     updateDayTracking(dateKey, updatedTracking);
 
-    // Sync to Firebase
-    await saveDailyTracking(userId, dateKey, updatedTracking);
+    // Sync to API
+    await fetch(`/api/tracking/${dateKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedTracking),
+    });
 
     // Save note to Input section if provided
     if (data.note?.trim()) {
@@ -229,9 +241,9 @@ function QuickLogPanel() {
   };
 
   const handleWeightSave = async (data: WeightLogData) => {
-    if (!auth.currentUser) return;
+    if (!session?.user?.id) return;
 
-    const userId = auth.currentUser.uid;
+    const userId = session.user.id;
     const dateKey = data.date;
 
     // Get current tracking data with proper defaults
@@ -250,13 +262,20 @@ function QuickLogPanel() {
     // Update local state (optimistic)
     updateDayTracking(dateKey, updatedTracking);
 
-    // Sync to Firebase
-    await saveDailyTracking(userId, dateKey, updatedTracking);
+    // Sync to API
+    await fetch(`/api/tracking/${dateKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedTracking),
+    });
 
     // Also update user's current weight in profile
     if (user) {
-      const { updateUser } = await import('../../services/firestoreService');
-      await updateUser(userId, { weight: data.weight, bodyFat: data.bodyFat });
+      await fetch(`/api/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weight: data.weight }),
+      });
     }
 
     // Save note to Input section if provided
