@@ -135,16 +135,21 @@ groups { id, code, name, members[], createdAt }
 - **CSP**: Restriktiv (Script-Src `'self'`)
 
 \n### Scalability
-- **Firestore Reads**: <10,000/day per user (optimize with caching)
-- **Firestore Writes**: <1,000/day per user (debouncing, batching)
-- **Storage**: <100MB per user (profile picture + future media)
+
+- **PostgreSQL Connections**: ≤100 active connections per region on Neon/Vercel; mitigation: share 5–10 pooled connections per function, enable PgBouncer-style pooling, close idle clients immediately.
+- **Query Throughput**: <20 queries/sec/user (peak) with project total <200 QPS; mitigation: debounce sync hooks, batch bulk writes, offload heavy analytics to read replicas.
+- **Transactions/User/Day**: <2 long-running transactions per user; mitigation: schedule bulk updates off-peak, queue migrations via maintenance jobs, keep transactions <500 ms.
+- **Storage/User**: <100MB for tracking history and media; mitigation: archive legacy records quarterly, store large assets in object storage, prune unused attachments.
+- **Cache Hit Rate**: >80% for Redis/CDN caches on aggregated stats; mitigation: precompute leaderboard snapshots, apply 60s TTL edge caching, invalidate selectively on writes.
 
 \n## External Dependencies (Updated)
 \n### Auth & Persistence
+
 - NextAuth (Google OAuth)
 - PostgreSQL (Drizzle ORM)
 
 \n### Third-Party APIs
+
 - **Sentry**: Error tracking + performance monitoring
   - DSN: `VITE_SENTRY_DSN` (environment variable)
   - Privacy: Sensitive data filtered via `beforeSend` hook
@@ -153,12 +158,14 @@ groups { id, code, name, members[], createdAt }
 - **Gemini AI** (Deprecated 2025-10-04): Removed, fallback quotes remain
 
 \n### Build & Deployment
+
 - Next.js (Turbopack Dev / Webpack Prod)
 - Custom Service Worker
 - Lighthouse CI (Performance Budgets)
 - Codacy / ESLint / TypeScript Gates
 
 \n### Development Tools
+
 - **Vitest**: Test runner (fast, ESM-native)
 - **Playwright**: E2E test framework (cross-browser)
 - **MSW**: API mocking (development, testing)

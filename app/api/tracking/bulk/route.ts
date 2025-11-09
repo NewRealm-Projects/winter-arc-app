@@ -4,6 +4,39 @@ import { db } from '@/lib/db';
 import { trackingEntries } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+function isValidISODateString(value: string): boolean {
+  if (!ISO_DATE_REGEX.test(value)) {
+    return false;
+  }
+
+  const [yearStr, monthStr, dayStr] = value.split('-');
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  const day = Number(dayStr);
+
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    return false;
+  }
+
+  if (month < 1 || month > 12) {
+    return false;
+  }
+
+  const maxDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  if (day < 1 || day > maxDay) {
+    return false;
+  }
+
+  const candidate = new Date(Date.UTC(year, month - 1, day));
+  if (Number.isNaN(candidate.getTime())) {
+    return false;
+  }
+
+  return candidate.toISOString().slice(0, 10) === value;
+}
+
 // POST /api/tracking/bulk - Upsert partial fields for multiple dates in one request
 // Payload shape: { "2025-11-09": { water: 1200, protein: 80, completed: false }, ... }
 // Only existing entries are patched; non-existing dates are created with provided fields + sane defaults.
@@ -25,7 +58,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
     }
 
-    const dates = Object.keys(payload).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
+    const dates = Object.keys(payload).filter((dateKey) => isValidISODateString(dateKey));
     if (dates.length === 0) {
       return NextResponse.json({ error: 'No valid date keys provided' }, { status: 400 });
     }

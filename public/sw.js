@@ -8,6 +8,8 @@ self.addEventListener('install', (event) => {
 
 let BASE_URL = self.registration.scope; // default to scope
 
+const ALLOWED_ORIGINS = new Set([self.location.origin]);
+
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating Service Worker...');
   event.waitUntil(clients.claim());
@@ -15,15 +17,66 @@ self.addEventListener('activate', (event) => {
 
 // Message-based control: allow page to trigger skipWaiting & update BASE_URL
 self.addEventListener('message', (event) => {
-  const { type, payload } = event.data || {};
-  if (type === 'SW_ACTIVATE_NOW') {
-    console.log('[SW] Received SW_ACTIVATE_NOW, calling skipWaiting');
-    self.skipWaiting();
-  }
-  if (type === 'SW_SET_BASE_URL' && typeof payload === 'string') {
-    BASE_URL = payload;
-    console.log('[SW] BASE_URL updated to:', BASE_URL);
-  }
+  event.waitUntil((async () => {
+    const { type, payload } = event.data || {};
+
+    const source = event.source;
+    let clientUrl = null;
+
+    try {
+      if (source && typeof source === 'object') {
+        if ('url' in source && source.url) {
+          clientUrl = source.url;
+        } else if ('id' in source && source.id) {
+          const resolvedClient = await clients.get(source.id);
+          clientUrl = resolvedClient?.url ?? null;
+        }
+      }
+    } catch (resolveError) {
+      console.error('[SW] Failed to resolve message source client', resolveError);
+    }
+
+    if (!clientUrl) {
+      console.warn('[SW] Ignoring message without resolvable client', { type });
+      return;
+    }
+
+    let clientOrigin;
+    try {
+      clientOrigin = new URL(clientUrl).origin;
+    } catch (urlError) {
+      console.error('[SW] Invalid client URL received in message', { clientUrl, type, error: urlError });
+      return;
+    }
+
+    if (!ALLOWED_ORIGINS.has(clientOrigin)) {
+      console.warn('[SW] Blocking message from untrusted origin', { type, clientOrigin });
+      return;
+    }
+
+    if (type === 'SW_ACTIVATE_NOW') {
+      console.log('[SW] Received SW_ACTIVATE_NOW, calling skipWaiting');
+      await self.skipWaiting();
+      return;
+    }
+
+    if (type === 'SW_SET_BASE_URL' && typeof payload === 'string') {
+      try {
+        const candidateUrl = new URL(payload, self.location.origin);
+        if (!ALLOWED_ORIGINS.has(candidateUrl.origin)) {
+          console.warn('[SW] Rejecting BASE_URL update from disallowed origin', {
+            requested: candidateUrl.origin,
+            clientOrigin,
+          });
+          return;
+        }
+        BASE_URL = candidateUrl.href;
+        console.log('[SW] BASE_URL updated to:', BASE_URL);
+      } catch (setError) {
+        console.error('[SW] Invalid BASE_URL payload ignored', { payload, error: setError });
+      }
+    }
+  })());
 });
 
 // Push Notification Handler
