@@ -33,8 +33,9 @@ export function evaluateWorkout(
   reps: number[]
 ): { newState: PushupState; status: WorkoutStatus } {
   const B = state.baseReps;
-  const hit = reps.slice(0, 4).filter((r) => r >= B).length;
-  const amrapOk = reps[4] >= B;
+  const firstFour = reps.slice(0, 4);
+  const hit = firstFour.filter((r) => r >= B).length;
+  const amrapOk = Array.isArray(reps) && reps.length > 4 && typeof reps[4] === 'number' && reps[4] >= B;
 
   let nextB: number;
   let status: WorkoutStatus;
@@ -114,7 +115,7 @@ export function generateProgressivePlan(
   const currentSum = sets.reduce((a, b) => a + b, 0);
   const diff = totalToday - currentSum;
 
-  if (diff !== 0) {
+  if (diff !== 0 && Array.isArray(sets) && sets.length > 0 && typeof sets[0] === 'number') {
     // Verteile die Differenz auf die Sätze (bevorzugt auf die ersten Sätze)
     sets[0] += diff;
   }
@@ -132,7 +133,7 @@ export function getLastPushupTotal(tracking: TrackingRecord): number {
 
   for (const date of dates) {
     const dayData = tracking[date];
-    if (dayData.pushups?.total && dayData.pushups.total > 0) {
+    if (dayData && dayData.pushups?.total && dayData.pushups.total > 0) {
       return dayData.pushups.total;
     }
   }
@@ -147,7 +148,7 @@ export function getLastPushupTotal(tracking: TrackingRecord): number {
  */
 export function countPushupDays(tracking: TrackingRecord): number {
   return Object.values(tracking).filter(
-    (day: DailyTracking) => day.pushups?.total && day.pushups.total > 0
+    (day: DailyTracking) => day && day.pushups?.total && day.pushups.total > 0
   ).length;
 }
 

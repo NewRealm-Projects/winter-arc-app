@@ -18,7 +18,11 @@ export async function GET(
     const date = params.date;
     const userId = session.user.id;
 
-    const entry = await db.select()
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
+    const database = db;
+    const entry = await database.select()
       .from(trackingEntries)
       .where(and(
         eq(trackingEntries.userId, userId),
@@ -62,7 +66,11 @@ export async function POST(
     const userId = session.user.id;
     const body = await request.json();
 
-    const existing = await db.select()
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
+    const database = db;
+    const existing = await database.select()
       .from(trackingEntries)
       .where(and(eq(trackingEntries.userId, userId), eq(trackingEntries.date, date)))
       .limit(1);
@@ -71,7 +79,7 @@ export async function POST(
       return NextResponse.json({ error: 'Entry already exists' }, { status: 409 });
     }
 
-    const newEntry = await db.insert(trackingEntries)
+  const newEntry = await database.insert(trackingEntries)
       .values({
         userId,
         date,
@@ -107,7 +115,11 @@ export async function PATCH(
     const body = await request.json();
 
     // Check if entry exists
-    const existingEntry = await db.select()
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
+    const database = db;
+    const existingEntry = await database.select()
       .from(trackingEntries)
       .where(and(
         eq(trackingEntries.userId, userId),
@@ -129,7 +141,7 @@ export async function PATCH(
       }
     }
 
-    const updated = await db.update(trackingEntries)
+  const updated = await database.update(trackingEntries)
       .set(updateData)
       .where(and(
         eq(trackingEntries.userId, userId),

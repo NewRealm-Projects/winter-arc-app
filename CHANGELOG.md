@@ -7,7 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### 🐛 Fixed
+### � Planned
+- Noch keine neuen Änderungen nach `0.1.3` geplant. Bitte neue Features über OpenSpec Change Proposal einreichen.
+
+---
+
+## [0.1.3] - 2025-11-09
+
+### 📚 Documentation / DX
+- README Transformation: Umgestaltung von rein technischen Entwickler-Dokumenten hin zu einer nutzerorientierten, einsteigerfreundlichen Präsentation (Ziel: klarer Nutzen & schneller Einstieg).
+  - Vereinfachte Einstiegsschritte (Setup + erste Tracking-Aktion)
+  - Prominente Feature-Übersicht (Pushups, Hydration, Protein, Gewicht, Gruppen)
+  - Klarer Abschnitt zu Sicherheit & Datenschutz basierend auf Neon/Vercel Postgres + NextAuth
+  - Konsolidierung verteilter Architekturhinweise in kompakte Übersicht
+  - Visuelle Strukturierung: Abschnitte für Kernfeatures, Erweiterte Funktionen (Smart Notes, Training Load), Performance & PWA
+- Changelog Hygiene: Einträge strukturiert, zukünftige Platzhalter für Security-Sektion vorbereitet
+
+### 🧩 Code Health
+- Start weiterer TypeScript Strict-Härtung: Defensive Guards (Matrix-Initialisierung in `foodSearch.ts`), Vorbereitung für Eliminierung verbleibender `noUncheckedIndexedAccess` Fehler.
+- SemVer Patch Bump zur sauberen Abgrenzung gegenüber vorheriger produktiver Dokumentationsbasis.
+
+### 🔐 Security
+- Keine neuen sicherheitsrelevanten Änderungen; weiterhin Einhaltung Policy (siehe `SECURITY.md`).
+
+### ♻️ Maintenance
+- Version erhöht (`package.json` 0.1.2 → 0.1.3) + Tag-Vorbereitung.
+- Release-Vorbereitung für GitHub (Tag + Release Notes generierbar aus diesem Abschnitt).
+
+### ✅ Verification
+- Lint/Typecheck laufen (ausstehende bekannte Strict-Fehler werden in Folgerelease adressiert – siehe offene TODOs).
+
+---
+
+### �🐛 Fixed
 - **Training Load Stability Issues**: Major refactor to fix race conditions, improve responsiveness, and reduce latency
   - **Eliminated Race Conditions**: Removed optimistic UI updates in favor of single source of truth (Firestore subscription)
   - **Week-Wide Subscription**: Training load graph now subscribes to all 7 days of the week for real-time updates (was previously only 1 day)

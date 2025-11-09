@@ -26,7 +26,8 @@
       "@/components/*": ["./components/*"],
       "@/lib/*": ["./lib/*"],
       "@/app/*": ["./app/*"],
-      "@/types/*": ["./types/*"],
+      "@/types/*": ["./types/*", "./lib/db/schema"],
+      "@/store/*": ["./app/store/*"],
       "@/utils/*": ["./utils/*"]
     }
   },

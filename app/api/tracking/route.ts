@@ -24,7 +24,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const entries = await db.select()
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
+    const database = db;
+    const entries = await database.select()
       .from(trackingEntries)
       .where(and(
         eq(trackingEntries.userId, userId),
