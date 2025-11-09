@@ -1,102 +1,105 @@
 # ❄️ Winter Arc
 
-> **Dein persönlicher Fitness-Begleiter für die kalte Jahreszeit**
+> Jeder Tag zählt: Tracken, sehen, dranbleiben.
 
-Die Winter Arc ist mehr als nur eine Fitness-App – sie ist dein digitaler Trainingspartner, der dich durch die Wintermonate begleitet und motiviert, deine Ziele zu erreichen. Ob Liegestütze am Morgen, Sport am Abend oder einfach genug Wasser trinken – wir tracken alles, was wichtig ist.
+Winter Arc hilft dir durch die dunklen Monate fokussiert zu bleiben. Du hältst deine Basics fest – Liegestütze, Bewegung, Wasser, Protein, Gewicht und kurze Notizen – und siehst klar, wie du Schritt für Schritt stärker wirst. Ohne komplizierte Pläne, ohne Werbung, ohne Ablenkung.
 
-[![Live App](https://img.shields.io/badge/🚀_Jetzt_ausprobieren-app.winterarc.newrealm.de-blue?style=for-the-badge)](https://app.winterarc.newrealm.de)
-
----
-
-## 🎯 Warum Winter Arc?
-
-Winter ist die perfekte Zeit, um an sich zu arbeiten. Während andere Netflix bingen, baust du Muskeln auf. Die Winter Arc hilft dir dabei:
-
-- **💪 Stärker werden** – Intelligentes Liegestütz-Training mit automatischer Progression
-- **🏃 In Bewegung bleiben** – Tracke deine Workouts, vom HIIT bis zum Gym
-- **💧 Gesund bleiben** – Vergiss nie wieder, genug zu trinken
-- **📊 Fortschritte sehen** – Visualisiere deine Entwicklung mit schönen Graphen
-- **👥 Gemeinsam wachsen** – Fordere deine Freunde im Gruppen-Leaderboard heraus
-
-## 🌟 Das Besondere
-
-**Smart & Einfach**
-Kein nerviges Kalorienzählen, keine komplizierten Trainingspläne. Die App macht dir automatisch Vorschläge basierend auf deiner Performance.
-
-**Überall dabei**
-Installiere die App auf deinem Handy wie eine normale App – funktioniert auf iPhone und Android, sogar offline.
-
-**Deine Daten, deine Privatsphäre**
-Sicheres Login mit Google, alle Daten verschlüsselt gespeichert. Keine Werbung, kein Datenverkauf.
-
-**Schönes Design**
-Modernes Glassmorphism-Design, Dark Mode inklusive – sieht gut aus und lenkt nicht ab vom Wesentlichen.
+[![Jetzt ausprobieren](https://img.shields.io/badge/🚀_App_öffnen-app.winterarc.newrealm.de-blue?style=for-the-badge)](https://app.winterarc.newrealm.de)
 
 ---
 
-## 🚀 Jetzt starten
+## 🧭 Schneller Überblick
 
-1. **Öffne die App:** [app.winterarc.newrealm.de](https://app.winterarc.newrealm.de)
-2. **Mit Google anmelden** – keine komplizierten Registrierungen
-3. **Profil einrichten** – Ein paar Basics: Größe, Gewicht, Ziele
-4. **Los geht's!** – Erstes Workout tracken und durchstarten
-
-> 💡 **Tipp:** Füge die App zum Homescreen hinzu für schnellen Zugriff!
-
----
-
-## 🔥 Features im Detail
-
-### 💪 Liegestütz-Training
-
-Unser intelligentes Trainingssystem passt sich automatisch deiner Performance an. Du gibst einfach deine maximale Anzahl ein und die App erstellt dir einen personalisierten Trainingsplan. Schaffst du mehr als geplant? Perfekt – morgen wird's schwerer. Brauchst du einen Ruhetag? Die App passt sich an.
-
-### 🏃 Sport-Tracking
-
-- **HIIT & HYROX** – Hochintensives Intervalltraining
-- **Cardio** – Laufen, Radfahren, Schwimmen
-- **Krafttraining** – Deine Gym-Sessions
-- **Fußball & mehr** – Alle Sportarten trackbar
-
-Jedes Workout wird mit Dauer und Intensität erfasst – so siehst du genau, wie viel du wirklich trainiert hast.
-
-### 💧 Hydration-Tracking
-
-Wasser trinken ist wichtig, aber schwer zu tracken? Nicht mehr! Mit unseren Quick-Add Buttons trägst du in Sekunden ein, wie viel du getrunken hast. Die App zeigt dir genau, wie nah du an deinem Tagesziel bist.
-
-### 📊 Gewichts-Verlauf
-
-Verfolge deine Gewichtsentwicklung mit schönen interaktiven Graphen. Die App berechnet automatisch deinen BMI und zeigt dir Trends über Wochen und Monate.
-
-### 🏆 Gruppen-Challenge
-
-Erstelle eine Gruppe mit deinen Freunden und vergleicht eure Fortschritte. Wöchentliche und monatliche Rankings halten die Motivation hoch. Freundlicher Wettbewerb macht alles besser!
+- Einfach täglich die wichtigsten Werte eintragen
+- Automatische Anpassung deines Liegestütz-Niveaus
+- Motivation durch Streaks, Ranglisten und klare Trends
+- Funktioniert auch offline – synchronisiert später automatisch
+- Deine Daten bleiben privat und gehören dir
 
 ---
 
-## 💻 Für Entwickler
+## ✅ Tägliche Basics
 
-**Tech Stack:** Next.js 16 · React 19 · TypeScript · Tailwind CSS · PostgreSQL · NextAuth
-
-Möchtest du zur Entwicklung beitragen? Schau dir die [technische Dokumentation](./docs) an oder öffne ein Issue auf GitHub.
-
-**Live-Umgebungen:**
-
-- **Production:** [app.winterarc.newrealm.de](https://app.winterarc.newrealm.de) – Die stabile Version für alle Nutzer
-- **Staging:** [develop.winterarc.newrealm.de](https://develop.winterarc.newrealm.de) – Neue Features zum Testen
+- 💪 Liegestütze (adaptiv: passt sich deiner Leistung an)
+- 🏃 Sport & Aktivität (egal ob Laufen, Gym oder Fußball)
+- 💧 Wasserzufuhr mit schnellen Add-Buttons
+- 🍗 Proteinmenge im Blick behalten
+- ⚖️ Gewicht dokumentieren und Veränderungen erkennen
+- 📝 Kurze Notizen für Gedanken, Erkenntnisse oder Motivation
 
 ---
 
-## 📄 Lizenz & Kontakt
+## 📈 Fortschritt sehen
 
-Dieses Projekt ist Open Source und steht unter der MIT-Lizenz.
-
-**Fragen? Ideen? Probleme?**
-Öffne ein [Issue auf GitHub](https://github.com/NewRealm-Projects/winter-arc-app/issues) oder schreib uns eine E-Mail.
-
-**Für Entwickler:**
-Die vollständige technische Dokumentation findest du in [CONTRIBUTING.md](CONTRIBUTING.md).
+- Training Load: Wochenbelastung auf einen Blick
+- Gewichts- & Leistungs-Trends über Tage und Wochen
+- Streak Anzeige: Bleib dran – jeder Tag zählt
+- Wöchentliche Top 3 für zusätzlichen Antrieb
 
 ---
 
-**Entwickelt mit ❤️ für alle, die im Winter nicht aufhören wollen zu wachsen.**
+## 🤝 Gemeinschaft & Gruppen
+
+- Tritt mit einem Gruppencode bei oder lade Freunde ein
+- Vergleicht eure Aktivität im Leaderboard
+- Freundlicher Wettbewerb statt Druck
+- Gemeinsame Challenges halten die Motivation hoch
+
+---
+
+## 🧠 Smarte Unterstützung
+
+- Automatische Progression bei Liegestützen – kein Grübeln über Sätze
+- Orientierung für Wasser & Protein (Ziel im Alltag sichtbar)
+- Einfache Notizfunktion für Reflexion oder kleine Journaleinträge
+
+---
+
+## 📱 Offline & App-Erlebnis
+
+- Installierbar wie eine normale App (Homescreen iOS/Android)
+- Kernfunktionen auch ohne Internet nutzbar
+- Hintergrund-Sync, sobald Verbindung besteht
+- Schnelle Ladezeiten und fokussiertes Interface
+
+---
+
+## 🔒 Privat & sicher
+
+Wir speichern nur das Nötige für deinen Fortschritt:
+
+- Profil: Nickname, Größe, Gewicht, optional Ziele
+- Tägliche Werte: Pushups, Sport, Wasser, Protein, Gewicht, Notizen
+- Gruppen-Zugehörigkeit zur Anzeige von Ranglisten
+
+Was es nicht gibt: Werbung, Datenverkauf, überflüssige Profile. Dein Login erfolgt sicher über Google. Deine Notizen bleiben privat. Du kannst jederzeit aufhören und deine Daten entfernen.
+
+---
+
+## 🚀 So startest du
+
+1. Öffne die App: [app.winterarc.newrealm.de](https://app.winterarc.newrealm.de)
+2. Mit Google anmelden
+3. Profil kurz ausfüllen (Größe, Startgewicht, maximale Liegestütze)
+4. Erste Werte eintragen (z.B. Wasser + Liegestütze)
+5. Gruppe beitreten oder Freunde einladen
+6. Täglich dranbleiben und Trends beobachten
+
+Tipp: Füge die App deinem Homescreen hinzu für schnellen Zugriff.
+
+---
+
+## ℹ️ Mehr erfahren
+
+Möchtest du tiefer einsteigen oder beitragen? Schau in die technischen Unterlagen:
+
+- `CONTRIBUTING.md` – Hinweise für Beiträge
+- `docs/` – Weitere Hintergrundinfos
+
+Issues, Feedback oder Ideen: Erstelle ein [Issue auf GitHub](https://github.com/NewRealm-Projects/winter-arc-app/issues).
+
+Lizenz: MIT – frei nutzbar, offen für Verbesserungen.
+
+---
+
+**Mit Herz entwickelt für alle, die auch im Winter nicht stehen bleiben.**

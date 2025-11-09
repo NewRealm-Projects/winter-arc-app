@@ -1,9 +1,8 @@
 import { drizzle } from 'drizzle-orm/neon-serverless';
-import { neon, neonConfig } from '@neondatabase/serverless';
+import { neon } from '@neondatabase/serverless';
 import * as schema from './schema';
 
-// Configure Neon for edge runtime
-neonConfig.fetchConnectionCache = true;
+// fetchConnectionCache deprecated (now always true); removed explicit set
 
 // Use empty string as fallback to prevent build errors
 const databaseUrl = process.env.DATABASE_URL || '';
