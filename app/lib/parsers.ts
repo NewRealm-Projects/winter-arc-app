@@ -82,24 +82,18 @@ const LETTER_BOUNDARY_REGEX = /[a-zäöüß]/i;
 
 function containsKeyword(text: string, keyword: string): boolean {
   let index = text.indexOf(keyword);
-  if (index === -1) {
-    return false;
-  }
-
+  if (index === -1) return false;
   while (index !== -1) {
     const before = index > 0 ? text[index - 1] : '';
     const afterIndex = index + keyword.length;
     const after = afterIndex < text.length ? text[afterIndex] : '';
-    const beforeIsLetter = LETTER_BOUNDARY_REGEX.test(before);
-    const afterIsLetter = LETTER_BOUNDARY_REGEX.test(after);
-
-    if (!(beforeIsLetter && afterIsLetter)) {
-      return true;
-    }
-
+    // Guard: LETTER_BOUNDARY_REGEX.test expects string, we already coerce empty when absent
+  // Explicit guards to satisfy strict null/undefined checks
+  const beforeIsLetter = typeof before === 'string' && before.length === 1 && LETTER_BOUNDARY_REGEX.test(before);
+  const afterIsLetter = typeof after === 'string' && after.length === 1 && LETTER_BOUNDARY_REGEX.test(after);
+    if (!(beforeIsLetter && afterIsLetter)) return true;
     index = text.indexOf(keyword, index + keyword.length);
   }
-
   return false;
 }
 
@@ -142,12 +136,12 @@ function detectBeverage(raw: string): 'water' | 'protein' | 'coffee' | 'tea' | '
 function findDuration(raw: string): number | undefined {
   const durationMatch = raw.match(/(\d+(?:[.,]\d+)?)\s?(min|minutes?|mins?|h|stunden?|hours?)/i);
   if (!durationMatch) return undefined;
-  const value = toNumber(durationMatch[1]);
-  const unit = durationMatch[2].toLowerCase();
-  if (unit.startsWith('h')) {
-    return Math.round(value * 60);
-  }
-  return Math.round(value);
+  const valueRaw = durationMatch[1];
+  const unitRaw = durationMatch[2];
+  if (!valueRaw || !unitRaw) return undefined;
+  const value = toNumber(valueRaw);
+  const unit = unitRaw.toLowerCase();
+  return unit.startsWith('h') ? Math.round(value * 60) : Math.round(value);
 }
 
 function findIntensity(raw: string): 'easy' | 'moderate' | 'hard' | undefined {
@@ -178,8 +172,11 @@ export function parseHeuristic(raw: string): { raw: string; candidates: Event[] 
   const drinkRegex = /(\d+(?:\.\d+)?)\s?(ml|l)\b/gi;
   let drinkMatch: RegExpExecArray | null;
   while ((drinkMatch = drinkRegex.exec(normalized))) {
-    const value = Number.parseFloat(drinkMatch[1]);
-    const unit = drinkMatch[2].toLowerCase();
+    const valueRaw = drinkMatch[1];
+    const unitRaw = drinkMatch[2];
+    if (!valueRaw || !unitRaw) continue;
+    const value = Number.parseFloat(valueRaw);
+    const unit = unitRaw.toLowerCase();
     const volumeMl = unit === 'l' ? Math.round(value * 1000) : Math.round(value);
     const drinkEvent = {
       ...buildBase('drink', DEFAULT_CONFIDENCE),
@@ -193,7 +190,9 @@ export function parseHeuristic(raw: string): { raw: string; candidates: Event[] 
   let proteinMatch: RegExpExecArray | null;
   let foundProteinValue = false;
   while ((proteinMatch = proteinRegex.exec(normalized))) {
-    const grams = Math.round(Number.parseFloat(proteinMatch[1]));
+    const gramsRaw = proteinMatch[1];
+    if (!gramsRaw) continue;
+    const grams = Math.round(Number.parseFloat(gramsRaw));
     const proteinEvent = {
       ...buildBase('protein', DEFAULT_CONFIDENCE),
       grams,
@@ -215,7 +214,9 @@ export function parseHeuristic(raw: string): { raw: string; candidates: Event[] 
   const pushupRegex = /(\d+)\s?(liegestütze|liegestuetze|push[- ]?ups?)\b/gi;
   let pushupMatch: RegExpExecArray | null;
   while ((pushupMatch = pushupRegex.exec(lower))) {
-    const count = Number.parseInt(pushupMatch[1], 10);
+    const countRaw = pushupMatch[1];
+    if (!countRaw) continue;
+    const count = Number.parseInt(countRaw, 10);
     const pushupEvent = {
       ...buildBase('pushups', DEFAULT_CONFIDENCE),
       count,
@@ -245,7 +246,7 @@ export function parseHeuristic(raw: string): { raw: string; candidates: Event[] 
 
   const weightRegex = /(\d+(?:\.\d+)?)\s?kg\b/i;
   const weightMatch = weightRegex.exec(normalized);
-  if (weightMatch) {
+  if (weightMatch && weightMatch[1]) {
     const weightEvent = {
       ...buildBase('weight', DEFAULT_CONFIDENCE),
       kg: Number.parseFloat(weightMatch[1]),
@@ -255,7 +256,7 @@ export function parseHeuristic(raw: string): { raw: string; candidates: Event[] 
 
   const bfpRegex = /(\d+(?:\.\d+)?)\s?%\b/i;
   const bfpMatch = bfpRegex.exec(normalized);
-  if (bfpMatch) {
+  if (bfpMatch && bfpMatch[1]) {
     const bfpEvent = {
       ...buildBase('bfp', DEFAULT_CONFIDENCE),
       percent: Number.parseFloat(bfpMatch[1]),
@@ -267,11 +268,13 @@ export function parseHeuristic(raw: string): { raw: string; candidates: Event[] 
     if (lower.includes(keyword)) {
       const caloriesMatch = FOOD_CALORIES_REGEX.exec(lower);
       const proteinInfo = FOOD_PROTEIN_REGEX.exec(lower);
+      const calorieRaw = caloriesMatch?.[1];
+      const proteinRaw = proteinInfo?.[1];
       const foodEvent = {
         ...buildBase('food', DEFAULT_CONFIDENCE),
         label: keyword,
-        calories: caloriesMatch ? Math.round(toNumber(caloriesMatch[1])) : undefined,
-        proteinG: proteinInfo ? Math.round(toNumber(proteinInfo[1])) : undefined,
+        calories: calorieRaw ? Math.round(toNumber(calorieRaw)) : undefined,
+        proteinG: proteinRaw ? Math.round(toNumber(proteinRaw)) : undefined,
       } satisfies Event;
       candidates.push(foodEvent);
       break;

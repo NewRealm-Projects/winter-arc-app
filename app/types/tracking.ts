@@ -1,5 +1,3 @@
-import type { FieldValue, Timestamp } from 'firebase/firestore';
-
 export type CheckInSource = 'manual';
 
 export interface DailyCheckIn {
@@ -7,8 +5,8 @@ export interface DailyCheckIn {
   sleepScore: number;
   recoveryScore: number;
   sick: boolean;
-  createdAt: Timestamp | FieldValue;
-  updatedAt: Timestamp | FieldValue;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   source: CheckInSource;
   appVersion?: string;
 }
@@ -33,8 +31,8 @@ export interface DailyTrainingLoad {
   load: number;
   components: TrainingLoadComponents;
   inputs: TrainingLoadInputs;
-  createdAt: Timestamp | FieldValue;
-  updatedAt: Timestamp | FieldValue;
+  createdAt: Date | string;
+  updatedAt: Date | string;
   calcVersion: TrainingLoadCalcVersion;
 }
 

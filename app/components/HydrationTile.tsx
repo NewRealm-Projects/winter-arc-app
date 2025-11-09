@@ -57,10 +57,9 @@ function HydrationTile() {
   const totalWater = sanitizeMlValue(combinedTracking?.water ?? manualWater);
 
   // Check if there are smart contributions (from notes)
-  const hasSmartContributions = useMemo(() => {
-    const smartWater = (combinedTracking?.water ?? 0) - manualWater;
-    return smartWater > 0;
-  }, [combinedTracking, manualWater]);
+  // Inline calculation to avoid React Compiler memoization warning
+  const smartWater = (combinedTracking?.water ?? 0) - manualWater;
+  const hasSmartContributions = smartWater > 0;
 
   const waterGoal = Math.max(resolveWaterGoal(user), 0);
   const percent = getPercent(totalWater, waterGoal);

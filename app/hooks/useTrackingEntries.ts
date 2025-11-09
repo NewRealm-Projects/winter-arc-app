@@ -1,8 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { FirestoreError } from 'firebase/firestore';
-import { onUserTrackingEntriesSnapshot } from '@/services/firestoreClient';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '@/store/useStore';
 import type { DailyTracking } from '@/types';
 
@@ -21,18 +19,6 @@ interface UseTrackingEntriesResult {
   readonly retry: () => void;
 }
 
-function mapErrorCode(error: FirestoreError): TrackingListenerError {
-  if (error.code === 'permission-denied') {
-    return 'no-permission';
-  }
-
-  if (error.code === 'unavailable') {
-    return 'unavailable';
-  }
-
-  return 'unknown';
-}
-
 export function useTrackingEntries(): UseTrackingEntriesResult {
   const authLoading = useStore((state) => state.authLoading);
   const userId = useStore((state) => state.user?.id);
@@ -42,7 +28,8 @@ export function useTrackingEntries(): UseTrackingEntriesResult {
   const [error, setError] = useState<TrackingListenerError | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [retryKey, setRetryKey] = useState(0);
-
+  const fetchingRef = useRef(false);
+  const activeAbortControllerRef = useRef<AbortController | null>(null);
   const retry = useCallback(() => {
     if (!authLoading && userId) {
       setRetryKey((key) => key + 1);
@@ -53,7 +40,7 @@ export function useTrackingEntries(): UseTrackingEntriesResult {
   useEffect(() => {
     if (authLoading) {
       setLoading(true);
-      return () => undefined;
+      return;
     }
 
     if (!userId) {
@@ -61,59 +48,86 @@ export function useTrackingEntries(): UseTrackingEntriesResult {
       setError(null);
       setTracking({});
       lastRemoteTracking = {};
-      return () => undefined;
+      return;
     }
 
     let isActive = true;
     setLoading(true);
     setError(null);
 
-    const unsubscribe = onUserTrackingEntriesSnapshot<DailyTracking>(
-      userId,
-      (entries) => {
-        if (!isActive) {
-          return;
+    const fetchTrackingData = async () => {
+      if (fetchingRef.current) return;
+      fetchingRef.current = true;
+      const abortController = new AbortController();
+      activeAbortControllerRef.current = abortController;
+      let attempt = 0;
+      const maxAttempts = 5;
+      const baseDelay = 800;
+      const exec = async () => {
+        attempt++;
+        try {
+          const endStr = new Date().toLocaleDateString('en-CA');
+          const startStr = new Date(Date.now() - 90 * 86400000).toLocaleDateString('en-CA');
+          const resp = await fetch(`/api/tracking?startDate=${startStr}&endDate=${endStr}`, { signal: abortController.signal });
+          if (!resp.ok) {
+            if (resp.status === 401) setError('no-permission');
+            else if (resp.status === 503) setError('unavailable');
+            else setError('unknown');
+            throw new Error('Bad status ' + resp.status);
+          }
+          const entries = await resp.json();
+          if (!isActive) return;
+          const map: Record<string, DailyTracking> = {};
+          entries.forEach((entry: any) => {
+            map[entry.date] = {
+              date: entry.date,
+              pushups: entry.pushups ? { total: entry.pushups } : undefined,
+              sports: entry.sports || {},
+              water: entry.water || 0,
+              protein: entry.protein || 0,
+              weight: entry.weight ? { value: entry.weight } : undefined,
+              completed: entry.completed || false,
+            };
+          });
+          lastRemoteTracking = map;
+          setTracking(map);
+          setLoading(false);
+          setError(null);
+        } catch (e) {
+          if (!isActive) return;
+          if (abortController.signal.aborted) {
+            setLoading(false);
+            return;
+          }
+            if (attempt < maxAttempts) {
+              const backoff = baseDelay * Math.pow(2, attempt - 1);
+              await new Promise(r => setTimeout(r, backoff));
+              return exec();
+            }
+            console.error('Tracking fetch failed permanently:', e);
+            setError('unknown');
+            setLoading(false);
+        } finally {
+          fetchingRef.current = false;
         }
-        const next: Record<string, DailyTracking> = entries.reduce<Record<string, DailyTracking>>(
-          (acc, entry) => {
-            const { id, ...rest } = entry;
-            acc[id] = rest as DailyTracking;
-            return acc;
-          },
-          {}
-        );
-        lastRemoteTracking = next;
-        setTracking(next);
-        setLoading(false);
-      },
-      (fsError) => {
-        if (!isActive) {
-          return;
-        }
-        if (fsError.code === 'permission-denied') {
-          setTracking({});
-          lastRemoteTracking = {};
-        }
-        setError(mapErrorCode(fsError));
-        setLoading(false);
-      }
-    );
+      };
+      await exec();
+    };
+
+    fetchTrackingData();
+
+    // Poll for updates every 30 seconds
+  const intervalId = setInterval(() => { void fetchTrackingData(); }, 30000);
 
     return () => {
       isActive = false;
-      unsubscribe();
+      clearInterval(intervalId);
     };
   }, [authLoading, retryKey, setTracking, userId]);
 
-  return useMemo(
-    () => ({
-      data: tracking,
-      loading,
-      error,
-      retry,
-    }),
-    [tracking, loading, error, retry]
-  );
+  return useMemo(() => ({ data: tracking, loading, error, retry }), [tracking, loading, error, retry]);
 }
+
+
 
 

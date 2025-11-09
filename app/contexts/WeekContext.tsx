@@ -1,3 +1,5 @@
+'use client';
+
 import {
   addDays,
   addWeeks,
@@ -20,7 +22,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { todayKey } from '../lib/date';
 import { useStore } from '../store/useStore';
 
@@ -55,11 +57,12 @@ function parseWeekParam(value: string | null | undefined): Date | undefined {
     return undefined;
   }
   const match = ISO_WEEK_PATTERN.exec(value.trim());
-  if (!match) {
-    return undefined;
-  }
-  const isoYear = Number.parseInt(match[1], 10);
-  const isoWeek = Number.parseInt(match[2], 10);
+  if (!match) return undefined;
+  const yearStr = match[1];
+  const weekStr = match[2];
+  if (!yearStr || !weekStr) return undefined;
+  const isoYear = Number.parseInt(yearStr, 10);
+  const isoWeek = Number.parseInt(weekStr, 10);
   if (!Number.isFinite(isoYear) || !Number.isFinite(isoWeek) || isoWeek < 1 || isoWeek > 53) {
     return undefined;
   }
@@ -74,7 +77,9 @@ function formatWeekParam(weekStart: Date): string {
 }
 
 export function WeekProvider({ children }: { children: ReactNode }) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const storeSelectedDate = useStore((state) => state.selectedDate);
   const setStoreSelectedDate = useStore((state) => state.setSelectedDate);
 
@@ -82,7 +87,7 @@ export function WeekProvider({ children }: { children: ReactNode }) {
   const today = useMemo(() => parseISO(todayKeyValue), [todayKeyValue]);
   const currentWeekStart = useMemo(() => startOfWeek(today, WEEK_OPTIONS), [today]);
 
-  const weekParam = searchParams.get('week');
+  const weekParam = searchParams?.get('week') ?? null;
   const hydratedWeekStart = useMemo(() => parseWeekParam(weekParam), [weekParam]);
   const storedDate = useMemo(() => parseDateKey(storeSelectedDate, today), [storeSelectedDate, today]);
 
@@ -127,10 +132,10 @@ export function WeekProvider({ children }: { children: ReactNode }) {
       return;
     }
     syncingSearchParams.current = true;
-    const nextParams = new URLSearchParams(searchParams);
+    const nextParams = new URLSearchParams(searchParams?.toString());
     nextParams.set('week', currentWeekParam);
-    setSearchParams(nextParams, { replace: true });
-  }, [searchParams, selectedDate, setSearchParams, weekParam]);
+    router.replace(`${pathname}?${nextParams.toString()}`, { scroll: false });
+  }, [searchParams, selectedDate, router, pathname, weekParam]);
 
   useEffect(() => {
     if (!syncingSearchParams.current) {

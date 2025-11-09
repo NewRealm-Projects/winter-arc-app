@@ -24,34 +24,43 @@ export interface FoodSearchResult {
  * https://en.wikipedia.org/wiki/Levenshtein_distance
  */
 function levenshteinDistance(a: string, b: string): number {
-  const matrix: number[][] = [];
+  // Handle trivial cases directly
+  if (a === b) return 0;
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
 
-  // Initialize first column (0 to b.length)
+  // Allocate 2D matrix fully initialized to 0 to satisfy strict undefined checks
+  // Using definite assignment with explicit number type to satisfy strict indexing rules.
+  const matrix: number[][] = Array.from({ length: b.length + 1 }, () => Array<number>(a.length + 1).fill(0));
+
   for (let i = 0; i <= b.length; i++) {
-    matrix[i] = [i];
+    const row = matrix[i];
+    if (!row) continue; // defensive (should be allocated)
+    row[0] = i;
   }
-
-  // Initialize first row (0 to a.length)
-  for (let j = 0; j <= a.length; j++) {
-    matrix[0][j] = j;
-  }
-
-  // Fill in the rest of the matrix
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1, // substitution
-          matrix[i][j - 1] + 1, // insertion
-          matrix[i - 1][j] + 1 // deletion
-        );
-      }
+  const firstRow = matrix[0];
+  if (firstRow) {
+    for (let j = 0; j <= a.length; j++) {
+      firstRow[j] = j;
     }
   }
 
-  return matrix[b.length][a.length];
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      const cost = b[i - 1] === a[j - 1] ? 0 : 1;
+      const prevRow = matrix[i - 1];
+      const currentRow = matrix[i];
+      if (!prevRow || !currentRow) continue; // safety
+      const substitution: number = prevRow[j - 1]! + cost;
+      const insertion: number = currentRow[j - 1]! + 1;
+      const deletion: number = prevRow[j]! + 1;
+      currentRow[j] = Math.min(substitution, insertion, deletion);
+    }
+  }
+
+  const lastRow = matrix[b.length];
+  if (!lastRow) return 0;
+  return lastRow[a.length] ?? 0;
 }
 
 /**

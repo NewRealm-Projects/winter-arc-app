@@ -66,6 +66,7 @@ export function calculateStreak(
 
   for (let i = 0; i < dates.length; i++) {
     const dateStr = dates[i];
+    if (!dateStr) { continue; }
     const dayTracking = tracking[dateStr];
 
     if (!dayTracking) {
@@ -73,7 +74,7 @@ export function calculateStreak(
     }
 
     const { sports, water = 0, protein = 0, pushups, weight } = dayTracking;
-    const date = new Date(dateStr);
+  const date = new Date(dateStr);
     date.setHours(0, 0, 0, 0);
 
     // Count completed tasks based on enabled activities
@@ -116,7 +117,9 @@ export function calculateStreak(
         break;
       }
     } else {
-      const prevDate = new Date(dates[i - 1]);
+  const prevRaw = dates[i - 1];
+  if (!prevRaw) { break; }
+  const prevDate = new Date(prevRaw);
       prevDate.setHours(0, 0, 0, 0);
       const diffDays = Math.floor((prevDate.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
 

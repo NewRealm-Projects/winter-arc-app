@@ -170,7 +170,9 @@ describe('ArcMenu', () => {
 
     // Find and click sports slice (first slice)
     const slices = container.querySelectorAll('svg[role="menu"] path[fill*="#"]');
-    await user.click(slices[0]);
+    const firstSlice = slices[0];
+    if (!firstSlice) throw new Error('No slices found');
+    await user.click(firstSlice);
 
     expect(mockOnStatSelect).toHaveBeenCalledWith('sports');
   });
@@ -192,8 +194,10 @@ describe('ArcMenu', () => {
       const slices = container.querySelectorAll('svg[role="menu"] path[fill*="#"]');
       const indexMap = { sports: 0, pushup: 1, nutrition: 2, hydration: 3, weight: 4 };
       const index = indexMap[statId];
+      const slice = slices[index];
+      if (!slice) throw new Error(`Slice ${index} not found`);
 
-      await user.click(slices[index]);
+      await user.click(slice);
 
       expect(mockOnStatSelect).toHaveBeenCalledWith(statId);
     }
@@ -214,7 +218,9 @@ describe('ArcMenu', () => {
 
     // Click a slice
     const slices = container.querySelectorAll('svg[role="menu"] path[fill*="#"]');
-    await user.click(slices[0]);
+    const firstSlice = slices[0];
+    if (!firstSlice) throw new Error('No slices found');
+    await user.click(firstSlice);
 
     // Menu should close
     await waitFor(() => {

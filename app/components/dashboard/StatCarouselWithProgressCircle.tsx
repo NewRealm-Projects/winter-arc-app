@@ -41,10 +41,11 @@ export function StatCarouselWithProgressCircle({ onSegmentClick }: StatCarouselW
 
   // Disable auto-rotate if prefers-reduced-motion
   useEffect(() => {
-    if (prefersReducedMotion) {
-      setAutoRotateEnabled(false);
+    if (prefersReducedMotion && autoRotateEnabled) {
+      // Use microtask to avoid synchronous setState
+      Promise.resolve().then(() => setAutoRotateEnabled(false));
     }
-  }, [prefersReducedMotion]);
+  }, [prefersReducedMotion, autoRotateEnabled]);
 
   // Auto-rotation effect
   useEffect(() => {
@@ -213,7 +214,7 @@ export function StatCarouselWithProgressCircle({ onSegmentClick }: StatCarouselW
 
   // Handle segment click - open modal for clicked stat
   const handleSegmentClick = (index: number) => {
-    if (onSegmentClick) {
+    if (onSegmentClick && stats[index]) {
       onSegmentClick(stats[index].id as 'sports' | 'pushup' | 'hydration' | 'nutrition' | 'weight');
     }
   };
@@ -244,13 +245,16 @@ export function StatCarouselWithProgressCircle({ onSegmentClick }: StatCarouselW
                   stopOpacity="1"
                 />
               ))}
-              {createGradientStops.length > 0 && (
-                <stop
-                  offset="100%"
-                  stopColor={createGradientStops[createGradientStops.length - 1].segment.color}
-                  stopOpacity="1"
-                />
-              )}
+              {(() => {
+                const lastStop = createGradientStops[createGradientStops.length - 1];
+                return lastStop ? (
+                  <stop
+                    offset="100%"
+                    stopColor={lastStop.segment.color}
+                    stopOpacity="1"
+                  />
+                ) : null;
+              })()}
             </linearGradient>
           </defs>
 
@@ -317,33 +321,39 @@ export function StatCarouselWithProgressCircle({ onSegmentClick }: StatCarouselW
         {/* Carousel Content (centered inside circle) */}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-8">
           {/* Stat Value */}
-          <div className="text-center">
-            <p className="text-sm font-medium opacity-75 mb-1">
-              {currentStat.label}
-            </p>
-            <p className="text-2xl font-bold">
-              {currentStat.value}
-            </p>
-          </div>
+          {currentStat && (
+            <>
+              <div className="text-center">
+                <p className="text-sm font-medium opacity-75 mb-1">
+                  {currentStat.label}
+                </p>
+                <p className="text-2xl font-bold">
+                  {currentStat.value}
+                </p>
+              </div>
 
-          {/* Progress percentage */}
-          <div className="text-xs font-semibold opacity-60">
-            {currentStat.progress}% {t('common.complete')}
-          </div>
+              {/* Progress percentage */}
+              <div className="text-xs font-semibold opacity-60">
+                {currentStat.progress}% {t('common.complete')}
+              </div>
 
-          {/* Swipe hint (mobile only) */}
-          <div className="text-xs opacity-40 text-center mt-2">
-            {t('common.swipeOrArrows')}
-          </div>
+              {/* Swipe hint (mobile only) */}
+              <div className="text-xs opacity-40 text-center mt-2">
+                {t('common.swipeOrArrows')}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       {/* Mobile-only: Stat title below circle */}
-      <div className="text-center">
-        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-          {currentStat.label}
-        </p>
-      </div>
+      {currentStat && (
+        <div className="text-center">
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+            {currentStat.label}
+          </p>
+        </div>
+      )}
 
       {/* Keyboard navigation hint (optional, can be removed) */}
       {!prefersReducedMotion && (

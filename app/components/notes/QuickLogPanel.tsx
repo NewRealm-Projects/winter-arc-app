@@ -1,18 +1,19 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import type { Session } from 'next-auth';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useStore } from '../../store/useStore';
 import { noteStore } from '../../store/noteStore';
+import { useToast } from '../../hooks/useToast';
 import DrinkLogModal, { type DrinkLogData } from './DrinkLogModal';
 import FoodLogModal, { type FoodLogData } from './FoodLogModal';
 import WorkoutLogModal, { type WorkoutLogData } from './WorkoutLogModal';
 import WeightLogModal, { type WeightLogData } from './WeightLogModal';
-import { saveDailyTracking, getDailyTracking } from '../../services/firestoreService';
-import { auth } from '../../firebase';
 import { generateDrinkSummary, generateFoodSummary, generateWorkoutSummary, generateWeightSummary } from '../../utils/activitySummary';
-import type { SportTracking } from '../../types';
+import type { DailyTracking, SportTracking } from '../../types';
 import type { SmartNote } from '../../types/events';
 
 type ModalType = 'drink' | 'food' | 'workout' | 'weight' | null;
@@ -24,15 +25,68 @@ interface QuickAction {
   color: string;
 }
 
+const hasUserId = (user: Session['user'] | undefined | null): user is Session['user'] & { id: string } =>
+  !!user && typeof (user as { id?: unknown }).id === 'string';
+
+// Helper to create empty tracking data with proper defaults
+const createEmptyTracking = (dateKey: string): DailyTracking => ({
+  date: dateKey,
+  water: 0,
+  protein: 0,
+  calories: 0,
+  carbsG: 0,
+  fatG: 0,
+  sports: {
+    hiit: false,
+    cardio: false,
+    gym: false,
+    schwimmen: false,
+    soccer: false,
+    rest: false,
+  } as SportTracking,
+  completed: false,
+});
+
+const cloneTrackingEntry = (entry: DailyTracking): DailyTracking =>
+  JSON.parse(JSON.stringify(entry)) as DailyTracking;
+
 function QuickLogPanel() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const { showToast } = useToast();
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
   const updateDayTracking = useStore((state) => state.updateDayTracking);
   const selectedDate = useStore((state) => state.selectedDate);
 
   const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const [sessionWarningShown, setSessionWarningShown] = useState(false);
+
+  const requireUserId = (): string | null => {
+    const userId = hasUserId(session?.user) ? session.user.id : null;
+    // If a valid session re-appeared after a previous expiration, reset warning flag so future expirations show again
+    if (userId) {
+      if (sessionWarningShown) {
+        setSessionWarningShown(false);
+      }
+      return userId;
+    }
+    if (!sessionWarningShown) {
+      setSessionWarningShown(true);
+      console.error('QuickLogPanel: Missing authenticated user id for quick-log action.');
+      showToast({ message: 'Your session expired. Please sign in again.', type: 'error' });
+      router.push('/auth/signin');
+    }
+    return null;
+  };
+
+  // Passive listener: also reset warning flag whenever a session with userId becomes available.
+  useEffect(() => {
+    if (hasUserId(session?.user) && sessionWarningShown) {
+      setSessionWarningShown(false);
+    }
+  }, [session?.user, sessionWarningShown]);
 
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const activeDate = selectedDate || todayKey;
@@ -46,13 +100,13 @@ function QuickLogPanel() {
   ];
 
   const handleDrinkSave = async (data: DrinkLogData) => {
-    if (!auth.currentUser) return;
-
-    const userId = auth.currentUser.uid;
+    if (!requireUserId()) {
+      return;
+    }
     const dateKey = data.date;
 
-    // Get current tracking data
-    const currentTracking = tracking[dateKey] || { date: dateKey, water: 0, protein: 0, sports: {}, completed: false };
+    // Get current tracking data with proper defaults
+    const currentTracking: DailyTracking = tracking[dateKey] ?? createEmptyTracking(dateKey);
 
     // Update water amount
     const updatedTracking = {
@@ -63,8 +117,12 @@ function QuickLogPanel() {
     // Update local state (optimistic)
     updateDayTracking(dateKey, updatedTracking);
 
-    // Sync to Firebase
-    await saveDailyTracking(userId, dateKey, updatedTracking);
+    // Sync to API
+    await fetch(`/api/tracking/${dateKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedTracking),
+    });
 
     // Save note to Input section if provided
     if (data.note?.trim()) {
@@ -85,9 +143,9 @@ function QuickLogPanel() {
   };
 
   const handleFoodSave = async (data: FoodLogData) => {
-    if (!auth.currentUser) return;
-
-    const userId = auth.currentUser.uid;
+    if (!requireUserId()) {
+      return;
+    }
     const dateKey = data.date;
 
     // Calculate aggregated nutrition from all cart items
@@ -101,8 +159,8 @@ function QuickLogPanel() {
       { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 }
     );
 
-    // Get current tracking data
-    const currentTracking = tracking[dateKey] || { date: dateKey, water: 0, protein: 0, sports: {}, completed: false };
+    // Get current tracking data with proper defaults
+    const currentTracking: DailyTracking = tracking[dateKey] ?? createEmptyTracking(dateKey);
 
     // Update nutrition amounts with aggregated totals
     const updatedTracking = {
@@ -116,8 +174,12 @@ function QuickLogPanel() {
     // Update local state (optimistic)
     updateDayTracking(dateKey, updatedTracking);
 
-    // Sync to Firebase
-    await saveDailyTracking(userId, dateKey, updatedTracking);
+    // Sync to API
+    await fetch(`/api/tracking/${dateKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedTracking),
+    });
 
     // Save ONE consolidated note for entire food session (not per item)
     if (data.note?.trim() || data.cart.length > 0) {
@@ -149,7 +211,7 @@ function QuickLogPanel() {
   const handleActionClick = (actionType: QuickAction['type']) => {
     if (actionType === 'pushup') {
       // Navigate to pushup training page
-      navigate('/tracking/pushup-training');
+      router.push('/tracking/pushup-training');
     } else {
       // Open modal for other actions
       setActiveModal(actionType);
@@ -157,39 +219,63 @@ function QuickLogPanel() {
   };
 
   const handleWorkoutSave = async (data: WorkoutLogData) => {
-    if (!auth.currentUser) return;
-
-    const userId = auth.currentUser.uid;
+    if (!requireUserId()) {
+      return;
+    }
     const dateKey = data.date;
 
-    // Get current tracking data
-    const result = await getDailyTracking(userId, dateKey);
-    const currentTracking = result.success && result.data
-      ? result.data
-      : { date: dateKey, water: 0, protein: 0, sports: {} as SportTracking, completed: false };
+    // Prefer local tracking state; only fetch if missing
+    let currentTracking: DailyTracking | undefined = tracking[dateKey];
+    if (!currentTracking) {
+      const resp = await fetch(`/api/tracking/${dateKey}`);
+      if (resp.ok) {
+        currentTracking = (await resp.json()) as DailyTracking;
+      } else {
+        currentTracking = createEmptyTracking(dateKey);
+      }
+    }
 
     // Update sports tracking
     const sportEntry = data.sport === 'rest'
       ? true
       : {
-          active: true,
-          duration: data.durationMin,
-          intensity: data.intensity === 'easy' ? 3 : data.intensity === 'moderate' ? 6 : 9,
-        };
+        active: true,
+        duration: data.durationMin,
+        intensity: data.intensity === 'easy' ? 3 : data.intensity === 'moderate' ? 6 : 9,
+      };
 
-    const updatedTracking = {
-      ...currentTracking,
+    const baseTracking: DailyTracking = currentTracking ?? createEmptyTracking(dateKey);
+
+    const updatedTracking: DailyTracking = {
+      ...baseTracking,
       sports: {
-        ...currentTracking.sports,
+        ...baseTracking.sports,
         [data.sport]: sportEntry,
-      } as typeof currentTracking.sports,
+      },
     };
 
     // Update local state (optimistic)
     updateDayTracking(dateKey, updatedTracking);
 
-    // Sync to Firebase
-    await saveDailyTracking(userId, dateKey, updatedTracking);
+    // Sync to API (create if absent then patch) - ignore 409 on create
+    try {
+      const createResp = await fetch(`/api/tracking/${dateKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedTracking),
+      });
+      if (createResp.status === 409) {
+        await fetch(`/api/tracking/${dateKey}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedTracking),
+        });
+      }
+    } catch (e) {
+      console.error('Workout save failed, reverting locally:', e);
+      // Revert optimistic update if network fails
+      updateDayTracking(dateKey, baseTracking);
+    }
 
     // Save note to Input section if provided
     if (data.note?.trim()) {
@@ -210,16 +296,16 @@ function QuickLogPanel() {
   };
 
   const handleWeightSave = async (data: WeightLogData) => {
-    if (!auth.currentUser) return;
-
-    const userId = auth.currentUser.uid;
+    const userId = requireUserId();
+    if (!userId) {
+      return;
+    }
     const dateKey = data.date;
 
-    // Get current tracking data
-    const currentTracking = tracking[dateKey] || { date: dateKey, water: 0, protein: 0, sports: {}, completed: false };
+    const currentTracking: DailyTracking = tracking[dateKey] ?? createEmptyTracking(dateKey);
+    const previousTracking = tracking[dateKey] ? cloneTrackingEntry(tracking[dateKey]) : undefined;
 
-    // Update weight data
-    const updatedTracking = {
+    const updatedTracking: DailyTracking = {
       ...currentTracking,
       weight: {
         value: data.weight,
@@ -228,19 +314,81 @@ function QuickLogPanel() {
       },
     };
 
-    // Update local state (optimistic)
     updateDayTracking(dateKey, updatedTracking);
 
-    // Sync to Firebase
-    await saveDailyTracking(userId, dateKey, updatedTracking);
+    const rollbackProfileWeight = async (): Promise<boolean> => {
+      if (!user || !previousTracking?.weight?.value) {
+        return true;
+      }
+      const payload = JSON.stringify({ weight: previousTracking.weight.value });
+      const url = `/api/users/${userId}`;
 
-    // Also update user's current weight in profile
+      for (let attempt = 1; attempt <= 2; attempt += 1) {
+        try {
+          const response = await fetch(url, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload,
+          });
+          if (response.ok) {
+            return true;
+          }
+          const responseBody = await response.text();
+          console.error(`[QuickLogPanel] Profile weight rollback attempt ${attempt} failed`, {
+            status: response.status,
+            body: responseBody,
+          });
+        } catch (rollbackError) {
+          console.error(`[QuickLogPanel] Profile weight rollback attempt ${attempt} threw`, rollbackError);
+        }
+      }
+      return false;
+    };
+
+    try {
+      const createResp = await fetch(`/api/tracking/${dateKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedTracking),
+      });
+      if (createResp.status === 409) {
+        const patchResp = await fetch(`/api/tracking/${dateKey}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedTracking),
+        });
+        if (!patchResp.ok) {
+          const errorBody = await patchResp.text();
+          console.error('Weight patch failed', { status: patchResp.status, body: errorBody });
+          throw new Error('Weight patch failed');
+        }
+      } else if (!createResp.ok) {
+        const errorBody = await createResp.text();
+        console.error('Weight create failed', { status: createResp.status, body: errorBody });
+        throw new Error('Weight create failed');
+      }
+    } catch (error) {
+      console.error('Weight save failed, reverting locally:', error);
+      updateDayTracking(dateKey, previousTracking ?? currentTracking);
+      const rollbackSuccess = await rollbackProfileWeight();
+      if (!rollbackSuccess) {
+        showToast({ message: 'Saving weight failed and rollback unsuccessful. Please refresh the page.', type: 'error' });
+        return;
+      }
+      showToast({ message: 'Saving weight failed. Please try again.', type: 'error' });
+      return;
+    }
     if (user) {
-      const { updateUser } = await import('../../services/firestoreService');
-      await updateUser(userId, { weight: data.weight, bodyFat: data.bodyFat });
+      void fetch(`/api/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ weight: data.weight }),
+      }).catch((profileError) => {
+        console.error('Unable to update profile weight after successful tracking save', profileError);
+        showToast({ message: 'Weight saved locally, but profile update failed.', type: 'warning' });
+      });
     }
 
-    // Save note to Input section if provided
     if (data.note?.trim()) {
       const { summary, details } = generateWeightSummary(data.weight, data.bodyFat);
       const note: SmartNote = {

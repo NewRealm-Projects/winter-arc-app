@@ -4,7 +4,6 @@ import { format } from 'date-fns';
 import { AppModal, ModalPrimaryButton, ModalSecondaryButton } from '../ui/AppModal';
 import { useStore } from '../../store/useStore';
 import { useTranslation } from '../../hooks/useTranslation';
-import { updateHydrationPresets } from '../../services/firestoreService';
 import { validatePreset, sanitizePreset, PRESET_CONSTRAINTS } from '../../utils/presetValidation';
 import PresetButton from '../hydration/PresetButton';
 import type { DrinkPreset } from '../../types';
@@ -100,8 +99,7 @@ function DrinkLogModal({ open, onClose, onSave, currentDate }: DrinkLogModalProp
         // Update local state (optimistic)
         updateUserPresets(updatedPresets);
 
-        // Sync to Firebase
-        await updateHydrationPresets(user.id, updatedPresets);
+        // TODO: Sync to PostgreSQL API when endpoint is available
       }
 
       // Reset form

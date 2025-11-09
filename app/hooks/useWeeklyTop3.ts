@@ -1,15 +1,19 @@
 'use client';
 
 import { useEffect } from 'react';
-import { startOfWeek, format } from 'date-fns';
+// import { startOfWeek, format } from 'date-fns';
 import { useStore } from '../store/useStore';
-import { getGroupMembers, saveWeeklyTop3 } from '../services/firestoreService';
-import type { UserWithStats } from '../types';
+// TODO: Migrate to PostgreSQL API when group endpoints are available
+// import { getGroupMembers, saveWeeklyTop3 } from '../services/firestoreService';
+// import type { UserWithStats } from '../types';
 
 export function useWeeklyTop3() {
   const user = useStore((state) => state.user);
 
   useEffect(() => {
+    // TODO: Re-enable when group features are migrated to PostgreSQL
+    // Temporarily disabled during Firestore → PostgreSQL migration
+    /*
     const checkAndSaveWeeklyTop3 = async () => {
       if (!user?.groupCode) return;
 
@@ -71,6 +75,7 @@ export function useWeeklyTop3() {
     const interval = setInterval(checkAndSaveWeeklyTop3, 60 * 1000);
 
     return () => { clearInterval(interval); };
+    */
   }, [user?.groupCode]);
 }
 

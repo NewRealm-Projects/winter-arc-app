@@ -41,6 +41,12 @@ scripts/serviceaccountkey.json
 .env.local
 .env.production
 
+# NPM registry configuration (may contain private registry URLs)
+.npmrc
+
+# Package lock files - let each environment use its own registry configuration
+package-lock.json
+
 # Build sourcemaps that may contain secrets from production builds
 .smap/
 *.smap
@@ -77,15 +83,13 @@ ops/pages/
 
 # Temporary and personal files
 _ul
-*.tsbuildinfo
 .release-notes-*.md
 SETUP_COMPLETE.md
 winter_arc_glass_mockup.png
 
 dev-debug.log
 # Dependency directories
-node_modules/
-.vscode
+# (duplicates removed: node_modules/, .vscode, second *.tsbuildinfo)
 # OS specific
 
 # Task files

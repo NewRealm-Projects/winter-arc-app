@@ -101,9 +101,9 @@ describe('TrainingLoad Service', () => {
         sports: {
           gym: { active: true, duration: 60, intensity: 7 },
           cardio: { active: true, duration: 30, intensity: 5 },
-          hiit: false,
-          schwimmen: false,
-          soccer: false,
+          hiit: { active: false },
+          schwimmen: { active: false },
+          soccer: { active: false },
           rest: { active: false },
         },
         water: 2000,

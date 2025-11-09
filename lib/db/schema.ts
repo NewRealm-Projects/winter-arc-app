@@ -6,6 +6,7 @@ export const users = pgTable('users', {
   firebaseUid: text('firebase_uid').unique(), // For migration compatibility
   email: text('email').notNull().unique(),
   nickname: text('nickname').notNull(),
+  language: text('language').default('de'), // User's preferred language
   gender: text('gender'),
   height: integer('height'), // in cm
   weight: real('weight'), // in kg

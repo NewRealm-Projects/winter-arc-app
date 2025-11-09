@@ -1,15 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { useSession } from 'next-auth/react';
 import { useStore } from '../store/useStore';
-import type { User, Activity } from '../types';
+import type { User } from '../types';
 import { clearDemoModeMarker, isDemoModeActive } from '../constants/demo';
 import { addBreadcrumb, captureException } from '../services/sentryService';
 
 export function useAuth() {
+  const { data: session, status } = useSession();
   const setUser = useStore((state) => state.setUser);
   const setIsOnboarded = useStore((state) => state.setIsOnboarded);
   const setTracking = useStore((state) => state.setTracking);
@@ -18,121 +17,79 @@ export function useAuth() {
   useEffect(() => {
     console.warn('👤 Setting up auth state listener...');
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in
+    const loadUserData = async () => {
+      if (status === 'loading') {
+        setAuthLoading(true);
+        return;
+      }
+
+      if (status === 'authenticated' && session?.user) {
+        const uid = (session as any)?.user?.id || session.user.email;
         console.warn('✅ User authenticated:', {
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
+          id: uid,
+          email: session.user.email,
         });
 
-        addBreadcrumb('Auth: User authenticated', { uid: firebaseUser.uid });
+    addBreadcrumb('Auth: User authenticated', { id: uid });
         clearDemoModeMarker();
 
         try {
-          const userDocRef = doc(db, 'users', firebaseUser.uid);
-          const userDoc = await getDoc(userDocRef);
-          if (userDoc.exists()) {
-            let userData = userDoc.data() as Omit<User, 'id'>;
+          // Fetch user data from API
+          const response = await fetch(`/api/users/${uid}`);
 
-            const shouldUploadGooglePhoto =
-              !userData.photoURL && !!firebaseUser.photoURL;
-
-            if (shouldUploadGooglePhoto) {
-              const { uploadProfilePictureFromUrl } = await import('../services/storageService');
-              const uploadResult = await uploadProfilePictureFromUrl(firebaseUser.photoURL, firebaseUser.uid);
-
-              if (uploadResult.success && uploadResult.url) {
-                const updates: Partial<Omit<User, 'id'>> = {
-                  photoURL: uploadResult.url,
-                  shareProfilePicture: userData.shareProfilePicture ?? true,
-                };
-
-                await setDoc(userDocRef, updates, { merge: true });
-                userData = { ...userData, ...updates };
-              }
-            }
-
-            if (userData.shareProfilePicture === undefined) {
-              await setDoc(userDocRef, { shareProfilePicture: true }, { merge: true });
-              userData = { ...userData, shareProfilePicture: true };
-            }
-
-            // Backward compatibility: Migrate existing users without enabledActivities
-            if (!userData.enabledActivities) {
-              const defaultActivities: Activity[] = ['pushups', 'sports', 'water', 'protein'];
-              console.warn('🔄 Migrating existing user to have default enabledActivities');
-
-              // Update Firestore with default activities
-              await setDoc(userDocRef, { enabledActivities: defaultActivities }, { merge: true });
-
-              // Update local state with migrated data
-              setUser({
-                id: firebaseUser.uid,
-                ...userData,
-                enabledActivities: defaultActivities,
-              });
-            } else {
-              setUser({
-                id: firebaseUser.uid,
-                ...userData,
-              });
-            }
-            setIsOnboarded(!!userData.birthday);
-
-            // MIGRATION: days → entries (one-time, automatic)
-            try {
-              const { migrateDaysToEntries } = await import('../services/migration');
-              const migrationResult = await migrateDaysToEntries(firebaseUser.uid);
-
-              if (migrationResult.success && migrationResult.count && migrationResult.count > 0) {
-                addBreadcrumb('Auth: Migration completed', {
-                  count: migrationResult.count,
-                  uid: firebaseUser.uid,
-                });
-              }
-            } catch (migrationError) {
-              // Non-critical error - log but don't block login
-              console.error('Migration error (non-critical):', migrationError);
-              addBreadcrumb('Auth: Migration failed', { error: String(migrationError) }, 'error');
-            }
-          } else {
-            let uploadedPhotoUrl: string | undefined;
-
-            if (firebaseUser.photoURL) {
-              const { uploadProfilePictureFromUrl } = await import('../services/storageService');
-              const uploadResult = await uploadProfilePictureFromUrl(firebaseUser.photoURL, firebaseUser.uid);
-              if (uploadResult.success && uploadResult.url) {
-                uploadedPhotoUrl = uploadResult.url;
-              }
-            }
+          if (response.ok) {
+            const userData = await response.json();
 
             setUser({
-              id: firebaseUser.uid,
+              id: userData.id,
+              language: userData.language || 'de',
+              nickname: userData.nickname || '',
+              gender: userData.gender || 'male',
+              height: userData.height || 0,
+              weight: userData.weight || 0,
+              maxPushups: userData.maxPushups || 0,
+              groupCode: userData.groupCode || '',
+              photoURL: session.user.image || undefined,
+              shareProfilePicture: true,
+              createdAt: userData.createdAt ? new Date(userData.createdAt) : new Date(),
+              pushupState: userData.pushupState || { baseReps: 0, sets: 5, restTime: 90 },
+              enabledActivities: userData.enabledActivities || ['pushups', 'sports', 'water', 'protein'],
+              birthday: userData.birthday,
+            });
+
+            setIsOnboarded(!!userData.birthday);
+          } else if (response.status === 404) {
+            // New user - set defaults
+            setUser({
+              id: uid!,
               language: 'de',
-              nickname: '',
+              nickname: session.user.name || session.user.email?.split('@')[0] || '',
               gender: 'male',
               height: 0,
               weight: 0,
               maxPushups: 0,
               groupCode: '',
-              photoURL: uploadedPhotoUrl,
+              photoURL: session.user.image || undefined,
               shareProfilePicture: true,
               createdAt: new Date(),
               pushupState: { baseReps: 0, sets: 5, restTime: 90 },
+              enabledActivities: ['pushups', 'sports', 'water', 'protein'],
             });
             setIsOnboarded(false);
+          } else {
+            throw new Error('Failed to fetch user data');
           }
         } catch (error) {
           console.error('Error loading user data:', error);
           addBreadcrumb('Auth: Failed to load user data', { error: String(error) }, 'error');
-          captureException(error, { context: 'useAuth', uid: firebaseUser.uid });
+          captureException(error, { context: 'useAuth', userId: uid });
           setUser(null);
           setIsOnboarded(false);
         } finally {
           setAuthLoading(false);
         }
       } else {
+        // Not authenticated
         if (isDemoModeActive()) {
           setAuthLoading(false);
           return;
@@ -142,21 +99,34 @@ export function useAuth() {
         setIsOnboarded(false);
         setTracking({});
         setAuthLoading(false);
+
+        // Selective storage cleanup to avoid nuking unrelated app/browser data
         try {
-          document.cookie.split(';').forEach((c) => {
-            document.cookie = c
-              .replace(/^ +/, '')
-              .replace(/=.*/, '=;expires=' + new Date(0).toUTCString() + ';path=/');
-          });
-          localStorage.clear();
-          sessionStorage.clear();
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (!k) continue;
+            if (k.startsWith('winterarc_') || k.startsWith('wa_') || k.startsWith('tracking_') || k.startsWith('nextauth.') || k.includes('session')) {
+              keysToRemove.push(k);
+            }
+          }
+          keysToRemove.forEach(k => localStorage.removeItem(k));
+          const sessionKeysToRemove: string[] = [];
+          for (let i = 0; i < sessionStorage.length; i++) {
+            const k = sessionStorage.key(i);
+            if (!k) continue;
+            if (k.startsWith('winterarc_') || k.startsWith('wa_') || k.includes('session')) {
+              sessionKeysToRemove.push(k);
+            }
+          }
+          sessionKeysToRemove.forEach(k => sessionStorage.removeItem(k));
         } catch (e) {
-          // Nur im Fehlerfall loggen
-          console.warn('Fehler beim Aufräumen der Session:', e);
+          console.warn('Fehler beim selektiven Aufräumen der Session:', e);
         }
       }
-    });
-    return () => unsubscribe();
-  }, [setUser, setIsOnboarded, setTracking, setAuthLoading]);
+    };
+
+    loadUserData();
+  }, [session, status, setUser, setIsOnboarded, setTracking, setAuthLoading]);
 }
 

@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useTrackingEntries } from '../useTrackingEntries';
 import { useStore } from '@/store/useStore';
 import type { User } from '@/types';
-import type { FirestoreError } from 'firebase/firestore';
 
 const unsubscribeMock = vi.fn();
 
@@ -14,6 +13,7 @@ const snapshotMock = vi.hoisted(() => {
   return { onUserTrackingEntriesSnapshot };
 });
 
+// Mock removed Firestore service
 vi.mock('@/services/firestoreClient', () => snapshotMock);
 
 const createTestUser = (): User => ({
@@ -25,8 +25,8 @@ const createTestUser = (): User => ({
   weight: 80,
   maxPushups: 20,
   groupCode: 'grp',
-  createdAt: new Date(),
   pushupState: { baseReps: 10, sets: 5, restTime: 90 },
+  createdAt: new Date(),
 });
 
 describe('useTrackingEntries', () => {
@@ -62,9 +62,9 @@ describe('useTrackingEntries', () => {
   it('maps permission-denied errors to hook state and clears tracking', () => {
     const { result } = renderHook(() => useTrackingEntries());
 
-    let errorHandler: ((error: FirestoreError) => void) | undefined;
+    let errorHandler: ((error: { code: string; message: string; name: string }) => void) | undefined;
     snapshotMock.onUserTrackingEntriesSnapshot.mockImplementationOnce((_, __, onError) => {
-      errorHandler = onError as (error: FirestoreError) => void;
+      errorHandler = onError as (error: { code: string; message: string; name: string }) => void;
       return unsubscribeMock;
     });
 
@@ -79,7 +79,7 @@ describe('useTrackingEntries', () => {
         code: 'permission-denied',
         message: 'forbidden',
         name: 'FirebaseError',
-      } as FirestoreError);
+      });
     });
 
     expect(result.current.error).toBe('no-permission');

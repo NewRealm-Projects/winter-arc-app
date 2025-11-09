@@ -1,7 +1,7 @@
 {
   "name": "winter-arc-tracker",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.1.3",
   "type": "module",
   "scripts": {
     "dev": "next dev",
@@ -14,10 +14,10 @@
     "build:1p-prod": "op run --env-file=.env.1password.production -- npm run build",
     "build:1p-staging": "op run --env-file=.env.1password.staging -- npm run build",
     "preview": "npm run start",
-    "lint": "next lint && npm run lint:secrets",
-    "lint:code": "next lint",
+    "lint": "npm run lint:code && npm run lint:secrets",
+    "lint:code": "eslint . --max-warnings=0",
     "lint:secrets": "node scripts/check-secrets.mjs",
-    "format": "next lint --fix",
+    "format": "eslint . --fix",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:unit": "vitest run",
@@ -28,7 +28,7 @@
     "deploy": "vercel --prod",
     "deploy:preview": "vercel",
     "e2e:ui": "playwright test --config e2e/playwright.config.ts --ui",
-    "analyze": "vite build && npx rollup-plugin-visualizer stats.html --open",
+    "analyze": "ANALYZE=true npm run build",
     "perf:budget": "node scripts/check-budgets.mjs",
     "db:setup": "node scripts/setup-neon.mjs",
     "db:migrate": "drizzle-kit migrate",
@@ -46,19 +46,19 @@
     "clean:dry-run": "node scripts/cleanup-repo.mjs --dry-run",
     "check:consistency": "node scripts/consistency-check.mjs",
     "check:consistency:fix": "node scripts/consistency-check.mjs --fix",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
     "@neondatabase/serverless": "^1.0.2",
     "@sentry/react": "10.18.0",
+    "@vercel/analytics": "^1.5.0",
     "@vercel/speed-insights": "^1.2.0",
     "date-fns": "^4.1.0",
     "dexie": "^4.2.1",
     "drizzle-kit": "^0.31.6",
     "drizzle-orm": "^0.44.7",
     "eslint-config-next": "^16.0.1",
-    "firebase": "^12.3.0",
     "lucide-react": "^0.545.0",
     "next": "^16.0.1",
     "next-auth": "^4.24.13",
@@ -81,11 +81,11 @@
     "@vitest/ui": "^3.2.4",
     "autoprefixer": "^10.4.20",
     "depcheck": "^1.4.7",
+    "esbuild": "^0.25.12",
     "eslint": "^9.37.0",
     "eslint-plugin-react-hooks": "^6.1.1",
     "eslint-plugin-react-refresh": "^0.4.16",
     "eslint-plugin-unused-imports": "^4.2.0",
-    "firebase-admin": "^13.5.0",
     "globals": "^16.4.0",
     "husky": "^9.1.7",
     "jsdom": "^27.0.0",
@@ -93,18 +93,12 @@
     "openspec": "^0.0.0",
     "postcss": "^8.4.49",
     "react-swipeable": "^7.0.2",
-    "rollup-plugin-visualizer": "^6.0.4",
     "tailwindcss": "^3.4.17",
-    "task-master-ai": "^0.30.2",
     "ts-prune": "^0.10.3",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.0",
     "vitest": "^3.2.4",
     "vitest-axe": "^0.1.0",
-    "wait-on": "^9.0.1",
-    "workbox-window": "^7.3.0"
-  },
-  "overrides": {
-    "tmp": "^0.2.5"
+    "wait-on": "^9.0.1"
   }
 }

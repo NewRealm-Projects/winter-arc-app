@@ -1,9 +1,10 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
-export default function AuthError() {
+function AuthErrorContent() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
 
@@ -48,5 +49,13 @@ export default function AuthError() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function AuthError() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-winter-900 to-winter-800 flex items-center justify-center"><div className="text-white">Loading...</div></div>}>
+      <AuthErrorContent />
+    </Suspense>
   )
 }

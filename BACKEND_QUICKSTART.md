@@ -1,7 +1,7 @@
-# 🚀 Backend Migration - Quick Start Guide
+# 🚀 Next.js Backend - Quick Start Guide
 
 ## 📋 Übersicht
-Dieses Dokument beschreibt die **ersten Schritte** für die Umstellung auf Full-Stack-Architektur mit Vercel.
+Dieses Dokument beschreibt die **Next.js API Routes** (Serverless Functions) auf Vercel. Die Migration von Vite zu Next.js ist **abgeschlossen**.
 
 ---
 
@@ -34,7 +34,7 @@ FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY----
 GEMINI_API_KEY=your-gemini-key
 
 # Frontend URL (für CORS)
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:3000
 ```
 
 **Wichtig**: `.env.local` ist bereits in `.gitignore` ✅

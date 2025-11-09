@@ -1,5 +1,7 @@
 import Dexie, { Table } from 'dexie';
-import type { Auth } from 'firebase/auth';
+// TODO: Remove Firebase dependency after full PostgreSQL migration
+// import type { Auth } from 'firebase/auth';
+type Auth = any; // Temporary stub during migration
 import { deleteSmartNote as deleteRemoteSmartNote, fetchAllSmartNotes, upsertSmartNote } from '../services/smartNoteService';
 import { SmartNote, WorkoutEvent } from '../types/events';
 
@@ -125,8 +127,8 @@ async function getFirebaseAuth(): Promise<Auth | null> {
   }
 
   try {
-    const module = await import('../firebase');
-    cachedAuth = module.auth;
+    const firebaseModule = await import('../firebase');
+    cachedAuth = firebaseModule.auth;
     return cachedAuth;
   } catch (error) {
     console.warn('Firebase auth unavailable, skipping remote persistence.', error);

@@ -8,6 +8,7 @@ import { useTranslation } from './useTranslation';
 import { getPercent, resolveWaterGoal, formatMl } from '../utils/progress';
 import { calculateTDEE } from '../utils/nutrition';
 import { countActiveSports } from '../utils/sports';
+import type { DailyTracking } from '../types';
 
 export interface CarouselStat {
   id: 'sports' | 'pushup' | 'hydration' | 'nutrition' | 'weight';
@@ -48,7 +49,13 @@ export function useCarouselStats(): CarouselStat[] {
   return useMemo(() => {
     // Convert selected date to YYYY-MM-DD format
     const activeDate = format(parseISO(selectedDate), 'yyyy-MM-dd');
-    const dayTracking = tracking[activeDate] ?? {};
+    const dayTracking: DailyTracking = tracking[activeDate] ?? ({
+      date: activeDate,
+      sports: {},
+      water: 0,
+      protein: 0,
+      completed: false,
+    } as DailyTracking);
 
     // Calculate goals
     const waterGoal = resolveWaterGoal(user);
@@ -81,8 +88,11 @@ export function useCarouselStats(): CarouselStat[] {
     const weightValue = dayTracking.weight?.value ?? 0;
     const weightDone = weightValue > 0;
     const weightDisplay = weightDone ? `${weightValue} kg` : '—';
-    const bmiValue = user?.weight && user?.height
-      ? (user.weight / ((user.height / 100) ** 2)).toFixed(1)
+
+    // BMI calculation: prefer tracked weight, fallback to user profile weight
+    const effectiveWeight = (weightValue > 0 ? weightValue : user?.weight) ?? 0;
+    const bmiValue = effectiveWeight > 0 && user?.height && user.height > 0
+      ? (effectiveWeight / ((user.height / 100) ** 2)).toFixed(1)
       : '—';
 
     return [

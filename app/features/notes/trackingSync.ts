@@ -9,8 +9,13 @@ const WORKOUT_INTENSITY_MAP: Record<NonNullable<WorkoutEvent['intensity']>, numb
   hard: 8,
 };
 
-function getDateKey(ts: number) {
-  return new Date(ts).toISOString().split('T')[0];
+function getDateKey(ts: number): string {
+  try {
+    const parts = new Date(ts).toISOString().split('T');
+    return parts[0] || new Date(ts).toLocaleDateString('en-CA');
+  } catch {
+    return new Date(ts).toLocaleDateString('en-CA'); // Fallback for invalid timestamps
+  }
 }
 
 function mergeSportEntries(existing: SportEntry | undefined, incoming: SportEntry): SportEntry {
@@ -156,7 +161,11 @@ async function syncSmartTracking() {
     })();
   }
 
-  try { await currentSync; } catch (error) { console.warn('Error during sync:', error); }
+  try {
+    await currentSync;
+  } catch (error) {
+    console.warn('Failed to sync smart tracking contributions', error);
+  }
 }
 
 void syncSmartTracking();

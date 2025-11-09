@@ -15,6 +15,7 @@ const CATEGORY_MULTIPLIER: Record<string, number> = {
   mod: 1.0,
   hard: 1.3,
   race: 1.6,
+  default: 1.0,
 };
 
 const clamp = (value: number, min: number, max: number): number => {
@@ -36,11 +37,11 @@ const resolveMultiplier = (workout: WorkoutEntry): number => {
     return 0.6 + 0.1 * intensity;
   }
 
-  if (workout.category && CATEGORY_MULTIPLIER[workout.category]) {
-    return CATEGORY_MULTIPLIER[workout.category];
+  if (workout.category) {
+    const val = CATEGORY_MULTIPLIER[workout.category];
+    if (typeof val === 'number') return val;
   }
-
-  return CATEGORY_MULTIPLIER.mod;
+  return CATEGORY_MULTIPLIER.default ?? 1.0;
 };
 
 const computeBaseFromWorkouts = (workouts: WorkoutEntry[], pushupsReps: number): number => {
