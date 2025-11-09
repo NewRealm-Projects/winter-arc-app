@@ -83,15 +83,13 @@ ops/pages/
 
 # Temporary and personal files
 _ul
-*.tsbuildinfo
 .release-notes-*.md
 SETUP_COMPLETE.md
 winter_arc_glass_mockup.png
 
 dev-debug.log
 # Dependency directories
-node_modules/
-.vscode
+# (duplicates removed: node_modules/, .vscode, second *.tsbuildinfo)
 # OS specific
 
 # Task files

@@ -4,6 +4,30 @@ import { db } from '@/lib/db';
 import { groups, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
+// Simple in-memory rate limit (per user per action). For production use a durable store.
+const createRateBucket: Record<string, number> = {};
+const modifyRateBucket: Record<string, number> = {};
+
+function rateLimit(bucket: Record<string, number>, userId: string, cooldownMs: number) {
+  const now = Date.now();
+  const last = bucket[userId] || 0;
+  if (now - last < cooldownMs) return false;
+  bucket[userId] = now;
+  return true;
+}
+
+function validateGroupCode(code: string): boolean {
+  return /^[A-Za-z0-9_-]{3,20}$/.test(code);
+}
+
+function sanitizeName(name: unknown): string | null {
+  if (typeof name !== 'string') return null;
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+  if (trimmed.length > 50) return trimmed.slice(0, 50);
+  return trimmed;
+}
+
 // GET /api/groups/[code] - Get group by code
 export async function GET(
   request: NextRequest,
@@ -16,15 +40,17 @@ export async function GET(
     }
 
     const code = params.code;
-    
-    const group = await db.select().from(groups).where(eq(groups.code, code)).limit(1);
-    
+
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
+  const group = await db.select().from(groups).where(eq(groups.code, code)).limit(1);
+
     if (group.length === 0) {
       return NextResponse.json({ error: 'Group not found' }, { status: 404 });
     }
 
-    // Get member details
-    const members = group[0].members as string[] || [];
+    // Get member details (safe access since group length > 0 checked)
     const memberDetails = await db.select({
       id: users.id,
       nickname: users.nickname,
@@ -41,7 +67,7 @@ export async function GET(
   }
 }
 
-// POST /api/groups/[code] - Create new group
+// POST /api/groups/[code] - Create new group (create-only)
 export async function POST(
   request: NextRequest,
   { params }: { params: { code: string } }
@@ -53,20 +79,32 @@ export async function POST(
     }
 
     const code = params.code;
-    const body = await request.json();
+    if (!validateGroupCode(code)) {
+      return NextResponse.json({ error: 'Invalid group code format' }, { status: 400 });
+    }
+
+    if (!rateLimit(createRateBucket, session.user.id, 5000)) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const name = sanitizeName(body.name) || code;
 
     // Check if group already exists
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
     const existingGroup = await db.select().from(groups).where(eq(groups.code, code)).limit(1);
-    
+
     if (existingGroup.length > 0) {
       return NextResponse.json({ error: 'Group code already exists' }, { status: 409 });
     }
 
-    // Create new group
+    // Create new group inside a transaction-like flow
     const newGroup = await db.insert(groups)
       .values({
         code,
-        name: body.name || code,
+        name,
         members: [session.user.id],
       })
       .returning();
@@ -76,7 +114,7 @@ export async function POST(
       .set({ groupCode: code, updatedAt: new Date() })
       .where(eq(users.id, session.user.id));
 
-    return NextResponse.json(newGroup[0]);
+    return NextResponse.json(newGroup[0], { status: 201 });
   } catch (error) {
     console.error('Error creating group:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -97,24 +135,47 @@ export async function PATCH(
     const code = params.code;
     const body = await request.json();
 
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
     const group = await db.select().from(groups).where(eq(groups.code, code)).limit(1);
-    
+
     if (group.length === 0) {
       return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+    }
+
+    // Only members can modify the group
+  // group length checked above; assert non-null for TypeScript
+  const currentMembers: string[] = Array.isArray(group[0]!.members) ? (group[0]!.members as string[]) : [];
+    if (!currentMembers.includes(session.user.id)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    if (!rateLimit(modifyRateBucket, session.user.id, 3000)) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+    }
+
+    // Validate member operations
+    if (body.addMember && typeof body.addMember !== 'string') {
+      return NextResponse.json({ error: 'Invalid addMember' }, { status: 400 });
+    }
+    if (body.removeMember && typeof body.removeMember !== 'string') {
+      return NextResponse.json({ error: 'Invalid removeMember' }, { status: 400 });
     }
 
     const updateData: any = { updatedAt: new Date() };
 
     if (body.name !== undefined) {
-      updateData.name = body.name;
+      const sanitized = sanitizeName(body.name);
+      if (!sanitized) {
+        return NextResponse.json({ error: 'Invalid name' }, { status: 400 });
+      }
+      updateData.name = sanitized;
     }
 
     if (body.addMember) {
-      const currentMembers = (group[0].members as string[]) || [];
       if (!currentMembers.includes(body.addMember)) {
         updateData.members = [...currentMembers, body.addMember];
-        
-        // Update user's groupCode
         await db.update(users)
           .set({ groupCode: code, updatedAt: new Date() })
           .where(eq(users.id, body.addMember));
@@ -122,10 +183,7 @@ export async function PATCH(
     }
 
     if (body.removeMember) {
-      const currentMembers = (group[0].members as string[]) || [];
       updateData.members = currentMembers.filter(m => m !== body.removeMember);
-      
-      // Remove user's groupCode
       await db.update(users)
         .set({ groupCode: null, updatedAt: new Date() })
         .where(eq(users.id, body.removeMember));
@@ -155,6 +213,22 @@ export async function DELETE(
     }
 
     const code = params.code;
+
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
+    const group = await db.select().from(groups).where(eq(groups.code, code)).limit(1);
+    if (group.length === 0) {
+      return NextResponse.json({ error: 'Group not found' }, { status: 404 });
+    }
+  const currentMembers: string[] = Array.isArray(group[0]!.members) ? (group[0]!.members as string[]) : [];
+    if (!currentMembers.includes(session.user.id)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    if (!rateLimit(modifyRateBucket, session.user.id, 5000)) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+    }
 
     // Remove groupCode from all members
     await db.update(users)

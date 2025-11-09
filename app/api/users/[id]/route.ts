@@ -16,25 +16,30 @@ export async function GET(
     }
 
     const userId = params.id;
-    
+
     // Users can only access their own data or public fields
-    const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
+    const database = db;
+    const user = await database.select().from(users).where(eq(users.id, userId)).limit(1);
+
     if (user.length === 0) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Only return own full data or limited public data
+    const first = user[0];
     if (session.user.id !== userId) {
       // Return public fields only
       return NextResponse.json({
-        id: user[0].id,
-        nickname: user[0].nickname,
-        groupCode: user[0].groupCode,
+        id: first!.id,
+        nickname: first!.nickname,
+        groupCode: first!.groupCode,
       });
     }
 
-    return NextResponse.json(user[0]);
+    return NextResponse.json(first!);
   } catch (error) {
     console.error('Error fetching user:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -60,11 +65,11 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    
+
     // Sanitize input - only allow specific fields to be updated
     const allowedFields = ['nickname', 'gender', 'height', 'weight', 'maxPushups', 'groupCode', 'pushupState'];
     const updateData: any = {};
-    
+
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
         updateData[field] = body[field];
@@ -77,7 +82,11 @@ export async function PATCH(
 
     updateData.updatedAt = new Date();
 
-    const updatedUser = await db.update(users)
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
+    const database = db;
+    const updatedUser = await database.update(users)
       .set(updateData)
       .where(eq(users.id, userId))
       .returning();
@@ -111,7 +120,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    await db.delete(users).where(eq(users.id, userId));
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
+    const database = db;
+    await database.delete(users).where(eq(users.id, userId));
 
     return NextResponse.json({ success: true });
   } catch (error) {

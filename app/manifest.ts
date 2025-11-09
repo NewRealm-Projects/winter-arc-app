@@ -15,13 +15,14 @@ export default function manifest(): MetadataRoute.Manifest {
         src: '/icon-192.png',
         sizes: '192x192',
         type: 'image/png',
-        purpose: 'any maskable',
+        // "any maskable" is not a valid union; use separate entries if needed. Here we keep maskable for better PWA adaptive icons.
+        purpose: 'maskable',
       },
       {
         src: '/icon-512.png',
         sizes: '512x512',
         type: 'image/png',
-        purpose: 'any maskable',
+        purpose: 'maskable',
       },
     ],
     categories: ['health', 'fitness', 'lifestyle'],

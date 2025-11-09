@@ -35,8 +35,9 @@ export function generateFoodSummary(
 
   // Single food item
   if (items.length === 1) {
+    const first = items[0]!;
     return {
-      summary: `${items[0].name} ${items[0].grams}g`,
+      summary: `${first.name} ${first.grams}g`,
     };
   }
 

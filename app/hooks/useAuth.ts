@@ -24,21 +24,22 @@ export function useAuth() {
       }
 
       if (status === 'authenticated' && session?.user) {
+        const uid = (session as any)?.user?.id || session.user.email;
         console.warn('✅ User authenticated:', {
-          id: session.user.id,
+          id: uid,
           email: session.user.email,
         });
 
-        addBreadcrumb('Auth: User authenticated', { id: session.user.id });
+    addBreadcrumb('Auth: User authenticated', { id: uid });
         clearDemoModeMarker();
 
         try {
           // Fetch user data from API
-          const response = await fetch(`/api/users/${session.user.id}`);
-          
+          const response = await fetch(`/api/users/${uid}`);
+
           if (response.ok) {
             const userData = await response.json();
-            
+
             setUser({
               id: userData.id,
               language: userData.language || 'de',
@@ -55,12 +56,12 @@ export function useAuth() {
               enabledActivities: userData.enabledActivities || ['pushups', 'sports', 'water', 'protein'],
               birthday: userData.birthday,
             });
-            
+
             setIsOnboarded(!!userData.birthday);
           } else if (response.status === 404) {
             // New user - set defaults
             setUser({
-              id: session.user.id!,
+              id: uid!,
               language: 'de',
               nickname: session.user.name || session.user.email?.split('@')[0] || '',
               gender: 'male',
@@ -81,7 +82,7 @@ export function useAuth() {
         } catch (error) {
           console.error('Error loading user data:', error);
           addBreadcrumb('Auth: Failed to load user data', { error: String(error) }, 'error');
-          captureException(error, { context: 'useAuth', userId: session.user.id });
+          captureException(error, { context: 'useAuth', userId: uid });
           setUser(null);
           setIsOnboarded(false);
         } finally {
@@ -98,12 +99,29 @@ export function useAuth() {
         setIsOnboarded(false);
         setTracking({});
         setAuthLoading(false);
-        
+
+        // Selective storage cleanup to avoid nuking unrelated app/browser data
         try {
-          localStorage.clear();
-          sessionStorage.clear();
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (!k) continue;
+            if (k.startsWith('winterarc_') || k.startsWith('wa_') || k.startsWith('tracking_') || k.startsWith('nextauth.') || k.includes('session')) {
+              keysToRemove.push(k);
+            }
+          }
+          keysToRemove.forEach(k => localStorage.removeItem(k));
+          const sessionKeysToRemove: string[] = [];
+          for (let i = 0; i < sessionStorage.length; i++) {
+            const k = sessionStorage.key(i);
+            if (!k) continue;
+            if (k.startsWith('winterarc_') || k.startsWith('wa_') || k.includes('session')) {
+              sessionKeysToRemove.push(k);
+            }
+          }
+          sessionKeysToRemove.forEach(k => sessionStorage.removeItem(k));
         } catch (e) {
-          console.warn('Fehler beim Aufräumen der Session:', e);
+          console.warn('Fehler beim selektiven Aufräumen der Session:', e);
         }
       }
     };
