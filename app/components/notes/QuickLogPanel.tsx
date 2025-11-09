@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import type { Session } from 'next-auth';
@@ -65,14 +65,28 @@ function QuickLogPanel() {
 
   const requireUserId = (): string | null => {
     const userId = hasUserId(session?.user) ? session.user.id : null;
-    if (!userId && !sessionWarningShown) {
+    // If a valid session re-appeared after a previous expiration, reset warning flag so future expirations show again
+    if (userId) {
+      if (sessionWarningShown) {
+        setSessionWarningShown(false);
+      }
+      return userId;
+    }
+    if (!sessionWarningShown) {
       setSessionWarningShown(true);
       console.error('QuickLogPanel: Missing authenticated user id for quick-log action.');
       showToast({ message: 'Your session expired. Please sign in again.', type: 'error' });
       router.push('/auth/signin');
     }
-    return userId;
+    return null;
   };
+
+  // Passive listener: also reset warning flag whenever a session with userId becomes available.
+  useEffect(() => {
+    if (hasUserId(session?.user) && sessionWarningShown) {
+      setSessionWarningShown(false);
+    }
+  }, [session?.user, sessionWarningShown]);
 
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const activeDate = selectedDate || todayKey;
