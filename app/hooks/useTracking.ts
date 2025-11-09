@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useStore } from '../store/useStore';
 
 /**
@@ -9,6 +9,9 @@ import { useStore } from '../store/useStore';
 export function useTracking() {
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
+
+  const changedDatesRef = useRef<Set<string>>(new Set());
+  const lastSnapshotRef = useRef<Record<string, any>>({});
 
   const saveTracking = useCallback(async (date: string, data: any) => {
     if (!user) return;
@@ -30,17 +33,59 @@ export function useTracking() {
     }
   }, [user]);
 
+  // Mark changed dates
   useEffect(() => {
     if (!user) return;
+    Object.entries(tracking).forEach(([date, data]) => {
+      const prev = lastSnapshotRef.current[date];
+      const serialized = JSON.stringify(data);
+      if (!prev || prev !== serialized) {
+        changedDatesRef.current.add(date);
+        lastSnapshotRef.current[date] = serialized;
+      }
+    });
+  }, [tracking, user]);
 
-    // Debounce saving to API (wait 1 second after last change)
+  // Debounced flush of only changed dates
+  useEffect(() => {
+    if (!user) return;
     const timeoutId = setTimeout(() => {
-      Object.entries(tracking).forEach(([date, data]) => {
-        void saveTracking(date, data);
+      changedDatesRef.current.forEach((date) => {
+        const data = tracking[date];
+        if (data) void saveTracking(date, data);
       });
+      changedDatesRef.current.clear();
     }, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [tracking, user, saveTracking]);
 
-    return () => { clearTimeout(timeoutId); };
+  // Flush on page unload using sendBeacon
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (!user) return;
+      if (changedDatesRef.current.size === 0) return;
+      const payload: Record<string, any> = {};
+      changedDatesRef.current.forEach(date => {
+        if (tracking[date]) payload[date] = tracking[date];
+      });
+      try {
+        navigator.sendBeacon('/api/tracking/bulk', JSON.stringify(payload));
+      } catch (e) {
+        // Fallback: synchronous POST for each date
+        changedDatesRef.current.forEach(date => {
+          const data = tracking[date];
+          if (!data) return;
+          void fetch(`/api/tracking/${date}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+            keepalive: true,
+          });
+        });
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [tracking, user, saveTracking]);
 }
 

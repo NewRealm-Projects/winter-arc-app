@@ -47,7 +47,7 @@ export async function GET(
   }
 }
 
-// POST /api/tracking/[date] - Create or update tracking entry
+// POST /api/tracking/[date] - Create tracking entry (create-only; returns 409 if exists)
 export async function POST(
   request: NextRequest,
   { params }: { params: { date: string } }
@@ -62,51 +62,29 @@ export async function POST(
     const userId = session.user.id;
     const body = await request.json();
 
-    // Check if entry exists
-    const existingEntry = await db.select()
+    const existing = await db.select()
       .from(trackingEntries)
-      .where(and(
-        eq(trackingEntries.userId, userId),
-        eq(trackingEntries.date, date)
-      ))
+      .where(and(eq(trackingEntries.userId, userId), eq(trackingEntries.date, date)))
       .limit(1);
 
-    if (existingEntry.length > 0) {
-      // Update existing entry
-      const updated = await db.update(trackingEntries)
-        .set({
-          pushups: body.pushups ?? existingEntry[0].pushups,
-          sports: body.sports ?? existingEntry[0].sports,
-          water: body.water ?? existingEntry[0].water,
-          protein: body.protein ?? existingEntry[0].protein,
-          weight: body.weight ?? existingEntry[0].weight,
-          completed: body.completed ?? existingEntry[0].completed,
-          updatedAt: new Date(),
-        })
-        .where(and(
-          eq(trackingEntries.userId, userId),
-          eq(trackingEntries.date, date)
-        ))
-        .returning();
-
-      return NextResponse.json(updated[0]);
-    } else {
-      // Create new entry
-      const newEntry = await db.insert(trackingEntries)
-        .values({
-          userId,
-          date,
-          pushups: body.pushups ?? 0,
-          sports: body.sports ?? 0,
-          water: body.water ?? 0,
-          protein: body.protein ?? 0,
-          weight: body.weight ?? null,
-          completed: body.completed ?? false,
-        })
-        .returning();
-
-      return NextResponse.json(newEntry[0]);
+    if (existing.length > 0) {
+      return NextResponse.json({ error: 'Entry already exists' }, { status: 409 });
     }
+
+    const newEntry = await db.insert(trackingEntries)
+      .values({
+        userId,
+        date,
+        pushups: body.pushups ?? 0,
+        sports: body.sports ?? 0,
+        water: body.water ?? 0,
+        protein: body.protein ?? 0,
+        weight: body.weight ?? null,
+        completed: body.completed ?? false,
+      })
+      .returning();
+
+    return NextResponse.json(newEntry[0], { status: 201 });
   } catch (error) {
     console.error('Error saving tracking entry:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -144,7 +122,7 @@ export async function PATCH(
     // Update only provided fields
     const updateData: any = { updatedAt: new Date() };
     const allowedFields = ['pushups', 'sports', 'water', 'protein', 'weight', 'completed'];
-    
+
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
         updateData[field] = body[field];

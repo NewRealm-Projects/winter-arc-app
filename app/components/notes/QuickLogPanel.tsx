@@ -65,9 +65,9 @@ function QuickLogPanel() {
   ];
 
   const handleDrinkSave = async (data: DrinkLogData) => {
-    if (!session?.user?.id) return;
-
-    const userId = session.user.id;
+  // Session user id may be stored in extended token; fallback to user?.email as pseudo-id
+  const userId = (session as any)?.user?.id || (session as any)?.user?.email;
+  if (!userId) return;
     const dateKey = data.date;
 
     // Get current tracking data with proper defaults
@@ -108,9 +108,8 @@ function QuickLogPanel() {
   };
 
   const handleFoodSave = async (data: FoodLogData) => {
-    if (!session?.user?.id) return;
-
-    const userId = session.user.id;
+  const userId = (session as any)?.user?.id || (session as any)?.user?.email;
+  if (!userId) return;
     const dateKey = data.date;
 
     // Calculate aggregated nutrition from all cart items
@@ -184,16 +183,20 @@ function QuickLogPanel() {
   };
 
   const handleWorkoutSave = async (data: WorkoutLogData) => {
-    if (!session?.user?.id) return;
-
-    const userId = session.user.id;
+  const userId = (session as any)?.user?.id || (session as any)?.user?.email;
+  if (!userId) return;
     const dateKey = data.date;
 
-    // Get current tracking data
-    const response = await fetch(`/api/tracking/${dateKey}`);
-    const currentTracking = response.ok
-      ? await response.json()
-      : { date: dateKey, water: 0, protein: 0, sports: {} as SportTracking, completed: false };
+    // Prefer local tracking state; only fetch if missing
+  let currentTracking: any = tracking[dateKey];
+  if (!currentTracking) {
+      const resp = await fetch(`/api/tracking/${dateKey}`);
+      if (resp.ok) {
+        currentTracking = await resp.json();
+      } else {
+        currentTracking = createEmptyTracking(dateKey);
+      }
+    }
 
     // Update sports tracking
     const sportEntry = data.sport === 'rest'
@@ -215,12 +218,25 @@ function QuickLogPanel() {
     // Update local state (optimistic)
     updateDayTracking(dateKey, updatedTracking);
 
-    // Sync to API
-    await fetch(`/api/tracking/${dateKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatedTracking),
-    });
+    // Sync to API (create if absent then patch) - ignore 409 on create
+    try {
+      const createResp = await fetch(`/api/tracking/${dateKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedTracking),
+      });
+      if (createResp.status === 409) {
+        await fetch(`/api/tracking/${dateKey}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedTracking),
+        });
+      }
+    } catch (e) {
+      console.error('Workout save failed, reverting locally:', e);
+      // Revert optimistic update if network fails
+  if (currentTracking) updateDayTracking(dateKey, currentTracking);
+    }
 
     // Save note to Input section if provided
     if (data.note?.trim()) {
@@ -241,9 +257,8 @@ function QuickLogPanel() {
   };
 
   const handleWeightSave = async (data: WeightLogData) => {
-    if (!session?.user?.id) return;
-
-    const userId = session.user.id;
+  const userId = (session as any)?.user?.id || (session as any)?.user?.email;
+  if (!userId) return;
     const dateKey = data.date;
 
     // Get current tracking data with proper defaults
@@ -262,16 +277,40 @@ function QuickLogPanel() {
     // Update local state (optimistic)
     updateDayTracking(dateKey, updatedTracking);
 
-    // Sync to API
-    await fetch(`/api/tracking/${dateKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updatedTracking),
-    });
+    // Sync to API with create-only then patch semantics (+ rollback)
+  const previousTracking: any = currentTracking;
+    try {
+      const createResp = await fetch(`/api/tracking/${dateKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedTracking),
+      });
+      if (createResp.status === 409) {
+        const patchResp = await fetch(`/api/tracking/${dateKey}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updatedTracking),
+        });
+        if (!patchResp.ok) throw new Error('Weight patch failed');
+      } else if (!createResp.ok) {
+        throw new Error('Weight create failed');
+      }
+    } catch (e) {
+      console.error('Weight save failed, reverting locally:', e);
+      updateDayTracking(dateKey, previousTracking);
+      if (user && previousTracking?.weight?.value) {
+        await fetch(`/api/users/${userId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ weight: previousTracking.weight.value }),
+        }).catch(() => {});
+      }
+      return;
+    }
 
-    // Also update user's current weight in profile
+    // Also update user's current weight in profile (non-blocking)
     if (user) {
-      await fetch(`/api/users/${userId}`, {
+      void fetch(`/api/users/${userId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ weight: data.weight }),

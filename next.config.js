@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    // Temporarily ignore build errors for migration completion
-    ignoreBuildErrors: true,
-  },
+  // Removed temporary ignoreBuildErrors (migration complete) - fix outstanding TS errors instead.
+  typescript: {},
   experimental: {
     optimizePackageImports: ['@/components', '@/lib', '@/utils'],
   },
