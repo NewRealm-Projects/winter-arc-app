@@ -8,7 +8,9 @@ import type {
   SportTracking,
 } from '../../types';
 import { normalizeSports } from '../../utils/sports';
-import type { Timestamp } from 'firebase/firestore';
+// import type { Timestamp } from 'firebase/firestore';
+// Stub Timestamp during Firebase → PostgreSQL migration
+type Timestamp = { seconds: number; nanoseconds: number };
 
 const initialState = useStore.getState();
 

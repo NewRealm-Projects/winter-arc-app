@@ -1,3 +1,6 @@
+// TODO: This service is deprecated and should be migrated to PostgreSQL
+// Temporarily stubbed during Firestore → PostgreSQL migration
+/*
 import {
   collection,
   deleteDoc,
@@ -13,6 +16,13 @@ import {
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import type { Firestore } from 'firebase/firestore';
 import type { FirebaseStorage } from 'firebase/storage';
+*/
+
+// Stub types during migration
+type Firestore = any;
+type FirebaseStorage = any;
+type QueryConstraint = any;
+
 import type { SmartNote, SmartNoteAttachment } from '../types/events';
 
 const COLLECTION_KEY = 'smartNotes';
@@ -77,6 +87,7 @@ let cachedDb: Firestore | null | undefined;
 let cachedStorage: FirebaseStorage | null | undefined;
 
 async function getFirestoreInstance(): Promise<Firestore | null> {
+  // TODO: Replace with PostgreSQL connection during migration
   if (cachedDb !== undefined) {
     return cachedDb;
   }
@@ -88,16 +99,18 @@ async function getFirestoreInstance(): Promise<Firestore | null> {
 
   try {
     const module = await import('../firebase');
-    cachedDb = module.db;
+    // cachedDb = module.db; // Firebase removed
+    cachedDb = null;
     return cachedDb;
   } catch (error) {
-    console.warn('Firestore unavailable, skipping smart note persistence.', error);
+    console.warn('Firestore unavailable (removed during PostgreSQL migration), skipping smart note persistence.', error);
     cachedDb = null;
     return cachedDb;
   }
 }
 
 async function getStorageInstance(): Promise<FirebaseStorage | null> {
+  // TODO: Replace with cloud storage solution during migration
   if (cachedStorage !== undefined) {
     return cachedStorage;
   }
@@ -109,10 +122,11 @@ async function getStorageInstance(): Promise<FirebaseStorage | null> {
 
   try {
     const module = await import('../firebase');
-    cachedStorage = module.storage;
+    // cachedStorage = module.storage; // Firebase removed
+    cachedStorage = null;
     return cachedStorage;
   } catch (error) {
-    console.warn('Firebase storage unavailable, skipping attachment upload.', error);
+    console.warn('Firebase storage unavailable (removed during PostgreSQL migration), skipping attachment upload.', error);
     cachedStorage = null;
     return cachedStorage;
   }
@@ -226,9 +240,11 @@ export async function fetchSmartNotes(userId: string, options: FetchOptions = {}
     constraints.push(limit(limitValue));
   }
 
-  const snapshot = await getDocs(query(collectionRef, ...constraints));
+  // const snapshot = await getDocs(query(collectionRef, ...constraints));
+  // Temporarily disabled during Firebase → PostgreSQL migration
+  const snapshot = { docs: [] };
 
-  return snapshot.docs.map((docSnapshot) => {
+  return snapshot.docs.map((docSnapshot: any) => {
     const data = docSnapshot.data() as SmartNote;
     return {
       ...data,
@@ -243,10 +259,12 @@ export async function fetchAllSmartNotes(userId: string): Promise<SmartNote[]> {
     return [];
   }
 
-  const collectionRef = collection(firestore, 'users', userId, COLLECTION_KEY);
-  const snapshot = await getDocs(query(collectionRef, orderBy('ts', 'desc')));
+  // const collectionRef = collection(firestore, 'users', userId, COLLECTION_KEY);
+  // const snapshot = await getDocs(query(collectionRef, orderBy('ts', 'desc')));
+  // Temporarily disabled during Firebase → PostgreSQL migration
+  const snapshot = { docs: [] };
 
-  return snapshot.docs.map((docSnapshot) => {
+  return snapshot.docs.map((docSnapshot: any) => {
     const data = docSnapshot.data() as SmartNote;
     return {
       ...data,
