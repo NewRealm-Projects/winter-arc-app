@@ -41,14 +41,16 @@ export async function GET(
 
     const code = params.code;
 
-    const group = await db.select().from(groups).where(eq(groups.code, code)).limit(1);
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
+  const group = await db.select().from(groups).where(eq(groups.code, code)).limit(1);
 
     if (group.length === 0) {
       return NextResponse.json({ error: 'Group not found' }, { status: 404 });
     }
 
-    // Get member details
-    const members = group[0].members as string[] || [];
+    // Get member details (safe access since group length > 0 checked)
     const memberDetails = await db.select({
       id: users.id,
       nickname: users.nickname,
@@ -89,6 +91,9 @@ export async function POST(
     const name = sanitizeName(body.name) || code;
 
     // Check if group already exists
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
     const existingGroup = await db.select().from(groups).where(eq(groups.code, code)).limit(1);
 
     if (existingGroup.length > 0) {
@@ -130,6 +135,9 @@ export async function PATCH(
     const code = params.code;
     const body = await request.json();
 
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
     const group = await db.select().from(groups).where(eq(groups.code, code)).limit(1);
 
     if (group.length === 0) {
@@ -137,7 +145,8 @@ export async function PATCH(
     }
 
     // Only members can modify the group
-    const currentMembers = (group[0].members as string[]) || [];
+  // group length checked above; assert non-null for TypeScript
+  const currentMembers: string[] = Array.isArray(group[0]!.members) ? (group[0]!.members as string[]) : [];
     if (!currentMembers.includes(session.user.id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
@@ -205,11 +214,14 @@ export async function DELETE(
 
     const code = params.code;
 
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
     const group = await db.select().from(groups).where(eq(groups.code, code)).limit(1);
     if (group.length === 0) {
       return NextResponse.json({ error: 'Group not found' }, { status: 404 });
     }
-    const currentMembers = (group[0].members as string[]) || [];
+  const currentMembers: string[] = Array.isArray(group[0]!.members) ? (group[0]!.members as string[]) : [];
     if (!currentMembers.includes(session.user.id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }

@@ -358,12 +358,12 @@ function QuickLogPanel() {
       updateDayTracking(dateKey, previousTracking ?? currentTracking);
       const rollbackSuccess = await rollbackProfileWeight();
       if (!rollbackSuccess) {
-        showToast({ message: 'Failed to restore your profile weight. Please refresh the page.', type: 'error' });
+        showToast({ message: 'Saving weight failed and rollback unsuccessful. Please refresh the page.', type: 'error' });
+        return;
       }
       showToast({ message: 'Saving weight failed. Please try again.', type: 'error' });
       return;
     }
-
     if (user) {
       void fetch(`/api/users/${userId}`, {
         method: 'PATCH',

@@ -151,8 +151,7 @@ groups { id, code, name, members[], createdAt }
 \n### Third-Party APIs
 
 - **Sentry**: Error tracking + performance monitoring
-  - DSN: `VITE_SENTRY_DSN` (environment variable)
-  - Privacy: Sensitive data filtered via `beforeSend` hook
+  - DSN: `NEXT_PUBLIC_SENTRY_DSN` (environment variable)  - Privacy: Sensitive data filtered via `beforeSend` hook
 - **Weather API** (Open-Meteo): Optional weather integration
   - No API key required, rate-limited
 - **Gemini AI** (Deprecated 2025-10-04): Removed, fallback quotes remain
