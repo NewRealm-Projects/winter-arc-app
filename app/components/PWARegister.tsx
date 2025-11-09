@@ -18,7 +18,7 @@ export function PWARegister() {
           updateViaCache: 'none',
         })
         .then((registration) => {
-          console.log('[PWA] Service Worker registered:', registration.scope);
+          // Service Worker registered successfully
           
           // Check for updates
           registration.update();

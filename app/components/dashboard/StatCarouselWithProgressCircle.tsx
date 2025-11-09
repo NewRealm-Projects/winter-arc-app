@@ -41,10 +41,11 @@ export function StatCarouselWithProgressCircle({ onSegmentClick }: StatCarouselW
 
   // Disable auto-rotate if prefers-reduced-motion
   useEffect(() => {
-    if (prefersReducedMotion) {
-      setAutoRotateEnabled(false);
+    if (prefersReducedMotion && autoRotateEnabled) {
+      // Use microtask to avoid synchronous setState
+      Promise.resolve().then(() => setAutoRotateEnabled(false));
     }
-  }, [prefersReducedMotion]);
+  }, [prefersReducedMotion, autoRotateEnabled]);
 
   // Auto-rotation effect
   useEffect(() => {

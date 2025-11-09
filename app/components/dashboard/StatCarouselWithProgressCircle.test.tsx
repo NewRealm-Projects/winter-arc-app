@@ -150,7 +150,9 @@ describe('StatCarouselWithProgressCircle', () => {
     expect(segments.length).toBe(5);
 
     // Click the first segment (Sports)
-    await user.click(segments[0]);
+    const firstSegment = segments[0];
+    if (!firstSegment) throw new Error('No segments found');
+    await user.click(firstSegment);
 
     expect(mockOnSegmentClick).toHaveBeenCalledWith('sports');
   });

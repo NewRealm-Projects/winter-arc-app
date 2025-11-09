@@ -49,29 +49,35 @@ export function useCarouselStats(): CarouselStat[] {
   return useMemo(() => {
     // Convert selected date to YYYY-MM-DD format
     const activeDate = format(parseISO(selectedDate), 'yyyy-MM-dd');
-    const dayTracking = tracking[activeDate] ?? {};
+    const dayTracking: DailyTracking = tracking[activeDate] ?? {
+      date: activeDate,
+      sports: {},
+      water: 0,
+      protein: 0,
+      completed: false,
+    };
 
     // Calculate goals
     const waterGoal = resolveWaterGoal(user);
 
     // Sports stat
-    const sportsCount = countActiveSports(dayTracking?.sports);
+    const sportsCount = countActiveSports(dayTracking.sports);
     const sportsDone = sportsCount > 0;
     const sportsValue = sportsDone ? t('common.completed') : t('common.notCompleted');
 
     // Pushup stat
-    const pushupTotal = dayTracking?.pushups?.total ?? 0;
+    const pushupTotal = dayTracking.pushups?.total ?? 0;
     const pushupDone = pushupTotal > 0;
     const pushupValue = `${pushupTotal} ${t('tracking.total')}`;
 
     // Hydration stat (formatted)
-    const waterValue = dayTracking?.water ?? 0;
+    const waterValue = dayTracking.water ?? 0;
     const localeCode = language === 'de' ? 'de-DE' : 'en-US';
     const waterDisplay = `${formatMl(waterValue, { locale: localeCode, maximumFractionDigits: 1 })}L / ${formatMl(waterGoal, { locale: localeCode, maximumFractionDigits: 1 })}L`;
     const waterProgress = getPercent(waterValue, waterGoal);
 
     // Nutrition stat (calories primary)
-    const calorieValue = dayTracking?.calories ?? 0;
+    const calorieValue = dayTracking.calories ?? 0;
     let calorieProgress = 0;
     if (user?.weight && user?.activityLevel) {
       const tdee = calculateTDEE(user.weight, user.activityLevel, user.bodyFat);
@@ -79,7 +85,7 @@ export function useCarouselStats(): CarouselStat[] {
     }
 
     // Weight stat (all info)
-    const weightValue = dayTracking?.weight?.value ?? 0;
+    const weightValue = dayTracking.weight?.value ?? 0;
     const weightDone = weightValue > 0;
     const weightDisplay = weightDone ? `${weightValue} kg` : '—';
 

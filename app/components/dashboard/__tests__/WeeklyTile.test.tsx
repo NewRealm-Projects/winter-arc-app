@@ -219,19 +219,19 @@ const firestoreMocks = vi.hoisted(() => {
     if (segments[0] === 'users' && segments.length === 2) {
       return { exists: () => true, data: () => storeState.user };
     }
-    if (segments[0] === 'users' && segments[2] === 'checkins') {
+    if (segments[0] === 'users' && segments[2] === 'checkins' && segments[3]) {
       const entry = storeState.checkIns[segments[3]];
       return { exists: () => Boolean(entry), data: () => entry };
     }
-    if (segments[0] === 'users' && segments[2] === 'trainingLoad') {
+    if (segments[0] === 'users' && segments[2] === 'trainingLoad' && segments[3]) {
       const entry = storeState.trainingLoad[segments[3]];
       return { exists: () => Boolean(entry), data: () => entry };
     }
-    if (segments[0] === 'tracking' && segments[2] === 'entries') {
+    if (segments[0] === 'tracking' && segments[2] === 'entries' && segments[3]) {
       const entry = dayData.get(segments[3]);
       return { exists: () => Boolean(entry), data: () => entry };
     }
-    if (segments[0] === 'tracking' && segments[2] === 'days') {
+    if (segments[0] === 'tracking' && segments[2] === 'days' && segments[3]) {
       const entry = dayData.get(segments[3]);
       return { exists: () => Boolean(entry), data: () => entry };
     }
@@ -240,16 +240,16 @@ const firestoreMocks = vi.hoisted(() => {
 
   const setDoc = vi.fn(async (ref: { path: string; segments: string[] }, data: Record<string, unknown>) => {
     const { segments } = ref;
-    if (segments[0] === 'users' && segments[2] === 'checkins') {
+    if (segments[0] === 'users' && segments[2] === 'checkins' && segments[3]) {
       storeState.checkIns[segments[3]] = data as unknown as DailyCheckIn;
     }
-    if (segments[0] === 'users' && segments[2] === 'trainingLoad') {
+    if (segments[0] === 'users' && segments[2] === 'trainingLoad' && segments[3]) {
       storeState.trainingLoad[segments[3]] = data as unknown as DailyTrainingLoad;
     }
-    if (segments[0] === 'tracking' && segments[2] === 'entries') {
+    if (segments[0] === 'tracking' && segments[2] === 'entries' && segments[3]) {
       dayData.set(segments[3], { ...(dayData.get(segments[3]) ?? {}), ...data });
     }
-    if (segments[0] === 'tracking' && segments[2] === 'days') {
+    if (segments[0] === 'tracking' && segments[2] === 'days' && segments[3]) {
       dayData.set(segments[3], { ...(dayData.get(segments[3]) ?? {}), ...data });
     }
   });

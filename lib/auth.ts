@@ -72,10 +72,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: 'jwt' },
 });
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
-
-// Helper for API routes (server side session access)
-export function auth() {
-  return getServerSession(authOptions);
-}
+export { handlers as GET, handlers as POST };

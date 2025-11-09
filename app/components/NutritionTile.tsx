@@ -58,13 +58,12 @@ function NutritionTile() {
   const totalFat = sanitizeValue(combinedTracking?.fatG ?? manualFat);
 
   // Check if there are smart contributions (from notes)
-  const hasSmartContributions = useMemo(() => {
-    const smartCalories = (combinedTracking?.calories ?? 0) - manualCalories;
-    const smartProtein = (combinedTracking?.protein ?? 0) - manualProtein;
-    const smartCarbs = (combinedTracking?.carbsG ?? 0) - manualCarbs;
-    const smartFat = (combinedTracking?.fatG ?? 0) - manualFat;
-    return smartCalories > 0 || smartProtein > 0 || smartCarbs > 0 || smartFat > 0;
-  }, [combinedTracking, manualCalories, manualProtein, manualCarbs, manualFat]);
+  // Inline calculation to avoid React Compiler memoization warning
+  const smartCalories = (combinedTracking?.calories ?? 0) - manualCalories;
+  const smartProtein = (combinedTracking?.protein ?? 0) - manualProtein;
+  const smartCarbs = (combinedTracking?.carbsG ?? 0) - manualCarbs;
+  const smartFat = (combinedTracking?.fatG ?? 0) - manualFat;
+  const hasSmartContributions = smartCalories > 0 || smartProtein > 0 || smartCarbs > 0 || smartFat > 0;
 
   // Calculate nutrition goals
   const goals = useMemo(() => {

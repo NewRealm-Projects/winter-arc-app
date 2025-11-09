@@ -19,18 +19,11 @@ interface UseTrackingEntriesResult {
   readonly retry: () => void;
 }
 
-interface StoreShape {
-  authLoading: boolean;
-  user: { id: string } | null;
-  tracking: Record<string, DailyTracking>;
-  setTracking: (t: Record<string, DailyTracking>) => void;
-}
-
 export function useTrackingEntries(): UseTrackingEntriesResult {
-  const authLoading = useStore((state: StoreShape) => state.authLoading);
-  const userId = useStore((state: StoreShape) => state.user?.id);
-  const tracking = useStore((state: StoreShape) => state.tracking);
-  const setTracking = useStore((state: StoreShape) => state.setTracking);
+  const authLoading = useStore((state) => state.authLoading);
+  const userId = useStore((state) => state.user?.id);
+  const tracking = useStore((state) => state.tracking);
+  const setTracking = useStore((state) => state.setTracking);
 
   const [error, setError] = useState<TrackingListenerError | null>(null);
   const [loading, setLoading] = useState<boolean>(false);

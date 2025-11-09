@@ -12,11 +12,6 @@ function PWAInstallPrompt() {
       event.preventDefault();
       const promptEvent = event as BeforeInstallPromptEvent;
       setPwaInstallPrompt(promptEvent);
-
-      const dismissedAt = localStorage.getItem('pwa-install-dismissed');
-      if (!dismissedAt && !window.matchMedia('(display-mode: standalone)').matches) {
-        setIsVisible(true);
-      }
     };
 
     window.addEventListener('beforeinstallprompt', handler as EventListener);
@@ -28,8 +23,11 @@ function PWAInstallPrompt() {
       return;
     }
     const dismissedAt = localStorage.getItem('pwa-install-dismissed');
-    if (!dismissedAt && !window.matchMedia('(display-mode: standalone)').matches) {
-      setIsVisible(true);
+    const shouldShow = !dismissedAt && !window.matchMedia('(display-mode: standalone)').matches;
+    
+    // Use a microtask to avoid synchronous setState in effect
+    if (shouldShow) {
+      Promise.resolve().then(() => setIsVisible(true));
     }
   }, [pwaInstallPrompt]);
 
