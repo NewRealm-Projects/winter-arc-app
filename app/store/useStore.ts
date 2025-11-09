@@ -53,7 +53,7 @@ interface AppState {
   setLeaderboardFilter: (filter: 'week' | 'month' | 'all') => void;
 }
 
-const getTodayDate = (): string => new Date().toISOString().split('T')[0];
+const getTodayDate = (): string => new Date().toISOString().split('T')[0]!; // Non-null: ISO string always has 'T'
 
 // Load dark mode preference from localStorage
 const getInitialDarkMode = (): boolean => {
@@ -105,15 +105,18 @@ export const useStore = create<AppState>((set) => ({
   tracking: {},
   setTracking: (tracking) => set({ tracking }),
   updateDayTracking: (date, data) =>
-    set((state) => ({
-      tracking: {
-        ...state.tracking,
-        [date]: {
-          ...state.tracking[date],
-          ...data,
+    set((state) => {
+      const existing = state.tracking[date] || { date, sports: {}, water: 0, protein: 0, completed: false };
+      return {
+        tracking: {
+          ...state.tracking,
+          [date]: {
+            ...existing,
+            ...data,
+          } as DailyTracking,
         },
-      },
-    })),
+      };
+    }),
 
   checkIns: {},
   setCheckInForDate: (date, checkIn) =>

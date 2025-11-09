@@ -49,13 +49,13 @@ export function useCarouselStats(): CarouselStat[] {
   return useMemo(() => {
     // Convert selected date to YYYY-MM-DD format
     const activeDate = format(parseISO(selectedDate), 'yyyy-MM-dd');
-    const dayTracking: DailyTracking = tracking[activeDate] ?? {
+    const dayTracking: DailyTracking = tracking[activeDate] ?? ({
       date: activeDate,
       sports: {},
       water: 0,
       protein: 0,
       completed: false,
-    };
+    } as DailyTracking);
 
     // Calculate goals
     const waterGoal = resolveWaterGoal(user);

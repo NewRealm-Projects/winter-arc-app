@@ -80,11 +80,12 @@ export function useTrackingEntries(): UseTrackingEntriesResult {
           const map: Record<string, DailyTracking> = {};
           entries.forEach((entry: any) => {
             map[entry.date] = {
-              pushups: entry.pushups || 0,
-              sports: entry.sports || 0,
+              date: entry.date,
+              pushups: entry.pushups ? { total: entry.pushups } : undefined,
+              sports: entry.sports || {},
               water: entry.water || 0,
               protein: entry.protein || 0,
-              weight: entry.weight || null,
+              weight: entry.weight ? { value: entry.weight } : undefined,
               completed: entry.completed || false,
             };
           });

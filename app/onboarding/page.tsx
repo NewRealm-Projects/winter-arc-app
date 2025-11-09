@@ -19,12 +19,17 @@ export default function OnboardingPage() {
       return;
     }
 
+    if (!user) {
+      console.error('No user session found');
+      return;
+    }
+
     // Update user with onboarding data
     const updatedUser = {
       ...user,
       nickname,
       height: parseInt(height),
-      weight: weight ? parseFloat(weight) : undefined,
+      weight: weight ? parseFloat(weight) : user.weight,
     };
 
     setUser(updatedUser);

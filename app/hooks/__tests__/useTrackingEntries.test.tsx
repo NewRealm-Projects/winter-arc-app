@@ -18,10 +18,8 @@ vi.mock('@/services/firestoreClient', () => snapshotMock);
 
 const createTestUser = (): User => ({
   id: 'user-1',
-  firebaseUid: null,
-  email: 'test@example.com',
-  nickname: 'Test',
   language: 'de',
+  nickname: 'Test',
   gender: 'male',
   height: 180,
   weight: 80,
@@ -29,7 +27,6 @@ const createTestUser = (): User => ({
   groupCode: 'grp',
   pushupState: { baseReps: 10, sets: 5, restTime: 90 },
   createdAt: new Date(),
-  updatedAt: new Date(),
 });
 
 describe('useTrackingEntries', () => {

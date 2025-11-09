@@ -48,9 +48,9 @@ describe('useStore', () => {
     useStore.getState().updateDayTracking(date, { water: 1500, completed: true });
 
     const updated = useStore.getState().tracking[date];
-    expect(updated.water).toBe(1500);
-    expect(updated.completed).toBe(true);
-    expect(updated.protein).toBe(40);
+    expect(updated?.water).toBe(1500);
+    expect(updated?.completed).toBe(true);
+    expect(updated?.protein).toBe(40);
   });
 
   it('stores group cache entries with timestamp fallback', () => {
@@ -126,7 +126,7 @@ describe('useStore', () => {
 
   it('removes check-ins and training load entries when null is provided', () => {
     const date = '2025-04-01';
-    const timestamp = { toMillis: () => Date.now() } as unknown as Timestamp;
+    const timestamp = new Date();
     const checkIn: DailyCheckIn = {
       date,
       sleepScore: 7,

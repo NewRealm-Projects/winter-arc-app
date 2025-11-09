@@ -35,7 +35,7 @@ export function useTrainingLoadWeek(): WeeklyTrainingLoadStats {
     // Build 7 days (Mon-Sun)
     const weekDays = Array.from({ length: 7 }, (_, index) => {
       const currentDate = addDays(monday, index);
-      const dateKey = currentDate.toISOString().split('T')[0];
+      const dateKey = currentDate.toISOString().split('T')[0]!; // Non-null: ISO string always has 'T'
       const loadData = trainingLoadMap[dateKey];
       const load = loadData?.load ?? 0;
       const percent = Math.min(100, Math.max(0, Math.round((load / MAX_TRAINING_LOAD) * 100)));

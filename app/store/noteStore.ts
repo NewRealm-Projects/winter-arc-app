@@ -127,8 +127,8 @@ async function getFirebaseAuth(): Promise<Auth | null> {
   }
 
   try {
-    const module = await import('../firebase');
-    cachedAuth = module.auth;
+    const firebaseModule = await import('../firebase');
+    cachedAuth = firebaseModule.auth;
     return cachedAuth;
   } catch (error) {
     console.warn('Firebase auth unavailable, skipping remote persistence.', error);

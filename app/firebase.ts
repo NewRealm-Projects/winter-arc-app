@@ -5,3 +5,4 @@ export async function getFirebaseApp() {
 }
 export const firestore = {} as any;
 export const storage = {} as any;
+export const auth = {} as any;
