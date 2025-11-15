@@ -30,13 +30,13 @@ const ensureResult = (result) => {
 
 let result;
 if (existsSync(localCli)) {
-  result = run(localCli, ['build', '--yes', '--no-clipboard']);
+  result = run(localCli, ['build', '--yes']);
 } else {
   console.warn(
     '[vercel:build] Local Vercel CLI not found. Falling back to `npx vercel`. Add `vercel` as a devDependency for faster runs.'
   );
   const npxBinary = isWindows ? 'npx.cmd' : 'npx';
-  result = run(npxBinary, ['--yes', 'vercel', 'build', '--yes', '--no-clipboard']);
+  result = run(npxBinary, ['--yes', 'vercel', 'build', '--yes']);
 }
 
 ensureResult(result);
