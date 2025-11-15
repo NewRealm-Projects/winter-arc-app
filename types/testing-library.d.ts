@@ -1,3 +1,4 @@
-// Ensure jest-dom matchers are available in TS for Vitest tests.
-import '@testing-library/jest-dom';
-export {};
+/// <reference types="vitest" />
+
+// Extend Vitest's expect matchers with Testing Library helpers.
+import '@testing-library/jest-dom/vitest';
