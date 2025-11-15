@@ -1,7 +1,7 @@
 'use client'
 
 import { SessionProvider } from 'next-auth/react'
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import type { Session } from 'next-auth'
 import type { AuthHydration, AuthStatus, SerializedUser } from '@/app/lib/getCurrentUser'
@@ -55,16 +55,12 @@ export function AuthProvider({
   const storeUser = useStore((state) => state.user)
   const storeIsOnboarded = useStore((state) => state.isOnboarded)
 
-  const [status, setStatus] = useState<AuthStatus>(initialStatus ?? 'unauthenticated')
-
   const fallbackUser = useMemo(() => (initialUser ? deserializeUser(initialUser) : null), [initialUser])
 
-  useEffect(() => {
-    setStatus(initialStatus ?? 'unauthenticated')
-  }, [initialStatus])
+  const status = initialStatus ?? 'unauthenticated'
 
   useEffect(() => {
-    if (initialStatus === 'authenticated') {
+    if (status === 'authenticated') {
       if (fallbackUser) {
         addBreadcrumb('Auth: hydrated user from server', { id: fallbackUser.id })
         clearDemoModeMarker()
@@ -117,7 +113,7 @@ export function AuthProvider({
     } catch (error) {
       console.warn('Selective session cleanup failed', error)
     }
-  }, [fallbackUser, initialIsOnboarded, initialStatus, setAuthLoading, setIsOnboarded, setTracking, setUser])
+  }, [fallbackUser, initialIsOnboarded, setAuthLoading, setIsOnboarded, setTracking, setUser, status])
 
   const contextUser = storeUser ?? fallbackUser
   const contextIsOnboarded = storeUser ? storeIsOnboarded : initialIsOnboarded

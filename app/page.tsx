@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './hooks/useAuth';
 
@@ -9,21 +10,18 @@ export default function HomePage() {
   const { status, user, isOnboarded } = useAuth();
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.replace('/auth/signin');
+    if (status !== 'authenticated') {
       return;
     }
 
-    if (status === 'authenticated') {
-      if (!user) {
-        return;
-      }
+    if (!user) {
+      return;
+    }
 
-      if (!isOnboarded) {
-        router.push('/onboarding');
-      } else {
-        router.push('/dashboard');
-      }
+    if (!isOnboarded) {
+      router.push('/onboarding');
+    } else {
+      router.push('/dashboard');
     }
   }, [status, user, isOnboarded, router]);
 
@@ -36,13 +34,12 @@ export default function HomePage() {
           <p className="text-winter-200 mb-6">
             Bitte melde dich an, um deine Winter Arc Statistiken zu sehen.
           </p>
-          <button
-            type="button"
-            onClick={() => router.push('/auth/signin')}
+          <Link
+            href="/auth/signin"
             className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-2.5 font-semibold text-winter-900 shadow-sm transition hover:bg-winter-100"
           >
             Zur Anmeldung
-          </button>
+          </Link>
         </div>
       </div>
     );
