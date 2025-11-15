@@ -55,12 +55,12 @@ export function AuthProvider({
   const storeUser = useStore((state) => state.user)
   const storeIsOnboarded = useStore((state) => state.isOnboarded)
 
-  const [status, setStatus] = useState<AuthStatus>(initialStatus)
+  const [status, setStatus] = useState<AuthStatus>(initialStatus ?? 'unauthenticated')
 
   const fallbackUser = useMemo(() => (initialUser ? deserializeUser(initialUser) : null), [initialUser])
 
   useEffect(() => {
-    setStatus(initialStatus)
+    setStatus(initialStatus ?? 'unauthenticated')
   }, [initialStatus])
 
   useEffect(() => {

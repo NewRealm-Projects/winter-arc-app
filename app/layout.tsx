@@ -39,18 +39,15 @@ export default async function RootLayout({
     <html lang="de" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider>
-          <AuthProvider>
+          <AuthProvider
+            session={authState.session}
+            status={authState.status}
+            user={authState.user}
+            isOnboarded={authState.isOnboarded}
+          >
             {children}
           </AuthProvider>
         </ThemeProvider>
-        <AuthProvider
-          session={authState.session}
-          status={authState.status}
-          user={authState.user}
-          isOnboarded={authState.isOnboarded}
-        >
-          {children}
-        </AuthProvider>
         <PWARegister />
         <Telemetry />
       </body>
