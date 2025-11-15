@@ -105,7 +105,16 @@ Guidelines:
 - For feature-level changes that alter requirements or API behavior, create a change proposal under `openspec/changes/<change-id>/` following the instructions in `openspec/AGENTS.md`.
 - Skip the proposal workflow for bug fixes, documentation-only changes, or dependency upgrades.
 
-## 10. Definition of Done Checklist
+## 10. Observability & Performance Monitoring
+
+- **Vercel Analytics** is enabled globally via `<Analytics />` in `app/layout.tsx`. No further setup is needed beyond deploying to Vercel.
+- **Vercel Speed Insights** collects runtime performance metrics for deployed builds. The component is already wired inside `app/components/Telemetry.tsx`, which also renders `<Analytics />`. To verify or re-enable it:
+  1. Confirm the dependency exists: `npm install @vercel/speed-insights`.
+  2. Ensure `Telemetry` is mounted in `app/layout.tsx` (it renders both Analytics and Speed Insights).
+  3. Deploy and visit the site; the Vercel dashboard will start showing the collected metrics within a few minutes.
+- When adding new observability tooling, document the required environment variables and initialization points here.
+
+## 11. Definition of Done Checklist
 
 Before merging:
 - [ ] Code follows the conventions outlined above.
