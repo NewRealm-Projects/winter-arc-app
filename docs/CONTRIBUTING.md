@@ -1,6 +1,8 @@
 # Contributing to Winter Arc Tracker
 
-Thank you for your interest in contributing! This document provides guidelines for contributing to the Winter Arc fitness tracking PWA.
+> **Canonical source:** The up-to-date engineering workflow, coding standards, and tool usage now live in [docs/development-guidelines.md](./development-guidelines.md). This file is kept for historical context and will be trimmed or archived once all sections are ported across.
+
+Thank you for your interest in contributing! This document provides legacy guidance for contributing to the Winter Arc fitness tracking PWA.
 
 ## Table of Contents
 - [Getting Started](#getting-started)
