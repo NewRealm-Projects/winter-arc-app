@@ -16,7 +16,9 @@
       "Bash(npx tsc:*)",
       "Bash(npx next-auth@4.24.13:*)",
       "Bash(npm run vercel:build:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(taskkill:*)",
+      "Bash(npx eslint:*)"
     ],
     "deny": [],
     "ask": []

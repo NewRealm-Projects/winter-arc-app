@@ -3,8 +3,7 @@
 import { SessionProvider } from 'next-auth/react'
 import { createContext, useContext, useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
-import type { Session } from 'next-auth'
-import type { AuthHydration, AuthStatus, SerializedUser } from '@/app/lib/getCurrentUser'
+import type { AuthHydration, AuthStatus, SerializedUser, SerializedSession } from '@/app/lib/getCurrentUser'
 import type { User } from '@/app/types'
 import { useStore } from '@/app/store/useStore'
 import { clearDemoModeMarker, isDemoModeActive } from '@/app/constants/demo'
@@ -20,7 +19,7 @@ interface AuthProviderProps extends SerializedAuth {
 }
 
 interface AuthContextValue {
-  session: Session | null
+  session: SerializedSession | null
   status: AuthStatus
   user: User | null
   isOnboarded: boolean
@@ -129,7 +128,7 @@ export function AuthProvider({
   )
 
   return (
-    <SessionProvider session={session}>
+    <SessionProvider>
       <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     </SessionProvider>
   )

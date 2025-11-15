@@ -503,61 +503,53 @@ if (first) {
 
 ### Dependency Policy
 
-Keep the dependency tree healthy and transparent:
+Keep the dependency tree healthy and transparent. Always prefer latest stable versions, never suppress warnings, and treat security vulnerabilities as immediate priorities.
 
-**Principles:**
+**Core principles:**
 
-- Always prefer latest stable (non-beta) versions of direct dependencies
-- **Never suppress or hide dependency warnings** (deprecated, vulnerabilities)
-- Avoid workarounds like `overrides` or disabling audits
-- Remove unused packages proactively with `depcheck` and `knip`
-- Security and deprecation warnings are tasks, not noise—never ignore
+- Prefer latest stable (non-beta) versions
+- Never suppress or hide dependency warnings
+- Remove unused packages proactively (`depcheck`, `knip`)
+- Adapt code to dependencies, not vice versa
 
-**Upgrade Workflow:**
+**For major infrastructure upgrades** (Next.js, React, TypeScript major versions), always ask user before proceeding.
 
-1. Run `npx depcheck && npx knip` to identify unused/dead deps
-2. Upgrade target: `npm install <pkg>@latest`
-3. Run `npm run test:all` (typecheck + lint + tests + build)
-4. If failures: adapt code; do NOT downgrade unless blocking upstream bug
-5. Record upgrade decisions in docs if notable
+**See [docs/development-guidelines.md Section 7](docs/development-guidelines.md#7-dependency-management-policy) for:**
 
-**Temporary Exceptions:** Only allowed if (a) upstream critical bug, (b) security patch pending. Must include removal plan and owner.
+- Complete upgrade workflow (5 steps)
+- Security remediation procedures
+- Infrastructure upgrade request template
+- Decision tracking format
+- Integration with CI/CD
 
 ### Security First Policy (PRIO #1)
 
-Security is paramount—every identified vulnerability (npm audit, Snyk, GitHub Advisory, Dependabot) is triaged immediately.
+Security is paramount—every vulnerability is triaged immediately with strict SLAs.
 
-**Principles:**
+**Response times:**
 
-- No ignore lists except documented, time-limited exceptions (max 30 days) in docs with owner & removal date
-- High/Critical: Patch or upgrade same day (or next business day)
-- Moderate/Low: Bundle but resolve within 7 days
-- Never hide warnings via audit disabling or artificial overrides
-- Transitive blockers: Open upstream issue, track in docs
+- Critical/High: Same day or next business day
+- Moderate: Within 7 days
+- Low: Within 14 days
 
-**Remediation Workflow:**
+Target: **Zero open High/Critical vulnerabilities**
 
-1. Parse `npm audit --json` → determine priority
-2. For direct deps: `npm install <pkg>@latest` or security-fix version
-3. For transitive: Try upgrading root package; if not possible, document issue + temporary mitigation
-4. After each fix: `npm run test:all` + manual smoke test
-5. PR format: `security:<package>-<version>` or `security:monthly-batch-YYYY-MM`
+**See [docs/development-guidelines.md Section 7.3](docs/development-guidelines.md#73-security-first-policy-prio-1) for:**
 
-**Metrics:**
-
-- Open High/Critical: 0
-- Mean Time To Remediate (Critical): <24h
-- No disabled audits or hidden advisories
+- Detailed remediation workflow
+- Forbidden practices (disabling audits, ignore lists)
+- Acceptable temporary exceptions (max 30 days)
+- Metrics and transparency requirements
 
 ### Documentation Policy
 
-**Principle:** Documentation is not optional—it is a first-class maintenance artifact.
+**Principle:** Documentation is not optional—it is a first-class maintenance artifact. Documentation must be consolidated, not duplicated.
 
 **When to Create `.md` Files:**
 
 - **Only when necessary:** Create `.md` files for:
   - Architectural decisions affecting multiple systems (e.g., `docs/training-load.md`)
-  - Setup instructions for complex integrations (e.g., `docs/1PASSWORD_SETUP.md`)
+  - Setup instructions for complex integrations (e.g., `docs/1PASSWORD.md`)
   - Runbooks or troubleshooting guides for common issues
   - DO NOT create ad-hoc docs for single features; inline code comments and tests are sufficient
 
@@ -565,6 +557,14 @@ Security is paramount—every identified vulnerability (npm audit, Snyk, GitHub 
   - No `.md` file needed for single-file features or minor bug fixes
   - Prefer JSDoc comments in code over standalone guides for simple APIs
   - Keep prose documentation concise; let tests and examples be your primary spec
+
+**Knowledge Consolidation Principles:**
+
+- **Single source of truth:** Each topic should have ONE comprehensive document, not multiple overlapping files
+- **No duplication:** Quick-refs must link to comprehensive docs, not duplicate content
+- **File size limit:** Maximum 800 lines per document (split into logical sub-documents if exceeded)
+- **Consolidation reviews:** Quarterly reviews to identify and merge redundant documentation
+- **Cross-reference audit:** Before merging docs PRs, verify no duplicate files exist in other directories
 
 **When Features Change, Update Related Documentation:**
 
@@ -584,11 +584,52 @@ Critical: If a feature changes, ALL related `.md` documentation MUST be updated 
 3. Add a note in your PR: "Updated docs: [file1], [file2], …"
 4. For policy changes (Section 7 items): also update `.github/copilot-instructions.md` per line 3-7
 
-**Governance:**
+**Archival Rules:**
 
-- `.md` files older than 6 months without updates are candidates for archival
-- Archive outdated docs to `docs/archive/` with a link in the original location
-- Monthly hygiene check: `git log --since="6 months ago" -- docs/` to spot stale files
+When to archive documentation to `docs/archive/`:
+
+- **Migration guides** - Archive when migration is complete (add "HISTORICAL" header with completion date)
+- **Generated reports** - Archive after 3 months (hygiene reports, bundle analysis, code reviews)
+- **Outdated runbooks** - Archive when process changes (keep for historical reference)
+- **Deprecated features** - Archive feature docs when feature is removed from codebase
+- **Age-based** - `.md` files older than 6 months without updates are candidates for archival
+
+**Archive Location & Naming:**
+
+```
+docs/archive/<category>/<filename>-<YYYY-MM-DD>.md
+```
+
+Examples:
+
+- `docs/archive/migrations/backend-quickstart-vite-2024-10.md`
+- `docs/archive/reports/hygiene-report-2025-10-03.md`
+- `docs/archive/features/firebase-integration-2024-09.md`
+
+**Archive Header Format:**
+
+```markdown
+# [HISTORICAL - <Completion Date>] <Original Title>
+
+> **Archived:** <YYYY-MM-DD>
+> **Reason:** <Migration complete | Process changed | Feature removed | Report outdated>
+> **See current docs:** [link to current documentation if applicable]
+
+---
+
+<original content>
+```
+
+**Governance & Hygiene:**
+
+- **Monthly hygiene check:** `git log --since="6 months ago" -- docs/` to spot stale files
+- **Quarterly consolidation review:** Identify redundant files and merge into single sources of truth
+- **Automated checks:** Run `npm run docs:check` to detect:
+  - Duplicate content across files
+  - Broken internal links
+  - References to archived/deleted files
+  - Files exceeding 800 lines
+  - Files unchanged for >6 months
 
 ---
 

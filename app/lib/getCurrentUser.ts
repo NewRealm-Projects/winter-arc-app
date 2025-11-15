@@ -118,7 +118,7 @@ export async function getCurrentUser(): Promise<AuthHydration> {
   if (!db) {
     const fallback = mapUserRecordToSerialized({ record: undefined, session });
     return {
-      session,
+      session: serializeSession(session),
       user: fallback,
       status: 'authenticated',
       isOnboarded: Boolean(fallback.birthday),
@@ -136,7 +136,7 @@ export async function getCurrentUser(): Promise<AuthHydration> {
     const user = mapUserRecordToSerialized({ record, session });
 
     return {
-      session,
+      session: serializeSession(session),
       user,
       status: 'authenticated',
       isOnboarded: Boolean(user.birthday),
@@ -145,7 +145,7 @@ export async function getCurrentUser(): Promise<AuthHydration> {
     console.error('Failed to load current user', error);
     const fallback = mapUserRecordToSerialized({ record: undefined, session });
     return {
-      session,
+      session: serializeSession(session),
       user: fallback,
       status: 'authenticated',
       isOnboarded: Boolean(fallback.birthday),

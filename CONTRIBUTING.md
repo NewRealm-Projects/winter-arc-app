@@ -622,14 +622,94 @@ gh pr create --base dev --title "[Agent] ..." --body "..."
 
 ---
 
+## 🏗️ Next.js & Vercel Platform Patterns
+
+### Architecture Overview
+
+- **Runtime:** Next.js 16 App Router with React 19 (`app/` directory)
+- **Server Components:** Default for data access; use `'use client'` only when browser APIs, hooks, or Zustand required
+- **Authentication:** NextAuth with Google OAuth + Drizzle adapter backed by Vercel Postgres/Neon
+- **Database:** Drizzle ORM models in `lib/db/schema.ts`; always guard `db === null`
+- **State Management:** Zustand store (`app/store/useStore.ts`) for client-only state
+- **Styling:** Tailwind CSS utility classes (avoid bespoke CSS files)
+
+### Routing & Data Fetching
+
+**Routing:**
+- All routes under `app/` (no legacy `pages/` router)
+- Group related screens: `app/dashboard/*`, `app/(auth)/*`
+
+**Data Fetching:**
+- **Server components:** Use Drizzle queries + `auth()` helper directly
+- **API routes:** Use for mutations; validate with Zod schemas
+- **Client fetching:** Co-locate in `app/lib/http.ts` for reuse
+- **Server Actions:** Prefer for mutations over custom REST endpoints
+
+**Performance:**
+- Use `async` server components for heavy queries
+- Dynamic imports (`next/dynamic`) for charts (Recharts)
+- Audit Zustand slices for memoization
+
+### Environment Variables
+
+| Variable | Scope | Required |
+|----------|-------|----------|
+| `DATABASE_URL` | Server | ✅ Drizzle/Neon connection |
+| `NEXTAUTH_SECRET`, `NEXTAUTH_URL` | Server | ✅ NextAuth config |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Server | ✅ OAuth |
+| `GEMINI_API_KEY` | Server | ⚠️ Optional (AI features) |
+| `NEXT_PUBLIC_SENTRY_DSN` | Client | ⚠️ Optional (error tracking) |
+
+**Guidelines:**
+- Never commit real secrets (use `.env.example` for documentation)
+- Prefix client-exposed values with `NEXT_PUBLIC_`
+- Use 1Password: `npm run dev:1p` (see [docs/1PASSWORD.md](docs/1PASSWORD.md))
+
+### Dependency Management
+
+**See [docs/development-guidelines.md Section 7](docs/development-guidelines.md#7-dependency-management-policy) for complete policies:**
+
+- **Core Principles:** Stay current, never suppress warnings, adapt code to dependencies
+- **Upgrade Workflow:** 5-step process (depcheck → upgrade → test:all → fix → document)
+- **Security First:** Critical/High within 24h, zero open High/Critical target
+- **Infrastructure Upgrades:** Always ask user before major version bumps (Next.js, React, Node)
+
+**Quick Reference:**
+```bash
+# Check for unused deps
+npx depcheck && npx knip
+
+# Upgrade package
+npm install <package>@latest
+
+# Run all checks
+npm run test:all
+
+# Security audit
+npm audit
+```
+
+### Observability
+
+- **Vercel Analytics:** Enabled via `<Analytics />` in `app/layout.tsx`
+- **Speed Insights:** Wired in `app/components/Telemetry.tsx`
+- **Sentry:** Client-side error tracking (DSN in `.env`)
+
+Deploy and verify metrics appear in Vercel dashboard within minutes.
+
+---
+
 ## 📚 Ressourcen
 
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - [Semantic Versioning](https://semver.org/)
 - [Keep a Changelog](https://keepachangelog.com/)
+- [Next.js 16 Docs](https://nextjs.org/docs)
+- [Drizzle ORM](https://orm.drizzle.team/)
 - [React TypeScript Cheatsheet](https://react-typescript-cheatsheet.netlify.app/)
 - [Playwright Docs](https://playwright.dev/)
 - [Vitest Docs](https://vitest.dev/)
+- [1Password CLI](https://developer.1password.com/docs/cli/)
 
 ---
 
