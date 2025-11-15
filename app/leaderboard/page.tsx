@@ -1,16 +1,43 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
+import { useStore } from '../store/useStore';
 import { useAuth } from '../hooks/useAuth';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Layout from '../components/Layout';
-import { CardSkeleton } from '../components/ui/Skeleton';
+
+function LoadingScreen() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-winter-500 to-winter-700">
+      <div className="text-center">
+        <div className="text-6xl mb-4">❄️</div>
+        <div className="text-white text-lg font-semibold">Loading...</div>
+      </div>
+    </div>
+  );
+}
 
 function LeaderboardContent() {
   const { status, user } = useAuth();
 
   if (status === 'unauthenticated' || !user) {
     redirect('/auth/signin');
+  const router = useRouter();
+  const user = useStore((state) => state.user);
+  const authLoading = useStore((state) => state.authLoading);
+
+  useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
+    if (!user) {
+      router.replace('/auth/signin');
+    }
+  }, [authLoading, router, user]);
+
+  if (authLoading || !user) {
+    return <LoadingScreen />;
   }
 
   return (
@@ -44,7 +71,7 @@ function LeaderboardContent() {
 
 export default function LeaderboardPage() {
   return (
-    <Suspense fallback={<CardSkeleton />}>
+    <Suspense fallback={<LoadingScreen />}>
       <LeaderboardContent />
     </Suspense>
   );

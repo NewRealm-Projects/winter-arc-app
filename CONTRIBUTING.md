@@ -1,6 +1,6 @@
 # Contributing to Winter Arc
 
-Danke für dein Interesse an Winter Arc! Wir freuen uns über Beiträge. Bitte folge diesen Guidelines, um den Entwicklungsprozess reibungslos zu gestalten.
+Danke für dein Interesse an Winter Arc! Wir freuen uns über Beiträge. **Bitte lies zuerst die [Winter Arc Development Guidelines](docs/development-guidelines.md)** – sie sind unsere zentrale Quelle für Setup, Coding-Konventionen, Testing und den Umgang mit Tools wie OpenSpec oder 1Password. Dieses Dokument fasst ergänzend die branch-spezifischen Regeln zusammen, die bereits in bestehenden Automationen (Husky Hooks, GitHub Actions) verankert sind.
 
 ---
 
