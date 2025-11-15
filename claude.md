@@ -1,21 +1,25 @@
-# Winter Arc App - Claude Development Guide
+# Winter Arc App - Development Guide
+
+⚠️ **IMPORTANT**: This file is synchronized with `.github/copilot-instructions.md`. Both files must stay in sync.
+
+**When updating this file:**
+- Critical policy changes (Security, Dependencies, Branch Naming) → also update `copilot-instructions.md`
+- Keep this file detailed (comprehensive guide); `copilot-instructions.md` remains concise (quick-ref)
+
+---
+
+A German-language Progressive Web App (PWA) for fitness tracking during winter. **Philosophy**: "Jeder Tag zählt: Tracken, sehen, dranbleiben" (Every day counts: Track, see, stick with it).
+
+---
 
 ## 1. Project Overview
 
-**Winter Arc** is a German-language Progressive Web App (PWA) for fitness tracking during winter months. The philosophy: "Jeder Tag zählt: Tracken, sehen, dranbleiben" (Every day counts: Track, see, stick with it).
+**Winter Arc** tracks daily fitness metrics (push-ups, weight, hydration, nutrition) with community motivation via groups and leaderboards. Built with modern standards: offline-first architecture, service worker caching, minimal UI focused on streaks and progress.
 
-### Core Purpose
-
-- Daily fitness and wellness tracking (push-ups, weight, hydration, nutrition)
-- Community motivation through groups and leaderboards
-- Offline-first architecture with service worker caching
-- Minimal, motivating interface focused on streaks and progress
-
-### Current Version
-
-- v0.1.3
-- Recently migrated from Vite SPA to Next.js 16.0.1 App Router
-- Recently migrated from Firebase Firestore to Vercel Postgres (Neon)
+- **Current Version**: v0.1.3
+- **Stack**: Next.js 16 + React 19 + TypeScript + Vercel Postgres (Neon) + NextAuth
+- **Architecture**: Next.js App Router (server components default), type-safe with Drizzle ORM
+- **Language**: German-first (i18n ready)
 
 ---
 
@@ -23,44 +27,42 @@
 
 ### Frontend
 
-- **Next.js 16.0.1** - App Router (server components default)
+- **Next.js 16.0.1** - App Router (server components by default)
 - **React 19.2.0** - Server & client components
-- **TypeScript 5.9.3** - Strict mode with strict null checks
-- **Tailwind CSS 3.4.17** - Custom winter/primary color palette, dark mode support
-- **Zustand 5.0.8** - Client-side state management (user, tracking, dark mode)
+- **TypeScript 5.9.3** - Strict mode with `noUncheckedIndexedAccess: true`
+- **Tailwind CSS 3.4.17** - Custom winter/primary color palette, dark mode
+- **Zustand 5.0.8** - Client-side state management
 
-### Backend & Data
+### Backend & Database
 
-- **Vercel Postgres / Neon** - PostgreSQL database (`@neondatabase/serverless`)
-- **Drizzle ORM 0.44.7** - Type-safe database queries
-- **NextAuth 4.24.13** - Authentication with Google OAuth provider
-- **DrizzleAdapter** - NextAuth session/user storage
+- **Vercel Postgres / Neon** - PostgreSQL database via `@neondatabase/serverless`
+- **Drizzle ORM 0.44.7** - Type-safe queries, schema-first
+- **NextAuth 4.24.13** - Authentication (Google OAuth provider)
 
 ### Storage & Caching
 
-- **Dexie.js 4.2.1** - IndexedDB for offline tracking data
+- **Dexie.js 4.2.1** - IndexedDB for offline tracking
 - **Service Worker** - App shell caching, background sync
-- **localStorage** - Dark mode, filter preferences persistence
+- **localStorage** - Dark mode, filter preferences
 
 ### Utilities & Libraries
 
-- **date-fns 4.1.0** - Date manipulation (YYYY-MM-DD formatting)
-- **recharts 3.2.1** - Training load graph visualization
-- **lucide-react 0.545.0** - Icon library
-- **uuid 13.0.0** - UUID generation for records
+- **date-fns 4.1.0** - Date manipulation (YYYY-MM-DD format)
+- **recharts 3.2.1** - Training load graphs
+- **lucide-react 0.545.0** - Icons
+- **uuid 13.0.0** - UUID generation
 
-### Monitoring
+### Monitoring & Analytics
 
 - **@vercel/analytics** - Web analytics
 - **@vercel/speed-insights** - Performance monitoring
-- **@sentry/react** - Error tracking (optional, gated)
+- **@sentry/react** - Error tracking (optional)
 
 ### Testing
 
-- **Vitest 3.2.4** - Unit tests
+- **Vitest 3.2.4** - Unit tests with v8 coverage
 - **Playwright 1.56.0** - E2E tests
 - **Testing Library** - React component testing
-- **vitest-axe** - Accessibility testing
 
 ---
 
@@ -71,30 +73,29 @@
 ```
 winter-arc-app/
 ├── app/                      # Next.js App Router
-│   ├── (auth)/              # Auth-related pages
-│   ├── (dashboard)/         # Dashboard and user pages
+│   ├── (auth)/              # Auth pages
+│   ├── (dashboard)/         # Protected user pages
 │   ├── api/                 # API routes
-│   ├── components/          # Root-level shared components
+│   ├── components/          # Page components
 │   ├── hooks/               # Custom React hooks
-│   ├── layout.tsx           # Root layout
-│   ├── page.tsx             # Home page
 │   ├── store/               # Zustand stores
-│   ├── services/            # Business logic (trainingLoad, smartNotes)
-│   ├── types/               # App-level TypeScript types
-│   └── manifest.ts          # PWA manifest
-├── components/              # Shared root components (auth, providers)
+│   ├── services/            # Business logic
+│   ├── types/               # App-level types
+│   ├── constants/           # Constants & config
+│   ├── layout.tsx           # Root layout
+│   └── page.tsx             # Home page
+├── components/              # Shared root components
 ├── lib/
-│   ├── auth.ts              # NextAuth configuration
+│   ├── auth.ts              # NextAuth config
 │   ├── db/
-│   │   ├── index.ts         # Database client export
-│   │   └── schema.ts        # Drizzle schema definitions
-│   └── utils/               # Helper functions
+│   │   ├── index.ts         # Database client
+│   │   └── schema.ts        # Drizzle schema
+│   └── utils/               # Helpers
 ├── public/
 │   └── sw.js                # Service worker
 ├── types/
-│   └── next-auth.d.ts       # NextAuth type extensions
-├── docs/                    # Development documentation
-└── Configuration files
+│   └── next-auth.d.ts       # NextAuth extensions
+└── docs/
 ```
 
 ### Component Patterns
@@ -102,41 +103,43 @@ winter-arc-app/
 #### Server Components (Default)
 
 ```typescript
-// app/dashboard/page.tsx - Server component
+// app/dashboard/page.tsx
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { eq } from "drizzle-orm";
+import { users } from "@/lib/db/schema";
 
 export default async function Dashboard() {
   const session = await auth();
+  if (!session?.user?.id) redirect("/auth/signin");
 
-  // Server-side auth check
-  if (!session?.user?.id) {
-    redirect("/auth/signin");
-  }
-
-  // Direct database access (no API needed)
   if (!db) throw new Error("Database unavailable");
-  const userData = await db.query.users.findFirst({
-    where: eq(users.id, session.user.id),
-  });
+  const userData = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, session.user.id))
+    .limit(1);
 
-  return <div>{userData?.nickname}</div>;
+  return <div>{userData[0]?.nickname}</div>;
 }
 ```
 
-#### Client Components (For Interactivity)
+#### Client Components
 
 ```typescript
 "use client";
 
-import { useStore } from "@/store/useStore";
+import { useStore } from "@/app/store/useStore";
 import { useAuth } from "@/app/hooks/useAuth";
 
 export function InteractiveComponent() {
   const user = useStore((state) => state.user);
   const { session, loading } = useAuth();
 
-  return <div>{user?.nickname}</div>;
+  if (loading) return <Skeleton />;
+  if (!user) return <LoginPage />;
+
+  return <div>{user.nickname}</div>;
 }
 ```
 
@@ -147,25 +150,27 @@ export function InteractiveComponent() {
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { tracking_entries, users } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { date: string } }
 ) {
-  // Step 1: Authentication
+  // Step 1: Auth check
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Step 2: Database availability
+  // Step 2: Database check
   if (!db) {
     return NextResponse.json(
       { error: "Database unavailable" },
       { status: 503 }
     );
   }
-  const database = db; // Type narrowing after null check
+  const database = db; // Type narrowing
 
   // Step 3: Validate input
   const body = await request.json();
@@ -197,46 +202,7 @@ export async function PATCH(
 }
 ```
 
-### Database Access Pattern
-
-```typescript
-import { db } from "@/lib/db";
-import { users, tracking_entries } from "@/lib/db/schema";
-import { eq, and, gte, lte } from "drizzle-orm";
-
-// CRITICAL: Always check database availability
-if (!db) {
-  throw new Error("Database unavailable");
-}
-const database = db; // Assert non-null for TypeScript
-
-// Type-safe queries with Drizzle
-const userRecord = await database
-  .select()
-  .from(users)
-  .where(eq(users.email, userEmail))
-  .limit(1);
-
-// Safe access to first result
-const user = userRecord[0];
-if (!user) {
-  throw new Error("User not found");
-}
-
-// Complex query with filters
-const entries = await database
-  .select()
-  .from(tracking_entries)
-  .where(
-    and(
-      eq(tracking_entries.userId, userId),
-      gte(tracking_entries.date, startDate),
-      lte(tracking_entries.date, endDate)
-    )
-  );
-```
-
-### State Management Pattern
+### State Management (Zustand)
 
 ```typescript
 // app/store/useStore.ts
@@ -277,73 +243,6 @@ export const useStore = create<AppState>((set) => ({
       return { darkMode: newDarkMode };
     }),
 }));
-
-// Usage in components
-const user = useStore((state) => state.user);
-const setUser = useStore((state) => state.setUser);
-const { tracking, updateDayTracking } = useStore((state) => ({
-  tracking: state.tracking,
-  updateDayTracking: state.updateDayTracking,
-}));
-```
-
-### TypeScript Patterns
-
-#### Schema-Derived Types
-
-```typescript
-// lib/db/schema.ts
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  email: text("email").unique().notNull(),
-  // ... more fields
-});
-
-// Auto-generated types from schema
-export type User = typeof users.$inferSelect; // Select ✓
-export type NewUser = typeof users.$inferInsert; // Insert
-
-// lib/db/index.ts
-export type { User, NewUser };
-```
-
-#### App Domain Types
-
-```typescript
-// app/types/index.ts
-
-export interface DailyTracking {
-  date: string; // YYYY-MM-DD format (required)
-  pushups?: {
-    total?: number;
-    workout?: PushupWorkout; // { sets, reps, passed }
-  };
-  sports: SportTracking;
-  water: number; // ml
-  protein: number; // grams
-  weight?: {
-    value: number; // kg
-    bodyFat?: number; // %
-    bmi?: number;
-  };
-  completed: boolean;
-}
-
-export interface TrainingLoadResult {
-  load: number; // 0-1000
-  components: {
-    baseLoad: number;
-    pushupLoad: number;
-    sportsLoad: number;
-    wellnessModifier: number; // 0.5-1.2
-  };
-}
-
-// Strict null checks enforced
-const first = array[0]; // Type: T | undefined (not just T)
-if (first) {
-  // Type is narrowed to T here
-}
 ```
 
 ---
@@ -355,29 +254,17 @@ if (first) {
 ```typescript
 users: {
   id: UUID (PK)
-  firebaseUid: TEXT | NULL         // Legacy migration tracking only
-  email: TEXT UNIQUE               // Auth email
-  nickname: TEXT                   // Display name (required for onboarding)
-  gender: TEXT                      // 'm' | 'f' | 'o'
-  height: INTEGER                   // cm (required for onboarding)
-  weight: DECIMAL                   // kg
-  maxPushups: INTEGER              // Personal record
-  groupCode: TEXT | NULL           // Group membership code
-  pushupState: JSONB               // { base, bump, workout } (Base & Bump algorithm)
-  language: TEXT                    // 'de' | 'en' (default: 'de')
-  createdAt: TIMESTAMP             // Record creation
-  updatedAt: TIMESTAMP             // Last update
-}
-```
-
-### Groups Table
-
-```typescript
-groups: {
-  id: UUID (PK)
-  code: TEXT UNIQUE                // Join code (e.g., 'WINTER24')
-  name: TEXT                        // Group name
-  members: JSONB                   // Array of user IDs
+  email: TEXT UNIQUE
+  nickname: TEXT                // Display name (required for onboarding)
+  gender: TEXT                  // 'm' | 'f' | 'o'
+  height: INTEGER               // cm
+  weight: DECIMAL               // kg
+  maxPushups: INTEGER          // Personal record
+  groupCode: TEXT | NULL       // Group membership
+  pushupState: JSONB           // Base & Bump algorithm state
+  language: TEXT               // 'de' | 'en' (default: 'de')
+  createdAt: TIMESTAMP
+  updatedAt: TIMESTAMP
 }
 ```
 
@@ -386,20 +273,31 @@ groups: {
 ```typescript
 tracking_entries: {
   id: UUID (PK)
-  userId: UUID (FK → users.id)     // Record owner
-  date: TEXT                        // YYYY-MM-DD format
-  pushups: JSONB | NULL            // { total, workout }
-  sports: JSONB | NULL             // Duration, intensity
-  water: INTEGER                    // ml
-  protein: INTEGER                  // grams
-  weight: DECIMAL | NULL           // kg
-  completed: BOOLEAN               // Day completion status
+  userId: UUID (FK → users.id)
+  date: TEXT                    // YYYY-MM-DD format
+  pushups: JSONB | NULL        // { total, workout }
+  sports: JSONB | NULL         // Duration, intensity
+  water: INTEGER               // ml
+  protein: INTEGER             // grams
+  weight: DECIMAL | NULL       // kg
+  completed: BOOLEAN
   createdAt: TIMESTAMP
   updatedAt: TIMESTAMP
 }
 ```
 
-**CRITICAL**: All date fields in tracking use `YYYY-MM-DD` string format for consistency across client/server.
+### Groups Table
+
+```typescript
+groups: {
+  id: UUID (PK)
+  code: TEXT UNIQUE            // Join code (e.g., 'WINTER24')
+  name: TEXT
+  members: JSONB               // Array of user IDs
+}
+```
+
+**CRITICAL**: All dates use `YYYY-MM-DD` string format for consistency.
 
 ---
 
@@ -412,6 +310,7 @@ tracking_entries: {
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { DrizzleAdapter } from "@auth/drizzle-orm";
+import { db } from "./db";
 
 export const { auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db!),
@@ -421,16 +320,12 @@ export const { auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
-  pages: {
-    signIn: "/auth/signin",
-  },
+  pages: { signIn: "/auth/signin" },
   session: { strategy: "jwt" },
   callbacks: {
-    // Extend session with user fields
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub!;
-        // Custom fields from database
         session.user.nickname = token.nickname;
         session.user.groupCode = token.groupCode;
       }
@@ -457,31 +352,17 @@ declare module "next-auth" {
 }
 ```
 
-### Authentication Flow
-
-```
-1. User lands on / (page.tsx)
-2. Server checks await auth() → session?
-3. If session → check onboarding status (nickname + height)
-4. If onboarded → redirect to /dashboard
-5. If not onboarded → redirect to /onboarding
-6. If no session → redirect to /auth/signin
-7. Sign in with Google → NextAuth creates user + session
-8. Session returned with id, nickname, groupCode
-```
-
-### Using Auth in Components
+### Using Auth
 
 **Server Component:**
 
 ```typescript
 import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function Protected() {
   const session = await auth();
-  if (!session?.user?.id) {
-    redirect("/auth/signin");
-  }
+  if (!session?.user?.id) redirect("/auth/signin");
   return <div>Welcome {session.user.nickname}</div>;
 }
 ```
@@ -494,10 +375,8 @@ import { useAuth } from "@/app/hooks/useAuth";
 
 export function Profile() {
   const { session, loading } = useAuth();
-
   if (loading) return <Loading />;
   if (!session) return <Unauthorized />;
-
   return <div>{session.user.nickname}</div>;
 }
 ```
@@ -508,86 +387,60 @@ export function Profile() {
 
 ### Daily Tracking Tiles
 
-#### Push-ups (`components/PushupTile.tsx`)
+#### Push-ups
 
-- Tracks repetitions and workout sets
-- Uses **Base & Bump algorithm** stored in `users.pushupState`
-  - Base: Minimum daily target
-  - Bump: Incremental progression
-  - Adaptively adjusts based on workout outcomes (pass/hold/fail)
-- Shows current target, progress, and status
+- Tracks repetitions with Base & Bump algorithm
+- Adaptive progression based on workout outcomes
+- Shows current target and daily progress
 
-#### Weight (`components/WeightTile.tsx`)
+#### Weight
 
-- Daily weight logging (kg)
-- Optional body fat percentage
-- Auto-calculates BMI: `weight / (height/100)²`
-- Displays trend (up/down/stable)
+- Daily logging (kg) with optional body fat %
+- Automatic BMI calculation: `weight / (height/100)²`
+- Trend indicators
 
-#### Hydration (`components/HydrationTile.tsx`)
+#### Hydration
 
 - Water intake tracking (ml)
-- Quick-add drink presets (customizable array)
-- Goal-based progress bar (default 2L/day)
-- Shows % of daily goal completed
+- Customizable drink presets
+- Daily goal progress (default 2L)
 
-#### Nutrition (`components/NutritionTile.tsx`)
+#### Nutrition
 
 - Protein tracking (grams)
-- Optional: calories, carbs, fats
+- Optional calories, carbs, fats
 - Goal-based indicators
-- Macro breakdown visualization
 
 ### Training Load Calculation
 
 ```typescript
 // app/services/trainingLoad.ts
-
-/**
- * Computes daily training load on scale of 0-1000
- * Formula: (workouts + pushups) * wellness_modifier
- */
 export function computeDailyTrainingLoadV1(params: {
   workouts: Workout[]; // { durationMinutes, intensity }
-  pushupsReps: number; // Daily pushup count
+  pushupsReps: number;
   sleepScore: number; // 0-10
   recoveryScore: number; // 0-10
-  sick: boolean; // Sickness penalty
+  sick: boolean;
 }): TrainingLoadResult;
 
-// Example calculation
-const load = computeDailyTrainingLoadV1({
-  workouts: [{ durationMinutes: 45, intensity: 8 }],
-  pushupsReps: 120,
-  sleepScore: 7,
-  recoveryScore: 8,
-  sick: false,
-});
-// Result: { load: 450, components: {...} }
+// Returns: { load: 0-1000, components: {...} }
 ```
 
 ### Groups & Leaderboard
 
 - Join via 4-6 character group code
-- View group members' aggregated stats
+- View member aggregated stats
 - Leaderboard filters: week / month / all-time
 - Public rankings, private tracking data
-- API: `GET /api/groups/[code]` → members + stats
+- API: `GET /api/groups/[code]`
 
 ### PWA & Offline Support
 
-- **Service Worker** caches app shell + assets
-- **IndexedDB** (Dexie) stores tracking data locally
-- Background sync when online connection restored
+- Service Worker caches app shell + assets
+- IndexedDB (Dexie) for offline tracking
+- Background sync on reconnection
 - Install prompt via `BeforeInstallPromptEvent`
-- Manifest: `app/manifest.ts` (icons, shortcuts)
-
-### Smart Notes (Optional)
-
-- Parse natural language tracking notes
-- Example: "ran 30min, drank 2L water, 100 pushups"
-- Optional Gemini AI integration (`GEMINI_API_KEY`)
-- Auto-sync parsed values to tracking
+- Manifest: `app/manifest.ts`
 
 ---
 
@@ -599,93 +452,117 @@ const load = computeDailyTrainingLoadV1({
 
 ```typescript
 if (!db) {
-  // Return 503 for API routes
-  return NextResponse.json(
-    { error: 'Database unavailable' },
-    { status: 503 }
-  )
-  // Or throw for server components
-  throw new Error('Database unavailable')
+  // For API routes: return 503
+  return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
+  // For server components: throw error
+  throw new Error("Database unavailable");
 }
-const database = db // Type narrowing
-
-// Now safe to use database
-await database.select().from(users)...
+const database = db; // Type narrowing after null check
 ```
 
-**Why?** Database may be null during build time or when connection is unavailable. Failing to check causes runtime errors.
+**Why?** Database may be null during build time or when connection is unavailable.
 
 ### Date Format Convention
 
 - **Always use `YYYY-MM-DD` string format** for dates in tracking
-- Use `date-fns` for parsing and manipulation
-- Example: `format(new Date(), 'yyyy-MM-dd')`
-- Database stores as TEXT in this format for consistency
+- Use `date-fns` for parsing: `format(new Date(), 'yyyy-MM-dd')`
+- Database stores as TEXT in this format
 
 ### Environment Variables
 
-```bash
-# Required for development
-DATABASE_URL="postgresql://user:password@host/dbname"  # Neon/Vercel Postgres
-NEXTAUTH_SECRET="<randomly-generated-secret>"
-NEXTAUTH_URL="http://localhost:3000"
-GOOGLE_CLIENT_ID="<from-google-cloud-console>"
-GOOGLE_CLIENT_SECRET="<from-google-cloud-console>"
+**Required:**
 
-# Optional
-GEMINI_API_KEY="<for-smart-notes-feature>"
-NEXT_PUBLIC_SENTRY_DSN="<for-error-tracking>"
-NEXT_PUBLIC_ENABLE_CHECKINS="false"  # Feature flag for legacy check-ins
+```bash
+DATABASE_URL="postgresql://..."              # Vercel Postgres / Neon
+NEXTAUTH_SECRET="..."                        # Random key for JWT
+NEXTAUTH_URL="http://localhost:3000"         # App URL
+GOOGLE_CLIENT_ID="..."                       # OAuth client ID
+GOOGLE_CLIENT_SECRET="..."                   # OAuth secret
 ```
 
-### Feature Flags
+**Optional:**
 
-- Use `process.env.NEXT_PUBLIC_*` for client-side feature gates
-- Use `process.env.*` for server-side feature gates
-- Example: `NEXT_PUBLIC_ENABLE_CHECKINS` gates legacy check-in feature
-- Always check flag before enabling related UI/API
-
-### Language Context
-
-- **Primary language: German (de)**
-- UI text defaults to German
-- Translation system via `useTranslation()` hook
-- When writing user-facing text, use German strings
-- English only for code comments and internal documentation
-
-### Legacy Code & Migration
-
-- Firebase Firestore → Vercel Postgres migration completed
-- `firebaseUid` column in users table for migration tracking only
-- Firebase auth → NextAuth migration complete
-- Legacy code has defensive null checks throughout
-- **Do NOT remove** `NEXT_PUBLIC_ENABLE_CHECKINS` flag yet
+```bash
+GEMINI_API_KEY="..."                         # Smart notes AI (server-side)
+NEXT_PUBLIC_SENTRY_DSN="..."                 # Error tracking
+```
 
 ### Type Safety
 
 - **`noUncheckedIndexedAccess: true`** in tsconfig
 - Array access returns `T | undefined`, not just `T`
-- **Always check array bounds** before access
-- Example: `const first = array[0]; if (first) { /* use */ }`
+- **Always check array bounds:**
+
+```typescript
+const first = array[0];
+if (first) {
+  // Type is narrowed to T here
+}
+```
+
+### Dependency Policy
+
+Keep the dependency tree healthy and transparent:
+
+**Principles:**
+
+- Always prefer latest stable (non-beta) versions of direct dependencies
+- **Never suppress or hide dependency warnings** (deprecated, vulnerabilities)
+- Avoid workarounds like `overrides` or disabling audits
+- Remove unused packages proactively with `depcheck` and `knip`
+- Security and deprecation warnings are tasks, not noise—never ignore
+
+**Upgrade Workflow:**
+
+1. Run `npx depcheck && npx knip` to identify unused/dead deps
+2. Upgrade target: `npm install <pkg>@latest`
+3. Run `npm run test:all` (typecheck + lint + tests + build)
+4. If failures: adapt code; do NOT downgrade unless blocking upstream bug
+5. Record upgrade decisions in docs if notable
+
+**Temporary Exceptions:** Only allowed if (a) upstream critical bug, (b) security patch pending. Must include removal plan and owner.
+
+### Security First Policy (PRIO #1)
+
+Security is paramount—every identified vulnerability (npm audit, Snyk, GitHub Advisory, Dependabot) is triaged immediately.
+
+**Principles:**
+
+- No ignore lists except documented, time-limited exceptions (max 30 days) in docs with owner & removal date
+- High/Critical: Patch or upgrade same day (or next business day)
+- Moderate/Low: Bundle but resolve within 7 days
+- Never hide warnings via audit disabling or artificial overrides
+- Transitive blockers: Open upstream issue, track in docs
+
+**Remediation Workflow:**
+
+1. Parse `npm audit --json` → determine priority
+2. For direct deps: `npm install <pkg>@latest` or security-fix version
+3. For transitive: Try upgrading root package; if not possible, document issue + temporary mitigation
+4. After each fix: `npm run test:all` + manual smoke test
+5. PR format: `security:<package>-<version>` or `security:monthly-batch-YYYY-MM`
+
+**Metrics:**
+
+- Open High/Critical: 0
+- Mean Time To Remediate (Critical): <24h
+- No disabled audits or hidden advisories
 
 ---
 
 ## 8. Development Workflow
 
-### Branch Naming (ENFORCED by Husky)
+### Branch Naming (Enforced by Husky)
 
-```
-<username>/<type>-<description>
+Format: `<username>/<type>-<description>`
 
-Valid types: feature, fix, chore, refactor, docs, test, style
+Valid types: `feature`, `fix`, `chore`, `refactor`, `docs`, `test`, `style`
 
 Examples:
-✅ lars/feature-dashboard-redesign
-✅ niklas/fix-login-race-condition
-✅ daniel/chore-upgrade-typescript
-❌ feature/new-dashboard (missing username)
-❌ fix_login_issue (invalid format)
-```
+
+- ✅ `lars/feature-dashboard-redesign`
+- ✅ `niklas/fix-login-race-condition`
+- ❌ `feature/new-dashboard` (missing username)
 
 ### Commit Message Convention
 
@@ -698,9 +575,6 @@ Examples:
 feat(tracking): add bulk import API endpoint
 fix(auth): resolve session expiration race condition
 chore(deps): upgrade Next.js to 16.0.1
-refactor(components): extract PushupTile logic to service
-docs(readme): update installation steps
-test(trainingLoad): add edge case tests
 ```
 
 ### PR Workflow
@@ -710,93 +584,53 @@ test(trainingLoad): add edge case tests
    ```bash
    npm run lint        # ESLint validation
    npm run typecheck   # TypeScript strict checks
-   npm run vercel:build # Next.js build verification
-   npm run test:unit   # Unit tests
+   npm run vercel:build # Vercel build verification
+   npm run test:all    # Full test suite
    ```
-3. Push to remote and create PR against `develop` (not `main`)
-4. Update `CHANGELOG.md` in `[Unreleased]` section
-5. Husky pre-push hook validates branch naming
-6. Await code review before merge
+3. Push to remote and create PR
+4. Husky pre-push validates branch naming
+5. Await code review before merge
 
 ### Key Scripts
 
 ```bash
-npm run dev              # Start development server (localhost:3000)
-npm run build            # Next.js production build
+npm run dev              # Start dev server (localhost:3000)
+npm run build            # Production build
 npm run start            # Run production build
 npm run lint             # ESLint check
 npm run lint:fix         # Auto-fix lint issues
 npm run typecheck        # TypeScript strict check
 npm run vercel:build     # Vercel build verification
-npm run test:unit        # Run Vitest unit tests
-npm run test:e2e         # Run Playwright E2E tests
-npm run format           # Prettier code formatting
+npm run test:all         # All checks (lint + typecheck + test + build)
+npm run test:unit        # Unit tests only
+npm run db:studio        # Drizzle Studio GUI
+npm run db:push          # Push schema to database
 ```
 
 ---
 
 ## 9. File Organization & Path Aliases
 
-### Key Files
-
-```
-winter-arc-app/
-├── lib/
-│   ├── auth.ts              # NextAuth setup and session handling
-│   ├── db/
-│   │   ├── index.ts         # Database client export (null-checked)
-│   │   └── schema.ts        # Drizzle table definitions and type exports
-│   └── utils.ts             # Helper functions (date, calculations)
-├── app/
-│   ├── hooks/
-│   │   ├── useAuth.ts       # Session/auth hook for client components
-│   │   ├── useTracking.ts   # Tracking data hook
-│   │   └── useGroups.ts     # Group membership hook
-│   ├── store/
-│   │   └── useStore.ts      # Zustand store (user, tracking, UI state)
-│   ├── services/
-│   │   ├── trainingLoad.ts  # Training load calculation logic
-│   │   └── smartNoteService.ts # Natural language parsing (optional Gemini)
-│   ├── types/
-│   │   └── index.ts         # App-level TypeScript interfaces
-│   ├── api/
-│   │   ├── auth/            # NextAuth routes
-│   │   ├── tracking/        # Tracking CRUD endpoints
-│   │   ├── users/           # User management endpoints
-│   │   └── groups/          # Group endpoints
-│   ├── (dashboard)/         # Dashboard and user pages
-│   ├── (auth)/              # Sign-in/sign-out pages
-│   ├── components/          # Page-specific components
-│   ├── layout.tsx           # Root layout with providers
-│   ├── page.tsx             # Home page / entry point
-│   └── manifest.ts          # PWA manifest
-├── components/              # Root-level shared components
-│   ├── AuthProvider.tsx     # NextAuth Provider
-│   ├── ClientProvider.tsx   # Zustand + localStorage hydration
-│   └── ...
-├── public/
-│   ├── sw.js                # Service Worker for PWA caching
-│   └── ...                  # Icons, images
-├── types/
-│   └── next-auth.d.ts       # NextAuth session type extensions
-└── docs/
-    └── development-guidelines.md # Detailed development reference
-```
-
-### Path Aliases (tsconfig.json)
+All imports use `@/` prefix:
 
 ```typescript
-// All imports use @ prefix
 import { db } from "@/lib/db";
-import { useStore } from "@/store/useStore";
-import { User } from "@/types";
+import { useStore } from "@/app/store/useStore";
 import { PushupTile } from "@/components/PushupTile";
 import { auth } from "@/lib/auth";
-import { computeTrainingLoad } from "@/services/trainingLoad";
-
-// Maps to:
-// @/* → ./
 ```
+
+### Key Files
+
+| File                           | Purpose                                    |
+| ------------------------------ | ------------------------------------------ |
+| `lib/auth.ts`                  | NextAuth setup and session handling        |
+| `lib/db/schema.ts`             | Drizzle table definitions and type exports |
+| `lib/db/index.ts`              | Database client export (null-checked)      |
+| `app/store/useStore.ts`        | Zustand store (user, tracking, UI state)   |
+| `app/hooks/useAuth.ts`         | Session/auth hook for client components    |
+| `app/services/trainingLoad.ts` | Training load calculation logic            |
+| `app/types/index.ts`           | App-level TypeScript interfaces            |
 
 ---
 
@@ -811,8 +645,8 @@ import { computeTrainingLoad } from "@/services/trainingLoad";
 import { describe, it, expect } from "vitest";
 import { computeDailyTrainingLoadV1 } from "./trainingLoad";
 
-describe("Training Load Calculation", () => {
-  it("computes base load from workouts and pushups", () => {
+describe("Training Load", () => {
+  it("computes load from workouts and pushups", () => {
     const result = computeDailyTrainingLoadV1({
       workouts: [{ durationMinutes: 30, intensity: 7 }],
       pushupsReps: 50,
@@ -827,11 +661,32 @@ describe("Training Load Calculation", () => {
 });
 ```
 
+### E2E Tests (Playwright)
+
+Follow Given-When-Then pattern with `data-testid` attributes:
+
+```typescript
+// tests/e2e/auth.spec.ts
+import { test, expect } from "@playwright/test";
+
+test("user can sign in with Google", async ({ page }) => {
+  // Given: user is on login page
+  await page.goto("/auth/signin");
+
+  // When: user clicks Google OAuth button
+  await page.click('[data-testid="google-signin-button"]');
+
+  // Then: redirected to dashboard
+  await expect(page).toHaveURL("/dashboard");
+});
+```
+
 ### Coverage Goals
 
 - Business logic: ≥80%
 - Hooks/Services: ≥70%
 - Components: ≥50%
+- Branch coverage: ≥78%
 
 ---
 
@@ -839,65 +694,118 @@ describe("Training Load Calculation", () => {
 
 ### Server vs Client Components
 
-- **Default to server components** for data fetching
+- Default to server components for data fetching
 - Use client components only when needed (hooks, interactivity)
 - Avoids unnecessary JavaScript shipped to client
-- Server components can access database directly
 
 ### Image Optimization
 
 - Use Next.js `next/image` component
-- Enables automatic optimization and responsive sizing
 - Specify `width` and `height` for static images
 - Use `priority` prop for above-the-fold images
 
 ### Dynamic Imports
 
-- Use for heavy libraries: `Recharts`, data visualization
+- Use for heavy libraries (Recharts, visualizations)
 - Example: `const Chart = dynamic(() => import('@/components/Chart'))`
-- Reduces initial bundle size
 
 ### Caching Strategy
 
-- HTTP headers set in `next.config.js`
-- Service Worker caches app shell + critical assets
-- IndexedDB (Dexie) for tracking data persistence
-- localStorage for UI state (dark mode, filters)
+- **HTTP headers**: Set in `next.config.js`
+- **Service Worker**: Caches app shell + critical assets
+- **IndexedDB**: Tracking data persistence
+- **localStorage**: UI state (dark mode, filters)
+
+### Bundle Budget
+
+- **Main chunk**: <600KB
+- **Lighthouse target**: ≥95 on all metrics
 
 ---
 
-## 12. Resources & References
+## 12. Deployment
 
-- **Development Guidelines**: `docs/development-guidelines.md`
-- **Contributing Guide**: `CONTRIBUTING.md`
-- **Database Schema**: `lib/db/schema.ts`
-- **Auth Configuration**: `lib/auth.ts`
-- **Type Definitions**: `app/types/index.ts`
-- **Store Definition**: `app/store/useStore.ts`
-- **Git Repo**: Current branch is `develop`, PRs go to `develop` (not `main`)
+### Three Environments
+
+| Environment | Branch           | URL                           | Purpose          |
+| ----------- | ---------------- | ----------------------------- | ---------------- |
+| Production  | `main`           | app.winterarc.newrealm.de     | Live users       |
+| Staging     | `develop`        | staging.winterarc.newrealm.de | QA + previews    |
+| PR Previews | Feature branches | pr-<num> subdomain            | Review + testing |
+
+### Vercel Workflows
+
+- `.github/workflows/deploy-prod.yml` - Deploys `main`
+- `.github/workflows/deploy-staging.yml` - Deploys `develop`
+- `.github/workflows/pr-preview.yml` - Auto-deploys PRs
 
 ---
 
-## 13. Quick Reference
+## 13. Common Patterns
 
-### Common Tasks
+### Modal Usage (AppModal)
 
-**Add a new tracking metric:**
+```tsx
+import { AppModal } from "@/components/ui/AppModal";
+
+<AppModal
+  open={isOpen}
+  onClose={handleClose}
+  title="Title"
+  icon={<span>🔥</span>}
+>
+  <div>Modal content</div>
+</AppModal>;
+```
+
+### Tracking Data Updates
+
+```tsx
+const { tracking, updateDayTracking } = useStore((state) => ({
+  tracking: state.tracking,
+  updateDayTracking: state.updateDayTracking,
+}));
+
+// Auto-saves via debounced PostgreSQL PATCH
+updateDayTracking("2025-11-15", { water: 2000 });
+```
+
+### Authentication Check in Client Component
+
+```tsx
+"use client";
+import { useAuth } from "@/app/hooks/useAuth";
+
+export function Protected() {
+  const { user, loading } = useAuth();
+
+  if (loading) return <Skeleton />;
+  if (!user) return <LoginPage />;
+
+  return <div>Welcome {user.nickname}</div>;
+}
+```
+
+---
+
+## 14. Resources & Quick Reference
+
+### Adding a New Tracking Metric
 
 1. Add field to `tracking_entries` schema in `lib/db/schema.ts`
-2. Create corresponding Tile component in `app/components/`
-3. Add reducer to Zustand store in `app/store/useStore.ts`
+2. Create Tile component in `app/components/`
+3. Add to Zustand store in `app/store/useStore.ts`
 4. Create API endpoint in `app/api/tracking/[date]/route.ts`
 5. Add to `DailyTracking` interface in `app/types/index.ts`
 
-**Create a new page:**
+### Creating a New Page
 
-1. Create file in `app/` or `app/(dashboard)/` following App Router pattern
+1. Create file in `app/` or `app/(dashboard)/` (App Router pattern)
 2. For protected pages: `await auth()` server-side check
 3. Use `<Suspense>` for async data boundaries
 4. Add to navigation component
 
-**Add a new API endpoint:**
+### Adding a New API Endpoint
 
 1. Create `app/api/resource/route.ts`
 2. Check auth: `await auth()`
@@ -905,7 +813,7 @@ describe("Training Load Calculation", () => {
 4. Use Drizzle for queries
 5. Return `NextResponse.json(data)`
 
-**Update database schema:**
+### Updating Database Schema
 
 1. Modify `lib/db/schema.ts`
 2. Create migration in Neon/Vercel dashboard
@@ -914,10 +822,17 @@ describe("Training Load Calculation", () => {
 
 ---
 
-## 14. Known Issues & Gotchas
+## 15. Known Issues & Limitations
 
-- **Database build-time**: Database is null during `next build`. All API routes and server components must check `if (!db)`.
+- **Build-time**: Database is null during `next build`. All API routes and server components must check `if (!db)`.
 - **Date format**: Always `YYYY-MM-DD`. Inconsistent formats cause filtering bugs.
 - **Session hydration**: Client components need `useAuth()` hook, not direct NextAuth import.
-- **TypeScript strict mode**: `noUncheckedIndexedAccess` requires bounds checking on array access.
-- **Legacy Firebase code**: Some old patterns remain for migration compatibility. Do not expand Firebase usage.
+- **TypeScript strict**: `noUncheckedIndexedAccess` requires bounds checking on all array access.
+
+---
+
+## Next Steps
+
+- See `docs/development-guidelines.md` for additional practices (AI features, observability, etc.)
+- See `docs/training-load.md` for training load algorithm details
+- See `docs/1PASSWORD_SETUP.md` for secrets management with 1Password

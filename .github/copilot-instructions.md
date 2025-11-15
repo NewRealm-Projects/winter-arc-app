@@ -1,25 +1,17 @@
 # GitHub Copilot Instructions - Winter Arc App
 
+⚠️ **IMPORTANT**: This file is synchronized with `claude.md` (root). Both files must stay in sync.
+
+**When updating this file:**
+- Critical changes → also update `claude.md`
+- Policy changes (Security, Dependencies, Branch Naming) → sync to both files
+- Keep this file concise (quick-ref); `claude.md` remains detailed (comprehensive guide)
+
+---
+
 ## Project Overview
 
-Winter Arc is a Progressive Web App (PWA) for fitness tracking with push-ups, sports, nutrition, and weight management. Built with Next.js 15 + React 19 + TypeScript + PostgreSQL (Vercel Postgres/Neon).
-
-## OpenSpec Framework (CRITICAL)
-
-**Before implementing features, ALWAYS check:**
-
-1. Read `openspec/AGENTS.md` for spec-driven development workflow
-2. Run `openspec list` to see active changes and avoid conflicts
-3. For new features: Create proposal in `openspec/changes/[change-id]/` with `proposal.md`, `tasks.md`, and spec deltas
-4. Validate with `openspec validate [change-id] --strict` before implementation
-
-**Triggers for creating OpenSpec proposals:**
-
-- New features, breaking changes, architecture shifts
-- Performance optimizations that change behavior
-- Security pattern updates
-
-**Skip proposals for:** Bug fixes, typos, dependency updates, tests for existing behavior.
+Winter Arc is a Progressive Web App (PWA) for fitness tracking with push-ups, sports, nutrition, and weight management. Built with Next.js 16 + React 19 + TypeScript + PostgreSQL (Vercel Postgres/Neon).
 
 ## Mandatory Branch Naming
 
@@ -157,10 +149,6 @@ npm run vercel:build           # Vercel production build (fails if linking/CLI i
 npm test                       # Vitest unit tests
 npm run test:all               # All checks (lint + typecheck + test + build)
 
-# OpenSpec
-openspec list                  # List active changes
-openspec list --specs          # List specifications
-openspec validate [id] --strict # Validate change proposal
 ```
 
 ## Environment Variables

@@ -72,8 +72,7 @@ This document is the single source of truth for engineers working on the Winter 
 | `NEXTAUTH_SECRET`, `NEXTAUTH_URL` | Server | Needed for NextAuth (`lib/auth.ts`).
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Server | OAuth credentials used in NextAuth provider config.
 | `GEMINI_API_KEY` | Server | Optional, currently unused — document when integrating.
-| `NEXT_PUBLIC_SENTRY_DSN` | Client | Replace Vite-era lookups in `app/services/sentryService.ts` before enabling.
-| `NEXT_PUBLIC_ENABLE_CHECKINS` | Client | Feature flag controlling the legacy check-in polling hook; leave `false` until API routes are rebuilt.
+| `NEXT_PUBLIC_SENTRY_DSN` | Client | Error tracking integration.
 
 Guidelines:
 - Never commit real secrets. `.env.example` must include every required variable.
@@ -103,13 +102,7 @@ Guidelines:
 - Implement exponential backoff with jitter for retries, and set explicit timeouts.
 - Document every AI-facing endpoint or action with request/response examples in `docs/ai/README.md` when such features exist.
 
-## 9. Working with OpenSpec
-
-- Run `openspec list` to inspect active proposals before starting work that may overlap.
-- For feature-level changes that alter requirements or API behavior, create a change proposal under `openspec/changes/<change-id>/` following the instructions in `openspec/AGENTS.md`.
-- Skip the proposal workflow for bug fixes, documentation-only changes, or dependency upgrades.
-
-## 10. Observability & Performance Monitoring
+## 9. Observability & Performance Monitoring
 
 - **Vercel Analytics** is enabled globally via `<Analytics />` in `app/layout.tsx`. No further setup is needed beyond deploying to Vercel.
 - **Vercel Speed Insights** collects runtime performance metrics for deployed builds. The component is already wired inside `app/components/Telemetry.tsx`, which also renders `<Analytics />`. To verify or re-enable it:
