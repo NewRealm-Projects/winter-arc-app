@@ -1,9 +1,9 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useStore } from '../store/useStore';
 import { useAuth } from '../hooks/useAuth';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Layout from '../components/Layout';
 import PushupTile from '../components/PushupTile';
 import WeightTile from '../components/WeightTile';
@@ -14,17 +14,45 @@ import PWAInstallPrompt from '../components/PWAInstallPrompt';
 import SystemIndicator from '../components/SystemIndicator';
 import { CardSkeleton } from '../components/ui/Skeleton';
 
-function DashboardContent() {
-  const user = useStore((state) => state.user);
-  const isOnboarded = useStore((state) => state.isOnboarded);
+function LoadingScreen() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-winter-500 to-winter-700">
+      <div className="text-center">
+        <div className="text-6xl mb-4">❄️</div>
+        <div className="text-white text-lg font-semibold">Loading...</div>
+      </div>
+    </div>
+  );
+}
 
-  // Client-side authentication check
-  if (!user) {
+function DashboardContent() {
+  const { status, user, isOnboarded } = useAuth();
+
+  if (status === 'unauthenticated' || !user) {
     redirect('/auth/signin');
   }
+  const router = useRouter();
+  const user = useStore((state) => state.user);
+  const isOnboarded = useStore((state) => state.isOnboarded);
+  const authLoading = useStore((state) => state.authLoading);
 
-  if (!isOnboarded) {
-    redirect('/onboarding');
+  useEffect(() => {
+    if (authLoading) {
+      return;
+    }
+
+    if (!user) {
+      router.replace('/auth/signin');
+      return;
+    }
+
+    if (!isOnboarded) {
+      router.replace('/onboarding');
+    }
+  }, [authLoading, isOnboarded, router, user]);
+
+  if (authLoading || !user || !isOnboarded) {
+    return <LoadingScreen />;
   }
 
   return (
@@ -65,18 +93,18 @@ function DashboardContent() {
 }
 
 export default function DashboardPage() {
-  // Initialize auth hook
-  useAuth();
-
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-winter-500 to-winter-700">
-        <div className="text-center">
-          <div className="text-6xl mb-4">❄️</div>
-          <div className="text-white text-lg font-semibold">Loading...</div>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-winter-500 to-winter-700">
+          <div className="text-center">
+            <div className="text-6xl mb-4">❄️</div>
+            <div className="text-white text-lg font-semibold">Loading...</div>
+          </div>
         </div>
-      </div>
-    }>
+      }
+    >
+    <Suspense fallback={<LoadingScreen />}>
       <DashboardContent />
     </Suspense>
   );

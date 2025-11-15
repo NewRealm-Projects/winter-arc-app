@@ -33,19 +33,33 @@ interface SentryConfig {
  * @returns boolean - true if Sentry was initialized successfully
  */
 export function initializeSentry(config?: Partial<SentryConfig>): boolean {
-  const sentryDsn = config?.dsn ?? process.env.VITE_SENTRY_DSN;
-  const isEnabled = config?.enabled ?? Boolean(sentryDsn);
+  if (!isBrowserRuntime()) {
+    return false;
+  }
 
-  if (!isEnabled) {
-    console.warn('[Sentry] DSN not configured - error tracking disabled');
+  const sentryDsn = config?.dsn ?? process.env.NEXT_PUBLIC_SENTRY_DSN;
+  const hasDsn = Boolean(sentryDsn);
+  const suppressionReason = getTelemetrySuppressionReason();
+
+  if (suppressionReason && config?.enabled !== true) {
+    console.info(`[Sentry] Telemetry disabled (${suppressionReason})`);
+    return false;
+  }
+
+  const isEnabled = config?.enabled ?? hasDsn;
+
+  if (!isEnabled || !hasDsn) {
+    if (!hasDsn && config?.enabled !== false) {
+      console.warn('[Sentry] DSN not configured - error tracking disabled');
+    }
     return false;
   }
 
   try {
     Sentry.init({
       dsn: sentryDsn,
-      environment: config?.environment ?? process.env.MODE,
-      release: config?.release ?? window.SENTRY_RELEASE?.id,
+      environment: config?.environment ?? process.env.NODE_ENV,
+      release: config?.release ?? getReleaseId(),
 
       // Integrations
       integrations: [
@@ -57,7 +71,8 @@ export function initializeSentry(config?: Partial<SentryConfig>): boolean {
       ],
 
       // Performance Monitoring
-      tracesSampleRate: config?.tracesSampleRate ?? (process.env.PROD ? 0.2 : 1.0),
+      tracesSampleRate:
+        config?.tracesSampleRate ?? (process.env.NODE_ENV === 'production' ? 0.2 : 1.0),
 
       // Session Replay
       replaysSessionSampleRate: config?.replaysSessionSampleRate ?? 0.1,
@@ -158,8 +173,8 @@ function filterSensitiveData(text: string): string {
  * Capture an exception manually
  */
 export function captureException(error: Error | unknown, context?: Record<string, unknown>): void {
-  if (process.env.MODE === 'test') {
-    return; // Don't send errors in test mode
+  if (shouldSuppressTelemetry()) {
+    return; // Don't send errors when telemetry is disabled
   }
 
   Sentry.captureException(error, {
@@ -171,8 +186,8 @@ export function captureException(error: Error | unknown, context?: Record<string
  * Capture a message manually
  */
 export function captureMessage(message: string, level: Sentry.SeverityLevel = 'info'): void {
-  if (process.env.MODE === 'test') {
-    return; // Don't send messages in test mode
+  if (shouldSuppressTelemetry()) {
+    return; // Don't send messages when telemetry is disabled
   }
 
   Sentry.captureMessage(message, level);
@@ -230,4 +245,37 @@ export function startSpan<T>(
  * Export Sentry for advanced usage
  */
 export { Sentry };
+
+function isBrowserRuntime(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const runtime = process.env.NEXT_RUNTIME;
+  if (runtime === 'edge' || runtime === 'nodejs') {
+    return false;
+  }
+
+  return true;
+}
+
+function getReleaseId(): string | undefined {
+  return typeof window === 'undefined' ? undefined : window.SENTRY_RELEASE?.id;
+}
+
+function shouldSuppressTelemetry(): boolean {
+  return getTelemetrySuppressionReason() !== null;
+}
+
+function getTelemetrySuppressionReason(): string | null {
+  if (process.env.NODE_ENV === 'test') {
+    return 'test environment';
+  }
+
+  if (process.env.NEXT_PUBLIC_SENTRY_DISABLE === 'true') {
+    return 'NEXT_PUBLIC_SENTRY_DISABLE flag';
+  }
+
+  return null;
+}
 
