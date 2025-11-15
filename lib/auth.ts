@@ -2,7 +2,7 @@ import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import { db } from "@/lib/db"
-import { users } from "@/lib/db/schema"
+import { users, type NewUser } from "@/lib/db/schema"
 import { eq } from "drizzle-orm"
 
 // Defensive: ensure db is available before constructing adapter to satisfy strict null checks.
@@ -12,10 +12,9 @@ if (!db) {
 }
 const database = db!;
 
-// NOTE: Our users table diverges from NextAuth's default expected shape (no name/image/emailVerified columns).
-// For now we rely on a thin shim object that supplies only what DrizzleAdapter inspects at runtime.
-// Long-term: implement a custom adapter conforming precisely to our schema.
-// @ts-expect-error Schema mismatch is intentional; runtime usage limited to id/email fields.
+// DrizzleAdapter's helper types expect the full default schema. We only override the users table,
+// so silence the type mismatch while relying on the runtime contract provided by the adapter.
+// @ts-expect-error Partial table override is intentional.
 const adapter = DrizzleAdapter(database, { usersTable: users });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -28,18 +27,48 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async signIn({ user, account }) {
-      // Handle user creation/update in our custom schema
       if (account?.provider === "google" && user.email) {
         try {
-          // Check if user exists
-          const existingUser = await database.select().from(users).where(eq(users.email, user.email)).limit(1);
+          const email = user.email!;
+
+          const existingUser = await database
+            .select()
+            .from(users)
+            .where(eq(users.email, email))
+            .limit(1);
+
+          const derivedNicknameBase = (user.name ?? email.split("@")[0]) as string;
+          const derivedNickname = derivedNicknameBase.trim();
 
           if (existingUser.length === 0) {
-            // Create new user in our custom schema
-            await database.insert(users).values({
-              email: user.email!,
-              nickname: user.name || user.email!.split('@')[0],
-            } as any); // Casting due to custom schema divergence
+            const payload: NewUser = {
+              email: user.email,
+              nickname: derivedNickname,
+              name: user.name ?? derivedNickname,
+              image: user.image ?? null,
+              emailVerified: null,
+            };
+
+            await database.insert(users).values(payload);
+          } else {
+            const record = existingUser[0]!;
+            const updates: Partial<NewUser> = {};
+
+            if (!record.nickname || record.nickname.trim().length === 0) {
+              updates.nickname = derivedNickname;
+            }
+
+            if (user.name && user.name !== record.name) {
+              updates.name = user.name;
+            }
+
+            if (user.image && user.image !== record.image) {
+              updates.image = user.image;
+            }
+
+            if (Object.keys(updates).length > 0) {
+              await database.update(users).set(updates).where(eq(users.id, record.id));
+            }
           }
 
           return true;

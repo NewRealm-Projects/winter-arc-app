@@ -51,7 +51,7 @@ export function useCheckInSubscription(dateKey?: string): void {
       isActive = false;
       clearInterval(intervalId);
     };
-  }, [isTestEnv, isDemoMode, userId, dateKey, setCheckInForDate]);
+  }, [isCheckInApiEnabled, isTestEnv, isDemoMode, userId, dateKey, setCheckInForDate]);
 }
 
 
