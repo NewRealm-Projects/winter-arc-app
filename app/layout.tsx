@@ -39,7 +39,20 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const authState = await getCurrentUser();
+  let authState;
+
+  try {
+    authState = await getCurrentUser();
+  } catch (error) {
+    console.error('Failed to get current user during layout render:', error);
+    // Fallback to unauthenticated state
+    authState = {
+      session: null,
+      user: null,
+      status: 'unauthenticated' as const,
+      isOnboarded: false,
+    };
+  }
 
   return (
     <html lang="de" suppressHydrationWarning>
