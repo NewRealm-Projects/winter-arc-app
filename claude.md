@@ -3,7 +3,8 @@
 ⚠️ **IMPORTANT**: This file is synchronized with `.github/copilot-instructions.md`. Both files must stay in sync.
 
 **When updating this file:**
-- Critical policy changes (Security, Dependencies, Branch Naming) → also update `copilot-instructions.md`
+
+- Critical policy changes (Security, Dependencies, Branch Naming, Documentation) → also update `copilot-instructions.md`
 - Keep this file detailed (comprehensive guide); `copilot-instructions.md` remains concise (quick-ref)
 
 ---
@@ -547,6 +548,47 @@ Security is paramount—every identified vulnerability (npm audit, Snyk, GitHub 
 - Open High/Critical: 0
 - Mean Time To Remediate (Critical): <24h
 - No disabled audits or hidden advisories
+
+### Documentation Policy
+
+**Principle:** Documentation is not optional—it is a first-class maintenance artifact.
+
+**When to Create `.md` Files:**
+
+- **Only when necessary:** Create `.md` files for:
+  - Architectural decisions affecting multiple systems (e.g., `docs/training-load.md`)
+  - Setup instructions for complex integrations (e.g., `docs/1PASSWORD_SETUP.md`)
+  - Runbooks or troubleshooting guides for common issues
+  - DO NOT create ad-hoc docs for single features; inline code comments and tests are sufficient
+
+- **Avoid documentation bloat:**
+  - No `.md` file needed for single-file features or minor bug fixes
+  - Prefer JSDoc comments in code over standalone guides for simple APIs
+  - Keep prose documentation concise; let tests and examples be your primary spec
+
+**When Features Change, Update Related Documentation:**
+
+Critical: If a feature changes, ALL related `.md` documentation MUST be updated in the same PR. This includes:
+
+- Architecture decisions in `docs/` (if affected)
+- Synchronization notes at the top of this file (for policy changes)
+- This file's relevant section if patterns change
+- Inline code examples that no longer reflect reality
+
+**Why?** Stale documentation is worse than no documentation—it misleads developers and breaks trust. Treat docs as tests: if code changes and docs don't, that's a failure.
+
+**Workflow:**
+
+1. Identify all `.md` files that reference the changed feature (use Grep)
+2. Update them in the same commit as the feature change
+3. Add a note in your PR: "Updated docs: [file1], [file2], …"
+4. For policy changes (Section 7 items): also update `.github/copilot-instructions.md` per line 3-7
+
+**Governance:**
+
+- `.md` files older than 6 months without updates are candidates for archival
+- Archive outdated docs to `docs/archive/` with a link in the original location
+- Monthly hygiene check: `git log --since="6 months ago" -- docs/` to spot stale files
 
 ---
 

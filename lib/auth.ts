@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
-import GoogleProvider from "next-auth/providers/google"
+import type { Account, User, Session } from "next-auth"
+import Google from "next-auth/providers/google"
 import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import { db } from "@/lib/db"
 import { users, type NewUser } from "@/lib/db/schema"
@@ -15,10 +16,11 @@ const database = db ?? null;
 // @ts-expect-error Partial table override is intentional.
 const adapter = database ? DrizzleAdapter(database, { usersTable: users }) : undefined;
 
+// NextAuth v5 configuration with unified export pattern
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter,
   providers: [
-    GoogleProvider({
+    Google({
       clientId: process.env.GOOGLE_CLIENT_ID || "", // empty fallback to avoid build-time crash
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     })
@@ -105,7 +107,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: '/auth/signin',
     error: '/auth/error',
   },
-  session: { strategy: 'jwt' },
+  session: { strategy: 'jwt' as const },
 });
 
+// Export API route handlers (NextAuth v5 pattern)
 export { handlers as GET, handlers as POST };
