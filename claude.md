@@ -304,67 +304,77 @@ groups: {
 
 ## 5. Authentication Flow
 
-### NextAuth Configuration
+### Stack Auth Configuration
+
+The app uses **Stack Auth** (@stackframe/stack) for authentication with Google OAuth support.
+
+**Server-Side Setup:**
 
 ```typescript
-// lib/auth.ts
-import NextAuth from "next-auth";
-import Google from "next-auth/providers/google";
-import { DrizzleAdapter } from "@auth/drizzle-orm";
-import { db } from "./db";
+// lib/stack.ts
+import { StackServerApp } from "@stackframe/stack";
 
-export const { auth, signIn, signOut } = NextAuth({
-  adapter: DrizzleAdapter(db!),
-  providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-  ],
-  pages: { signIn: "/auth/signin" },
-  session: { strategy: "jwt" },
-  callbacks: {
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.sub!;
-        session.user.nickname = token.nickname;
-        session.user.groupCode = token.groupCode;
-      }
-      return session;
-    },
+export const stackServerApp = new StackServerApp({
+  tokenStore: "nextjs-cookie",
+  projectId: process.env.NEXT_PUBLIC_STACK_PROJECT_ID!,
+  publishableClientKey: process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY!,
+  secretServerKey: process.env.STACK_SECRET_SERVER_KEY!,
+  urls: {
+    signIn: "/handler/sign-in",
+    afterSignIn: "/dashboard",
+    signUp: "/handler/sign-up",
+    afterSignOut: "/",
+    home: "/",
   },
 });
 ```
 
-### Session Type Extension
+**IMPORTANT:** Stack Auth requires **explicit environment variable configuration**. The constructor does NOT automatically read from `process.env` - you must pass the variables explicitly.
+
+**Client-Side Provider:**
 
 ```typescript
-// types/next-auth.d.ts
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      email: string;
-      nickname: string | null;
-      groupCode: string | null;
-      image: string | null;
-    };
-  }
+// components/providers/StackAuthProvider.tsx
+"use client";
+
+import { StackProvider, StackTheme, StackClientApp } from "@stackframe/stack";
+
+const stackClientApp = new StackClientApp({
+  tokenStore: "nextjs-cookie",
+  projectId: process.env.NEXT_PUBLIC_STACK_PROJECT_ID!,
+  publishableClientKey: process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY!,
+  urls: {
+    signIn: "/handler/sign-in",
+    afterSignIn: "/dashboard",
+    signUp: "/handler/sign-up",
+    afterSignOut: "/",
+    home: "/",
+  },
+});
+
+export function StackAuthProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <StackProvider app={stackClientApp}>
+      <StackTheme>
+        {children}
+      </StackTheme>
+    </StackProvider>
+  );
 }
 ```
 
-### Using Auth
+### Using Stack Auth
 
-**Server Component:**
+**Server Component / API Route:**
 
 ```typescript
-import { auth } from "@/lib/auth";
+import { stackServerApp } from "@/lib/stack";
 import { redirect } from "next/navigation";
 
 export default async function Protected() {
-  const session = await auth();
-  if (!session?.user?.id) redirect("/auth/signin");
-  return <div>Welcome {session.user.nickname}</div>;
+  const user = await stackServerApp.getUser();
+  if (!user) redirect("/handler/sign-in");
+  return <div>Welcome {user.displayName}</div>;
 }
 ```
 
@@ -372,13 +382,12 @@ export default async function Protected() {
 
 ```typescript
 "use client";
-import { useAuth } from "@/app/hooks/useAuth";
+import { useUser } from "@stackframe/stack";
 
 export function Profile() {
-  const { session, loading } = useAuth();
-  if (loading) return <Loading />;
-  if (!session) return <Unauthorized />;
-  return <div>{session.user.nickname}</div>;
+  const user = useUser();
+  if (!user) return <div>Please sign in</div>;
+  return <div>{user.displayName}</div>;
 }
 ```
 
@@ -474,18 +483,20 @@ const database = db; // Type narrowing after null check
 **Required:**
 
 ```bash
-DATABASE_URL="postgresql://..."              # Vercel Postgres / Neon
-NEXTAUTH_SECRET="..."                        # Random key for JWT
-NEXTAUTH_URL="http://localhost:3000"         # App URL
-GOOGLE_CLIENT_ID="..."                       # OAuth client ID
-GOOGLE_CLIENT_SECRET="..."                   # OAuth secret
+DATABASE_URL="postgresql://..."                                  # Vercel Postgres / Neon
+NEXT_PUBLIC_STACK_PROJECT_ID="..."                              # Stack Auth project ID
+NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY="..."                  # Stack Auth public key
+STACK_SECRET_SERVER_KEY="..."                                    # Stack Auth secret key (server-only)
 ```
+
+**CRITICAL:** Stack Auth **requires explicit configuration** in code. The environment variables must be passed to the `StackServerApp` and `StackProvider` constructors - they do NOT auto-load from `process.env`.
 
 **Optional:**
 
 ```bash
-GEMINI_API_KEY="..."                         # Smart notes AI (server-side)
+GEMINI_API_KEY="..."                         # Smart notes AI (server-side, currently deprecated)
 NEXT_PUBLIC_SENTRY_DSN="..."                 # Error tracking
+NEXT_PUBLIC_SENTRY_DISABLE="..."             # Disable Sentry (set to "true" for local testing)
 ```
 
 ### Type Safety
