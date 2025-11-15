@@ -8,9 +8,12 @@ import Layout from '../components/Layout';
 import { CardSkeleton } from '../components/ui/Skeleton';
 
 function SettingsContent() {
-  const user = useStore((state) => state.user);
+  const storeUser = useStore((state) => state.user);
+  const { status, user: contextUser } = useAuth();
 
-  if (!user) {
+  const user = storeUser ?? contextUser;
+
+  if (status === 'unauthenticated' || !user) {
     redirect('/auth/signin');
   }
 
@@ -50,8 +53,6 @@ function SettingsContent() {
 }
 
 export default function SettingsPage() {
-  useAuth();
-
   return (
     <Suspense fallback={<CardSkeleton />}>
       <SettingsContent />

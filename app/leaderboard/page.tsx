@@ -1,16 +1,15 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useStore } from '../store/useStore';
 import { useAuth } from '../hooks/useAuth';
 import { redirect } from 'next/navigation';
 import Layout from '../components/Layout';
 import { CardSkeleton } from '../components/ui/Skeleton';
 
 function LeaderboardContent() {
-  const user = useStore((state) => state.user);
+  const { status, user } = useAuth();
 
-  if (!user) {
+  if (status === 'unauthenticated' || !user) {
     redirect('/auth/signin');
   }
 
@@ -44,8 +43,6 @@ function LeaderboardContent() {
 }
 
 export default function LeaderboardPage() {
-  useAuth();
-
   return (
     <Suspense fallback={<CardSkeleton />}>
       <LeaderboardContent />
