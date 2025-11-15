@@ -44,7 +44,7 @@ export function HomePage() {
             Bitte melde dich an, um deine Winter Arc Statistiken zu sehen.
           </p>
           <Link
-            href="/auth/signin"
+            href="/handler/sign-in"
             className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-2.5 font-semibold text-winter-900 shadow-sm transition hover:bg-winter-100"
           >
             Zur Anmeldung

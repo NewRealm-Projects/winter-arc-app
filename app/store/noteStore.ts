@@ -118,15 +118,13 @@ async function getCurrentUserId(): Promise<string | null> {
   }
 
   try {
-    // Use NextAuth session endpoint to get current user
-    const response = await fetch('/api/auth/session');
-    if (!response.ok) {
-      return null;
-    }
-    const session = await response.json();
-    return session?.user?.id || null;
+    // Stack Auth stores user info in the global state
+    // This is a fallback for when we can't access React hooks
+    // In most cases, components should use useUser() from @stackframe/stack directly
+    const stackUser = (window as any).__STACK_USER__;
+    return stackUser?.id || null;
   } catch (error) {
-    console.warn('Unable to fetch session, skipping remote persistence.', error);
+    console.warn('Unable to get Stack user, skipping remote persistence.', error);
     return null;
   }
 }

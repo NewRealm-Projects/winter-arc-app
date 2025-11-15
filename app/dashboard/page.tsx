@@ -37,7 +37,7 @@ function DashboardContent() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.replace('/auth/signin');
+      router.replace('/handler/sign-in');
     }
   }, [router, status]);
 

@@ -27,7 +27,7 @@ function LeaderboardContent() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.replace('/auth/signin');
+      router.replace('/handler/sign-in');
     }
   }, [router, status]);
 
@@ -37,7 +37,7 @@ function LeaderboardContent() {
     }
 
     if (!effectiveUser) {
-      router.replace('/auth/signin');
+      router.replace('/handler/sign-in');
     }
   }, [effectiveUser, router, status]);
 

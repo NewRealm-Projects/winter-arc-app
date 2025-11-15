@@ -1,5 +1,6 @@
-// Stack Auth managed page
-// Stack automatically handles authentication UI at /handler/* routes
-export default function StackHandlerPage() {
-  return null;
+import { StackHandler } from "@stackframe/stack";
+import { stackServerApp } from "@/lib/stack";
+
+export default function Handler(props: any) {
+  return <StackHandler app={stackServerApp} {...props} />;
 }

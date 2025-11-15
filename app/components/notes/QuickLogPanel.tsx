@@ -76,7 +76,7 @@ function QuickLogPanel() {
       setSessionWarningShown(true);
       console.error('QuickLogPanel: Missing authenticated user id for quick-log action.');
       showToast({ message: 'Your session expired. Please sign in again.', type: 'error' });
-      router.push('/auth/signin');
+      router.push('/handler/sign-in');
     }
     return null;
   };

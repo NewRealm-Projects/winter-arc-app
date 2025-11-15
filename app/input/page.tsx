@@ -15,7 +15,7 @@ function InputContent() {
   const isOnboarded = useStore((state) => state.isOnboarded);
 
   if (!user) {
-    redirect('/auth/signin');
+    redirect('/handler/sign-in');
   }
 
   if (!isOnboarded) {

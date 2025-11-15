@@ -28,7 +28,7 @@ function SettingsContent() {
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.replace('/auth/signin');
+      router.replace('/handler/sign-in');
     }
   }, [router, status]);
 
@@ -38,7 +38,7 @@ function SettingsContent() {
     }
 
     if (!user) {
-      router.replace('/auth/signin');
+      router.replace('/handler/sign-in');
     }
   }, [router, status, user]);
 

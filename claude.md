@@ -111,14 +111,14 @@ import { eq } from "drizzle-orm";
 import { users } from "@/lib/db/schema";
 
 export default async function Dashboard() {
-  const session = await auth();
-  if (!session?.user?.id) redirect("/auth/signin");
+  const user = await stackServerApp.getUser();
+  if (!user) redirect("/handler/sign-in");
 
   if (!db) throw new Error("Database unavailable");
   const userData = await db
     .select()
     .from(users)
-    .where(eq(users.id, session.user.id))
+    .where(eq(users.id, user.id))
     .limit(1);
 
   return <div>{userData[0]?.nickname}</div>;
@@ -770,7 +770,7 @@ import { test, expect } from "@playwright/test";
 
 test("user can sign in with Google", async ({ page }) => {
   // Given: user is on login page
-  await page.goto("/auth/signin");
+  await page.goto("/handler/sign-in");
 
   // When: user clicks Google OAuth button
   await page.click('[data-testid="google-signin-button"]');

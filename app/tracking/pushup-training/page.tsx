@@ -27,7 +27,7 @@ function PushupTrainingContent() {
   const selectedDate = useStore((state) => state.selectedDate);
 
   if (!user) {
-    redirect('/auth/signin');
+    redirect('/handler/sign-in');
   }
 
   if (!isOnboarded) {
