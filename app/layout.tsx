@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { Telemetry } from './components/Telemetry';
 import { PWARegister } from './components/PWARegister';
 import './globals.css';
 
@@ -39,8 +38,7 @@ export default function RootLayout({
           {children}
         </AuthProvider>
         <PWARegister />
-        <Analytics />
-        <SpeedInsights />
+        <Telemetry />
       </body>
     </html>
   );

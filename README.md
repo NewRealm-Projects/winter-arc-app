@@ -93,7 +93,8 @@ Tipp: Füge die App deinem Homescreen hinzu für schnellen Zugriff.
 
 Möchtest du tiefer einsteigen oder beitragen? Schau in die technischen Unterlagen:
 
-- `CONTRIBUTING.md` – Hinweise für Beiträge
+- `CONTRIBUTING.md` – Hinweise für Beiträge (Verweis auf die technischen Entwickler-Guidelines)
+- `docs/development-guidelines.md` – Zentrale Entwickler-Dokumentation mit Setup, Branch-Policy, Coding-Standards und Tooling
 - `docs/` – Weitere Hintergrundinfos
 
 Issues, Feedback oder Ideen: Erstelle ein [Issue auf GitHub](https://github.com/NewRealm-Projects/winter-arc-app/issues).
