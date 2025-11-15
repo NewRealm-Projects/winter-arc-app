@@ -13,7 +13,7 @@ export default function HomePage() {
 
   useEffect(() => {
     // Wait for auth to fully load before making routing decisions
-    if (authLoading || status === 'loading') {
+    if (authLoading) {
       return;
     }
 

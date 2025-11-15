@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import type { Session } from 'next-auth';
+import { useUser } from '@stackframe/stack';
 import { format } from 'date-fns';
 import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -25,8 +24,9 @@ interface QuickAction {
   color: string;
 }
 
-const hasUserId = (user: Session['user'] | undefined | null): user is Session['user'] & { id: string } =>
-  !!user && typeof (user as { id?: unknown }).id === 'string';
+// Type guard for Stack user with ID
+const hasUserId = (user: ReturnType<typeof useUser> | undefined | null): user is NonNullable<ReturnType<typeof useUser>> =>
+  !!user && typeof user.id === 'string';
 
 // Helper to create empty tracking data with proper defaults
 const createEmptyTracking = (dateKey: string): DailyTracking => ({
@@ -53,7 +53,7 @@ const cloneTrackingEntry = (entry: DailyTracking): DailyTracking =>
 function QuickLogPanel() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { data: session } = useSession();
+  const stackUser = useUser();
   const { showToast } = useToast();
   const user = useStore((state) => state.user);
   const tracking = useStore((state) => state.tracking);
@@ -64,7 +64,7 @@ function QuickLogPanel() {
   const [sessionWarningShown, setSessionWarningShown] = useState(false);
 
   const requireUserId = (): string | null => {
-    const userId = hasUserId(session?.user) ? session.user.id : null;
+    const userId = hasUserId(stackUser) ? stackUser.id : null;
     // If a valid session re-appeared after a previous expiration, reset warning flag so future expirations show again
     if (userId) {
       if (sessionWarningShown) {
@@ -81,12 +81,12 @@ function QuickLogPanel() {
     return null;
   };
 
-  // Passive listener: also reset warning flag whenever a session with userId becomes available.
+  // Passive listener: also reset warning flag whenever Stack user with userId becomes available.
   useEffect(() => {
-    if (hasUserId(session?.user) && sessionWarningShown) {
+    if (hasUserId(stackUser) && sessionWarningShown) {
       setSessionWarningShown(false);
     }
-  }, [session?.user, sessionWarningShown]);
+  }, [stackUser, sessionWarningShown]);
 
   const todayKey = format(new Date(), 'yyyy-MM-dd');
   const activeDate = selectedDate || todayKey;

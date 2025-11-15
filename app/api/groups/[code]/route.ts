@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/app/lib/apiAuth';
 import { db } from '@/lib/db';
 import { groups, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -34,10 +34,8 @@ export async function GET(
   { params }: { params: { code: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { error } = await getAuthenticatedUser();
+    if (error) return error;
 
     const code = params.code;
 
@@ -73,17 +71,15 @@ export async function POST(
   { params }: { params: { code: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { error, localUser } = await getAuthenticatedUser();
+    if (error) return error;
 
     const code = params.code;
     if (!validateGroupCode(code)) {
       return NextResponse.json({ error: 'Invalid group code format' }, { status: 400 });
     }
 
-    if (!rateLimit(createRateBucket, session.user.id, 5000)) {
+    if (!rateLimit(createRateBucket, localUser!.id, 5000)) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
     }
 
@@ -105,14 +101,14 @@ export async function POST(
       .values({
         code,
         name,
-        members: [session.user.id],
+        members: [localUser!.id],
       })
       .returning();
 
     // Update user's groupCode
     await db.update(users)
       .set({ groupCode: code, updatedAt: new Date() })
-      .where(eq(users.id, session.user.id));
+      .where(eq(users.id, localUser!.id));
 
     return NextResponse.json(newGroup[0], { status: 201 });
   } catch (error) {
@@ -127,10 +123,8 @@ export async function PATCH(
   { params }: { params: { code: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { error, localUser } = await getAuthenticatedUser();
+    if (error) return error;
 
     const code = params.code;
     const body = await request.json();
@@ -147,11 +141,11 @@ export async function PATCH(
     // Only members can modify the group
   // group length checked above; assert non-null for TypeScript
   const currentMembers: string[] = Array.isArray(group[0]!.members) ? (group[0]!.members as string[]) : [];
-    if (!currentMembers.includes(session.user.id)) {
+    if (!currentMembers.includes(localUser!.id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    if (!rateLimit(modifyRateBucket, session.user.id, 3000)) {
+    if (!rateLimit(modifyRateBucket, localUser!.id, 3000)) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
     }
 
@@ -207,10 +201,8 @@ export async function DELETE(
   { params }: { params: { code: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { error, localUser } = await getAuthenticatedUser();
+    if (error) return error;
 
     const code = params.code;
 
@@ -222,11 +214,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Group not found' }, { status: 404 });
     }
   const currentMembers: string[] = Array.isArray(group[0]!.members) ? (group[0]!.members as string[]) : [];
-    if (!currentMembers.includes(session.user.id)) {
+    if (!currentMembers.includes(localUser!.id)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    if (!rateLimit(modifyRateBucket, session.user.id, 5000)) {
+    if (!rateLimit(modifyRateBucket, localUser!.id, 5000)) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
     }
 

@@ -23,7 +23,9 @@
       "Bash(npm run docs:check:*)",
       "Bash(npm run lint:*)",
       "Bash(git commit:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(npx drizzle-kit introspect)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []

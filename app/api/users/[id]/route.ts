@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { stackServerApp } from '@/lib/stack';
+import { getUserByStackId } from '@/app/services/userSyncService';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -10,27 +11,28 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user) {
+    const stackUser = await stackServerApp.getUser();
+    if (!stackUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = params.id;
+    const localUser = await getUserByStackId(stackUser.id);
 
     // Users can only access their own data or public fields
     if (!db) {
       return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
     }
     const database = db;
-    const user = await database.select().from(users).where(eq(users.id, userId)).limit(1);
+    const dbUser = await database.select().from(users).where(eq(users.id, userId)).limit(1);
 
-    if (user.length === 0) {
+    if (dbUser.length === 0) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Only return own full data or limited public data
-    const first = user[0];
-    if (session.user.id !== userId) {
+    const first = dbUser[0];
+    if (localUser?.id !== userId) {
       // Return public fields only
       return NextResponse.json({
         id: first!.id,
@@ -52,15 +54,16 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user) {
+    const user = await stackServerApp.getUser();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = params.id;
+    const localUser = await getUserByStackId(user.id);
 
     // Users can only update their own data
-    if (session.user.id !== userId) {
+    if (localUser?.id !== userId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -108,15 +111,16 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user) {
+    const user = await stackServerApp.getUser();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = params.id;
+    const localUser = await getUserByStackId(user.id);
 
     // Users can only delete their own account
-    if (session.user.id !== userId) {
+    if (localUser?.id !== userId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

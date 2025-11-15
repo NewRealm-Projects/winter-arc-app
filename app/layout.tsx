@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import { AuthProvider } from '@/components/providers/AuthProvider';
+import { StackAuthProvider } from '@/components/providers/StackAuthProvider';
 import { Telemetry } from './components/Telemetry';
 import { ThemeProvider } from '@/app/contexts/ThemeContext';
 import { PWARegister } from './components/PWARegister';
@@ -42,9 +42,9 @@ export default function RootLayout({
     <html lang="de" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider>
-          <AuthProvider>
+          <StackAuthProvider>
             {children}
-          </AuthProvider>
+          </StackAuthProvider>
         </ThemeProvider>
         <PWARegister />
         <Telemetry />

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useAuthContext } from '@/components/providers/AuthProvider';
-
-export function useAuth() {
-  return useAuthContext();
-}
+/**
+ * Compatibility wrapper for legacy useAuth imports.
+ * Re-exports Stack Auth hook for seamless migration.
+ */
+export { useStackAuth as useAuth } from './useStackAuth';

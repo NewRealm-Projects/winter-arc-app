@@ -21,9 +21,10 @@ function SettingsContent() {
   const router = useRouter();
   const storeUser = useStore((state) => state.user);
   const authLoading = useStore((state) => state.authLoading);
-  const { status, user: authUser } = useAuth();
+  const { status } = useAuth();
 
-  const user = storeUser ?? authUser;
+  // Use storeUser which has all custom fields (nickname, height, weight, etc.)
+  const user = storeUser;
 
   useEffect(() => {
     if (status === 'unauthenticated') {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/app/lib/apiAuth';
 import { db } from '@/lib/db';
 import { trackingEntries } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -10,13 +10,11 @@ export async function GET(
   { params }: { params: { date: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { error, localUser } = await getAuthenticatedUser();
+    if (error) return error;
 
     const date = params.date;
-    const userId = session.user.id;
+    const userId = localUser!.id;
 
     if (!db) {
       return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
@@ -57,13 +55,11 @@ export async function POST(
   { params }: { params: { date: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { error, localUser } = await getAuthenticatedUser();
+    if (error) return error;
 
     const date = params.date;
-    const userId = session.user.id;
+    const userId = localUser!.id;
     const body = await request.json();
 
     if (!db) {
@@ -105,13 +101,11 @@ export async function PATCH(
   { params }: { params: { date: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { error, localUser } = await getAuthenticatedUser();
+    if (error) return error;
 
     const date = params.date;
-    const userId = session.user.id;
+    const userId = localUser!.id;
     const body = await request.json();
 
     // Check if entry exists
