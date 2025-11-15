@@ -68,8 +68,8 @@ groups → { id, code, name, members[], createdAt }
 
 ## Code Quality (Pre-commit/Push Hooks)
 
-**Pre-commit:** TypeScript + ESLint + Secret Scanning
-**Pre-push:** TypeScript + ESLint + Tests + Build + Branch Name Validation
+**Pre-commit:** TypeScript + ESLint + Secret Scanning (fix every warning before committing)
+**Pre-push:** TypeScript + ESLint + Tests + `vercel build` + Branch Name Validation (no skipped steps)
 
 **Coverage Requirements:**
 
@@ -153,6 +153,7 @@ npm run db:migrate             # Run migrations
 # Quality Checks (run before committing)
 npm run lint                   # ESLint
 npm run typecheck              # TypeScript strict mode
+npm run vercel:build           # Vercel production build (fails if linking/CLI is broken)
 npm test                       # Vitest unit tests
 npm run test:all               # All checks (lint + typecheck + test + build)
 

@@ -314,6 +314,7 @@ Bevor ein PR als "Done" markiert wird, müssen folgende Kriterien erfüllt sein:
 - [ ] Code funktioniert wie erwartet in Dev-Umgebung
 - [ ] TypeScript: 0 Fehler (`npm run typecheck`)
 - [ ] ESLint: 0 Fehler (`npm run lint`)
+- [ ] Vercel Build: erfolgreich ohne Warnungen (`npm run vercel:build`)
 - [ ] Keine Warnings in der Konsole (Browser DevTools)
 - [ ] Code ist lesbar und gut strukturiert
 

@@ -36,7 +36,9 @@ This document is the single source of truth for engineers working on the Winter 
 4. **Run checks** before opening a pull request:
    - `npm run lint`
    - `npm run typecheck`
+   - `npm run vercel:build`
    - `npm run test:unit`
+   > ⚠️ If any command fails or emits warnings, stop and fix the root cause—skipping checks is not allowed.
 5. **Commit messages** must follow Conventional Commit format (`type(scope): subject`). Use scopes that reflect the feature or subsystem (`feat(tracking): …`).
 6. **Pull requests** target `develop`. Once merged, release PRs move `develop` → `main`.
 
@@ -83,6 +85,8 @@ Guidelines:
 - **Unit tests:** `npm run test:unit` (Vitest). Add new tests under `app/**/__tests__` or `components/**/__tests__`.
 - **Type safety:** `npm run typecheck` must succeed; add module augmentations under `types/` as needed.
 - **Linting:** `npm run lint` runs ESLint + secret scanning. Fix lint issues rather than suppressing unless there is a documented exception.
+- **Production build:** `npm run vercel:build` must succeed. Resolve CLI/linking issues instead of skipping the command.
+- **No loose ends:** Treat warnings from these commands as blockers—either resolve them or document why they are acceptable and how they will be fixed.
 - **Visual/Performance:** Lighthouse CI via `npm run lhci:run` for regressions; use `npm run analyze` to inspect bundle composition when adding large dependencies.
 
 ## 7. Documentation Expectations
@@ -118,7 +122,7 @@ Guidelines:
 
 Before merging:
 - [ ] Code follows the conventions outlined above.
-- [ ] Tests, lint, and typecheck pass locally.
+- [ ] Tests, lint, typecheck, and `npm run vercel:build` pass locally without warnings.
 - [ ] Relevant documentation in this file or `docs/` has been updated.
 - [ ] Secrets are documented in `.env.example` when new configuration is introduced.
 - [ ] For user-visible UI updates, capture screenshots with the provided tooling.
