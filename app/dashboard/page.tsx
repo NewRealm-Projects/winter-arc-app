@@ -51,7 +51,7 @@ function DashboardContent() {
     }
   }, [effectiveIsOnboarded, effectiveUser, router, status]);
 
-  if (status === 'loading' || authLoading || !effectiveUser || !effectiveIsOnboarded) {
+  if (authLoading || !effectiveUser || !effectiveIsOnboarded) {
     return <LoadingScreen />;
   }
 

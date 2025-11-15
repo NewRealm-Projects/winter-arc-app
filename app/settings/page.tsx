@@ -41,7 +41,7 @@ function SettingsContent() {
     }
   }, [router, status, user]);
 
-  if (status === 'loading' || authLoading || !user) {
+  if (authLoading || !user) {
     return <LoadingScreen />;
   }
 

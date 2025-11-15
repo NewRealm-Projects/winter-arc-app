@@ -41,7 +41,7 @@ function LeaderboardContent() {
     }
   }, [effectiveUser, router, status]);
 
-  if (status === 'loading' || authLoading || !effectiveUser) {
+  if (authLoading || !effectiveUser) {
     return <LoadingScreen />;
   }
 
