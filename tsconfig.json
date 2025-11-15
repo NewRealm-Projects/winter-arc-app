@@ -19,7 +19,6 @@
         "name": "next"
       }
     ],
-    "types": ["vitest", "@testing-library/jest-dom"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
