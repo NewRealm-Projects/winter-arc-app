@@ -4,12 +4,19 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './hooks/useAuth';
+import { useStore } from './store/useStore';
 
 export default function HomePage() {
   const router = useRouter();
   const { status, user, isOnboarded } = useAuth();
+  const authLoading = useStore((state) => state.authLoading);
 
   useEffect(() => {
+    // Wait for auth to fully load before making routing decisions
+    if (authLoading || status === 'loading') {
+      return;
+    }
+
     if (status !== 'authenticated') {
       return;
     }
@@ -23,9 +30,11 @@ export default function HomePage() {
     } else {
       router.push('/dashboard');
     }
-  }, [status, user, isOnboarded, router]);
+  }, [status, user, isOnboarded, router, authLoading]);
 
-  if (status === 'unauthenticated') {
+  // Show unauthenticated UI only when we're SURE the user is not logged in
+  // (not during loading, not during session hydration)
+  if (status === 'unauthenticated' && !authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-winter-500 to-winter-700 p-6">
         <div className="max-w-md w-full text-center bg-black/40 backdrop-blur rounded-2xl border border-winter-600/40 p-8">
@@ -45,6 +54,7 @@ export default function HomePage() {
     );
   }
 
+  // Loading state (shown during auth check or session hydration)
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-winter-500 to-winter-700">
       <div className="text-center">

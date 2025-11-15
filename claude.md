@@ -514,13 +514,23 @@ Keep the dependency tree healthy and transparent. Always prefer latest stable ve
 
 **For major infrastructure upgrades** (Next.js, React, TypeScript major versions), always ask user before proceeding.
 
-**See [docs/development-guidelines.md Section 7](docs/development-guidelines.md#7-dependency-management-policy) for:**
+**Quick reference commands:**
 
-- Complete upgrade workflow (5 steps)
-- Security remediation procedures
-- Infrastructure upgrade request template
-- Decision tracking format
-- Integration with CI/CD
+```bash
+# Check for unused dependencies
+npx depcheck && npx knip
+
+# Upgrade package
+npm install <package>@latest
+
+# Run all checks
+npm run test:all
+
+# Security audit
+npm audit
+```
+
+**See [CONTRIBUTING.md - Dependency Management](CONTRIBUTING.md#dependency-management) for complete policies including upgrade workflow, security remediation, and infrastructure upgrade templates.**
 
 ### Security First Policy (PRIO #1)
 
@@ -534,12 +544,7 @@ Security is paramount—every vulnerability is triaged immediately with strict S
 
 Target: **Zero open High/Critical vulnerabilities**
 
-**See [docs/development-guidelines.md Section 7.3](docs/development-guidelines.md#73-security-first-policy-prio-1) for:**
-
-- Detailed remediation workflow
-- Forbidden practices (disabling audits, ignore lists)
-- Acceptable temporary exceptions (max 30 days)
-- Metrics and transparency requirements
+**Remediation workflow:** See [CONTRIBUTING.md - Dependency Management](CONTRIBUTING.md#dependency-management) for detailed procedures, forbidden practices, and acceptable exceptions.
 
 ### Documentation Policy
 
@@ -916,6 +921,7 @@ export function Protected() {
 
 ## Next Steps
 
-- See `docs/development-guidelines.md` for additional practices (AI features, observability, etc.)
-- See `docs/training-load.md` for training load algorithm details
-- See `docs/1PASSWORD_SETUP.md` for secrets management with 1Password
+- See [CONTRIBUTING.md](CONTRIBUTING.md) for contributor guidelines, branch naming, PR workflow, and Next.js patterns
+- See [docs/training-load.md](docs/training-load.md) for training load algorithm details
+- See [docs/1PASSWORD.md](docs/1PASSWORD.md) for secrets management with 1Password
+- See [docs/SECURITY_INCIDENT_RESPONSE.md](docs/SECURITY_INCIDENT_RESPONSE.md) for security incident procedures

@@ -1,6 +1,15 @@
+# [HISTORICAL - 2024-10-30] Next.js Backend - Quick Start Guide
+
+> **Archived:** 2025-11-15
+> **Reason:** Migration complete - Vite to Next.js 16 migration completed in October 2024
+> **See current docs:** [CLAUDE.md](../../CLAUDE.md) for Next.js 16 architecture and patterns
+
+---
+
 # 🚀 Next.js Backend - Quick Start Guide
 
 ## 📋 Übersicht
+
 Dieses Dokument beschreibt die **Next.js API Routes** (Serverless Functions) auf Vercel. Die Migration von Vite zu Next.js ist **abgeschlossen**.
 
 ---
@@ -8,11 +17,13 @@ Dieses Dokument beschreibt die **Next.js API Routes** (Serverless Functions) auf
 ## 🎯 Phase 1: Vercel Setup (Lokal)
 
 ### Schritt 1: Vercel CLI installieren
+
 ```powershell
 npm install -g vercel
 ```
 
 ### Schritt 2: Projekt-Struktur vorbereiten
+
 ```powershell
 # API-Verzeichnis erstellen
 New-Item -ItemType Directory -Path "api" -Force
@@ -22,6 +33,7 @@ New-Item -ItemType File -Path ".env.local" -Force
 ```
 
 ### Schritt 3: `.env.local` befüllen
+
 Kopiere deine Firebase-Config aus `src/firebase/config.ts` und erstelle:
 
 ```env
@@ -40,6 +52,7 @@ FRONTEND_URL=http://localhost:3000
 **Wichtig**: `.env.local` ist bereits in `.gitignore` ✅
 
 ### Schritt 4: Ersten API-Endpoint erstellen
+
 Datei: `api/health.ts`
 
 ```typescript
@@ -55,6 +68,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 ```
 
 ### Schritt 5: Vercel Config erstellen
+
 Datei: `vercel.json`
 
 ```json
@@ -84,6 +98,7 @@ Datei: `vercel.json`
 ```
 
 ### Schritt 6: Package.json erweitern
+
 Füge zu `package.json` hinzu:
 
 ```json
@@ -102,12 +117,14 @@ Füge zu `package.json` hinzu:
 ```
 
 ### Schritt 7: Dependencies installieren
+
 ```powershell
 npm install -D @vercel/node concurrently
 npm install firebase-admin
 ```
 
 ### Schritt 8: Lokalen Dev-Server starten
+
 ```powershell
 # Terminal 1: Backend
 vercel dev --listen 3000
@@ -120,6 +137,7 @@ npm run dev
 ```
 
 ### Schritt 9: Testen
+
 ```powershell
 # Backend Health-Check
 curl http://localhost:3000/api/health
@@ -140,6 +158,7 @@ curl http://localhost:3000/api/health
 4. Extrahiere Werte für `.env.local`
 
 ### API-Endpoint für Firestore erstellen
+
 Datei: `api/tracking/get.ts`
 
 ```typescript
@@ -189,6 +208,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 ```
 
 ### Testen:
+
 ```powershell
 curl "http://localhost:3000/api/tracking/get?userId=test123&dateKey=2025-10-30"
 ```
@@ -198,11 +218,13 @@ curl "http://localhost:3000/api/tracking/get?userId=test123&dateKey=2025-10-30"
 ## 🌐 Phase 3: Vercel Deployment
 
 ### Schritt 1: Vercel Account verbinden
+
 ```powershell
 vercel login
 ```
 
 ### Schritt 2: Projekt verlinken
+
 ```powershell
 vercel
 # Folge den Prompts:
@@ -212,6 +234,7 @@ vercel
 ```
 
 ### Schritt 3: Environment Variables setzen
+
 ```powershell
 # In Vercel Dashboard oder via CLI:
 vercel env add FIREBASE_PROJECT_ID
@@ -221,6 +244,7 @@ vercel env add GEMINI_API_KEY
 ```
 
 ### Schritt 4: Deployen
+
 ```powershell
 # Preview Deployment
 vercel
@@ -230,7 +254,9 @@ vercel --prod
 ```
 
 ### Schritt 5: Custom Domain (später)
+
 In Vercel Dashboard:
+
 1. Settings → Domains
 2. Add `app.winterarc.newrealm.de`
 3. Update DNS Records (CNAME)
@@ -240,16 +266,19 @@ In Vercel Dashboard:
 ## 📊 Nächste Schritte
 
 ### Sofort (Phase 1):
+
 - [ ] Vercel CLI installieren
 - [ ] `api/health.ts` erstellen
 - [ ] Lokalen Test durchführen
 
 ### Bald (Phase 2):
+
 - [ ] Firebase Admin SDK einrichten
 - [ ] `/api/tracking/get` Endpoint testen
 - [ ] Frontend API-Client bauen
 
 ### Später (Phase 3+):
+
 - [ ] Alle Firestore-Calls migrieren
 - [ ] Gemini AI Endpoint
 - [ ] Production Deployment
@@ -259,20 +288,24 @@ In Vercel Dashboard:
 ## 🆘 Troubleshooting
 
 ### "vercel: command not found"
+
 ```powershell
 npm install -g vercel
 # Oder mit PowerShell Admin-Rechten
 ```
 
 ### "Firebase Admin SDK error"
+
 - Prüfe `.env.local` Syntax (besonders `PRIVATE_KEY` mit `\n`)
 - Stelle sicher, Service Account hat Firestore-Rechte
 
 ### "CORS error in browser"
+
 - Prüfe `vercel.json` Headers
 - Frontend muss `Authorization` Header senden
 
 ### "Cold Start slow"
+
 - Normal für Serverless (erste Request ~1-2s)
 - Warmup-Requests implementieren (später)
 

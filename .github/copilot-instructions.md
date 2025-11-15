@@ -89,7 +89,7 @@ Keep dependencies current and transparent. Never suppress warnings. Treat vulner
 
 **Upgrade Workflow:** depcheck/knip → upgrade → test:all → fix code → document
 
-**📘 See [docs/development-guidelines.md Section 7](../docs/development-guidelines.md#7-dependency-management-policy) for:**
+**📘 See [CONTRIBUTING.md - Dependency Management](../CONTRIBUTING.md#dependency-management) for:**
 
 - Complete 5-step upgrade workflow
 - Security remediation procedures (SLAs, forbidden practices)
@@ -115,7 +115,7 @@ Every vulnerability is triaged immediately with strict SLAs.
 - Using `overrides` to force vulnerable versions
 - Postponing security patches
 
-**📘 See [docs/development-guidelines.md Section 7.3](../docs/development-guidelines.md#73-security-first-policy-prio-1) for:**
+**📘 See [CONTRIBUTING.md - Dependency Management](../CONTRIBUTING.md#dependency-management) for:**
 
 - Detailed remediation workflow
 - Acceptable temporary exceptions (max 30 days)

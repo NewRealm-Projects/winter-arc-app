@@ -47,6 +47,8 @@
     "clean:dry-run": "node scripts/cleanup-repo.mjs --dry-run",
     "check:consistency": "node scripts/consistency-check.mjs",
     "check:consistency:fix": "node scripts/consistency-check.mjs --fix",
+    "docs:check": "node scripts/doc-hygiene.mjs",
+    "docs:check:fix": "node scripts/doc-hygiene.mjs --fix",
     "prepare": "husky || true"
   },
   "dependencies": {

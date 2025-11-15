@@ -1,6 +1,6 @@
 # Contributing to Winter Arc
 
-Danke für dein Interesse an Winter Arc! Wir freuen uns über Beiträge. **Bitte lies zuerst die [Winter Arc Development Guidelines](docs/development-guidelines.md)** – sie sind unsere zentrale Quelle für Setup, Coding-Konventionen, Testing und den Umgang mit Tools wie OpenSpec oder 1Password. Dieses Dokument fasst ergänzend die branch-spezifischen Regeln zusammen, die bereits in bestehenden Automationen (Husky Hooks, GitHub Actions) verankert sind.
+Danke für dein Interesse an Winter Arc! Wir freuen uns über Beiträge. **Bitte lies zuerst [CLAUDE.md](CLAUDE.md)** – es ist unsere zentrale Quelle für Architecture, Patterns und Critical Guidelines. Dieses Dokument fasst die branch-spezifischen Regeln, PR-Workflows und Next.js-Patterns zusammen, die bereits in bestehenden Automationen (Husky Hooks, GitHub Actions) verankert sind.
 
 ---
 
@@ -667,7 +667,7 @@ gh pr create --base dev --title "[Agent] ..." --body "..."
 
 ### Dependency Management
 
-**See [docs/development-guidelines.md Section 7](docs/development-guidelines.md#7-dependency-management-policy) for complete policies:**
+**Complete policies documented above. For historical context, see archived development-guidelines.md.**
 
 - **Core Principles:** Stay current, never suppress warnings, adapt code to dependencies
 - **Upgrade Workflow:** 5-step process (depcheck → upgrade → test:all → fix → document)
