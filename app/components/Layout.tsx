@@ -19,12 +19,11 @@ function Layout({ children }: LayoutProps) {
   const user = useStore((state) => state.user);
 
   // Hide BottomNav on mobile dashboard
-  const hiddenNavOnMobileDashboard = isMobile && pathname === '/';
+  const hiddenNavOnMobileDashboard = isMobile && pathname.startsWith('/dashboard');
 
   const navItems = [
-    { path: '/', labelKey: 'nav.dashboard', icon: '🏠' },
+    { path: '/dashboard', labelKey: 'nav.dashboard', icon: '🏠' },
     { path: '/leaderboard', labelKey: 'nav.group', icon: '👥' },
-    { path: '/input', labelKey: 'nav.input', icon: '📝' },
     { path: '/settings', labelKey: 'nav.settings', icon: user?.photoURL ? null : '⚙️', showAvatar: true },
   ];
 
@@ -46,7 +45,9 @@ function Layout({ children }: LayoutProps) {
         >
           <div className="flex items-center justify-center gap-4 animate-fade-in-up delay-400">
             {navItems.map((item) => {
-              const isActive = pathname === item.path;
+              const isActive =
+                pathname === item.path ||
+                (item.path !== '/' && pathname.startsWith(`${item.path}/`));
               const slug = item.path.replace(/^\//, '').replace(/\//g, '-') || 'dashboard';
               return (
                 <Link
