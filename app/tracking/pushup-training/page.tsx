@@ -18,13 +18,16 @@ import {
 } from '../../utils/pushupAlgorithm';
 
 function PushupTrainingContent() {
+  // Call useAuth inside the Suspense boundary
+  useAuth();
+
   const { t } = useTranslation();
   const user = useStore((state) => state.user);
   const isOnboarded = useStore((state) => state.isOnboarded);
   const selectedDate = useStore((state) => state.selectedDate);
 
   if (!user) {
-    redirect('/auth/signin');
+    redirect('/handler/sign-in');
   }
 
   if (!isOnboarded) {
@@ -147,8 +150,6 @@ function PushupTrainingContent() {
 }
 
 export default function PushupTrainingPage() {
-  useAuth();
-
   return (
     <Suspense fallback={<CardSkeleton />}>
       <PushupTrainingContent />

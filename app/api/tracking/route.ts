@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { stackServerApp } from '@/lib/stack';
+import { getUserByStackId } from '@/app/services/userSyncService';
 import { db } from '@/lib/db';
 import { trackingEntries } from '@/lib/db/schema';
 import { eq, gte, lte, and } from 'drizzle-orm';
@@ -7,15 +8,20 @@ import { eq, gte, lte, and } from 'drizzle-orm';
 // GET /api/tracking - Get tracking entries for a date range
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const user = await stackServerApp.getUser();
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const localUser = await getUserByStackId(user.id);
+    if (!localUser) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const searchParams = request.nextUrl.searchParams;
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
-    const userId = session.user.id;
+    const userId = localUser.id;
 
     if (!startDate || !endDate) {
       return NextResponse.json(

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getAuthenticatedUser } from '@/app/lib/apiAuth';
 import { db } from '@/lib/db';
 import { trackingEntries } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -42,15 +42,14 @@ function isValidISODateString(value: string): boolean {
 // Only existing entries are patched; non-existing dates are created with provided fields + sane defaults.
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const { error, localUser } = await getAuthenticatedUser();
+    if (error) return error;
+
     if (!db) {
       return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
     }
 
-    const userId = session.user.id;
+    const userId = localUser!.id;
     let payload: Record<string, any> = {};
     try {
       payload = await request.json();

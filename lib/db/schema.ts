@@ -1,13 +1,10 @@
 import { pgTable, text, timestamp, integer, real, boolean, json, uuid, index } from 'drizzle-orm/pg-core';
 
-// Users table - migrated from Firebase users collection
+// Users table - Winter Arc custom user data
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
-  firebaseUid: text('firebase_uid').unique(), // For migration compatibility
+  stackUserId: text('stack_user_id').unique(), // Reference to Stack Auth user
   email: text('email').notNull().unique(),
-  name: text('name'),
-  image: text('image'),
-  emailVerified: timestamp('email_verified'),
   nickname: text('nickname').notNull().default(''),
   language: text('language').default('de'), // User's preferred language
   gender: text('gender'),
@@ -20,7 +17,7 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   emailIdx: index('user_email_idx').on(table.email),
-  firebaseUidIdx: index('user_firebase_uid_idx').on(table.firebaseUid),
+  stackUserIdIdx: index('user_stack_user_id_idx').on(table.stackUserId),
 }));
 
 // Groups table - migrated from Firebase groups collection

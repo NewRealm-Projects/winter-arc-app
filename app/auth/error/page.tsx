@@ -28,7 +28,7 @@ function AuthErrorContent() {
 
         <div className="space-y-4">
           <Link
-            href="/auth/signin"
+            href="/handler/sign-in"
             className="block w-full bg-winter-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-winter-700 transition-colors"
           >
             Erneut versuchen
@@ -51,6 +51,10 @@ function AuthErrorContent() {
     </div>
   )
 }
+
+// Route segment config to force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const dynamicParams = true
 
 export default function AuthError() {
   return (

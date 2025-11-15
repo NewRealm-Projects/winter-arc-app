@@ -1,9 +1,9 @@
 'use client';
 
 import { Suspense, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useStore } from '../store/useStore';
 import { useAuth } from '../hooks/useAuth';
-import { useRouter } from 'next/navigation';
 import Layout from '../components/Layout';
 
 function LoadingScreen() {
@@ -18,25 +18,30 @@ function LoadingScreen() {
 }
 
 function LeaderboardContent() {
-  const { status, user } = useAuth();
-
-  if (status === 'unauthenticated' || !user) {
-    redirect('/auth/signin');
   const router = useRouter();
-  const user = useStore((state) => state.user);
+  const { status, user: authUser } = useAuth();
+  const storeUser = useStore((state) => state.user);
   const authLoading = useStore((state) => state.authLoading);
 
+  const effectiveUser = storeUser ?? authUser;
+
   useEffect(() => {
-    if (authLoading) {
+    if (status === 'unauthenticated') {
+      router.replace('/handler/sign-in');
+    }
+  }, [router, status]);
+
+  useEffect(() => {
+    if (status !== 'authenticated') {
       return;
     }
 
-    if (!user) {
-      router.replace('/auth/signin');
+    if (!effectiveUser) {
+      router.replace('/handler/sign-in');
     }
-  }, [authLoading, router, user]);
+  }, [effectiveUser, router, status]);
 
-  if (authLoading || !user) {
+  if (authLoading || !effectiveUser) {
     return <LoadingScreen />;
   }
 
