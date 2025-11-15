@@ -4,7 +4,6 @@ import { AuthProvider } from '@/components/providers/AuthProvider';
 import { Telemetry } from './components/Telemetry';
 import { ThemeProvider } from '@/app/contexts/ThemeContext';
 import { PWARegister } from './components/PWARegister';
-import { getCurrentUser } from './lib/getCurrentUser';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -34,36 +33,16 @@ export const viewport: Viewport = {
   themeColor: '#0f172a',
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  let authState;
-
-  try {
-    authState = await getCurrentUser();
-  } catch (error) {
-    console.error('Failed to get current user during layout render:', error);
-    // Fallback to unauthenticated state
-    authState = {
-      session: null,
-      user: null,
-      status: 'unauthenticated' as const,
-      isOnboarded: false,
-    };
-  }
-
   return (
     <html lang="de" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider>
-          <AuthProvider
-            session={authState.session}
-            status={authState.status}
-            user={authState.user}
-            isOnboarded={authState.isOnboarded}
-          >
+          <AuthProvider>
             {children}
           </AuthProvider>
         </ThemeProvider>
