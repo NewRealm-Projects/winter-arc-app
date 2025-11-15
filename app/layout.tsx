@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { ThemeProvider } from '@/app/contexts/ThemeContext';
 import { PWARegister } from './components/PWARegister';
 import './globals.css';
 
@@ -33,11 +34,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de" className="dark">
+    <html lang="de" suppressHydrationWarning>
       <body className={inter.className}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
         <PWARegister />
         <Analytics />
         <SpeedInsights />
