@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { ThemeProvider } from '@/app/contexts/ThemeContext';
 import { PWARegister } from './components/PWARegister';
 import { getCurrentUser } from './lib/getCurrentUser';
 import './globals.css';
@@ -36,8 +37,13 @@ export default async function RootLayout({
   const authState = await getCurrentUser();
 
   return (
-    <html lang="de" className="dark">
+    <html lang="de" suppressHydrationWarning>
       <body className={inter.className}>
+        <ThemeProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
         <AuthProvider
           session={authState.session}
           status={authState.status}

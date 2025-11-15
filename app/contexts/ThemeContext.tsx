@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState, type ReactNode } from 'react';
 import { ThemeContext, type Theme } from './theme-context';
 
@@ -44,11 +46,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
       // Update DOM
       const root = document.documentElement;
-      if (newResolved === 'dark') {
-        root.classList.add('dark');
-      } else {
-        root.classList.remove('dark');
-      }
+      root.classList.toggle('dark', newResolved === 'dark');
     };
 
     updateResolvedTheme();
