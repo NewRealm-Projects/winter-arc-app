@@ -8,6 +8,9 @@ import { useStore } from '../store/useStore';
 import { CardSkeleton } from '../components/ui/Skeleton';
 
 function InputContent() {
+  // Call useAuth inside the Suspense boundary
+  useAuth();
+
   const user = useStore((state) => state.user);
   const isOnboarded = useStore((state) => state.isOnboarded);
 
@@ -34,8 +37,6 @@ function InputContent() {
 }
 
 export default function InputPage() {
-  useAuth();
-
   return (
     <Suspense fallback={<CardSkeleton />}>
       <InputContent />
