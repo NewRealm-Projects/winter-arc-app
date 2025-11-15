@@ -9,7 +9,7 @@ import type { NextRequest } from 'next/server';
  * TODO: Implement Stack Auth-based route protection if needed.
  * For now, Stack's StackProvider handles auth redirects on the client.
  */
-export function middleware(request: NextRequest) {
+export function middleware(_request: NextRequest) {
   // Add custom middleware logic here if needed
   return NextResponse.next();
 }
