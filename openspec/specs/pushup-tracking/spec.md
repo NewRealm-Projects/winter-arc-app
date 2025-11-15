@@ -166,6 +166,20 @@ The system SHALL display pushup status and plan preview in dashboard tile.
 - **WHEN** user clicks plan preview section
 - **THEN** system SHALL navigate to `/tracking/pushup-training`
 
+### Requirement: Pushup Training Page
+The system SHALL provide a dedicated training summary at `/tracking/pushup-training`.
+
+#### Scenario: Training summary content
+- **WHEN** user opens `/tracking/pushup-training`
+- **THEN** system SHALL display "Today's Plan" or "Tomorrow's Plan" with the selected date label
+- **AND** system SHALL list 5 sets with target reps and AMRAP label on final set
+- **AND** system SHALL surface planned total reps, today's logged reps, base reps, and rest time
+
+#### Scenario: Training page actions
+- **WHEN** user views `/tracking/pushup-training`
+- **THEN** system SHALL provide a link back to the dashboard for logging pushups
+- **AND** system SHALL provide a link to pushup history
+
 ### Requirement: Historical Data Retrieval
 The system SHALL retrieve pushup history for plan generation from combined tracking data.
 
@@ -197,9 +211,9 @@ The system SHALL support pushup tracking for any date via date selection.
 ## Technical Notes
 
 ### Implementation Files
-- `src/utils/pushupAlgorithm.ts` - Plan generation, evaluation, history retrieval
-- `src/components/PushupTile.tsx` - Dashboard tile, quick input modal
-- `src/pages/PushupTrainingPage.tsx` - Guided workout mode UI
+- `app/utils/pushupAlgorithm.ts` - Plan generation, evaluation, history retrieval
+- `app/components/PushupTile.tsx` - Dashboard tile, quick input modal
+- `app/tracking/pushup-training/page.tsx` - Guided workout mode UI
 
 ### Data Model
 ```typescript
