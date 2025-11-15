@@ -10,8 +10,8 @@ const databaseUrl = process.env.DATABASE_URL || '';
 // Create the Neon connection only if DATABASE_URL is provided
 const sql = databaseUrl ? neon(databaseUrl) : null;
 
-// Create the database instance using the connection string approach
-export const db = databaseUrl ? drizzle(databaseUrl, { schema }) : null;
+// Create the database instance using the Neon sql client when available
+export const db = sql ? drizzle(sql, { schema }) : null;
 
 // Connection test function
 export async function testConnection() {
