@@ -1,7 +1,4 @@
-import { Suspense } from 'react';
-import { HomePage } from './components/HomePage';
-
-function LoadingFallback() {
+export default function Loading() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-winter-500 to-winter-700">
       <div className="text-center">
@@ -10,13 +7,5 @@ function LoadingFallback() {
         <div className="text-winter-200 mt-2">Wird geladen ...</div>
       </div>
     </div>
-  );
-}
-
-export default function Page() {
-  return (
-    <Suspense fallback={<LoadingFallback />}>
-      <HomePage />
-    </Suspense>
   );
 }
