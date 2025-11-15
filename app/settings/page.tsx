@@ -18,6 +18,13 @@ function LoadingScreen() {
 }
 
 function SettingsContent() {
+  const storeUser = useStore((state) => state.user);
+  const { status, user: contextUser } = useAuth();
+
+  const user = storeUser ?? contextUser;
+
+  if (status === 'unauthenticated' || !user) {
+    redirect('/auth/signin');
   const router = useRouter();
   const user = useStore((state) => state.user);
   const authLoading = useStore((state) => state.authLoading);
@@ -72,8 +79,6 @@ function SettingsContent() {
 }
 
 export default function SettingsPage() {
-  useAuth();
-
   return (
     <Suspense fallback={<LoadingScreen />}>
       <SettingsContent />

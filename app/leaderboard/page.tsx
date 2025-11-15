@@ -18,6 +18,10 @@ function LoadingScreen() {
 }
 
 function LeaderboardContent() {
+  const { status, user } = useAuth();
+
+  if (status === 'unauthenticated' || !user) {
+    redirect('/auth/signin');
   const router = useRouter();
   const user = useStore((state) => state.user);
   const authLoading = useStore((state) => state.authLoading);
@@ -66,8 +70,6 @@ function LeaderboardContent() {
 }
 
 export default function LeaderboardPage() {
-  useAuth();
-
   return (
     <Suspense fallback={<LoadingScreen />}>
       <LeaderboardContent />

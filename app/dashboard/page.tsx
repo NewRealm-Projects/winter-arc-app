@@ -26,6 +26,11 @@ function LoadingScreen() {
 }
 
 function DashboardContent() {
+  const { status, user, isOnboarded } = useAuth();
+
+  if (status === 'unauthenticated' || !user) {
+    redirect('/auth/signin');
+  }
   const router = useRouter();
   const user = useStore((state) => state.user);
   const isOnboarded = useStore((state) => state.isOnboarded);
@@ -88,10 +93,17 @@ function DashboardContent() {
 }
 
 export default function DashboardPage() {
-  // Initialize auth hook
-  useAuth();
-
   return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-winter-500 to-winter-700">
+          <div className="text-center">
+            <div className="text-6xl mb-4">❄️</div>
+            <div className="text-white text-lg font-semibold">Loading...</div>
+          </div>
+        </div>
+      }
+    >
     <Suspense fallback={<LoadingScreen />}>
       <DashboardContent />
     </Suspense>
