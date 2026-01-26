@@ -8,7 +8,6 @@ import type {
   SportTracking,
 } from '../../types';
 import { normalizeSports } from '../../utils/sports';
-import type { Timestamp } from 'firebase/firestore';
 
 const initialState = useStore.getState();
 
@@ -124,7 +123,7 @@ describe('useStore', () => {
 
   it('removes check-ins and training load entries when null is provided', () => {
     const date = '2025-04-01';
-    const timestamp = { toMillis: () => Date.now() } as unknown as Timestamp;
+    const timestamp = { toMillis: () => Date.now() } as { toMillis: () => number };
     const checkIn: DailyCheckIn = {
       date,
       sleepScore: 7,

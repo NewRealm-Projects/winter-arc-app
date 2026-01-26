@@ -1,9 +1,8 @@
-import { pgTable, text, timestamp, integer, real, boolean, json, uuid, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, real, boolean, json, uuid, index, date } from 'drizzle-orm/pg-core';
 
-// Users table - migrated from Firebase users collection
+// Users table
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
-  firebaseUid: text('firebase_uid').unique(), // For migration compatibility
   email: text('email').notNull().unique(),
   nickname: text('nickname').notNull(),
   gender: text('gender'),
@@ -16,7 +15,6 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   emailIdx: index('user_email_idx').on(table.email),
-  firebaseUidIdx: index('user_firebase_uid_idx').on(table.firebaseUid),
 }));
 
 // Groups table - migrated from Firebase groups collection
@@ -31,11 +29,11 @@ export const groups = pgTable('groups', {
   codeIdx: index('group_code_idx').on(table.code),
 }));
 
-// Tracking entries table - migrated from Firebase tracking/{userId}/entries collection
+// Tracking entries table
 export const trackingEntries = pgTable('tracking_entries', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull(),
-  date: text('date').notNull(), // Format: YYYY-MM-DD
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  date: date('date').notNull(),
   pushups: integer('pushups').default(0),
   sports: integer('sports').default(0), // in minutes
   water: integer('water').default(0), // in ml

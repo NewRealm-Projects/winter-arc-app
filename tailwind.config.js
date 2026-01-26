@@ -32,6 +32,23 @@ export default {
           800: '#1e40af',
           900: '#1e3a8a',
         },
+        // Semantic feature colors (CSS variables)
+        hydration: {
+          DEFAULT: 'var(--color-hydration)',
+          light: 'var(--color-hydration-light)',
+        },
+        nutrition: {
+          DEFAULT: 'var(--color-nutrition)',
+          light: 'var(--color-nutrition-light)',
+        },
+        weight: {
+          DEFAULT: 'var(--color-weight)',
+          light: 'var(--color-weight-light)',
+        },
+        workout: {
+          DEFAULT: 'var(--color-workout)',
+          light: 'var(--color-workout-light)',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

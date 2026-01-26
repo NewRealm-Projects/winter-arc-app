@@ -1,290 +1,239 @@
-# 🚀 Next.js Backend - Quick Start Guide
+# Backend Quick Start Guide
 
-## 📋 Übersicht
-Dieses Dokument beschreibt die **Next.js API Routes** (Serverless Functions) auf Vercel. Die Migration von Vite zu Next.js ist **abgeschlossen**.
+## Overview
+
+Winter Arc uses Next.js API Routes with PostgreSQL (Neon) and Drizzle ORM.
 
 ---
 
-## 🎯 Phase 1: Vercel Setup (Lokal)
+## Tech Stack
 
-### Schritt 1: Vercel CLI installieren
-```powershell
-npm install -g vercel
+| Component | Technology |
+|-----------|------------|
+| Framework | Next.js 16 (App Router) |
+| Database | PostgreSQL (Neon Serverless) |
+| ORM | Drizzle ORM |
+| Auth | NextAuth.js (Google OAuth) |
+| Hosting | Vercel |
+
+---
+
+## Local Development Setup
+
+### 1. Install Dependencies
+
+```bash
+npm install
 ```
 
-### Schritt 2: Projekt-Struktur vorbereiten
-```powershell
-# API-Verzeichnis erstellen
-New-Item -ItemType Directory -Path "api" -Force
+### 2. Setup Environment Variables
 
-# Environment Variables Template
-New-Item -ItemType File -Path ".env.local" -Force
-```
-
-### Schritt 3: `.env.local` befüllen
-Kopiere deine Firebase-Config aus `src/firebase/config.ts` und erstelle:
+Create `.env.local` with:
 
 ```env
-# Firebase Admin SDK
-FIREBASE_PROJECT_ID=your-project-id
-FIREBASE_CLIENT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+# Database (Neon PostgreSQL)
+DATABASE_URL=postgresql://user:password@host/database?sslmode=require
 
-# Gemini AI (für Quotes)
-GEMINI_API_KEY=your-gemini-key
+# NextAuth
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-secret-key-here
 
-# Frontend URL (für CORS)
-FRONTEND_URL=http://localhost:3000
+# Google OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Optional: Sentry
+SENTRY_DSN=your-sentry-dsn
 ```
 
-**Wichtig**: `.env.local` ist bereits in `.gitignore` ✅
+### 3. Initialize Database
 
-### Schritt 4: Ersten API-Endpoint erstellen
-Datei: `api/health.ts`
+```bash
+# Generate migrations from schema
+npm run db:generate
 
-```typescript
-import type { VercelRequest, VercelResponse } from '@vercel/node';
+# Push schema to database
+npm run db:push
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    service: 'winter-arc-backend',
-  });
-}
+# Open Drizzle Studio (optional)
+npm run db:studio
 ```
 
-### Schritt 5: Vercel Config erstellen
-Datei: `vercel.json`
+### 4. Start Development Server
 
-```json
-{
-  "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "devCommand": "npm run dev:frontend",
-  "framework": "vite",
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "http://localhost:5173" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE,OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
-      ]
-    }
-  ]
-}
-```
-
-### Schritt 6: Package.json erweitern
-Füge zu `package.json` hinzu:
-
-```json
-{
-  "scripts": {
-    "dev:frontend": "vite --port 5173",
-    "dev:backend": "vercel dev --listen 3000",
-    "dev": "concurrently \"npm:dev:frontend\" \"npm:dev:backend\"",
-    "deploy": "vercel --prod"
-  },
-  "devDependencies": {
-    "@vercel/node": "^3.0.0",
-    "concurrently": "^8.2.2"
-  }
-}
-```
-
-### Schritt 7: Dependencies installieren
-```powershell
-npm install -D @vercel/node concurrently
-npm install firebase-admin
-```
-
-### Schritt 8: Lokalen Dev-Server starten
-```powershell
-# Terminal 1: Backend
-vercel dev --listen 3000
-
-# Terminal 2: Frontend
-npm run dev:frontend
-
-# ODER beides parallel:
+```bash
 npm run dev
 ```
 
-### Schritt 9: Testen
-```powershell
-# Backend Health-Check
-curl http://localhost:3000/api/health
-
-# Frontend
-# Öffne http://localhost:5173
-```
+App runs at http://localhost:3000
 
 ---
 
-## 🔧 Phase 2: Firebase Admin SDK
+## API Routes
 
-### Firebase Service Account Key erstellen
+All API routes are in `app/api/`:
 
-1. Gehe zu Firebase Console → Project Settings → Service Accounts
-2. Klicke "Generate New Private Key"
-3. Speichere JSON-Datei als `serviceAccountKey.json` (gitignored)
-4. Extrahiere Werte für `.env.local`
+### Tracking
 
-### API-Endpoint für Firestore erstellen
-Datei: `api/tracking/get.ts`
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/tracking` | GET | Get tracking entries (with date range) |
+| `/api/tracking/[date]` | GET | Get single day tracking |
+| `/api/tracking/[date]` | POST | Create/update tracking entry |
+
+### Users
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/users/[id]` | GET | Get user profile |
+| `/api/users/[id]` | PATCH | Update user profile |
+
+### Auth
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/[...nextauth]` | * | NextAuth endpoints |
+
+---
+
+## Database Schema
+
+Located in `lib/db/schema.ts`:
 
 ```typescript
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-
-// Initialize Firebase Admin (nur einmal)
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }),
-  });
+// Users table
+users: {
+  id: uuid (PK)
+  email: text (unique)
+  nickname: text
+  gender: text
+  height: integer
+  weight: real
+  maxPushups: integer
+  groupCode: text
+  pushupState: json
+  createdAt: timestamp
+  updatedAt: timestamp
 }
 
-const db = getFirestore();
+// Tracking entries
+trackingEntries: {
+  id: uuid (PK)
+  userId: uuid (FK -> users.id)
+  date: date
+  pushups: integer
+  sports: integer
+  water: integer
+  protein: real
+  weight: real
+  completed: boolean
+  createdAt: timestamp
+  updatedAt: timestamp
+}
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  try {
-    const { userId, dateKey } = req.query;
-
-    if (!userId || !dateKey) {
-      return res.status(400).json({ error: 'Missing userId or dateKey' });
-    }
-
-    const docRef = db
-      .collection('tracking')
-      .doc(userId as string)
-      .collection('entries')
-      .doc(dateKey as string);
-
-    const doc = await docRef.get();
-
-    if (!doc.exists) {
-      return res.status(404).json({ error: 'Entry not found' });
-    }
-
-    res.status(200).json(doc.data());
-  } catch (error) {
-    console.error('Firestore error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+// Groups
+groups: {
+  id: uuid (PK)
+  code: text (unique)
+  name: text
+  members: json
+  createdAt: timestamp
+  updatedAt: timestamp
 }
 ```
 
-### Testen:
-```powershell
-curl "http://localhost:3000/api/tracking/get?userId=test123&dateKey=2025-10-30"
+---
+
+## Database Operations
+
+### Using Drizzle ORM
+
+```typescript
+import { db } from '@/lib/db';
+import { users, trackingEntries } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
+
+// Query user
+const user = await db.select().from(users).where(eq(users.id, userId));
+
+// Insert tracking entry
+await db.insert(trackingEntries).values({
+  userId,
+  date: new Date('2025-01-26'),
+  water: 2000,
+  protein: 150,
+});
+
+// Update tracking entry
+await db.update(trackingEntries)
+  .set({ water: 2500 })
+  .where(eq(trackingEntries.id, entryId));
 ```
 
 ---
 
-## 🌐 Phase 3: Vercel Deployment
+## Deployment
 
-### Schritt 1: Vercel Account verbinden
-```powershell
-vercel login
-```
+### Vercel
 
-### Schritt 2: Projekt verlinken
-```powershell
-vercel
-# Folge den Prompts:
-# - Link to existing project? NO
-# - Project name: winter-arc-app
-# - Directory: ./
-```
+1. Connect GitHub repo to Vercel
+2. Add environment variables in Vercel Dashboard
+3. Deploy automatically on push to main
 
-### Schritt 3: Environment Variables setzen
-```powershell
-# In Vercel Dashboard oder via CLI:
-vercel env add FIREBASE_PROJECT_ID
-vercel env add FIREBASE_CLIENT_EMAIL
-vercel env add FIREBASE_PRIVATE_KEY
-vercel env add GEMINI_API_KEY
-```
+### Environment Variables (Vercel)
 
-### Schritt 4: Deployen
-```powershell
-# Preview Deployment
-vercel
+Required:
+- `DATABASE_URL`
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
 
-# Production Deployment
-vercel --prod
-```
-
-### Schritt 5: Custom Domain (später)
-In Vercel Dashboard:
-1. Settings → Domains
-2. Add `app.winterarc.newrealm.de`
-3. Update DNS Records (CNAME)
+Optional:
+- `SENTRY_DSN`
 
 ---
 
-## 📊 Nächste Schritte
+## Troubleshooting
 
-### Sofort (Phase 1):
-- [ ] Vercel CLI installieren
-- [ ] `api/health.ts` erstellen
-- [ ] Lokalen Test durchführen
+### Database Connection Errors
 
-### Bald (Phase 2):
-- [ ] Firebase Admin SDK einrichten
-- [ ] `/api/tracking/get` Endpoint testen
-- [ ] Frontend API-Client bauen
-
-### Später (Phase 3+):
-- [ ] Alle Firestore-Calls migrieren
-- [ ] Gemini AI Endpoint
-- [ ] Production Deployment
-
----
-
-## 🆘 Troubleshooting
-
-### "vercel: command not found"
-```powershell
-npm install -g vercel
-# Oder mit PowerShell Admin-Rechten
+```
+Error: Connection refused
 ```
 
-### "Firebase Admin SDK error"
-- Prüfe `.env.local` Syntax (besonders `PRIVATE_KEY` mit `\n`)
-- Stelle sicher, Service Account hat Firestore-Rechte
+- Check DATABASE_URL is correct
+- Ensure Neon database is active
+- Verify SSL mode in connection string
 
-### "CORS error in browser"
-- Prüfe `vercel.json` Headers
-- Frontend muss `Authorization` Header senden
+### NextAuth Errors
 
-### "Cold Start slow"
-- Normal für Serverless (erste Request ~1-2s)
-- Warmup-Requests implementieren (später)
+```
+Error: NEXTAUTH_SECRET is not set
+```
+
+- Generate secret: `openssl rand -base64 32`
+- Add to `.env.local` and Vercel
+
+### Build Errors
+
+```
+Error: Module not found
+```
+
+- Run `npm install`
+- Check for missing dependencies
+- Verify import paths use `@/` alias
 
 ---
 
-## 📚 Ressourcen
+## Resources
 
+- [Drizzle ORM Docs](https://orm.drizzle.team/docs/overview)
+- [Neon Docs](https://neon.tech/docs)
+- [NextAuth.js Docs](https://next-auth.js.org/)
 - [Vercel Docs](https://vercel.com/docs)
-- [Firebase Admin SDK](https://firebase.google.com/docs/admin/setup)
-- [Serverless Functions Guide](https://vercel.com/docs/functions/serverless-functions)
 
 ---
 
-**Erstellt**: 30. Oktober 2025
-**Projekt**: Winter Arc App - Backend Migration
+**Last Updated**: January 2026

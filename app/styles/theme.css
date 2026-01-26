@@ -11,6 +11,16 @@
   --accent-primary-hover: #059669;
   --accent-secondary: #F59E0B;
 
+  /* Semantic Feature Colors */
+  --color-hydration: #3B82F6;      /* Blue - Water tracking */
+  --color-hydration-light: #60A5FA;
+  --color-nutrition: #F97316;      /* Orange - Food/Protein */
+  --color-nutrition-light: #FB923C;
+  --color-weight: #9333EA;         /* Purple - Weight tracking */
+  --color-weight-light: #A855F7;
+  --color-workout: #F59E0B;        /* Amber - Sports/Workout */
+  --color-workout-light: #FBBF24;
+
   /* Backgrounds - Clean & Solid */
   --bg-base: #F8FAFC;
   --bg-surface: #FFFFFF;
@@ -113,6 +123,16 @@
   --accent-primary: #34D399;
   --accent-primary-hover: #10B981;
   --accent-secondary: #FBBF24;
+
+  /* Semantic Feature Colors - Brighter for dark mode */
+  --color-hydration: #60A5FA;
+  --color-hydration-light: #93C5FD;
+  --color-nutrition: #FB923C;
+  --color-nutrition-light: #FDBA74;
+  --color-weight: #A855F7;
+  --color-weight-light: #C084FC;
+  --color-workout: #FBBF24;
+  --color-workout-light: #FCD34D;
 
   /* Backgrounds - Deep & Rich */
   --bg-base: #0F172A;

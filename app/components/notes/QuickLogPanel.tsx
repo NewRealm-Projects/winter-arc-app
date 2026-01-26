@@ -2,17 +2,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { format } from 'date-fns';
-import { v4 as uuidv4 } from 'uuid';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useStore } from '../../store/useStore';
-import { noteStore } from '../../store/noteStore';
 import DrinkLogModal, { type DrinkLogData } from './DrinkLogModal';
 import FoodLogModal, { type FoodLogData } from './FoodLogModal';
 import WorkoutLogModal, { type WorkoutLogData } from './WorkoutLogModal';
 import WeightLogModal, { type WeightLogData } from './WeightLogModal';
-import { generateDrinkSummary, generateFoodSummary, generateWorkoutSummary, generateWeightSummary } from '../../utils/activitySummary';
 import type { SportTracking } from '../../types';
-import type { SmartNote } from '../../types/events';
 
 type ModalType = 'drink' | 'food' | 'workout' | 'weight' | null;
 
@@ -88,23 +84,6 @@ function QuickLogPanel() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedTracking),
     });
-
-    // Save note to Input section if provided
-    if (data.note?.trim()) {
-      const { summary, details } = generateDrinkSummary(data.amountMl, 'water');
-      const note: SmartNote = {
-        id: uuidv4(),
-        ts: Date.now(),
-        raw: data.note,
-        summary: data.note,
-        events: [],
-        activityType: 'drink',
-        activitySummary: summary,
-        activityDetails: details,
-        content: data.note,
-      };
-      await noteStore.add(note);
-    }
   };
 
   const handleFoodSave = async (data: FoodLogData) => {
@@ -145,32 +124,6 @@ function QuickLogPanel() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedTracking),
     });
-
-    // Save ONE consolidated note for entire food session (not per item)
-    if (data.note?.trim() || data.cart.length > 0) {
-      // Prepare items for summary
-      const foodItems = data.cart.map(item => ({
-        name: item.foodName,
-        grams: item.portionGrams || 100,
-      }));
-
-      // Generate consolidated summary with ALL items
-      const { summary, details } = generateFoodSummary(foodItems);
-
-      // Create SINGLE note with all items
-      const note: SmartNote = {
-        id: uuidv4(),
-        ts: Date.now(),
-        raw: data.note || '',
-        summary: data.note || `Food logged: ${foodItems.length} items`,
-        events: [],
-        activityType: 'food',
-        activitySummary: summary,
-        activityDetails: details,
-        content: data.note || `Food logged: ${foodItems.length} items`,
-      };
-      await noteStore.add(note);
-    }
   };
 
   const handleActionClick = (actionType: QuickAction['type']) => {
@@ -221,23 +174,6 @@ function QuickLogPanel() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updatedTracking),
     });
-
-    // Save note to Input section if provided
-    if (data.note?.trim()) {
-      const { summary, details } = generateWorkoutSummary(data.sport, data.durationMin, data.intensity);
-      const note: SmartNote = {
-        id: uuidv4(),
-        ts: Date.now(),
-        raw: data.note,
-        summary: data.note,
-        events: [],
-        activityType: 'workout',
-        activitySummary: summary,
-        activityDetails: details,
-        content: data.note,
-      };
-      await noteStore.add(note);
-    }
   };
 
   const handleWeightSave = async (data: WeightLogData) => {
@@ -276,23 +212,6 @@ function QuickLogPanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ weight: data.weight }),
       });
-    }
-
-    // Save note to Input section if provided
-    if (data.note?.trim()) {
-      const { summary, details } = generateWeightSummary(data.weight, data.bodyFat);
-      const note: SmartNote = {
-        id: uuidv4(),
-        ts: Date.now(),
-        raw: data.note,
-        summary: data.note,
-        events: [],
-        activityType: 'weight',
-        activitySummary: summary,
-        activityDetails: details,
-        content: data.note,
-      };
-      await noteStore.add(note);
     }
   };
 

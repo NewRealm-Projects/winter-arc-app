@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { redirect } from 'next/navigation';
 import Layout from '../components/Layout';
 import { CardSkeleton } from '../components/ui/Skeleton';
+import { ThemeToggle } from '../components/ui/ThemeToggle';
 
 function SettingsContent() {
   const user = useStore((state) => state.user);
@@ -19,6 +20,21 @@ function SettingsContent() {
       <div className="space-y-6 p-4">
         <h1 className="text-2xl font-bold text-white">Settings</h1>
 
+        {/* Appearance */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-white mb-4">Appearance</h2>
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="block text-sm font-medium text-white/80">
+                Theme
+              </label>
+              <p className="text-xs text-white/60">Choose your preferred color scheme</p>
+            </div>
+            <ThemeToggle />
+          </div>
+        </div>
+
+        {/* Profile */}
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6">
           <h2 className="text-lg font-semibold text-white mb-4">Profile</h2>
           <div className="space-y-4">

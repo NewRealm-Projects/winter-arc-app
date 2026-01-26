@@ -41,7 +41,6 @@ export async function runMigrations() {
     await sql`
       CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        firebase_uid TEXT UNIQUE,
         email TEXT NOT NULL UNIQUE,
         nickname TEXT NOT NULL,
         gender TEXT,
@@ -69,8 +68,8 @@ export async function runMigrations() {
     await sql`
       CREATE TABLE IF NOT EXISTS tracking_entries (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id UUID NOT NULL,
-        date TEXT NOT NULL,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        date DATE NOT NULL,
         pushups INTEGER DEFAULT 0,
         sports INTEGER DEFAULT 0,
         water INTEGER DEFAULT 0,
@@ -84,7 +83,6 @@ export async function runMigrations() {
 
     // Create indexes
     await sql`CREATE INDEX IF NOT EXISTS user_email_idx ON users(email);`;
-    await sql`CREATE INDEX IF NOT EXISTS user_firebase_uid_idx ON users(firebase_uid);`;
     await sql`CREATE INDEX IF NOT EXISTS group_code_idx ON groups(code);`;
     await sql`CREATE INDEX IF NOT EXISTS tracking_user_date_idx ON tracking_entries(user_id, date);`;
 
