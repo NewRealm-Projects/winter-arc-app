@@ -1,30 +1,31 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useUser } from '@stackframe/stack'
 import { useRouter } from 'next/navigation'
 import { useStore } from './store/useStore'
 import { useAuth } from './hooks/useAuth'
 
 export default function HomePage() {
-  const { data: session, status } = useSession()
+  const stackUser = useUser()
   const router = useRouter()
   const user = useStore((state) => state.user)
   const isOnboarded = useStore((state) => state.isOnboarded)
 
-  // Initialize Firebase auth hook for compatibility
+  // Initialize auth hook for user data sync
   useAuth()
 
   useEffect(() => {
-    if (status === 'loading') return // Still loading
+    // stackUser is undefined while loading, null when not authenticated
+    if (stackUser === undefined) return // Still loading
 
-    if (!session && status === 'unauthenticated') {
+    if (stackUser === null) {
       // Not authenticated, redirect to sign in
-      router.push('/auth/signin')
+      router.push('/handler/sign-in')
       return
     }
 
-    if (session && user) {
+    if (stackUser && user) {
       // Authenticated with user data
       if (!isOnboarded) {
         router.push('/onboarding')
@@ -32,13 +33,13 @@ export default function HomePage() {
         router.push('/dashboard')
       }
     }
-  }, [session, status, user, isOnboarded, router])
+  }, [stackUser, user, isOnboarded, router])
 
   // Show loading screen while checking auth
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-winter-500 to-winter-700">
       <div className="text-center">
-        <div className="text-6xl mb-4">❄️</div>
+        <div className="text-6xl mb-4">Snowflake</div>
         <div className="text-white text-lg font-semibold">Winter Arc</div>
         <div className="text-winter-200 mt-2">Loading...</div>
       </div>

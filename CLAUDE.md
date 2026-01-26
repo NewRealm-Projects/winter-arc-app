@@ -19,7 +19,7 @@ Winter Arc is a Progressive Web App (PWA) for fitness tracking with emphasis on 
 | Styling | Tailwind CSS 3.x (Mobile-first) |
 | State | Zustand |
 | Database | PostgreSQL (Neon) + Drizzle ORM |
-| Auth | NextAuth.js (Google OAuth) |
+| Auth | Stack Auth |
 | Testing | Vitest (unit), Playwright (e2e) |
 | Monitoring | Sentry |
 | Deployment | Vercel |
@@ -37,6 +37,8 @@ winter-arc-app/
 │   │   ├── notes/         # Quick log modals
 │   │   └── ui/            # Shared UI components (AppModal, etc.)
 │   ├── contexts/          # React contexts (Theme, Week)
+│   ├── handler/           # Stack Auth handler routes
+│   │   └── [...stack]/    # Stack Auth catch-all handler
 │   ├── hooks/             # Custom hooks
 │   ├── i18n/              # Translations (de, en)
 │   ├── services/          # Business logic services
@@ -44,8 +46,12 @@ winter-arc-app/
 │   ├── styles/            # Global styles, theme tokens
 │   ├── types/             # TypeScript types
 │   └── utils/             # Utility functions
+├── components/
+│   └── providers/         # React context providers
+│       └── StackAuthProvider.tsx
 ├── lib/
-│   └── db/                # Drizzle schema & client
+│   ├── db/                # Drizzle schema & client
+│   └── stack.ts           # Stack Auth server configuration
 ├── docs/                  # Documentation
 ├── e2e/                   # Playwright tests
 └── scripts/               # Build & utility scripts
@@ -110,11 +116,84 @@ UI Components → Hooks → Zustand Store → API Routes → PostgreSQL
 All API routes at `app/api/`:
 - `/api/tracking/[date]` - Daily tracking CRUD
 - `/api/users/[id]` - User profile CRUD
-- `/api/auth/*` - NextAuth endpoints
+
+### Authentication (Stack Auth)
+- Handler route: `/handler/[...stack]` - All auth operations
+- Sign in: `/handler/sign-in`
+- Sign up: `/handler/sign-up`
+- Sign out: Automatic via Stack Auth
+
+**Server-side auth check:**
+```typescript
+import { stackServerApp } from '@/lib/stack';
+
+const user = await stackServerApp.getUser();
+if (!user) {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+}
+```
+
+**Client-side auth check:**
+```typescript
+import { useUser } from '@stackframe/stack';
+
+const user = useUser();
+// user is undefined while loading, null if not authenticated
+```
 
 ---
 
-## 7. Open TODOs
+## 7. Environment Variables
+
+### Vercel Production Environment
+
+#### Database (Neon PostgreSQL)
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | Primary connection string (pooled) |
+| `DATABASE_URL_UNPOOLED` | Direct connection (for migrations) |
+| `POSTGRES_URL` | Postgres URL |
+| `POSTGRES_URL_NO_SSL` | Postgres URL without SSL |
+| `POSTGRES_URL_NON_POOLING` | Non-pooling URL |
+| `POSTGRES_PRISMA_URL` | Prisma-compatible URL |
+| `POSTGRES_HOST` | Database host |
+| `POSTGRES_DATABASE` | Database name |
+| `POSTGRES_USER` | Database user |
+| `POSTGRES_PASSWORD` | Database password |
+| `PGHOST` | PG host |
+| `PGHOST_UNPOOLED` | PG host (unpooled) |
+| `PGDATABASE` | PG database name |
+| `PGUSER` | PG user |
+| `PGPASSWORD` | PG password |
+| `NEON_PROJECT_ID` | Neon project identifier |
+
+#### Stack Auth
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_STACK_PROJECT_ID` | Stack Auth project ID (public) |
+| `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY` | Stack Auth client key (public) |
+| `STACK_SECRET_SERVER_KEY` | Stack Auth server key (secret) |
+
+#### Other Services
+| Variable | Description |
+|----------|-------------|
+| `AUTONOMA_CLIENT_ID` | Autonoma client ID |
+| `AUTONOMA_SECRET_ID` | Autonoma secret ID |
+
+### Local Development (.env.local)
+```env
+# Database (Neon PostgreSQL)
+DATABASE_URL=postgresql://user:password@host/database?sslmode=require
+
+# Stack Auth
+NEXT_PUBLIC_STACK_PROJECT_ID=your-project-id
+NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=your-publishable-key
+STACK_SECRET_SERVER_KEY=your-secret-key
+```
+
+---
+
+## 8. Open TODOs
 
 ### Critical Bugs
 
@@ -157,7 +236,7 @@ All API routes at `app/api/`:
 
 ---
 
-## 8. Testing
+## 9. Testing
 
 ### Run Tests
 ```bash
@@ -177,7 +256,7 @@ npm run test:ui        # Vitest UI
 
 ---
 
-## 9. Deployment
+## 10. Deployment
 
 ### Vercel Commands
 ```bash
@@ -186,18 +265,17 @@ npm run deploy          # Deploy to production
 npm run deploy:preview  # Deploy preview
 ```
 
-### Environment Variables
-Required in Vercel:
-- `DATABASE_URL` - Neon PostgreSQL connection string
-- `NEXTAUTH_URL` - App URL
-- `NEXTAUTH_SECRET` - Auth secret
-- `GOOGLE_CLIENT_ID` - OAuth client ID
-- `GOOGLE_CLIENT_SECRET` - OAuth client secret
-- `SENTRY_DSN` - Error tracking (optional)
+### Stack Auth Setup for Vercel
+1. Create project at [stack-auth.com](https://stack-auth.com)
+2. Add environment variables to Vercel
+3. Configure allowed domains in Stack Auth dashboard:
+   - `localhost:3000` (development)
+   - `app.winterarc.newrealm.de` (production)
+   - Vercel preview URLs (`*.vercel.app`)
 
 ---
 
-## 10. Business Rules
+## 11. Business Rules
 
 | Rule | Formula |
 |------|---------|
@@ -208,7 +286,7 @@ Required in Vercel:
 
 ---
 
-## 11. Git Workflow
+## 12. Git Workflow
 
 ### Branch Naming
 Format: `<username>/<type>-<description>`
@@ -233,12 +311,12 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
 ---
 
-## 12. Migration Notes (Firebase → PostgreSQL)
+## 13. Migration Notes (Firebase → PostgreSQL → Stack Auth)
 
 **Completed:**
 - User data migrated to `users` table
 - Tracking data migrated to `tracking_entries` table
-- Authentication switched to NextAuth
+- Authentication migrated from NextAuth to Stack Auth
 - All Firestore references removed
 
 **Removed Features (to be reimplemented):**
@@ -247,7 +325,7 @@ Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
 
 ---
 
-## 13. Design Tokens
+## 14. Design Tokens
 
 See `app/styles/theme.css` for CSS custom properties:
 

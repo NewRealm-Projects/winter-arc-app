@@ -20,7 +20,7 @@ function DashboardContent() {
 
   // Client-side authentication check
   if (!user) {
-    redirect('/auth/signin');
+    redirect('/handler/sign-in');
   }
 
   if (!isOnboarded) {

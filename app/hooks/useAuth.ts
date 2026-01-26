@@ -1,44 +1,44 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@stackframe/stack';
 import { useStore } from '../store/useStore';
-import type { User } from '../types';
 import { clearDemoModeMarker, isDemoModeActive } from '../constants/demo';
 import { addBreadcrumb, captureException } from '../services/sentryService';
 
 export function useAuth() {
-  const { data: session, status } = useSession();
+  const user = useUser();
   const setUser = useStore((state) => state.setUser);
   const setIsOnboarded = useStore((state) => state.setIsOnboarded);
   const setTracking = useStore((state) => state.setTracking);
   const setAuthLoading = useStore((state) => state.setAuthLoading);
 
   useEffect(() => {
-    console.warn('👤 Setting up auth state listener...');
+    console.warn('Setting up auth state listener...');
 
     const loadUserData = async () => {
-      if (status === 'loading') {
+      // Stack Auth user object is null when not authenticated, undefined when loading
+      if (user === undefined) {
         setAuthLoading(true);
         return;
       }
 
-      if (status === 'authenticated' && session?.user) {
-        console.warn('✅ User authenticated:', {
-          id: session.user.id,
-          email: session.user.email,
+      if (user) {
+        console.warn('User authenticated:', {
+          id: user.id,
+          email: user.primaryEmail,
         });
 
-        addBreadcrumb('Auth: User authenticated', { id: session.user.id });
+        addBreadcrumb('Auth: User authenticated', { id: user.id });
         clearDemoModeMarker();
 
         try {
           // Fetch user data from API
-          const response = await fetch(`/api/users/${session.user.id}`);
-          
+          const response = await fetch(`/api/users/${user.id}`);
+
           if (response.ok) {
             const userData = await response.json();
-            
+
             setUser({
               id: userData.id,
               language: userData.language || 'de',
@@ -48,27 +48,27 @@ export function useAuth() {
               weight: userData.weight || 0,
               maxPushups: userData.maxPushups || 0,
               groupCode: userData.groupCode || '',
-              photoURL: session.user.image || undefined,
+              photoURL: user.profileImageUrl || undefined,
               shareProfilePicture: true,
               createdAt: userData.createdAt ? new Date(userData.createdAt) : new Date(),
               pushupState: userData.pushupState || { baseReps: 0, sets: 5, restTime: 90 },
               enabledActivities: userData.enabledActivities || ['pushups', 'sports', 'water', 'protein'],
               birthday: userData.birthday,
             });
-            
+
             setIsOnboarded(!!userData.birthday);
           } else if (response.status === 404) {
             // New user - set defaults
             setUser({
-              id: session.user.id!,
+              id: user.id,
               language: 'de',
-              nickname: session.user.name || session.user.email?.split('@')[0] || '',
+              nickname: user.displayName || user.primaryEmail?.split('@')[0] || '',
               gender: 'male',
               height: 0,
               weight: 0,
               maxPushups: 0,
               groupCode: '',
-              photoURL: session.user.image || undefined,
+              photoURL: user.profileImageUrl || undefined,
               shareProfilePicture: true,
               createdAt: new Date(),
               pushupState: { baseReps: 0, sets: 5, restTime: 90 },
@@ -81,7 +81,7 @@ export function useAuth() {
         } catch (error) {
           console.error('Error loading user data:', error);
           addBreadcrumb('Auth: Failed to load user data', { error: String(error) }, 'error');
-          captureException(error, { context: 'useAuth', userId: session.user.id });
+          captureException(error, { context: 'useAuth', userId: user.id });
           setUser(null);
           setIsOnboarded(false);
         } finally {
@@ -98,7 +98,7 @@ export function useAuth() {
         setIsOnboarded(false);
         setTracking({});
         setAuthLoading(false);
-        
+
         try {
           localStorage.clear();
           sessionStorage.clear();
@@ -109,6 +109,5 @@ export function useAuth() {
     };
 
     loadUserData();
-  }, [session, status, setUser, setIsOnboarded, setTracking, setAuthLoading]);
+  }, [user, setUser, setIsOnboarded, setTracking, setAuthLoading]);
 }
-

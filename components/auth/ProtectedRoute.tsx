@@ -1,35 +1,38 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useUser } from '@stackframe/stack'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { data: session, status } = useSession()
+  const user = useUser()
   const router = useRouter()
 
   useEffect(() => {
-    if (status === 'loading') return // Still loading
+    // user is undefined while loading, null when not authenticated
+    if (user === undefined) return // Still loading
 
-    if (!session) {
-      router.push('/auth/signin')
+    if (user === null) {
+      router.push('/handler/sign-in')
       return
     }
-  }, [session, status, router])
+  }, [user, router])
 
-  if (status === 'loading') {
+  // Loading state
+  if (user === undefined) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-winter-900 to-winter-800 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-winter-400 mx-auto mb-4"></div>
-          <p className="text-winter-300">Lädt...</p>
+          <p className="text-winter-300">Laden...</p>
         </div>
       </div>
     )
   }
 
-  if (!session) {
-    return null // Will redirect to signin
+  // Not authenticated - will redirect
+  if (user === null) {
+    return null
   }
 
   return <>{children}</>

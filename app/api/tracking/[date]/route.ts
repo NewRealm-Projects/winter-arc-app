@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { stackServerApp } from '@/lib/stack';
 import { db } from '@/lib/db';
 import { trackingEntries } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -10,13 +10,13 @@ export async function GET(
   { params }: { params: { date: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const user = await stackServerApp.getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const date = params.date;
-    const userId = session.user.id;
+    const userId = user.id;
 
     const entry = await db.select()
       .from(trackingEntries)
@@ -53,13 +53,13 @@ export async function POST(
   { params }: { params: { date: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const user = await stackServerApp.getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const date = params.date;
-    const userId = session.user.id;
+    const userId = user.id;
     const body = await request.json();
 
     // Check if entry exists
@@ -119,13 +119,13 @@ export async function PATCH(
   { params }: { params: { date: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const user = await stackServerApp.getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const date = params.date;
-    const userId = session.user.id;
+    const userId = user.id;
     const body = await request.json();
 
     // Check if entry exists
@@ -144,7 +144,7 @@ export async function PATCH(
     // Update only provided fields
     const updateData: any = { updatedAt: new Date() };
     const allowedFields = ['pushups', 'sports', 'water', 'protein', 'weight', 'completed'];
-    
+
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
         updateData[field] = body[field];
