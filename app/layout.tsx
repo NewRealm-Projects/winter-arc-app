@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
-import { StackAuthProvider } from '@/components/providers/StackAuthProvider';
+import { StackAuthProvider } from './components/providers/StackAuthProvider';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PWARegister } from './components/PWARegister';
 import './globals.css';

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { stackServerApp } from '@/lib/stack';
 import { db } from '@/lib/db';
 import { groups, users } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -10,13 +10,13 @@ export async function GET(
   { params }: { params: { code: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user) {
+    const user = await stackServerApp.getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const code = params.code;
-    
+
     const group = await db.select().from(groups).where(eq(groups.code, code)).limit(1);
     
     if (group.length === 0) {
@@ -47,8 +47,8 @@ export async function POST(
   { params }: { params: { code: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const user = await stackServerApp.getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -57,7 +57,7 @@ export async function POST(
 
     // Check if group already exists
     const existingGroup = await db.select().from(groups).where(eq(groups.code, code)).limit(1);
-    
+
     if (existingGroup.length > 0) {
       return NextResponse.json({ error: 'Group code already exists' }, { status: 409 });
     }
@@ -67,14 +67,14 @@ export async function POST(
       .values({
         code,
         name: body.name || code,
-        members: [session.user.id],
+        members: [user.id],
       })
       .returning();
 
     // Update user's groupCode
     await db.update(users)
       .set({ groupCode: code, updatedAt: new Date() })
-      .where(eq(users.id, session.user.id));
+      .where(eq(users.id, user.id));
 
     return NextResponse.json(newGroup[0]);
   } catch (error) {
@@ -89,8 +89,8 @@ export async function PATCH(
   { params }: { params: { code: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const user = await stackServerApp.getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -149,8 +149,8 @@ export async function DELETE(
   { params }: { params: { code: string } }
 ) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const user = await stackServerApp.getUser();
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -23,7 +23,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { todayKey } from '../lib/date';
+import { todayKey } from '@/lib/date';
 import { useStore } from '../store/useStore';
 
 const ISO_WEEK_PATTERN = /^(\d{4})-(\d{2})$/;
