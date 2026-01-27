@@ -6,10 +6,8 @@ Die folgenden Versionen der **Winter Arc App** werden derzeit aktiv mit Sicherhe
 
 | Version | Supportstatus         |
 |----------|-----------------------|
-| 5.1.x    | ✅ Aktiv (Main Branch) |
-| 5.0.x    | ❌ Keine Updates mehr  |
-| 4.0.x    | ✅ LTS Support         |
-| < 4.0    | ❌ Nicht unterstützt   |
+| 0.1.x    | ✅ Aktiv (Main Branch) |
+| < 0.1    | ❌ Nicht unterstützt   |
 
 ---
 

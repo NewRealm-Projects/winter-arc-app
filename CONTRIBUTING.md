@@ -157,9 +157,10 @@ Der Scope gibt den betroffenen Bereich an:
 - `ui` - UI Components
 - `pwa` - PWA Features
 - `routes` - Routing
-- `firebase` - Firebase Integration
+- `db` - Database (PostgreSQL/Drizzle)
+- `auth` - Authentication (Stack Auth)
+- `api` - API Routes
 - `theme` - Design Tokens, Theming
-- `agent` - Agent-System
 - `ci` - CI/CD Pipeline
 - `deps` - Dependencies
 
@@ -172,11 +173,11 @@ feat(pwa): implement lazy loading for routes
 
 # Bug Fix
 fix(pushup): correct Base & Bump algorithm calculation
-fix(firebase): handle auth error on logout
+fix(auth): handle auth error on logout
 
 # Refactor
 refactor(tiles): extract getTileClasses() helper
-refactor(hooks): consolidate firebase hooks
+refactor(hooks): consolidate tracking hooks
 
 # Chore
 chore(deps): upgrade playwright to 1.50.0
@@ -534,47 +535,6 @@ npm run agent:bundle
 - Main Chunk: < 600 KB
 - Total JS: < 1500 KB
 - Individual Chunks: < 200 KB (empfohlen)
-
----
-
-## 🤖 Agentisches Entwicklungs-Setup
-
-### 4 Spezialisierte Agents
-
-1. **UI-Refactor Agent** ([`.agent/ui-refactor.agent.md`](.agent/ui-refactor.agent.md))
-   - Trigger: Inkonsistentes Glass/Blur Design, fehlende Mobile-Optimierung
-   - Fokus: Design Token System, One-Screen-Regel
-
-2. **PWA/Performance Agent** ([`.agent/pwa-perf.agent.md`](.agent/pwa-perf.agent.md))
-   - Trigger: Lighthouse < 90, Bundle > 600 KB
-   - Fokus: Lazy Loading, Bundle-Optimierung
-
-3. **Test/Guard Agent** ([`.agent/test-guard.agent.md`](.agent/test-guard.agent.md))
-   - Trigger: Coverage < 70%, fehlende E2E Tests
-   - Fokus: Unit Tests, E2E Tests, Visual Regression
-
-4. **Docs/Changelog Agent** ([`.agent/docs-changelog.agent.md`](.agent/docs-changelog.agent.md))
-   - Trigger: Veraltete Docs, fehlende CHANGELOG-Einträge
-   - Fokus: README, CLAUDE.md, CHANGELOG synchron halten
-
-### Agent-Workflow
-
-```bash
-# 1. Agent-Spec lesen
-cat .agent/<agent-name>.agent.md
-
-# 2. Branch erstellen
-git checkout -b feat/<agent>-<topic>
-
-# 3. Schritte abarbeiten (siehe Agent-Spec)
-# 4. Tests ausführen
-npm run test:all
-
-# 5. PR erstellen mit Artefakten
-gh pr create --base dev --title "[Agent] ..." --body "..."
-```
-
-**Policies**: Siehe [`.agent/policies.md`](.agent/policies.md)
 
 ---
 

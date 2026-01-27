@@ -5,17 +5,16 @@ Use this checklist before deploying a new version of Winter Arc Tracker.
 ## Pre-Release Testing
 
 ### Functionality
-- [ ] Login with Google OAuth works
+- [ ] Login with Stack Auth works
 - [ ] Onboarding flow completes successfully
 - [ ] Dashboard loads and displays user data
-- [ ] Tracking page saves data to Firestore
+- [ ] Tracking page saves data to database
 - [ ] Leaderboard shows group members correctly
 - [ ] Settings page allows profile updates
 - [ ] Logout works and clears state
 
 ### Data Persistence
-- [ ] Tracking data syncs to Firestore
-- [ ] Offline changes sync when reconnected
+- [ ] Tracking data syncs to PostgreSQL
 - [ ] No data loss on page refresh
 - [ ] User preferences persist
 
@@ -48,10 +47,9 @@ Use this checklist before deploying a new version of Winter Arc Tracker.
 
 ## Security & Privacy
 
-### Firebase Security
-- [ ] Firestore security rules prevent unauthorized access
-- [ ] Firebase App Check enabled (production)
-- [ ] API keys restricted to authorized domains
+### Database Security
+- [ ] API routes validate authentication
+- [ ] Database queries use parameterized statements
 - [ ] CORS configured correctly
 
 ### Data Protection
@@ -86,33 +84,24 @@ Use this checklist before deploying a new version of Winter Arc Tracker.
 ## Environment Configuration
 
 ### Production Environment Variables
-- [ ] `VITE_FIREBASE_API_KEY` set
-- [ ] `VITE_FIREBASE_AUTH_DOMAIN` set
-- [ ] `VITE_FIREBASE_PROJECT_ID` set
-- [ ] `VITE_FIREBASE_STORAGE_BUCKET` set
-- [ ] `VITE_FIREBASE_MESSAGING_SENDER_ID` set
-- [ ] `VITE_FIREBASE_APP_ID` set
-- [ ] `VITE_GEMINI_API_KEY` set (optional)
-- [ ] `VITE_RECAPTCHA_SITE_KEY` set (recommended)
-- [ ] `VITE_SENTRY_DSN` set (optional)
-- [ ] `SENTRY_AUTH_TOKEN` set in CI/build pipeline for source map upload (optional)
-- [ ] `SENTRY_ORG`/`SENTRY_PROJECT` override set if different from defaults (optional)
+- [ ] `DATABASE_URL` set
+- [ ] `NEXT_PUBLIC_STACK_PROJECT_ID` set
+- [ ] `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY` set
+- [ ] `STACK_SECRET_SERVER_KEY` set
 
-### Firebase Console
-- [ ] Authorized domains include production domain
-- [ ] Firestore indexes created (if needed)
-- [ ] Firebase Hosting configured (if using)
-- [ ] App Check configured for production
+### Vercel
+- [ ] All environment variables configured
+- [ ] Production domain configured
+- [ ] Preview deployments working
 
 ## Code Quality
 
 ### Automated Checks
-- [ ] `npm run test:all` passes
-- [ ] `npm run typecheck` passes
+- [ ] `npm run test` passes
+- [ ] `npm run typecheck` passes (if available)
 - [ ] `npm run lint` passes
 - [ ] No console errors in production build
 - [ ] No TypeScript errors
-- [ ] No ESLint warnings
 
 ### Code Review
 - [ ] All PRs reviewed and approved
@@ -127,17 +116,12 @@ Use this checklist before deploying a new version of Winter Arc Tracker.
   ```bash
   npm run build
   ```
-- [ ] Preview production build works
-  ```bash
-  npm run preview
-  ```
-- [ ] Bundle size is reasonable (< 500KB gzipped)
-- [ ] Source maps uploaded to Sentry when credentials available
+- [ ] Bundle size is reasonable
 
 ### Deployment
-- [ ] Deploy to staging environment first
-- [ ] Test staging environment thoroughly
-- [ ] Deploy to production
+- [ ] Deploy to preview environment first
+- [ ] Test preview environment thoroughly
+- [ ] Deploy to production via Vercel
 - [ ] Verify production deployment
 
 ### Post-Deployment
@@ -145,29 +129,23 @@ Use this checklist before deploying a new version of Winter Arc Tracker.
 - [ ] No errors in browser console
 - [ ] No errors in Sentry/error tracking
 - [ ] Monitor initial user sessions
-- [ ] Check Firebase usage/quotas
 
 ## Documentation
 
 - [ ] CHANGELOG.md updated with new features/fixes
 - [ ] README.md reflects current features
 - [ ] CLAUDE.md updated if architecture changed
-- [ ] API documentation updated (if applicable)
-- [ ] User-facing help docs updated (if applicable)
 
 ## Rollback Plan
 
 ### If Issues Arise
-- [ ] Rollback steps documented
+- [ ] Rollback via Vercel dashboard
 - [ ] Previous version tagged in git
 - [ ] Database migrations are reversible (if applicable)
-- [ ] Communication plan for users (if downtime)
 
 ### Monitoring
 - [ ] Sentry error tracking active
-- [ ] Firebase Analytics tracking events
 - [ ] User feedback channel available
-- [ ] On-call contact available for critical issues
 
 ## Accessibility (A11y) Quick Scan
 
@@ -177,21 +155,6 @@ Use this checklist before deploying a new version of Winter Arc Tracker.
 - [ ] Screen reader friendly (test with VoiceOver/NVDA)
 - [ ] No flashing/strobing content
 - [ ] Focus indicators visible
-
-## Optional Enhancements
-
-### Nice-to-Have Before Release
-- [ ] Dark mode background image optimized
-- [ ] Loading skeletons for async content
-- [ ] Error boundaries for graceful failures
-- [ ] Rate limiting on API calls
-- [ ] Analytics event tracking
-
-### Future Considerations
-- [ ] Push notifications (FCM)
-- [ ] Social sharing
-- [ ] Data export feature
-- [ ] Achievements/badges system
 
 ---
 
@@ -205,7 +168,6 @@ Use this checklist before deploying a new version of Winter Arc Tracker.
 ## Sign-Off
 
 - [ ] Tech Lead approval
-- [ ] Product Owner approval
 - [ ] QA approval
 
 ---
