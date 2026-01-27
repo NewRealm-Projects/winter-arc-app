@@ -14,6 +14,7 @@ const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
 
 const DEFAULT_ACTIVITY_LEVEL: ActivityLevel = 'moderate';
 const PROTEIN_PER_KG = 2.0; // 2g protein per kg bodyweight
+const WATER_ML_PER_KG = 35; // 35ml water per kg bodyweight
 const CARBS_PERCENTAGE = 0.4; // 40% of calories from carbs
 const FAT_PERCENTAGE = 0.3; // 30% of calories from fat
 const KCAL_PER_G_CARBS = 4; // 4 kcal per gram of carbs
@@ -56,13 +57,29 @@ export function calculateTDEE(
  * Standard recommendation: 2g per kg bodyweight
  *
  * @param weight - User's weight in kg
+ * @param multiplier - Optional multiplier (default: 2g per kg)
  * @returns Daily protein goal in grams
  */
-export function calculateProteinGoal(weight: number): number {
+export function calculateProteinGoal(weight: number, multiplier: number = PROTEIN_PER_KG): number {
   if (weight <= 0) {
     return 0;
   }
-  return Math.round(weight * PROTEIN_PER_KG);
+  return Math.round(weight * multiplier);
+}
+
+/**
+ * Calculate daily water goal based on bodyweight
+ * Standard recommendation: 35ml per kg bodyweight
+ *
+ * @param weight - User's weight in kg
+ * @param multiplier - Optional multiplier in ml per kg (default: 35ml per kg)
+ * @returns Daily water goal in milliliters
+ */
+export function calculateWaterGoal(weight: number, multiplier: number = WATER_ML_PER_KG): number {
+  if (weight <= 0) {
+    return 0;
+  }
+  return Math.round(weight * multiplier);
 }
 
 /**

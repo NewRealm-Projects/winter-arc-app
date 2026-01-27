@@ -1,7 +1,16 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
-import { ThemeContext, type Theme } from './theme-context';
+import { createContext, useEffect, useState, type ReactNode } from 'react';
+
+export type Theme = 'light' | 'dark' | 'system';
+
+export interface ThemeContextType {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  resolvedTheme: 'light' | 'dark';
+}
+
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'winter-arc-theme';
 

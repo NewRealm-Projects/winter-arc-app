@@ -1,7 +1,7 @@
 import { addDays, format } from 'date-fns';
 import type { DailyTracking, Activity, User, DailyCheckIn } from '../types';
 import { countActiveSports } from './sports';
-import { calculateProteinGoal, calculateWaterGoal } from './calculations';
+import { calculateProteinGoal, calculateWaterGoal } from './nutrition';
 import {
   STREAK_COMPLETION_THRESHOLD,
   STREAK_WEIGHTS_BASE,
