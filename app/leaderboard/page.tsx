@@ -11,7 +11,7 @@ function LeaderboardContent() {
   const user = useStore((state) => state.user);
 
   if (!user) {
-    redirect('/auth/signin');
+    redirect('/handler/sign-in');
   }
 
   return (
